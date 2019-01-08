@@ -138,7 +138,9 @@ void make_plots(){
     TEfficiency* nueCCEff = new TEfficiency(*nueCCnonQESel,*nueCCnonQEAll);
 
     tree->Draw("energy>>numuCCQEAll", "(label==2.0)");
+    tree->Draw("energy>>numuCCQEAll", "(label==3.0)");
     tree->Draw("energy>>numuCCQESel", "(label==2.0) && (o0+o1>0.9)");
+    tree->Draw("energy>>numuCCQESel", "(label==3.0) && (o0+o1>0.9)");
     TEfficiency* numuCCQEEff = new TEfficiency(*numuCCQESel,*numuCCQEAll);
 
     tree->Draw("energy>>numuCCnonQEAll", "(label==3.0)");
@@ -171,17 +173,16 @@ void make_plots(){
     hempty->GetXaxis()->SetLabelSize(0.05);    hempty->GetYaxis()->SetLabelSize(0.05);
     hempty->Draw();
 
-    nueCCQEEff->SetLineColor(kBlack);       nueCCQEEff->SetLineWidth(2);   nueCCQEEff->SetMarkerSize(1.2);    nueCCQEEff->SetMarkerStyle(20);    nueCCQEEff->SetMarkerColor(kBlack);    nueCCQEEff->Draw("sameP");
+    nueCCQEEff->SetLineColor(kGreen);       nueCCQEEff->SetLineWidth(2);   nueCCQEEff->SetMarkerSize(1.2);    nueCCQEEff->SetMarkerStyle(20);    nueCCQEEff->SetMarkerColor(kGreen);    nueCCQEEff->Draw("sameP");
     nueCCEff->SetLineColor(kBlue);          nueCCEff->SetLineWidth(2);     nueCCEff->SetMarkerSize(1.2);      nueCCEff->SetMarkerStyle(20);      nueCCEff->SetMarkerColor(kBlue);       nueCCEff->Draw("sameP");
-    numuCCQEEff->SetLineColor(kGreen+2);    numuCCQEEff->SetLineWidth(2);  numuCCQEEff->SetMarkerSize(1.2);   numuCCQEEff->SetMarkerStyle(20);   numuCCQEEff->SetMarkerColor(kGreen+2); numuCCQEEff->Draw("sameP");
-    //numuCCEff->SetLineColor(kBlue+1);      numuCCEff->SetLineWidth(2);    numuCCEff->SetMarkerSize(1.2);     numuCCEff->SetMarkerStyle(20);     numuCCEff->SetMarkerColor(kBlue+1);   numuCCEff->Draw("sameP");
-    NCEff->SetLineColor(kMagenta);          NCEff->SetLineWidth(2);        NCEff->SetMarkerSize(1.2);         NCEff->SetMarkerStyle(20);         NCEff->SetMarkerColor(kMagenta);       NCEff->Draw("sameP");
-    nueCCSignal->SetLineColor(kRed);        nueCCSignal->SetLineWidth(2);  nueCCSignal->SetMarkerSize(1.2);   nueCCSignal->SetMarkerStyle(20);   nueCCSignal->SetMarkerColor(kRed);     nueCCSignal->Draw("sameP");
+    numuCCQEEff->SetLineColor(kMagenta);    numuCCQEEff->SetLineWidth(2);  numuCCQEEff->SetMarkerSize(1.2);   numuCCQEEff->SetMarkerStyle(20);   numuCCQEEff->SetMarkerColor(kMagenta); numuCCQEEff->Draw("sameP");
+    //numuCCEff->SetLineColor(kMagenta);    numuCCEff->SetLineWidth(2);    numuCCEff->SetMarkerSize(1.2);     numuCCEff->SetMarkerStyle(20);     numuCCEff->SetMarkerColor(kMagenta);   numuCCEff->Draw("sameP");
+    NCEff->SetLineColor(kRed);              NCEff->SetLineWidth(2);        NCEff->SetMarkerSize(1.2);         NCEff->SetMarkerStyle(20);         NCEff->SetMarkerColor(kRed);       NCEff->Draw("sameP");
+    nueCCSignal->SetLineColor(kBlack);      nueCCSignal->SetLineWidth(2);  nueCCSignal->SetMarkerSize(1.2);   nueCCSignal->SetMarkerStyle(20);   nueCCSignal->SetMarkerColor(kBlack);     nueCCSignal->Draw("sameP");
 
-    /*
-    TLegend *leg = new TLegend(0.12, 0.70, 0.32, 0.9, "Efficiency");
-    leg->AddEntry(nueCCQEEff, "#nu_{e} CCQE", "P");
-    leg->AddEntry(nueCCEff, "#nu_{e} CC", "P");
+    TLegend *leg = new TLegend(0.7, 0.55, 0.9, 0.75, "Efficiency");
+    leg->AddEntry(nueCCQEEff, "#nu_{e} CC QE", "P");
+    leg->AddEntry(nueCCEff, "#nu_{e} CC nQE", "P");
     //leg->AddEntry(numuCCEff, "#nu_{#mu} CC nonQE", "P");
     leg->AddEntry(numuCCQEEff, "#nu_{#mu} CC", "P");
     leg->AddEntry(NCEff, "NC", "P");
@@ -191,14 +192,13 @@ void make_plots(){
     leg->SetFillStyle(0);
     leg->Draw();
 
-    TLegend *leg2 = new TLegend(0.12, 0.62, 0.32, 0.7, "Purity");
+    TLegend *leg2 = new TLegend(0.7, 0.45, 0.9, 0.55, "Purity");
     leg2->AddEntry(nueCCSignal, "#nu_{e} CC", "P");
     leg2->SetTextFont(42);
     leg2->SetFillColor(0);
     leg2->SetFillStyle(0);
     leg2->SetTextSize(0.03);
     leg2->Draw();
-    */
 
     c5->Update();
     c5->SaveAs("effPur.png");
