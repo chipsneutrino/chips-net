@@ -1,7 +1,7 @@
-void make_plots(){
+void cvn_output_plots(){
     gStyle->SetOptStat(0);
 
-    const char* outputFile = "/unix/chips/jtingey/CHIPS/data/CVN/plots/output/5_model2.txt";
+    const char* outputFile = "out.txt";
 
     float weightNueCCQEEvents       = 0.007;
     float weightNueCCnonQEEvents    = 0.028;

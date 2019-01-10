@@ -5,15 +5,14 @@
 #include <vector>
 #include <fstream>
 
-void wcsim_to_image(const char* in_dir="", const char* out_name="", 
-                    int label=-999, int PDG_code=-999, bool save_parameters=true) {
+void cvn_make_images(const char* in_dir="", const char* out_name="", 
+                    int label=-999, int PDG_code=-999, 
+                    bool save_parameters=true, int images_to_make=10000) {
 
     // Other Options
     int num_files           = 200;      // Number of files in input directory
     int num_hits_cut        = 100;      // Cut to apply on the number of hits
     bool make_plots         = true;    // Shall we produce a plots file with monitoring histograms
-    bool save_parameters    = true;     // Shall we save the truth parameters?
-    int images_to_make      = 10000;     // Number of images to make
     const int image_x_bins  = 32;       // Number of x bins in the images
     const int image_y_bins  = 32;       // Number of y bins in the images
 
@@ -202,6 +201,14 @@ void wcsim_to_image(const char* in_dir="", const char* out_name="",
                     output_file << dirTheta << " ";
                     output_file << dirPhi << " ";
                     output_file << lepE << " ";    
+                } else {
+                    output_file << 0.0 << " ";
+                    output_file << 0.0 << " ";
+                    output_file << 0.0 << " ";
+                    output_file << 0.0 << " ";
+                    output_file << 0.0 << " ";
+                    output_file << 0.0 << " ";
+                    output_file << 0.0 << " ";                        
                 }
 
                 if (make_plots) {
