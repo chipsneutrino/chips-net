@@ -49,10 +49,13 @@ def network_train(file, valFrac, testFrac, batchSize, lRate, epochs, outputFile,
 	categories = 5
 	cnn_model = models.cnn_model(categories, input_shape, lRate)       	# Get the Keras CNN model
    	
-	cnn_model.fit(train_images, train_labels, batch_size=batchSize,    	# Fit the model
-				  epochs=epochs, verbose=1,
-				  validation_data=(val_images, val_labels),
-				  callbacks=[utils.callback_checkpoint("model.ckpt")])    
+	history = cnn_model.fit(train_images, train_labels,					# Fit the model
+							batch_size=int(batchSize),
+				  			epochs=int(epochs), verbose=1,
+				  			validation_data=(val_images, val_labels),
+				  			callbacks=[utils.callback_checkpoint("model.ckpt")])    
+
+	utils.plot_history(history)
 
 	# Split the testing sample into labels, beam energies and normalised images
 	test_labels, test_energies, test_images = utils.labels_energies_images(test_data, True, noHit, noTime)
