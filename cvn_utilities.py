@@ -62,7 +62,7 @@ def load_multiple_txt_files(fileNames, skipRows, validFrac, testFrac):
 # Format of image .txt files is either...
 # [Labels(1), Beam Energies(1), Lepton Parameters(7), pixelsH(1024), pixelsT(1024)]
 # Extract this formatting and normalise images if required
-def labels_energies_parameters_images(data, norm):
+def labels_energies_parameters_images(data, norm, noHit, noTime):
     labels      = data[:, 0]        # Index 0
     energies    = data[:, 1]        # Index 1
     parameters  = data[:, 2:9]      # Index 2-8
@@ -82,16 +82,23 @@ def labels_energies_parameters_images(data, norm):
     print("Labels:{0} Energies:{1} Params:{2} Images:{3}".format( # Print array shapes
           labels.shape, energies.shape, parameters.shape, images.shape))    
 
-    return labels, energies, parameters, images
+    if noHit and not noTime:
+        print("Just using time channel!")
+        return labels, energies, parameters, images_time
+    elif not noHit and noTime:
+        print("Just using hit channel!")
+        return labels, energies, parameters, images_hit
+    else:
+        return labels, energies, parameters, images
 
 # Just return the labels and images
-def labels_images(data, norm):
-    labels, energies, parameters, images = labels_energies_parameters_images(data, norm)
+def labels_images(data, norm, noHit, noTime):
+    labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime)
     return labels, images
 
 # Just return the labels, beam energies and images
-def labels_energies_images(data, norm):
-    labels, energies, parameters, images = labels_energies_parameters_images(data, norm)
+def labels_energies_images(data, norm, noHit, noTime):
+    labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime)
     return labels, energies, images
 
 def replace_labels(array, input, output):

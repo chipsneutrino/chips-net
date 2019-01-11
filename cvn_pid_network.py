@@ -24,36 +24,38 @@ def parse_args():
 	parser.add_argument('-b', '--batchSize', default = 500,     help = 'Training batch size (500)')
 	parser.add_argument('-l', '--lRate',     default = 0.001,   help = 'Training learning rate (0.001)')
 	parser.add_argument('-e', '--epochs',    default = 10,      help = 'Training epochs (10)')
+	parser.add_argument('--noHit',  action = 'store_true', 		help = 'Do not use hit channel')
+	parser.add_argument('--noTime', action = 'store_true', 		help = 'Do not use time channel')
 
 	return parser.parse_args()	    
 
-def network_train(file, valFrac, testFrac, batchSize, lRate, epochs, outputFile):
+def network_train(file, valFrac, testFrac, batchSize, lRate, epochs, outputFile, noHit, noTime):
 	print("Train: Beginning training...")
 
 	# Load, shuffle and split the data into the different samples
 	train_data, val_data, test_data = utils.load_txt_file(file, 0, valFrac, testFrac)
 
 	# Split train and validation samples into labels and normalised images
-	train_labels, train_images = utils.labels_images(train_data, True)
-	val_labels, val_images = utils.labels_images(val_data, True)
+	train_labels, train_images = utils.labels_images(train_data, True, noHit, noTime)
+	val_labels, val_images = utils.labels_images(val_data, True, noHit, noTime)
 
 	utils.shift_labels_down(train_labels)
 	utils.shift_labels_down(val_labels)
 
-	cnn_model = models.cnn_model(5, (32, 32, 2))       					# Get the Keras CNN model
-	cnn_model.summary()                                                 # Print the model summary
+	input_shape = (32, 32, 2)
+	if noHit or noTime:
+		input_shape = (32, 32, 1)
 
-	cnn_model.compile(loss='sparse_categorical_crossentropy',           # Compile the model
-					  optimizer=optimizers.Adam(lr=float(lRate)),
-					  metrics=['accuracy'])    
-	
+	categories = 5
+	cnn_model = models.cnn_model(categories, input_shape, lRate)       	# Get the Keras CNN model
+   	
 	cnn_model.fit(train_images, train_labels, batch_size=batchSize,    	# Fit the model
 				  epochs=epochs, verbose=1,
 				  validation_data=(val_images, val_labels),
 				  callbacks=[utils.callback_checkpoint("model.ckpt")])    
 
 	# Split the testing sample into labels, beam energies and normalised images
-	test_labels, test_energies, test_images = utils.labels_energies_images(test_data, True)
+	test_labels, test_energies, test_images = utils.labels_energies_images(test_data, True, noHit, noTime)
 	utils.shift_labels_down(test_labels)
 
 	score = cnn_model.evaluate(test_images, test_labels, verbose=0)     # Score the model
@@ -78,13 +80,17 @@ def network_evaluate():
 def main():
 	args = parse_args() # Get the command line arguments
 
+	if args.noHit and args.noTime:
+		print("Error: Need to use at least one channel")
+		sys.exit()		
+
 	if args.train and args.eval:
 		print("Error: Can't train and evaluate at the same time")
 		sys.exit()
 	elif args.train and not args.eval:
 		network_train(args.file, args.valFrac, args.testFrac, 
 					  args.batchSize, args.lRate, args.epochs,
-					  args.output)
+					  args.output, args.noHit, args.noTime)
 	elif args.eval and not args.train:
 		network_evaluate(args.file)
 	else:
