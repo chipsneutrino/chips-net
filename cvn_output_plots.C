@@ -1,7 +1,7 @@
 void cvn_output_plots(){
     gStyle->SetOptStat(0);
 
-    const char* outputFile = "out.txt";
+    const char* outputFile = "/unix/chips/jtingey/CHIPS/data/CVN/plots/newOutput/pid.txt";
 
     float weightNueCCQEEvents       = 0.007;
     float weightNueCCnonQEEvents    = 0.028;

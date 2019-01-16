@@ -6,13 +6,13 @@
 #include <fstream>
 
 void cvn_make_images(const char* in_dir="", const char* out_name="", 
-                    int label=-999, int PDG_code=-999, 
-                    bool save_parameters=true, int images_to_make=10000) {
+                    int label=-999, int PDG_code=-999, int images_to_make=50000) {
 
     // Other Options
     int num_files           = 200;      // Number of files in input directory
     int num_hits_cut        = 100;      // Cut to apply on the number of hits
-    bool make_plots         = true;    // Shall we produce a plots file with monitoring histograms
+    bool make_plots         = false;    // Shall we produce a plots file with monitoring histograms
+    bool save_parameters    = true;     // Save additional parameters
     const int image_x_bins  = 32;       // Number of x bins in the images
     const int image_y_bins  = 32;       // Number of y bins in the images
 
@@ -112,7 +112,10 @@ void cvn_make_images(const char* in_dir="", const char* out_name="",
                 // Load the truthSummary
             	WCSimTruthSummary truth_summary = wcsimrootsuperevent->GetTruthSummary();
                 float beamE = truth_summary.GetBeamEnergy();
-                float vtxX, vtxY, vtxZ, vtxT, dirTheta, dirPhi, lepE;
+                float vtxX, vtxY, vtxZ, vtxT;
+                float dirTheta = 0.0;
+                float dirPhi = 0.0;
+                float lepE = 0.0;
                 if (save_parameters) {
                     vtxX = truth_summary.GetVertexX(); 
                     vtxY = truth_summary.GetVertexY(); 
