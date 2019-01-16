@@ -16,7 +16,8 @@ def parse_args():
 	parser = argparse.ArgumentParser(description='Evaluate/Train CHIPS CVN PID Network')
 
 	parser.add_argument('file', help = 'Path to input "image" .txt file')
-	parser.add_argument('-o', '--output',    default='pid.txt', help = 'Output .txt file')
+	parser.add_argument('-o', '--output',    default='output/parameter.txt', help = 'Output .txt file')
+	parser.add_argument('-p', '--parameter', default = 6,		help = 'Parameter to fit (lepton Energy = 6)')
 	parser.add_argument('--train', action = 'store_true',       help = 'Use to train the network')
 	parser.add_argument('--eval',  action = 'store_true',       help = 'Use to evaluate on the network')
 	parser.add_argument('-v', '--valFrac',   default = 0.1,     help = 'Fraction of events for validation (0.1)')
@@ -28,54 +29,50 @@ def parse_args():
 	parser.add_argument('--noTime', action = 'store_true', 		help = 'Do not use time channel')
 	parser.add_argument('--norm',   action = 'store_true',		help = 'Normalise the channels')
 
-	return parser.parse_args()	    
+	return parser.parse_args()	  
 
-def pid_network_train(file, outputFile, valFrac, testFrac, norm,
-					  batchSize, learningRate, numEpochs, noHit, noTime):
+def parameter_network_train(parameter, file, outputFile, valFrac, testFrac, norm, 
+							batchSize, learningRate, numEpochs, noHit, noTime):
 
 	# Print configuration to stdout
-	print("Beginning Training -> ValidationFrac:{0} TestingFrac:{1}".format(
+	print("Beginning Training -> Parameter:{0} ValidationFrac:{1} TestingFrac:{2}".format(
 		  parameter, valFrac, testFrac))    
 	print("Beginning Training -> Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(
 		  norm, batchSize, learningRate, numEpochs))  
-
+	
 	# Load, shuffle and split the data into the different samples
-	train_data, val_data, test_data = utils.load_txt_file(file, 0, valFrac, testFrac)
+	train_data, val_data, test_data = utils.load_txt_file(file, 0, valFrac, testFrac)	
 
-	# Split train and validation samples into labels and normalised images
-	train_labels, train_images = utils.labels_images(train_data, norm, noHit, noTime)
-	val_labels, val_images = utils.labels_images(val_data, norm, noHit, noTime)
-	test_labels, test_energies, test_images = utils.labels_energies_images(test_data, norm, noHit, noTime)
+	# Split data samples into parameters_labels and images
+	train_labels, train_images 	= utils.parameter_images(train_data, norm, noHit, noTime, parameter)
+	val_labels, val_images 		= utils.parameter_images(val_data, norm, noHit, noTime, parameter)
+	test_labels, test_images 	= utils.parameter_images(test_data, norm, noHit, noTime, parameter)
 
 	# Configure the image input_shape for the network depending on the number of channels
 	input_shape = (32, 32, 2)
 	if noHit or noTime:
 		input_shape = (32, 32, 1)
 
-	# Get the keras CVN PID model
-	categories = 5
-	cvn_model = models.cvn_pid_model(categories, input_shape, learningRate)
-   	
+	# Get the specific Keras CVN parameter model
+	cvn_model = models.cvn_parameter_model(parameter, input_shape, learningRate)
+
 	# Fit the model with the training data and store the training "history"
 	train_history = cvn_model.fit(train_images, train_labels,
 								  batch_size=batchSize,
-				  				  epochs=numEpochs, verbose=1,
-				  				  validation_data=(val_images, val_labels),
-				  				  callbacks=[utils.callback_checkpoint("model.ckpt")])    
-
-	score = cvn_model.evaluate(test_images, test_labels, verbose=0)     # Score the model
-	print('Test Loss: {:.4f}, Test Accuracy: {:.4f}'.format(score[0], score[1]))
+								  epochs=numEpochs, verbose=1,
+								  validation_data=(val_images, val_labels),
+								  callbacks=[utils.callback_checkpoint("output/parameter_model.ckpt")])
 
 	# Save history to training output
-	utils.save_category_history(train_history, outputFile)
+	utils.save_regression_history(train_history, outputFile)
 
 	# Evaluate the test sample on the trained model and save output to file
 	test_output = cvn_model.predict(test_images, verbose=0)
-	utils.save_category_output(test_labels, test_energies, test_output, outputFile)
+	utils.save_regression_output(test_labels, test_output, outputFile)
 
-def pid_network_evaluate():
+def parameter_network_evaluate():
 	print("Evaluate: Beginning evaluation...")
-	#cvn_model.load_weights(checkpoint_path)
+	#cnn_model.load_weights(checkpoint_path)
 
 def main():
 	args = parse_args() # Get the command line arguments
@@ -88,11 +85,12 @@ def main():
 		print("Error: Can't train and evaluate at the same time")
 		sys.exit()
 	elif args.train and not args.eval:
-		pid_network_train(args.file, args.output, float(args.valFrac), float(args.testFrac),
-						  args.norm, int(args.batchSize), float(args.lRate), int(args.numEpochs),
-						  args.noHit, args.noTime)
+		parameter_network_train(int(args.parameter), args.file, args.output, 
+								float(args.valFrac), float(args.testFrac), args.norm, 
+								int(args.batchSize), float(args.lRate), int(args.epochs), 
+								args.noHit, args.noTime)
 	elif args.eval and not args.train:
-		pid_network_evaluate(args.file)
+		parameter_network_evaluate(args.file)
 	else:
 		print("Error: Need to specify --train or --eval")
 		sys.exit()
