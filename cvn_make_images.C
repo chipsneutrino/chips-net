@@ -13,8 +13,8 @@ void cvn_make_images(const char* in_dir="", const char* out_name="",
     int num_hits_cut        = 100;      // Cut to apply on the number of hits
     bool make_plots         = false;    // Shall we produce a plots file with monitoring histograms
     bool save_parameters    = true;     // Save additional parameters
-    const int image_x_bins  = 32;       // Number of x bins in the images
-    const int image_y_bins  = 32;       // Number of y bins in the images
+    const int image_x_bins  = 64;       // Number of x bins in the images
+    const int image_y_bins  = 64;       // Number of y bins in the images
 
 	// Load the libraries we need...
 	std::cout << "Loading libraries..." << std::endl;

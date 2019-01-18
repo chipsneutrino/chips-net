@@ -16,18 +16,19 @@ def parse_args():
 	parser = argparse.ArgumentParser(description='Evaluate/Train CHIPS CVN PID Network')
 	parser.add_argument('file', help = 'Path to input "image" .txt file')
 	parser.add_argument('-n', '--norm', action = 'store_true', help = 'Norm the channels')
+	parser.add_argument('-s', '--imageSize', default = 32, help = 'Input image size (32)')
 	return parser.parse_args()	  
 
 def main():
 	args = parse_args() # Get the command line arguments
 
 	train_data, val_data, test_data = utils.load_txt_file(args.file, 0, 0.0, 0.0)	
-	hitLabels, hitImages = utils.labels_images(train_data, args.norm, False, True)
-	timeLabels, timeImages = utils.labels_images(train_data, args.norm, True, False)
+	hitLabels, hitImages = utils.labels_images(train_data, args.norm, False, True, int(args.imageSize))
+	timeLabels, timeImages = utils.labels_images(train_data, args.norm, True, False, int(args.imageSize))
 
 	for event in range(100):
-		utils.plot_image(hitImages, int(event))
-		utils.plot_image(timeImages, int(event))
+		utils.plot_image(hitImages, int(event), int(args.imageSize))
+		utils.plot_image(timeImages, int(event), int(args.imageSize))
 
 if __name__=='__main__':
 	main()

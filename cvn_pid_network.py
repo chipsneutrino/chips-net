@@ -16,7 +16,7 @@ def parse_args():
 	parser = argparse.ArgumentParser(description='Evaluate/Train CHIPS CVN PID Network')
 
 	parser.add_argument('file', help = 'Path to input "image" .txt file')
-	parser.add_argument('-o', '--output',    default='pid.txt', help = 'Output .txt file')
+	parser.add_argument('-o', '--output',    default='output/pid.txt', help = 'Output .txt file')
 	parser.add_argument('--train', action = 'store_true',       help = 'Use to train the network')
 	parser.add_argument('--eval',  action = 'store_true',       help = 'Use to evaluate on the network')
 	parser.add_argument('-v', '--valFrac',   default = 0.1,     help = 'Fraction of events for validation (0.1)')
@@ -35,7 +35,7 @@ def pid_network_train(file, outputFile, valFrac, testFrac, norm,
 
 	# Print configuration to stdout
 	print("Beginning Training -> ValidationFrac:{0} TestingFrac:{1}".format(
-		  parameter, valFrac, testFrac))    
+		  valFrac, testFrac))    
 	print("Beginning Training -> Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(
 		  norm, batchSize, learningRate, numEpochs))  
 
@@ -61,7 +61,7 @@ def pid_network_train(file, outputFile, valFrac, testFrac, norm,
 								  batch_size=batchSize,
 				  				  epochs=numEpochs, verbose=1,
 				  				  validation_data=(val_images, val_labels),
-				  				  callbacks=[utils.callback_checkpoint("model.ckpt")])    
+				  				  callbacks=[utils.callback_checkpoint("output/pid_model.ckpt")])    
 
 	score = cvn_model.evaluate(test_images, test_labels, verbose=0)     # Score the model
 	print('Test Loss: {:.4f}, Test Accuracy: {:.4f}'.format(score[0], score[1]))
@@ -71,7 +71,7 @@ def pid_network_train(file, outputFile, valFrac, testFrac, norm,
 
 	# Evaluate the test sample on the trained model and save output to file
 	test_output = cvn_model.predict(test_images, verbose=0)
-	utils.save_category_output(test_labels, test_energies, test_output, outputFile)
+	utils.save_category_output(categories, test_labels, test_energies, test_output, outputFile)
 
 def pid_network_evaluate():
 	print("Evaluate: Beginning evaluation...")
@@ -89,7 +89,7 @@ def main():
 		sys.exit()
 	elif args.train and not args.eval:
 		pid_network_train(args.file, args.output, float(args.valFrac), float(args.testFrac),
-						  args.norm, int(args.batchSize), float(args.lRate), int(args.numEpochs),
+						  args.norm, int(args.batchSize), float(args.lRate), int(args.epochs),
 						  args.noHit, args.noTime)
 	elif args.eval and not args.train:
 		pid_network_evaluate(args.file)

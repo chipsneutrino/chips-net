@@ -8,8 +8,6 @@ import os
 #             File and Array Handling             #
 ###################################################
 
-image_shape = (32, 32, 1)
-
 def load_txt_file(file, skipRows, validFrac, testFrac):
 	print("load_txt_file ...")
 
@@ -63,17 +61,22 @@ def load_multiple_txt_files(fileNames, skipRows, validFrac, testFrac):
 # Format of image .txt files is either...
 # [Labels(1), Beam Energies(1), Lepton Parameters(7), pixelsH(1024), pixelsT(1024)]
 # Extract this formatting and normalise images if required
-def labels_energies_parameters_images(data, norm, noHit, noTime):
+def labels_energies_parameters_images(data, norm, noHit, noTime, imageSize):
+
+	imageDataLength = imageSize * imageSize
+
 	labels      = data[:, 0]        # Index 0
 	energies    = data[:, 1]        # Index 1
 	parameters  = data[:, 2:9]      # Index 2-8
-	images_hit  = data[:, 9:1033]   # Index 9-1032
-	images_time = data[:, 1033:]    # Index 1033-2057
+	images_hit  = data[:, 9:imageDataLength+9]   # Index 9-1032
+	images_time = data[:, imageDataLength+9:]    # Index 1033-2057
 
 	#TODO: Think about improving upon this simple normalisation
 	if norm:
 		images_hit  = tf.keras.utils.normalize(images_hit, axis=1)          # Norm hit images
 		images_time = tf.keras.utils.normalize(images_time, axis=1)         # Norm time images
+
+	image_shape = (imageSize, imageSize, 1)
 
 	images_hit  = images_hit.reshape(images_hit.shape[0], *image_shape)     # Reshape hit images
 	images_time = images_time.reshape(images_time.shape[0], *image_shape)   # Reshape time images
@@ -93,17 +96,17 @@ def labels_energies_parameters_images(data, norm, noHit, noTime):
 		return labels, energies, parameters, images
 
 # Just return the labels and images
-def labels_images(data, norm, noHit, noTime):
-	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime)
+def labels_images(data, norm, noHit, noTime, imageSize):
+	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime, imageSize)
 	return labels, images
 
 # Just return the labels, beam energies and images
-def labels_energies_images(data, norm, noHit, noTime):
-	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime)
+def labels_energies_images(data, norm, noHit, noTime, imageSize):
+	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime, imageSize)
 	return labels, energies, images
 
-def parameter_images(data, norm, noHit, noTime, index):
-	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime)
+def parameter_images(data, norm, noHit, noTime, index, imageSize):
+	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime, imageSize)
 	parameter = parameters[:, index]
 	return parameter, images	
 
@@ -132,8 +135,8 @@ def callback_tensorboard(logDir):
 #               Plotting Functions                #
 ###################################################
 
-def plot_image(image, index):
-	plot = image[index, :].reshape((32,32))
+def plot_image(image, index, size):
+	plot = image[index, :].reshape((size,size))
 	plt.imshow(plot)
 	plt.show()
 
@@ -200,15 +203,15 @@ def save_category_history(train_history, outputFile):
 	loss = train_history.history['loss']
 	val_loss = train_history.history['val_loss']
 
-	for epoch in range(len(mean_abs_err)):
+	for epoch in range(len(acc)):
 		out = str(acc[epoch])+" "+str(val_acc[epoch])+" "+str(loss[epoch])+" "+str(val_loss[epoch])
 		out += "\n"
 		output_file.write(out)
 	output_file.close()  
 
-	plot_category_history(train_history) # TEST PLOT 
+	#plot_category_history(train_history) # TEST PLOT 
 
-def save_category_output(test_labels, test_energies, test_output, outputFile):
+def save_category_output(categories, test_labels, test_energies, test_output, outputFile):
 	print("Output: save_category_output")
 
 	if len(test_labels) != len(test_energies) or len(test_labels) != len(test_output):
@@ -242,7 +245,7 @@ def save_regression_history(train_history, outputFile):
 		output_file.write(out)
 	output_file.close()  
 
-	plot_regression_history(train_history) # TEST PLOT
+	#plot_regression_history(train_history) # TEST PLOT
 
 def save_regression_output(test_labels, test_output, outputFile):
 	print("Output: save_regression_output")
@@ -261,6 +264,6 @@ def save_regression_output(test_labels, test_output, outputFile):
 		output_file.write(out)
 		true_minus_estimation.append(diff)
 	output_file.close()     
-	plot_true_minus_estimation(true_minus_estimation) # TEST PLOT
+	#plot_true_minus_estimation(true_minus_estimation) # TEST PLOT
 
 
