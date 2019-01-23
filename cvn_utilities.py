@@ -3,6 +3,53 @@ import tensorflow as tf
 from tensorflow.python.keras import callbacks
 import matplotlib.pyplot as plt
 import os
+import argparse
+
+###################################################
+#            Network Argument Handling            #
+###################################################
+
+def parse_args():
+	parser = argparse.ArgumentParser(description='Evaluate/Train CHIPS CVN PID Network')
+
+	# Input and output files (history file will have similar name to output file)
+	parser.add_argument('inputFile', help = 'Path to combined input "image" .txt file')
+	parser.add_argument('-o', '--output',    default='output/output.txt', help = 'Output .txt file')
+
+	# What function are we doing?
+	parser.add_argument('--train', 		action = 'store_true',  help = 'Use to train the network')
+	parser.add_argument('--eval',  		action = 'store_true',  help = 'Use to evaluate on the network')
+	parser.add_argument('--optimise', 	action = 'store_true', 	help = 'Use to optimise the network')
+
+	# Network Hyperparameters
+	parser.add_argument('-p', '--parameter', default = 6,		help = 'Parameter to fit (lepton Energy = 6)')
+	parser.add_argument('-v', '--valFrac',   default = 0.1,     help = 'Fraction of events for validation (0.1)')
+	parser.add_argument('-t', '--testFrac',  default = 0.1,     help = 'Fraction of events for testing (0.1)')
+	parser.add_argument('-b', '--batchSize', default = 500,     help = 'Training batch size (500)')
+	parser.add_argument('-l', '--lRate',     default = 0.001,   help = 'Training learning rate (0.001)')
+	parser.add_argument('-e', '--epochs',    default = 10,      help = 'Training epochs (10)')
+	parser.add_argument('--noHit',  action = 'store_true', 		help = 'Do not use hit channel')
+	parser.add_argument('--noTime', action = 'store_true', 		help = 'Do not use time channel')
+	parser.add_argument('--norm',   action = 'store_true',		help = 'Normalise the channels')
+	parser.add_argument('-s', '--imageSize', default = 32, 		help = 'Input image size (32)')
+
+	# Check arguments
+	args = parser.parse_args()
+
+	if args.noHit and args.noTime:
+		print("Error: Need to use at least one channel!")
+		sys.exit()	
+	elif args.train and args.eval or args.train and args.optimise or args.eval and args.optimise:
+		print("Error: Can only do one thing at a time!")
+		sys.exit()
+	elif args.train and args.eval and args.optimise:
+		print("Error: Can only do one thing at a time!")
+		sys.exit()	
+	elif not args.train and not args.eval and not args.optimise:
+		print("Error: Need to specify something to do!")
+		sys.exit()			
+
+	return args  
 
 ###################################################
 #             File and Array Handling             #
@@ -109,6 +156,10 @@ def parameter_images(data, norm, noHit, noTime, index, imageSize):
 	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime, imageSize)
 	parameter = parameters[:, index]
 	return parameter, images	
+
+def parameters_images(data, norm, noHit, noTime, imageSize):
+	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime, imageSize)
+	return parameters, images	
 
 def replace_labels(array, input, output):
 	np.place(array, array==(input), output) # Replace "input" with "output" labels
@@ -234,13 +285,15 @@ def save_regression_history(train_history, outputFile):
 	outputName = name + "_history.txt"
 	output_file = open(outputName, "w")
 
+	loss = train_history.history['loss']
+	val_loss = train_history.history['val_loss']
 	mean_abs_err = train_history.history['mean_absolute_error']
 	val_mean_abs_err = train_history.history['val_mean_absolute_error']
 	mean_squared_err = train_history.history['mean_squared_error']
 	val_mean_squared_err = train_history.history['val_mean_squared_error']
 
 	for epoch in range(len(mean_abs_err)):
-		out = str(mean_abs_err[epoch])+" "+str(val_mean_abs_err[epoch])+" "+str(mean_squared_err[epoch])+" "+str(val_mean_squared_err[epoch])
+		out = str(loss[epoch])+" "+str(val_loss[epoch])+" "+str(mean_abs_err[epoch])+" "+str(val_mean_abs_err[epoch])+" "+str(mean_squared_err[epoch])+" "+str(val_mean_squared_err[epoch])
 		out += "\n"
 		output_file.write(out)
 	output_file.close()  
