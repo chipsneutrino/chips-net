@@ -13,8 +13,9 @@ void cvn_make_images(const char* in_dir="", const char* out_name="",
     int num_hits_cut        = 100;      // Cut to apply on the number of hits
     bool make_plots         = false;    // Shall we produce a plots file with monitoring histograms
     bool save_parameters    = true;     // Save additional parameters
-    const int image_x_bins  = 64;       // Number of x bins in the images
-    const int image_y_bins  = 64;       // Number of y bins in the images
+    const int image_x_bins  = 32;       // Number of x bins in the images
+    const int image_y_bins  = 32;       // Number of y bins in the images
+    bool useCharge          = true;     // Do we want to use p.e instead of just hits?
 
 	// Load the libraries we need...
 	std::cout << "Loading libraries..." << std::endl;
@@ -164,7 +165,9 @@ void cvn_make_images(const char* in_dir="", const char* out_name="",
                     float digi_hit_time = wcsimrootcherenkovdigihit->GetT();
                     if (digi_hit_time < first_hit_time) { first_hit_time = digi_hit_time; }
 
-                    float digi_hit_q = wcsimrootcherenkovdigihit->GetQ();
+                    float digi_hit_q;
+                    if (useCharge) { digi_hit_q = wcsimrootcherenkovdigihit->GetQ(); }
+                    else { digi_hit_q = 1.0; }
             
                     if (hit_x == 0.0) {continue;} // Due to the divide in the ATan() method below
                     if (hit_z == 0.0) {continue;} // Due to the divide in the ATan() method below
@@ -181,8 +184,8 @@ void cvn_make_images(const char* in_dir="", const char* out_name="",
                     hist_hit->Fill(hit_phi, hit_theta, digi_hit_q);
 
                     if (make_plots) {
-                        spatial_theta_hist->Fill(hit_theta, digi_hit_q);
-                        spatial_phi_hist->Fill(hit_phi, digi_hit_q);
+                        spatial_theta_hist->Fill(hit_theta);
+                        spatial_phi_hist->Fill(hit_phi);
                     }
 
                     int bin_num = hist_time->FindBin(hit_phi, hit_theta);
