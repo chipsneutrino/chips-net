@@ -9,6 +9,7 @@ import argparse
 #            Network Argument Handling            #
 ###################################################
 
+# Parse the command line argument options
 def parse_args():
 	parser = argparse.ArgumentParser(description='Evaluate/Train CHIPS CVN PID Network')
 
@@ -55,6 +56,8 @@ def parse_args():
 #             File and Array Handling             #
 ###################################################
 
+# Load from a single .txt data file generated from cvn_make_images.C into a numpy array
+# Splits into the given fractions for [train, validation, testing]
 def load_txt_file(file, skipRows, validFrac, testFrac):
 	print("load_txt_file ...")
 
@@ -77,8 +80,8 @@ def load_txt_file(file, skipRows, validFrac, testFrac):
 	# Return the samples separately (Training, Validation, Testing)
 	return split_data[0], split_data[1], split_data[2]    
 
-# Loads the "image" .txt files and splits the combined and shuffled array
-# into the given fractions for [train, validation, testing]
+# Load from a list of .txt data files generated from cvn_make_images.C into a numpy array
+# Splits into the given fractions for [train, validation, testing]
 def load_multiple_txt_files(fileNames, skipRows, validFrac, testFrac):
 	print("load_multiple_txt_files ...")
 
@@ -105,34 +108,34 @@ def load_multiple_txt_files(fileNames, skipRows, validFrac, testFrac):
 	# Return the samples separately (Training, Validation, Testing)
 	return split_data[0], split_data[1], split_data[2]    
 
-# Format of image .txt files is either...
-# [Labels(1), Beam Energies(1), Lepton Parameters(7), pixelsH(1024), pixelsT(1024)]
-# Extract this formatting and normalise images if required
+# Extract the .txt file data formatting splitting into different numpy arrays and normalise the images
+# [Labels(1), Beam Energies(1), Lepton Parameters(7), charge_pixels(32*32), time_pixels(32*32)]
 def labels_energies_parameters_images(data, norm, noHit, noTime, imageSize):
 
+	# Size of the image
 	imageDataLength = imageSize * imageSize
 
-	labels      = data[:, 0]        # Index 0
-	energies    = data[:, 1]        # Index 1
-	parameters  = data[:, 2:9]      # Index 2-8
-	images_hit  = data[:, 9:imageDataLength+9]   # Index 9-1032
-	images_time = data[:, imageDataLength+9:]    # Index 1033-2057
+	# Split the data into the different numpy arrays we need
+	labels      = data[:, 0]        			# Index 0
+	energies    = data[:, 1]        			# Index 1
+	parameters  = data[:, 2:9]      			# Index 2-8
+	images_hit  = data[:, 9:imageDataLength+9]  # Index 9-1032
+	images_time = data[:, imageDataLength+9:]   # Index 1033-2057
 
-	#TODO: Think about improving upon this simple normalisation
 	if norm:
 		images_hit  = tf.keras.utils.normalize(images_hit, axis=1)          # Norm hit images
 		images_time = tf.keras.utils.normalize(images_time, axis=1)         # Norm time images
 
-	image_shape = (imageSize, imageSize, 1)
-
+	image_shape = (imageSize, imageSize, 1)									# Define single channel shape
 	images_hit  = images_hit.reshape(images_hit.shape[0], *image_shape)     # Reshape hit images
 	images_time = images_time.reshape(images_time.shape[0], *image_shape)   # Reshape time images
 
-	images = np.concatenate((images_hit,images_time), 3)    # Combine the two channels together
+	images = np.concatenate((images_hit,images_time), 3)    				# Combine the channels together
 
-	print("Labels:{0} Energies:{1} Params:{2} Images:{3}".format( # Print array shapes
+	print("Labels:{0} Energies:{1} Params:{2} Images:{3}".format( 			# Print array shapes
 		  labels.shape, energies.shape, parameters.shape, images.shape))    
 
+	# Return depending on which channels are active
 	if noHit and not noTime:
 		print("Just using time channel!")
 		return labels, energies, parameters, images_time
@@ -142,19 +145,22 @@ def labels_energies_parameters_images(data, norm, noHit, noTime, imageSize):
 	else:
 		return labels, energies, parameters, images
 
-# Just return the labels and images
+# Just return the label and images (for cvn_pid_network training)
 def labels_images(data, norm, noHit, noTime, imageSize):
 	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime, imageSize)
 	return labels, images
 
+# Just return a specific parameter and the images (for cvn_parameter_network training)
 def parameter_images(data, norm, noHit, noTime, index, imageSize):
 	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime, imageSize)
 	parameter = parameters[:, index]
 	return parameter, images	
 
+# Replace all labels in the array with a different one
 def replace_labels(array, input, output):
 	np.place(array, array==(input), output) # Replace "input" with "output" labels
 
+# Use if you mislabel the categories, starting at 1 not 0
 def shift_labels_down(array):
 	replace_labels(array, 1.0, 0.0)
 	replace_labels(array, 2.0, 1.0)
@@ -166,9 +172,11 @@ def shift_labels_down(array):
 #               Callback Functions                #
 ###################################################
 
+# Saves the current model state at each epoch
 def callback_checkpoint(path):
 	return callbacks.ModelCheckpoint(path, save_weights_only=True, verbose=1)
 
+# Stores tensorboard information at each epoch
 def callback_tensorboard(logDir):
 	return callbacks.TensorBoard(log_dir=logDir, write_graph=True, write_grads=True,
 								   histogram_freq=1, write_images = True)
@@ -177,14 +185,14 @@ def callback_tensorboard(logDir):
 #               Plotting Functions                #
 ###################################################
 
+# pyplot a specific channel array as an image
 def plot_image(image, index, size):
 	plot = image[index, :].reshape((size,size))
 	plt.imshow(plot)
 	plt.show()
 
+# pyplot the history of a category based training
 def plot_category_history(history):
-	# list all data in history
-	#print(history.history.keys())
 	# summarize history for accuracy
 	plt.plot(history.history['acc'])
 	plt.plot(history.history['val_acc'])
@@ -202,9 +210,8 @@ def plot_category_history(history):
 	plt.legend(['train', 'test'], loc='upper left')
 	plt.show()
 
+# pyplot the history of a regression based training
 def plot_regression_history(history):
-	# list all data in history
-	print(history.history.keys())
 	# summarize history for accuracy
 	plt.plot(history.history['mean_absolute_error'])
 	plt.plot(history.history['val_mean_absolute_error'])
@@ -222,9 +229,10 @@ def plot_regression_history(history):
 	plt.legend(['train', 'test'], loc='upper left')
 	plt.show()
 
+# pyplot the (true-estimated) distribution
 def plot_true_minus_estimation(diff):
 	plt.hist(diff, bins=50)
-	#plt.hist(diff, bins=50, range=[-1500, 1500])
+	#plt.hist(diff, bins=50, range=[-1500, 1500]) # Can specify a range
 	plt.ylabel('Events')
 	plt.xlabel('True - Estimation')
 	plt.show()
@@ -233,6 +241,7 @@ def plot_true_minus_estimation(diff):
 #                Output Functions                 #
 ###################################################
 
+# Saves the history of a category based training
 def save_category_history(train_history, outputFile):
 	print("Output: save_category_history")
 
@@ -251,6 +260,7 @@ def save_category_history(train_history, outputFile):
 		output_file.write(out)
 	output_file.close()  
 
+# Save the test output from a category based model
 def save_category_output(categories, test_labels, test_energies, test_parameters, test_output, outputFile):
 	print("Output: save_category_output")
 
@@ -270,6 +280,7 @@ def save_category_output(categories, test_labels, test_energies, test_parameters
 		output_file.write(out)
 	output_file.close()     
 
+# Saves the history of a regression based training
 def save_regression_history(train_history, outputFile):
 	print("Output: save_regression_history")
 
@@ -290,6 +301,7 @@ def save_regression_history(train_history, outputFile):
 		output_file.write(out)
 	output_file.close()  
 
+# Save the test output from a regression based model
 def save_regression_output(test_labels, test_energies, test_parameters, test_output, outputFile):
 	print("Output: save_regression_output")
 

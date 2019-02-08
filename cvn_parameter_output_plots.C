@@ -1,56 +1,186 @@
-void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/parameter.txt", const char* plotFileName = "plots/parameter_plots.root") {
+void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/parameter.txt",
+                                const char* historyFile = "output/parameter_history.txt",
+                                const char* plotFileName = "plots/parameter_plots.root") {
 
-    // Open and read the network output file into a tree
-    TTree *tree = new TTree("tree", "tree");
-    tree->ReadFile(outputFile, "p1:p2:diff");
+    TTree *outputTree = new TTree("outputTree", "outputTree");
+    outputTree->ReadFile(outputFile, "label:beamE:p0:p1:p2:p3:p4:p5:p6:output");
 
-    // Open the plot file to write output plots to
     TFile * plotFile = new TFile(plotFileName,"RECREATE");
 
-    // Create histograms
-    TH1F * par_diff_hist;
-    TH2F * par_2d_hist; 
-    if (par==0) { // vtx x-position
-        par_diff_hist = new TH1F("par_diff_hist", "vtxX_diff", 50, -2000, 2000); 
-        par_diff_hist->GetXaxis()->SetTitle("True - Reco vtxX [cm]");
-        par_2d_hist = new TH2F("par_2d_hist", "vtxX_2d", 50, -12500, 12500, 50, -12500, 12500);
-    } else if (par==1) { // vtx y-position
-        par_diff_hist = new TH1F("par_diff_hist", "vtxY_diff", 50, -2000, 2000); 
-        par_diff_hist->GetXaxis()->SetTitle("True - Reco vtxY [cm]");
-        par_2d_hist = new TH2F("par_2d_hist", "vtxY_2d", 50, -12500, 12500, 50, -12500, 12500);
-    } else if (par==2) { // vtx z-position
-        par_diff_hist = new TH1F("par_diff_hist", "vtxZ_diff", 50, -2000, 2000); 
-        par_diff_hist->GetXaxis()->SetTitle("True - Reco vtxZ [cm]");
-        par_2d_hist = new TH2F("par_2d_hist", "vtxZ_2d", 50, -12500, 12500, 50, -12500, 12500);
-    } else if (par==3) { // vtx time
-        par_diff_hist = new TH1F("par_diff_hist", "vtxT_diff", 50, -10, 10); 
-        par_diff_hist->GetXaxis()->SetTitle("True - Reco vtxT [ns]");
-        par_2d_hist = new TH2F("par_2d_hist", "vtxT_2d", 50, 0, 10000, 50, 0, 10000);
-    } else if (par==4) { // track dir theta
-        par_diff_hist = new TH1F("par_diff_hist", "theta_diff", 60, -1, 1); 
-        par_diff_hist->GetXaxis()->SetTitle("True - Reco Track Theta Direction [radians]");
-        par_2d_hist = new TH2F("par_2d_hist", "theta_2d", 50, -TMath::Pi()/2,TMath::Pi()/2, 50, -TMath::Pi()/2,TMath::Pi()/2);
-    } else if (par==5) { // track dir phi
-        par_diff_hist = new TH1F("par_diff_hist", "phi_diff", 60, -1, 1);
-        par_diff_hist->GetXaxis()->SetTitle("True - Reco Track Phi Direction [radians]");
-        par_2d_hist = new TH2F("par_2d_hist", "phi_2d", 50, -TMath::Pi(),TMath::Pi(), 50, -TMath::Pi(),TMath::Pi());
-    } else if (par==6) { // track energy
-        par_diff_hist = new TH1F("par_diff_hist", "energy_diff", 60, -2500, 2500); 
-        par_diff_hist->GetXaxis()->SetTitle("True - Reco Theta Energy [MeV]");
-        par_2d_hist = new TH2F("par_2d_hist", "energy_2d", 50, 0, 5000, 50, 0, 5000);
+    // Names and Ranges
+    int bins = 50;
+    const int num_pars = 7;
+
+    float diff_ranges[num_pars]            = {2000, 2000, 2000, 10, 1, 1, 1000};
+    float par_low[num_pars]                = {-12500, -12500, -6000, -50, -1, -1, 0};
+    float par_high[num_pars]               = {12500, 12500, 6000, 20, 1, 1, 5000};
+
+    const char* pars[num_pars]             = {"p0","p1","p2","p3","p4","p5","p6"};
+
+    const char* diff_axis[num_pars]        = {"True-Reco vtxX [mm]","True-Reco vtxY [mm]","True-Reco vtxZ [mm]","True-Reco vtxT [ns]",
+                                              "True-Reco Track Theta Direction [radians]","True-Reco Track Phi Direction [radians]",
+                                              "True-Reco Track Energy [MeV]"};
+
+    const char* true_est_xAxis[num_pars]   = {"True vtxX [mm]","True vtxY [mm]","True vtxZ [mm]","True vtxT [ns]",
+                                              "True Theta Dir [radians]","True Phi Dir [radians]","True Track Energy [MeV]"};
+
+    const char* true_est_yAxis[num_pars]   = {"Est vtxX [mm]","Est vtxY [mm]","Est vtxZ [mm]","Est vtxT [ns]",
+                                              "Est Theta Dir [radians]","Est Phi Dir [radians]","Est Track Energy [MeV]"};
+
+    const char* compare_names[num_pars]    = {"compare_vtxX","compare_vtxY","compare_vtxZ","compare_vtxT",
+                                              "compare_theta","compare_phi","compare_energy"};
+
+    // Create the history plots
+    ifstream in;
+    in.open(historyFile);
+    float loss, val_loss, mean_abs_err, val_mean_abs_err, mean_squared_err, val_mean_squared_err;
+    std::vector<float> epoch_v, loss_v, val_loss_v, mean_abs_err_v, val_mean_abs_err_v, mean_squared_err_v, val_mean_squared_err_v;
+    int epoch_num = 0;
+    while(in.good()) {
+        in >> loss >> val_loss >> mean_abs_err >> val_mean_abs_err >> mean_squared_err >> val_mean_squared_err; 
+        loss_v.push_back(loss); val_loss_v.push_back(val_loss);
+        mean_abs_err_v.push_back(mean_abs_err); val_mean_abs_err_v.push_back(val_mean_abs_err);
+        mean_squared_err_v.push_back(mean_squared_err); val_mean_squared_err_v.push_back(val_mean_squared_err);
+        epoch_v.push_back((float)epoch_num); epoch_num ++;
     }
 
-    // Fill histograms
-    tree->Draw("diff>>par_diff_hist");
-    tree->Draw("p1:p2>>par_2d_hist");
+    in.close();
 
-    // Beautify main histogram
-    par_diff_hist->GetYaxis()->SetTitle("Fraction of Events");
-    par_diff_hist->GetXaxis()->CenterTitle();
-    par_diff_hist->GetYaxis()->CenterTitle();
-    par_diff_hist->Scale( 1/(par_diff_hist->GetEntries()) );
+    TGraph * loss_h = new TGraph(epoch_num, &epoch_v[0], &loss_v[0]); 
+    loss_h->SetTitle("loss"); loss_h->SetName("loss");
+    loss_h->GetXaxis()->SetTitle("Epoch"); loss_h->GetXaxis()->CenterTitle();
+    loss_h->GetYaxis()->SetTitle("Loss"); loss_h->GetYaxis()->CenterTitle();
+    loss_h->GetXaxis()->SetRangeUser(0, epoch_num);
+
+    TGraph * val_loss_h = new TGraph(epoch_num, &epoch_v[0], &val_loss_v[0]); 
+    val_loss_h->SetTitle("Validation loss"); val_loss_h->SetName("Validation loss");
+    val_loss_h->GetXaxis()->SetTitle("Epoch"); val_loss_h->GetXaxis()->CenterTitle();
+    val_loss_h->GetYaxis()->SetTitle("Validation loss"); val_loss_h->GetYaxis()->CenterTitle();
+    val_loss_h->GetXaxis()->SetRangeUser(0, epoch_num);
+
+    TGraph * mean_abs_err_h = new TGraph(epoch_num, &epoch_v[0], &mean_abs_err_v[0]); 
+    mean_abs_err_h->SetTitle("Mean abs err"); mean_abs_err_h->SetName("Mean abs err");
+    mean_abs_err_h->GetXaxis()->SetTitle("Epoch"); mean_abs_err_h->GetXaxis()->CenterTitle();
+    mean_abs_err_h->GetYaxis()->SetTitle("Mean abs err"); mean_abs_err_h->GetYaxis()->CenterTitle();
+    mean_abs_err_h->GetXaxis()->SetRangeUser(0, epoch_num);
+
+    TGraph * val_mean_abs_err_h = new TGraph(epoch_num, &epoch_v[0], &val_mean_abs_err_v[0]); 
+    val_mean_abs_err_h->SetTitle("Validation mean abs err"); val_mean_abs_err_h->SetName("Validation mean abs err");
+    val_mean_abs_err_h->GetXaxis()->SetTitle("Epoch"); val_mean_abs_err_h->GetXaxis()->CenterTitle();
+    val_mean_abs_err_h->GetYaxis()->SetTitle("Validation mean abs err"); val_mean_abs_err_h->GetYaxis()->CenterTitle();
+    val_mean_abs_err_h->GetXaxis()->SetRangeUser(0, epoch_num);
+
+    TGraph * mean_squared_err_h = new TGraph(epoch_num, &epoch_v[0], &mean_squared_err_v[0]); 
+    mean_squared_err_h->SetTitle("Mean squared err"); mean_squared_err_h->SetName("Mean squared err");
+    mean_squared_err_h->GetXaxis()->SetTitle("Epoch"); mean_squared_err_h->GetXaxis()->CenterTitle();
+    mean_squared_err_h->GetYaxis()->SetTitle("Mean squared err"); mean_squared_err_h->GetYaxis()->CenterTitle();
+    mean_squared_err_h->GetXaxis()->SetRangeUser(0, epoch_num);
+
+    TGraph * val_mean_squared_err_h = new TGraph(epoch_num, &epoch_v[0], &val_mean_squared_err_v[0]); 
+    val_mean_squared_err_h->SetTitle("Validation mean squared err"); val_mean_squared_err_h->SetName("Validation mean squared err");
+    val_mean_squared_err_h->GetXaxis()->SetTitle("Epoch"); val_mean_squared_err_h->GetXaxis()->CenterTitle();
+    val_mean_squared_err_h->GetYaxis()->SetTitle("Validation mean squared err"); val_mean_squared_err_h->GetYaxis()->CenterTitle();
+    val_mean_squared_err_h->GetXaxis()->SetRangeUser(0, epoch_num);
+
+    // Create single histograms
+    TH1F * diff_h = new TH1F("diff_h", "diff_h", bins, -diff_ranges[par], diff_ranges[par]); 
+    diff_h->GetXaxis()->SetTitle(diff_axis[par]); diff_h->GetXaxis()->CenterTitle();
+    diff_h->GetYaxis()->SetTitle("Fraction of Events"); diff_h->GetYaxis()->CenterTitle();
+
+    TH2F * true_est_h = new TH2F("true_est_h", "true_est_h", bins, par_low[par], par_high[par], bins, par_low[par], par_high[par]);
+    true_est_h->GetXaxis()->SetTitle(true_est_xAxis[par]); true_est_h->GetXaxis()->CenterTitle();
+    true_est_h->GetYaxis()->SetTitle(true_est_yAxis[par]); true_est_h->GetYaxis()->CenterTitle();  
+
+    TString diff_h_string = Form("(%s-output)>>diff_h", pars[par]);
+    outputTree->Draw(diff_h_string.Data());
+    TString diff_h_string = Form("%s:output>>true_est_h", pars[par]);
+    outputTree->Draw(diff_h_string.Data()); 
+
+    diff_h->Fit("gaus");
+    TF1 *fit = diff_h->GetFunction("gaus");
+    float width = fit->GetParameter(2);  
+
+    // Create the comparison plots
+    const int num_bins = 10;
+    TH1F *par_diff_scans[num_pars][num_bins];
+    TH1F *par_diff_scans[num_pars][num_bins];
+    TH1F *par_true_hists[num_pars];
+    TGraphErrors *width_plots[num_pars];
+    for (int iPar=0; iPar<num_pars; iPar++) {
+        float width_array[num_bins];
+        float width_err_array[num_bins];
+        float bin_array[num_bins];
+        float bin_err_array[num_bins];
+        for (int iBin=0; iBin<num_bins; iBin++) {
+            // Create the histogram
+            TString plotName;
+            plotName += iPar;
+            plotName += "-";
+            plotName += iBin;
+            par_diff_scans[iPar][iBin] = new TH1F(plotName, plotName, bins, -diff_ranges[par], diff_ranges[par]);
+
+            // Fill the histogram
+            float bin_width = ((par_high[iPar]-par_low[iPar])/(float)num_bins);
+            float bin_low  = par_low[iPar] + (iBin*bin_width);
+            float bin_high = par_low[iPar] + ((iBin+1)*bin_width);
+
+            TString plot_string = Form("(%s-output)>>%s", pars[par], plotName.Data());
+            TString cut_string = Form("%s>%f && %s<%f", pars[iPar], bin_low, pars[iPar], bin_high);
+            std::cout << plot_string << std::endl;
+            std::cout << cut_string << std::endl;
+            outputTree->Draw(plot_string.Data(), cut_string.Data());
+
+            // Fit the histogram
+            bin_array[iBin] = bin_low + (bin_width/2);
+            bin_err_array[iBin] = (bin_width/2);
+
+            if (par_diff_scans[iPar][iBin]->GetEntries()>0) {
+                par_diff_scans[iPar][iBin]->Fit("gaus");
+                TF1 *fitFun = par_diff_scans[iPar][iBin]->GetFunction("gaus");
+                width_array[iBin] = fitFun->GetParameter(2);
+                width_err_array[iBin] = fitFun->GetParError(2);                
+            } else {
+                width_array[iBin] = 0.0;
+                width_err_array[iBin] = 0.0;                     
+            }
+        }
+
+        // Create the compare plot from the individual widths for this variables
+        width_plots[iPar] = new TGraphErrors(num_bins,bin_array,width_array,bin_err_array,width_err_array);
+        width_plots[iPar]->GetXaxis()->SetTitle(true_est_xAxis[iPar]); width_plots[iPar]->GetXaxis()->CenterTitle();
+        width_plots[iPar]->GetYaxis()->SetTitle(diff_axis[par]); width_plots[iPar]->GetYaxis()->CenterTitle(); 
+        width_plots[iPar]->GetXaxis()->SetRangeUser(par_low[iPar], par_high[iPar]); width_plots[iPar]->GetYaxis()->SetRangeUser(width*0.5, width*2.0);    
+        width_plots[iPar]->SetTitle(compare_names[iPar]); width_plots[iPar]->SetName(compare_names[iPar]);
+
+        // Create the true parameter distribution
+        par_true_hists[iPar] = new TH1F(pars[iPar], pars[iPar], bins, par_low[iPar], par_high[iPar]);
+        par_true_hists[iPar]->GetXaxis()->SetTitle(true_est_xAxis[iPar]); par_true_hists[iPar]->GetXaxis()->CenterTitle();
+        par_true_hists[iPar]->GetYaxis()->SetTitle("Events"); par_true_hists[iPar]->GetYaxis()->CenterTitle(); 
+        TString true_string = Form("%s>>%s", pars[iPar], pars[iPar]);
+        outputTree->Draw(true_string.Data());
+    }
+
+    // Write histograms to file
+    diff_h->Scale(1/(diff_h->GetEntries()));
+    diff_h->Write();
+    true_est_h->Write();
+
+    for (int iPar=0; iPar<num_pars; iPar++) { width_plots[iPar]->Write(); }
+
+    TDirectory *trueDir = plotFile->mkdir("trueDir"); trueDir->cd();
+    for (int iPar=0; iPar<num_pars; iPar++) { par_true_hists[iPar]->Write(); }
     
-    par_diff_hist->Write();
-    par_2d_hist->Write();
+    TDirectory *historyDir = plotFile->mkdir("historyDir"); historyDir->cd();
+    loss_h->Write();
+    val_loss_h->Write();
+    mean_abs_err_h->Write();
+    val_mean_abs_err_h->Write();
+    mean_squared_err_h->Write();
+    val_mean_squared_err_h->Write();
+
+    TDirectory *scanDir = plotFile->mkdir("scanDir"); scanDir->cd();
+    for (int iPar=0; iPar<num_pars; iPar++) {
+        for (int iBin=0; iBin<num_bins; iBin++) { par_diff_scans[iPar][iBin]->Write(); }
+    }
     plotFile->Close();
 }
