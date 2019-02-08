@@ -28,7 +28,9 @@ def pid_network_train(file, outputFile, imageSize, valFrac, testFrac, norm,
 	# Split train and validation samples into labels and normalised images
 	train_labels, train_images = utils.labels_images(train_data, norm, noHit, noTime, imageSize)
 	val_labels, val_images = utils.labels_images(val_data, norm, noHit, noTime, imageSize)
-	test_labels, test_energies, test_images = utils.labels_energies_images(test_data, norm, noHit, noTime, imageSize)
+
+	# Split the test data into labels, energies, parameters and images
+	test_labels, test_energies, test_parameters, test_images = utils.labels_energies_parameters_images(test_data, norm, noHit, noTime, imageSize)
 
 	# Configure the image input_shape for the network depending on the number of channels
 	input_shape = (imageSize, imageSize, 2)
@@ -55,7 +57,7 @@ def pid_network_train(file, outputFile, imageSize, valFrac, testFrac, norm,
 
 	# Evaluate the test sample on the trained model and save output to file
 	test_output = cvn_model.predict(test_images, verbose=0)
-	utils.save_category_output(categories, test_labels, test_energies, test_output, outputFile)
+	utils.save_category_output(categories, test_labels, test_energies, test_parameters, test_output, outputFile)
 
 def pid_network_evaluate():
 	print("PID Evaluate: Beginning evaluation...")

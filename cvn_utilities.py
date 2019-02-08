@@ -147,19 +147,10 @@ def labels_images(data, norm, noHit, noTime, imageSize):
 	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime, imageSize)
 	return labels, images
 
-# Just return the labels, beam energies and images
-def labels_energies_images(data, norm, noHit, noTime, imageSize):
-	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime, imageSize)
-	return labels, energies, images
-
 def parameter_images(data, norm, noHit, noTime, index, imageSize):
 	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime, imageSize)
 	parameter = parameters[:, index]
 	return parameter, images	
-
-def parameters_images(data, norm, noHit, noTime, imageSize):
-	labels, energies, parameters, images = labels_energies_parameters_images(data, norm, noHit, noTime, imageSize)
-	return parameters, images	
 
 def replace_labels(array, input, output):
 	np.place(array, array==(input), output) # Replace "input" with "output" labels
@@ -260,18 +251,19 @@ def save_category_history(train_history, outputFile):
 		output_file.write(out)
 	output_file.close()  
 
-	#plot_category_history(train_history) # TEST PLOT 
-
-def save_category_output(categories, test_labels, test_energies, test_output, outputFile):
+def save_category_output(categories, test_labels, test_energies, test_parameters, test_output, outputFile):
 	print("Output: save_category_output")
 
 	if len(test_labels) != len(test_energies) or len(test_labels) != len(test_output):
 		print("Error: Arrays are not the same size")
 		sys.exit()	
 
+	# [label, beamE, parameters, testOutput[Outputs for the different categories]]
 	output_file = open(outputFile, "w")
 	for num in range(len(test_labels)):
 		out = str(test_labels[num]) + " " + str(test_energies[num])
+		out += (" " + str(test_parameters[num][0]) + " " + str(test_parameters[num][1]) + " " + str(test_parameters[num][2]) + " " + str(test_parameters[num][3]))
+		out += (" " + str(test_parameters[num][4]) + " " + str(test_parameters[num][5]) + " " + str(test_parameters[num][6]))
 		for category in range(categories):
 			out += (" " + str(test_output[num][category]))
 		out += "\n"
@@ -298,25 +290,21 @@ def save_regression_history(train_history, outputFile):
 		output_file.write(out)
 	output_file.close()  
 
-	#plot_regression_history(train_history) # TEST PLOT
-
-def save_regression_output(test_labels, test_output, outputFile):
+def save_regression_output(test_labels, test_energies, test_parameters, test_output, outputFile):
 	print("Output: save_regression_output")
 
 	if len(test_labels) != len(test_output):
 		print("Error: test_labels and test_output not the same length")
 		sys.exit()	
 
-	# Write [true, estimation, true-estimation] to file for every event
+	# [label, beamE, parameters, testOutput]
 	output_file = open(outputFile, "w")
-	true_minus_estimation = []
 	for num in range(len(test_labels)):
-		diff = test_labels[num] - test_output[num, 0]
-		out = str(test_labels[num]) + " " + str(test_output[num, 0]) + " " + str(diff)
+		out = str(test_labels[num]) + " " + str(test_energies[num])
+		out += (" " + str(test_parameters[num][0]) + " " + str(test_parameters[num][1]) + " " + str(test_parameters[num][2]) + " " + str(test_parameters[num][3]))
+		out += (" " + str(test_parameters[num][4]) + " " + str(test_parameters[num][5]) + " " + str(test_parameters[num][6]))
+		out += (" " + str(test_output[num, 0]))
 		out += "\n"
 		output_file.write(out)
-		true_minus_estimation.append(diff)
 	output_file.close()     
-	#plot_true_minus_estimation(true_minus_estimation) # TEST PLOT
-
 

@@ -25,10 +25,12 @@ def parameter_network_train(parameter, file, outputFile, imageSize, valFrac, tes
 	# Load, shuffle and split the data into the different samples
 	train_data, val_data, test_data = utils.load_txt_file(file, 0, valFrac, testFrac)	
 
-	# Split data samples into parameters_labels and images
-	train_labels, train_images 	= utils.parameter_images(train_data, norm, noHit, noTime, parameter, imageSize)
-	val_labels, val_images 		= utils.parameter_images(val_data, norm, noHit, noTime, parameter, imageSize)
-	test_labels, test_images 	= utils.parameter_images(test_data, norm, noHit, noTime, parameter, imageSize)
+	# Split train and validation samples into parameters_labels and images
+	train_parameter, train_images 	= utils.parameter_images(train_data, norm, noHit, noTime, parameter, imageSize)
+	val_parameter, val_images 		= utils.parameter_images(val_data, norm, noHit, noTime, parameter, imageSize)
+
+	# Split the test data into labels, energies, parameters and images
+	test_labels, test_energies, test_parameters, test_images = utils.labels_energies_parameters_images(test_data, norm, noHit, noTime, imageSize)
 
 	# Configure the image input_shape for the network depending on the number of channels
 	input_shape = (imageSize, imageSize, 2)
@@ -39,10 +41,10 @@ def parameter_network_train(parameter, file, outputFile, imageSize, valFrac, tes
 	cvn_model = models.cvn_parameter_model(parameter, input_shape, learningRate)
 
 	# Fit the model with the training data and store the training "history"
-	train_history = cvn_model.fit(train_images, train_labels,
+	train_history = cvn_model.fit(train_images, train_parameter,
 								batch_size=batchSize,
 								epochs=numEpochs, verbose=1,
-								validation_data=(val_images, val_labels),
+								validation_data=(val_images, val_parameter),
 								callbacks=[utils.callback_checkpoint("output/parameter_model.ckpt")])
 
 	# Save history to training output
@@ -50,7 +52,7 @@ def parameter_network_train(parameter, file, outputFile, imageSize, valFrac, tes
 
 	# Evaluate the test sample on the trained model and save output to file
 	test_output = cvn_model.predict(test_images, verbose=0)
-	utils.save_regression_output(test_labels, test_output, outputFile)
+	utils.save_regression_output(test_labels, test_energies, test_parameters, test_output, outputFile)
 
 def parameter_network_evaluate():
 	print("Parameter Evaluate: Beginning evaluation...")
