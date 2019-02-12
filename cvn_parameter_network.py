@@ -12,18 +12,15 @@ from tensorflow.python.keras import optimizers
 import cvn_models as models
 import cvn_utilities as utils 
 
-def parameter_network_train(parameter, file, outputFile, imageSize, valFrac, testFrac,
-							norm, batchSize, learningRate, numEpochs, noHit, noTime):
+def parameter_network_train(parameter, outputFile, imageSize, norm, 
+							train_data, val_data, test_data,
+							batchSize, learningRate, numEpochs, noHit, noTime):
 
 	# Print configuration to stdout
 	print("Parameter Training: Beginning training on parameter: {0} ...".format(parameter))
-	print("File:{0} Output:{1}".format(file, outputFile)) 
-	print("ValFrac:{0} TestFrac:{1}".format(valFrac, testFrac))
+	print("Output:{0}".format(outputFile)) 
 	print("Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(norm, batchSize, learningRate, numEpochs))
 	print("ImageSize:{0} noHit:{1} noTime:{2}".format(imageSize, noHit, noTime))  
-
-	# Load, shuffle and split the data into the different samples
-	train_data, val_data, test_data = utils.load_txt_file(file, 0, valFrac, testFrac)	
 
 	# Split train and validation samples into parameters_labels and images
 	train_parameter, train_images 	= utils.parameter_images(train_data, norm, noHit, noTime, parameter, imageSize)
@@ -62,10 +59,35 @@ def parameter_network_optimise():
 
 def main():
 	args = utils.parse_args() # Get the command line arguments
+
 	if args.train:
-		parameter_network_train(int(args.parameter), args.inputFile, args.output, int(args.imageSize),
-								float(args.valFrac), float(args.testFrac), args.norm, int(args.batchSize), 
-								float(args.lRate), int(args.epochs), args.noHit, args.noTime)
+		# We are going to be training one or all of the networks so first load and split the data
+		train_data, val_data, test_data = utils.load_txt_file_and_split(args.inputFile, 0, 
+																		float(args.valFrac), 
+																		float(args.testFrac))	
+
+		if int(args.parameter) == -1:	# Train all the parameter networks in turn
+			for par in range(7):
+				# Change the output file name everytime
+				name, ext = os.path.splitext(args.output)
+				outputName = name + "_" + str(par) + ".txt"
+
+				# Don't norm on vtxT and energy (par = 3,6)
+				norm = True
+				if par == 3 or par == 6:
+					norm = False
+					
+				parameter_network_train(int(par), outputName, int(args.imageSize), norm, 
+										train_data, val_data, test_data,
+										int(args.batchSize), float(args.lRate), int(args.epochs), 
+										args.noHit, args.noTime)
+
+		else:	# Train the specified parameter network
+			parameter_network_train(int(args.parameter), args.output, int(args.imageSize), args.norm, 
+									train_data, val_data, test_data,
+									int(args.batchSize), float(args.lRate), int(args.epochs), 
+									args.noHit, args.noTime)
+
 	elif args.eval:
 		parameter_network_evaluate()
 	elif args.Optimise:

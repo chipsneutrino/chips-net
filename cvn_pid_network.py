@@ -23,7 +23,7 @@ def pid_network_train(file, outputFile, imageSize, valFrac, testFrac, norm,
 	print("Image Size:{0} noHit:{1} noTime:{2}".format(imageSize, noHit, noTime))  
 
 	# Load, shuffle and split the data into the different samples
-	train_data, val_data, test_data = utils.load_txt_file(file, 0, valFrac, testFrac)
+	train_data, val_data, test_data = utils.load_txt_file_and_split(file, 0, valFrac, testFrac)
 
 	# Split train and validation samples into labels and normalised images
 	train_labels, train_images = utils.labels_images(train_data, norm, noHit, noTime, imageSize)

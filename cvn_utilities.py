@@ -23,7 +23,7 @@ def parse_args():
 	parser.add_argument('--optimise', 	action = 'store_true', 	help = 'Use to optimise the network')
 
 	# Network Hyperparameters
-	parser.add_argument('-p', '--parameter', default = 6,		help = 'Parameter to fit (lepton Energy = 6)')
+	parser.add_argument('-p', '--parameter', default = -1,		help = 'Parameter to fit (lepton Energy = 6)')
 	parser.add_argument('-v', '--valFrac',   default = 0.1,     help = 'Fraction of events for validation (0.1)')
 	parser.add_argument('-t', '--testFrac',  default = 0.1,     help = 'Fraction of events for testing (0.1)')
 	parser.add_argument('-b', '--batchSize', default = 500,     help = 'Training batch size (500)')
@@ -57,9 +57,22 @@ def parse_args():
 ###################################################
 
 # Load from a single .txt data file generated from cvn_make_images.C into a numpy array
+def load_txt_file(file, skipRows):
+	print("load txt file ...")
+
+	# Load the txt file into a numpy array
+	combined_data = np.loadtxt(file, dtype='float32', skiprows=skipRows)
+
+	np.random.shuffle(combined_data)                        # Shuffle the combined array
+	total_events = combined_data.shape[0]                   # Total number of events
+	print("Events-> Total:{0}".format(total_events))		# Print the number of events found
+
+	return combined_data   									# Return the numpy array
+
+# Load from a single .txt data file generated from cvn_make_images.C into a numpy array
 # Splits into the given fractions for [train, validation, testing]
-def load_txt_file(file, skipRows, validFrac, testFrac):
-	print("load_txt_file ...")
+def load_txt_file_and_split(file, skipRows, validFrac, testFrac):
+	print("load txt file and split ...")
 
 	# Load the txt file into a numpy array
 	combined_data = np.loadtxt(file, dtype='float32', skiprows=skipRows)
@@ -82,8 +95,8 @@ def load_txt_file(file, skipRows, validFrac, testFrac):
 
 # Load from a list of .txt data files generated from cvn_make_images.C into a numpy array
 # Splits into the given fractions for [train, validation, testing]
-def load_multiple_txt_files(fileNames, skipRows, validFrac, testFrac):
-	print("load_multiple_txt_files ...")
+def load_multiple_txt_files_and_split(fileNames, skipRows, validFrac, testFrac):
+	print("load multiple txt files and split ...")
 
 	# Load the txt files into numpy arrays
 	file_arrays = []
