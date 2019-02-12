@@ -11,7 +11,7 @@ void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/pa
     int bins = 50;
     const int num_pars = 7;
 
-    float diff_ranges[num_pars]            = {2000, 2000, 2000, 10, 1, 1, 1000};
+    float diff_ranges[num_pars]            = {2000, 2000, 2000, 10, 1, 1, 1};
     float par_low[num_pars]                = {-12500, -12500, -6000, -50, -1, -1, 0};
     float par_high[num_pars]               = {12500, 12500, 6000, 20, 1, 1, 5000};
 
@@ -19,7 +19,7 @@ void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/pa
 
     const char* diff_axis[num_pars]        = {"True-Reco vtxX [mm]","True-Reco vtxY [mm]","True-Reco vtxZ [mm]","True-Reco vtxT [ns]",
                                               "True-Reco Track Theta Direction [radians]","True-Reco Track Phi Direction [radians]",
-                                              "True-Reco Track Energy [MeV]"};
+                                              "(True-Reco)/True Track Energy [MeV]"};
 
     const char* true_est_xAxis[num_pars]   = {"True vtxX [mm]","True vtxY [mm]","True vtxZ [mm]","True vtxT [ns]",
                                               "True Theta Dir [radians]","True Phi Dir [radians]","True Track Energy [MeV]"};
@@ -91,10 +91,18 @@ void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/pa
     true_est_h->GetXaxis()->SetTitle(true_est_xAxis[par]); true_est_h->GetXaxis()->CenterTitle();
     true_est_h->GetYaxis()->SetTitle(true_est_yAxis[par]); true_est_h->GetYaxis()->CenterTitle();  
 
-    TString diff_h_string = Form("(%s-output)>>diff_h", pars[par]);
-    outputTree->Draw(diff_h_string.Data());
-    TString diff_h_string = Form("%s:output>>true_est_h", pars[par]);
-    outputTree->Draw(diff_h_string.Data()); 
+    if (par==6) {
+        // Draw (True-Reco)/True for energy
+        TString diff_h_string = Form("((%s-output)/%s)>>diff_h", pars[par], pars[par]);
+        outputTree->Draw(diff_h_string.Data());        
+    } else {
+        // Draw True-Reco for all other parameters
+        TString diff_h_string = Form("(%s-output)>>diff_h", pars[par]);
+        outputTree->Draw(diff_h_string.Data());
+    }
+
+    TString true_est_h_string = Form("%s:output>>true_est_h", pars[par]);
+    outputTree->Draw(true_est_h_string.Data()); 
 
     diff_h->Fit("gaus");
     TF1 *fit = diff_h->GetFunction("gaus");
@@ -124,11 +132,16 @@ void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/pa
             float bin_low  = par_low[iPar] + (iBin*bin_width);
             float bin_high = par_low[iPar] + ((iBin+1)*bin_width);
 
-            TString plot_string = Form("(%s-output)>>%s", pars[par], plotName.Data());
             TString cut_string = Form("%s>%f && %s<%f", pars[iPar], bin_low, pars[iPar], bin_high);
-            std::cout << plot_string << std::endl;
-            std::cout << cut_string << std::endl;
-            outputTree->Draw(plot_string.Data(), cut_string.Data());
+            if (par==6) {
+                // Draw (True-Reco)/True for energy
+                TString plot_string = Form("((%s-output)/%s)>>%s", pars[par], pars[par], plotName.Data());
+                outputTree->Draw(plot_string.Data(), cut_string.Data());       
+            } else {
+                // Draw True-Reco for all other parameters
+                TString plot_string = Form("(%s-output)>>%s", pars[par], plotName.Data());
+                outputTree->Draw(plot_string.Data(), cut_string.Data());
+            }            
 
             // Fit the histogram
             bin_array[iBin] = bin_low + (bin_width/2);
@@ -145,12 +158,22 @@ void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/pa
             }
         }
 
+        // Can use the following snippet to scale all resolutions for easier comparison plots
+        /*
+        double scale_num = width_array[5];
+        for (int iBin=0; iBin<num_bins; iBin++) {
+            width_err_array[iBin] = (width_err_array[iBin]/scale_num);
+            width_array[iBin] = (width_array[iBin]/scale_num);
+        }
+        */
+
         // Create the compare plot from the individual widths for this variables
         width_plots[iPar] = new TGraphErrors(num_bins,bin_array,width_array,bin_err_array,width_err_array);
         width_plots[iPar]->GetXaxis()->SetTitle(true_est_xAxis[iPar]); width_plots[iPar]->GetXaxis()->CenterTitle();
         width_plots[iPar]->GetYaxis()->SetTitle(diff_axis[par]); width_plots[iPar]->GetYaxis()->CenterTitle(); 
-        width_plots[iPar]->GetXaxis()->SetRangeUser(par_low[iPar], par_high[iPar]); width_plots[iPar]->GetYaxis()->SetRangeUser(width*0.5, width*2.0);    
+        width_plots[iPar]->GetXaxis()->SetRangeUser(par_low[iPar], par_high[iPar]); width_plots[iPar]->GetYaxis()->SetRangeUser(0.5*width, 2*width);    
         width_plots[iPar]->SetTitle(compare_names[iPar]); width_plots[iPar]->SetName(compare_names[iPar]);
+        width_plots[iPar]->SetLineColor(kRed); width_plots[iPar]->SetLineWidth(2); 
 
         // Create the true parameter distribution
         par_true_hists[iPar] = new TH1F(pars[iPar], pars[iPar], bins, par_low[iPar], par_high[iPar]);
