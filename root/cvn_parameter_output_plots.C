@@ -1,6 +1,6 @@
-void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/parameter.txt",
-                                const char* historyFile = "output/parameter_history.txt",
-                                const char* plotFileName = "plots/parameter_plots.root") {
+void cvn_parameter_output_plots(int par = 6, const char* outputFile = "../output/parameter.txt",
+                                const char* historyFile = "../output/parameter_history.txt",
+                                const char* plotFileName = "../plots/parameter_plots.root") {
 
     TTree *outputTree = new TTree("outputTree", "outputTree");
     outputTree->ReadFile(outputFile, "label:beamE:p0:p1:p2:p3:p4:p5:p6:output");
@@ -11,21 +11,27 @@ void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/pa
     int bins = 50;
     const int num_pars = 7;
 
-    float diff_ranges[num_pars]            = {2000, 2000, 2000, 10, 1, 1, 1};
-    float par_low[num_pars]                = {-12500, -12500, -6000, -50, -1, -1, 0};
-    float par_high[num_pars]               = {12500, 12500, 6000, 20, 1, 1, 5000};
+    float rad_to_deg = 180/TMath::Pi();
+
+    float diff_ranges[num_pars]            = {2000, 2000, 2000, 10, 50, 50, 1};
+    float par_low[num_pars]                = {-12500, -12500, -6000, -50, -50, -50, 0};
+    float par_high[num_pars]               = {12500, 12500, 6000, 20, 50, 50, 5000};
 
     const char* pars[num_pars]             = {"p0","p1","p2","p3","p4","p5","p6"};
 
     const char* diff_axis[num_pars]        = {"True-Reco vtxX [mm]","True-Reco vtxY [mm]","True-Reco vtxZ [mm]","True-Reco vtxT [ns]",
-                                              "True-Reco Track Theta Direction [radians]","True-Reco Track Phi Direction [radians]",
+                                              "True-Reco Track Theta Direction [degrees]","True-Reco Track Phi Direction [degrees]",
                                               "(True-Reco)/True Track Energy [MeV]"};
 
+    const char* sigma_axis[num_pars]        = {"True-Reco vtxX #sigma [mm]","True-Reco vtxY #sigma [mm]","True-Reco vtxZ #sigma [mm]","True-Reco vtxT #sigma [ns]",
+                                              "True-Reco Track Theta Direction #sigma [degrees]","True-Reco Track Phi Direction #sigma [degrees]",
+                                              "(True-Reco)/True Track Energy #sigma [MeV]"};
+
     const char* true_est_xAxis[num_pars]   = {"True vtxX [mm]","True vtxY [mm]","True vtxZ [mm]","True vtxT [ns]",
-                                              "True Theta Dir [radians]","True Phi Dir [radians]","True Track Energy [MeV]"};
+                                              "True Theta Dir [degrees]","True Phi Dir [degrees]","True Track Energy [MeV]"};
 
     const char* true_est_yAxis[num_pars]   = {"Est vtxX [mm]","Est vtxY [mm]","Est vtxZ [mm]","Est vtxT [ns]",
-                                              "Est Theta Dir [radians]","Est Phi Dir [radians]","Est Track Energy [MeV]"};
+                                              "Est Theta Dir [degrees]","Est Phi Dir [degrees]","Est Track Energy [MeV]"};
 
     const char* compare_names[num_pars]    = {"compare_vtxX","compare_vtxY","compare_vtxZ","compare_vtxT",
                                               "compare_theta","compare_phi","compare_energy"};
@@ -95,14 +101,23 @@ void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/pa
         // Draw (True-Reco)/True for energy
         TString diff_h_string = Form("((%s-output)/%s)>>diff_h", pars[par], pars[par]);
         outputTree->Draw(diff_h_string.Data());        
+    } else if (par == 4 || par == 5) {
+        // Convert to degrees for the directions
+        TString diff_h_string = Form("((%s-output)*%f)>>diff_h", pars[par], rad_to_deg);
+        outputTree->Draw(diff_h_string.Data());            
     } else {
         // Draw True-Reco for all other parameters
         TString diff_h_string = Form("(%s-output)>>diff_h", pars[par]);
         outputTree->Draw(diff_h_string.Data());
     }
 
-    TString true_est_h_string = Form("%s:output>>true_est_h", pars[par]);
-    outputTree->Draw(true_est_h_string.Data()); 
+    if (par == 4 || par == 5) {
+        TString true_est_h_string = Form("(%s*%f):(output*%f)>>true_est_h", pars[par], rad_to_deg, rad_to_deg);
+        outputTree->Draw(true_est_h_string.Data()); 
+    } else {
+        TString true_est_h_string = Form("%s:output>>true_est_h", pars[par]);
+        outputTree->Draw(true_est_h_string.Data()); 
+    }
 
     diff_h->Fit("gaus");
     TF1 *fit = diff_h->GetFunction("gaus");
@@ -128,20 +143,35 @@ void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/pa
             par_diff_scans[iPar][iBin] = new TH1F(plotName, plotName, bins, -diff_ranges[par], diff_ranges[par]);
 
             // Fill the histogram
-            float bin_width = ((par_high[iPar]-par_low[iPar])/(float)num_bins);
-            float bin_low  = par_low[iPar] + (iBin*bin_width);
-            float bin_high = par_low[iPar] + ((iBin+1)*bin_width);
+            float bin_width, bin_low, bin_high;
+            if (iPar == 4 || iPar == 5) {
+                bin_width = ((1-(-1))/(float)num_bins);
+                bin_low  = (-1) + (iBin*bin_width);
+                bin_high = (-1) + ((iBin+1)*bin_width);
+            } else {
+                bin_width = ((par_high[iPar]-par_low[iPar])/(float)num_bins);
+                bin_low  = par_low[iPar] + (iBin*bin_width);
+                bin_high = par_low[iPar] + ((iBin+1)*bin_width);
+            }
 
             TString cut_string = Form("%s>%f && %s<%f", pars[iPar], bin_low, pars[iPar], bin_high);
             if (par==6) {
                 // Draw (True-Reco)/True for energy
                 TString plot_string = Form("((%s-output)/%s)>>%s", pars[par], pars[par], plotName.Data());
                 outputTree->Draw(plot_string.Data(), cut_string.Data());       
+            } else if (par == 4 || par == 5) {
+                // Convert to degrees for the directions
+                TString plot_string = Form("((%s-output)*%f)>>%s", pars[par], rad_to_deg, plotName.Data());
+                outputTree->Draw(plot_string.Data(), cut_string.Data());            
             } else {
                 // Draw True-Reco for all other parameters
                 TString plot_string = Form("(%s-output)>>%s", pars[par], plotName.Data());
                 outputTree->Draw(plot_string.Data(), cut_string.Data());
             }            
+
+            bin_width = ((par_high[iPar]-par_low[iPar])/(float)num_bins);
+            bin_low  = par_low[iPar] + (iBin*bin_width);
+            bin_high = par_low[iPar] + ((iBin+1)*bin_width);
 
             // Fit the histogram
             bin_array[iBin] = bin_low + (bin_width/2);
@@ -170,17 +200,24 @@ void cvn_parameter_output_plots(int par = 6, const char* outputFile = "output/pa
         // Create the compare plot from the individual widths for this variables
         width_plots[iPar] = new TGraphErrors(num_bins,bin_array,width_array,bin_err_array,width_err_array);
         width_plots[iPar]->GetXaxis()->SetTitle(true_est_xAxis[iPar]); width_plots[iPar]->GetXaxis()->CenterTitle();
-        width_plots[iPar]->GetYaxis()->SetTitle(diff_axis[par]); width_plots[iPar]->GetYaxis()->CenterTitle(); 
+        width_plots[iPar]->GetYaxis()->SetTitle(sigma_axis[par]); width_plots[iPar]->GetYaxis()->CenterTitle(); 
         width_plots[iPar]->GetXaxis()->SetRangeUser(par_low[iPar], par_high[iPar]); width_plots[iPar]->GetYaxis()->SetRangeUser(0.5*width, 2*width);    
         width_plots[iPar]->SetTitle(compare_names[iPar]); width_plots[iPar]->SetName(compare_names[iPar]);
-        width_plots[iPar]->SetLineColor(kRed); width_plots[iPar]->SetLineWidth(2); 
+        width_plots[iPar]->SetLineColor(kGreen+2); width_plots[iPar]->SetLineWidth(2); 
+        //width_plots[iPar]->SetLineColor(kRed); width_plots[iPar]->SetLineWidth(2); 
 
         // Create the true parameter distribution
         par_true_hists[iPar] = new TH1F(pars[iPar], pars[iPar], bins, par_low[iPar], par_high[iPar]);
         par_true_hists[iPar]->GetXaxis()->SetTitle(true_est_xAxis[iPar]); par_true_hists[iPar]->GetXaxis()->CenterTitle();
         par_true_hists[iPar]->GetYaxis()->SetTitle("Events"); par_true_hists[iPar]->GetYaxis()->CenterTitle(); 
-        TString true_string = Form("%s>>%s", pars[iPar], pars[iPar]);
-        outputTree->Draw(true_string.Data());
+
+        if (iPar == 4 || iPar == 5) {
+            TString true_string = Form("(%s*%f)>>%s", pars[iPar], rad_to_deg, pars[iPar]);
+            outputTree->Draw(true_string.Data());
+        } else {
+            TString true_string = Form("%s>>%s", pars[iPar], pars[iPar]);
+            outputTree->Draw(true_string.Data());
+        }
     }
 
     // Write histograms to file

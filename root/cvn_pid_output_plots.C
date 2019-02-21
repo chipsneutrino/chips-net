@@ -1,6 +1,6 @@
-void cvn_pid_output_plots(const char* outputFile = "output/pid.txt",
-                          const char* historyFile = "output/pid_history.txt",
-                          const char* plotFileName = "plots/pid_plots.root"){
+void cvn_pid_output_plots(const char* outputFile = "../output/pid.txt",
+                          const char* historyFile = "../output/pid_history.txt",
+                          const char* plotFileName = "../plots/pid_plots.root"){
 
     gStyle->SetOptStat(0);
 
