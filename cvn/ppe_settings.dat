@@ -1,0 +1,9 @@
+weights,batch_size,learning_rate,epochs,norm,stop_size,stop_epochs
+../../output/cp_0.ckpt,500,0.001,20,sss,5,5
+../../output/cp_1.ckpt,500,0.001,20,sss,5,5
+../../output/cp_2.ckpt,500,0.001,20,sss,5,5
+../../output/cp_3.ckpt,500,0.001,20,sss,5,5
+../../output/cp_4.ckpt,500,0.001,20,sss,0.01,5
+../../output/cp_5.ckpt,500,0.001,20,sss,0.001,5
+../../output/cp_6.ckpt,500,0.001,20,sss,0.001,5
+../../output/cp_7.ckpt,500,0.001,20,sss,5,5

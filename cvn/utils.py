@@ -130,7 +130,7 @@ def callback_tensorboard(logDir):
 								   histogram_freq=1, write_images = True)
 
 def callback_early_stop(monitor, delta, epochs):
-	return callbacks.EarlyStopping(monitor=monitor, min_delta=delta, patience=epochs,
+	return callbacks.EarlyStopping(monitor=monitor, min_delta=float(delta), patience=int(epochs),
 							  	   verbose=1, mode='min')
 
 ###################################################

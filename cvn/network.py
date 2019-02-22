@@ -1,5 +1,7 @@
 # The implementation of the PID and Parameter Estimation Convolutional Visual Networks
 import os
+import sys
+import csv
 import talos as ta
 import argparse
 
@@ -7,41 +9,39 @@ import models
 import utils
 
 class Network(): # Parent Network Class
-	def __init__(self, data_handler, output_name, batch_size,
-				 learning_rate, num_epochs, norm, weights):
+	def __init__(self, data_handler, output_name, settings):
 		self.data = data_handler
 		self.output_name = output_name
-		self.batch_size = batch_size
-		self.learning_rate = learning_rate
-		self.num_epochs = num_epochs
-		self.norm = norm
-		self.weights = weights
+		self.settings = settings
 
 class PIDNetwork(Network): # Particle Identification (PID) Network Class
-	def __init__(self, data_handler, output_name, batch_size, 
-				 learning_rate, num_epochs, norm, weights):
-		Network.__init__(self, data_handler, output_name, batch_size, 
-						 learning_rate, num_epochs, norm, weights)
+	def __init__(self, data_handler, output_name, settings):
+		Network.__init__(self, data_handler, output_name, settings)
 
 	def train(self):
 		print("PIDNetwork: train() ...")
-		print("Output:{0} Weights:{1}".format(self.output_name, self.weights)) 
+		print("Output:{0} Weights:{1}".format(self.output_name, self.settings["weights"])) 
 		print("Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(
-			  self.norm, self.batch_size, self.learning_rate, self.num_epochs))
+			  self.settings["norm"], self.settings["batch_size"], self.settings["learning_rate"], self.settings["epochs"]))
 
 		# Get the specific Keras parameter model
 		categories = 5
-		model = models.pid_model(categories, self.data.get_image_shape(), self.learning_rate)	
+		model = models.pid_model(categories, self.data.get_image_shape(), self.settings["learning_rate"])	
 
 		# Get the images from the different samples
-		train_images, val_images, test_images = self.data.get_images(self.norm)		
+		train_images, val_images, test_images = self.data.get_images(self.settings["norm"])		
 
 		# Fit the model with the training data and store the training "history"
-		train_history = model.fit(train_images, self.data.data["train_labels"],
-								  batch_size=self.batch_size, epochs=self.num_epochs, verbose=1,
+		train_history = model.fit(train_images, 
+								  self.data.data["train_labels"],
+								  batch_size=int(self.settings["batch_size"]), 
+								  epochs=int(self.settings["epochs"]),
+								  verbose=1, 
 								  validation_data=(val_images, self.data.data["val_labels"]),
-								  callbacks=[utils.callback_checkpoint(self.weights),
-								  			 utils.callback_early_stop("val_acc", 0.01, 5)])    
+								  callbacks=[utils.callback_checkpoint(self.settings["weights"]),
+								  			 utils.callback_early_stop("val_acc", 
+											   						   self.settings["stop_size"], 
+											   						   self.settings["stop_epochs"])])    
 
 		# Score the model
 		score = model.evaluate(test_images, self.data.data["test_labels"], verbose=0)
@@ -77,10 +77,8 @@ class PIDNetwork(Network): # Particle Identification (PID) Network Class
 					clear_tf_session=False, val_split=0.2)
 
 class PPENetwork(Network): # Particle Parameter Estimation (PPE) Network Class
-	def __init__(self, data_handler, output_name, batch_size, 
-				 learning_rate, num_epochs, norm, weights, parameter):
-		Network.__init__(self, data_handler, output_name, batch_size, 
-					     learning_rate, num_epochs, norm, weights)
+	def __init__(self, data_handler, output_name, settings, parameter):
+		Network.__init__(self, data_handler, output_name, settings)
 		self.parameter = parameter
 
 	# Train the PPENetwork is self.parameter = -1 we will train all the parameter networks
@@ -88,12 +86,10 @@ class PPENetwork(Network): # Particle Parameter Estimation (PPE) Network Class
 		if self.parameter != -1:
 			self.train_parameter()
 		else:
-			name, ext = os.path.splitext(self.output_name)			
-			weight_name, weight_ext = os.path.splitext(self.weights)		
+			name, ext = os.path.splitext(self.output_name)				
 			for par in range(8):
 				# Change the output file name everytime
 				self.output_name = name + "_" + str(par) + ".txt"	
-				self.weights = weight_name + "_" + str(par) + ".ckpt"
 
 				# Set the parameter to train
 				self.parameter = par
@@ -102,25 +98,29 @@ class PPENetwork(Network): # Particle Parameter Estimation (PPE) Network Class
 	def train_parameter(self):
 		print("PPENetwork: train_parameter() ...")
 		print("Parameter:{0}".format(self.parameter))
-		print("Output:{0} Weights:{1}".format(self.output_name, self.weights)) 
+		print("Output:{0} Weights:{1}".format(self.output_name, self.settings[self.parameter]["weights"])) 
 		print("Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(
-			  self.norm, self.batch_size, self.learning_rate, self.num_epochs))
+			  self.settings[self.parameter]["norm"], self.settings[self.parameter]["batch_size"],
+			  self.settings[self.parameter]["learning_rate"], self.settings[self.parameter]["epochs"]))
 
 		# Get the specific Keras parameter model
 		model = models.parameter_model(self.parameter, self.data.get_image_shape(), 
-									   self.learning_rate)
+									   self.settings[self.parameter]["learning_rate"])
 
 		# Get the images from the different samples
-		train_images, val_images, test_images = self.data.get_images(self.norm)				
+		train_images, val_images, test_images = self.data.get_images(self.settings[self.parameter]["norm"])				
 
 		# Fit the model with the training data and store the training "history"
-		train_history = model.fit(train_images, self.data.data["train_pars"][:, self.parameter],
-								  batch_size=self.batch_size, epochs=self.num_epochs, verbose=1,
+		train_history = model.fit(train_images, 
+								  self.data.data["train_pars"][:, self.parameter],
+								  batch_size=int(self.settings[self.parameter]["batch_size"]), 
+								  epochs=int(self.settings[self.parameter]["epochs"]), 
+								  verbose=1,
 								  validation_data=(val_images, self.data.data["val_pars"][:, self.parameter]),
-								  callbacks=[])
-
-		# utils.callback_checkpoint(self.weights)
-		# utils.callback_early_stop("val_mean_absolute_error", 5, 5)
+								  callbacks=[utils.callback_checkpoint(self.settings[self.parameter]["weights"]),
+								  			 utils.callback_early_stop("val_mean_absolute_error", 
+											   						   self.settings[self.parameter]["stop_size"], 
+																	   self.settings[self.parameter]["stop_epochs"])])
 		
 		trained_epochs = len(train_history.history['loss'])
 
@@ -142,7 +142,7 @@ class PPENetwork(Network): # Particle Parameter Estimation (PPE) Network Class
 	def optimise(self):
 		print("PPENetwork: optimise() ...")
 
-		x, val_images, test_images = self.data.get_images(self.norm)		
+		x, val_images, test_images = self.data.get_images(self.settings[self.parameter]["norm"])		
 		y = self.data.data["train_labels"]	
 
 		p = {"learning_rate":[0.001], "batch_size":[500], "epochs":[40],
@@ -160,31 +160,27 @@ def parse_args():
 
 	# Input and output files (history file will have similar name to output file)
 	parser.add_argument('input', help = 'Path to combined input "image" .txt file')
-	parser.add_argument('-o', '--output',    default='../../output/output.txt', help = 'Output .txt file')
-	parser.add_argument('-n', '--network',	 default = 'ppe', 	help = 'Type of network pid or ppe')
+	parser.add_argument('-o', '--output',   default = '../../output/output.txt', help = 'Output .txt file')
+	parser.add_argument('-t', '--type',	 	default = 'ppe', help = 'Type of network pid or ppe')
+	parser.add_argument('-w', '--weights', 	default = '../../output/cp.ckpt',	 help = 'Network weights')
 
 	# What function are we doing?
 	parser.add_argument('--train', 		action = 'store_true',  help = 'Use to train the network')
 	parser.add_argument('--eval',  		action = 'store_true',  help = 'Use to evaluate on the network')
-	parser.add_argument('--opt', 	action = 'store_true', 		help = 'Use to optimise the network')
+	parser.add_argument('--opt', 		action = 'store_true', 	help = 'Use to optimise the network')
 
 	# Network Parameters
 	parser.add_argument('-p', '--parameter',	default = -1,	help = 'Parameter to fit (lepton Energy = 6)')
-	parser.add_argument('-w', '--weights', 	 	default='../../output/cp.ckpt',    help = 'Network weights')
-	parser.add_argument('-v', '--val_frac',   	default = 0.1,  help = 'Fraction of events for validation (0.1)')
-	parser.add_argument('-t', '--test_frac',  	default = 0.1,  help = 'Fraction of events for testing (0.1)')
-	parser.add_argument('-b', '--batch_size', 	default = 500,  help = 'Training batch size (500)')
-	parser.add_argument('-l', '--l_rate',     	default = 0.001,help = 'Training learning rate (0.001)')
-	parser.add_argument('-e', '--epochs',    	default = 20,   help = 'Training epochs (10)')
+	parser.add_argument('--val_frac',   		default = 0.1,  help = 'Fraction of events for validation (0.1)')
+	parser.add_argument('--test_frac',  		default = 0.1,  help = 'Fraction of events for testing (0.1)')
 	parser.add_argument('--no_hit',  	action = 'store_true', 	help = 'Do not use hit channel')
 	parser.add_argument('--no_time', 	action = 'store_true', 	help = 'Do not use time channel')
-	parser.add_argument('--norm',   		default = 'none',	help = '(none, ebe, sss)')
 	parser.add_argument('-s', '--image_size', 	default = 32, 	help = 'Input image size (32)')
 
 	# Check arguments
 	args = parser.parse_args()
 
-	if args.network != "ppe" and args.network != "pid":
+	if args.type != "ppe" and args.type != "pid":
 		print("Error: Specify Network!")
 		sys.exit()			
 	elif args.no_hit and args.no_time:
@@ -198,14 +194,9 @@ def parse_args():
 		sys.exit()	
 	elif not args.train and not args.eval and not args.opt:
 		print("Error: Need to specify something to do!")
-		sys.exit()	
-
-	if args.norm not in ["none", "ebe", "sss"]:
-		print("Error: Norm needs to be [none, ebe, sss]")
-		sys.exit()					
+		sys.exit()				
 
 	return args  
-
 
 def main():
 	args = parse_args() # Get the command line arguments
@@ -216,9 +207,17 @@ def main():
 	data.load_data()
 	data.print()
 
-	if args.network == "ppe":
-		network = PPENetwork(data, args.output, int(args.batch_size), float(args.l_rate), 
-							 int(args.epochs), args.norm, args.weights, int(args.parameter))
+	if args.type == "ppe":
+
+		# Load settings into dict
+		settings_file = open("ppe_settings.dat", "r")
+		settings_dict = csv.DictReader(settings_file)
+		settings_list = []
+		for par in settings_dict:
+			settings_list.append(par)
+		settings_file.close()
+
+		network = PPENetwork(data, args.output, settings_list, int(args.parameter))
 		if args.train:
 			network.train()
 		elif args.eval:
@@ -226,9 +225,17 @@ def main():
 		elif args.opt:
 			network.optimise()
 		
-	elif args.network == "pid":
-		network = PIDNetwork(data, args.output, int(args.batch_size), float(args.l_rate), 
-							 int(args.epochs), args.norm, args.weights)
+	elif args.type == "pid":
+
+		# Load settings into dict
+		settings_file = open("pid_settings.dat", "r")
+		settings_dict = csv.DictReader(settings_file)
+		settings_list = []
+		for par in settings_dict:
+			settings_list.append(par)
+		settings_file.close()
+
+		network = PIDNetwork(data, args.output, settings_list[0])
 		if args.train:
 			network.train()
 		elif args.eval:

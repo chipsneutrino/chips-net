@@ -33,7 +33,7 @@ def pid_model(categories, input_shape, learning_rate):
 
 	# Compile the model
 	model.compile(loss='sparse_categorical_crossentropy',
-				  optimizer=optimizers.Adam(lr=learning_rate),
+				  optimizer=optimizers.Adam(lr=float(learning_rate)),
 				  metrics=['accuracy']) 
 
 	# Return the compiled model
