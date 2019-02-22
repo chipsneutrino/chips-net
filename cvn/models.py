@@ -78,7 +78,7 @@ def pid_model_fit(x_train, y_train, x_val, y_val, params):
 	# Finally we return the history object and the model
 	return history, model
 
-def parameter_model(parameter, input_shape, learning_rate):
+def ppe_model(parameter, input_shape, learning_rate):
 
 	# TODO: Implement different tuned models for each parameter
 
@@ -108,7 +108,7 @@ def parameter_model(parameter, input_shape, learning_rate):
 	return model
 
 # Used for talos optimisation of parameter models
-def parameter_model_fit(x_train, y_train, x_val, y_val, params):
+def ppe_model_fit(x_train, y_train, x_val, y_val, params):
 
 	# Structure the sequential model
 	model = tf.keras.Sequential([
@@ -136,3 +136,32 @@ def parameter_model_fit(x_train, y_train, x_val, y_val, params):
 	
 	# Finally we return the history object and the model
 	return history, model
+
+def par_model(input_shape, learning_rate):
+
+	# TODO: Implement different tuned models for each parameter
+
+	# Structure the sequential model
+	model = tf.keras.Sequential([
+		layers.Conv2D(filters=32, kernel_size=3, padding='same', activation='relu', input_shape=input_shape),
+		layers.Conv2D(filters=32, kernel_size=3, activation='relu'),
+		layers.MaxPooling2D(pool_size=2),
+		layers.Conv2D(filters=64, kernel_size=3, padding='same', activation='relu'),
+		layers.Conv2D(filters=64, kernel_size=3, activation='relu'),
+		layers.MaxPooling2D(pool_size=2),
+		layers.Flatten(),
+		layers.Dense(64, activation='relu'),
+		layers.Dropout(0.0),
+		layers.Dense(8, activation='linear')
+	])
+
+	# Print the model summary
+	model.summary()
+
+	# Compile the model
+	model.compile(loss='mean_squared_error',
+				  optimizer=optimizers.Adam(lr=float(learning_rate)),
+				  metrics=['mae', 'mse']) 
+
+	# Return the compiled model
+	return model

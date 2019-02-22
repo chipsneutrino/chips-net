@@ -4,6 +4,7 @@ import sys
 import csv
 import talos as ta
 import argparse
+import numpy as np
 
 import models
 import utils
@@ -47,7 +48,7 @@ class PIDNetwork(Network): # Particle Identification (PID) Network Class
 		score = model.evaluate(test_images, self.data.data["test_labels"], verbose=0)
 		print('Test Loss: {:.4f}, Test Accuracy: {:.4f}'.format(score[0], score[1]))	
 
-		# Save history to training output
+		# Save history
 		utils.save_category_history(train_history, self.output_name)	
 
 		# Evaluate the test sample on the trained model and save output to file
@@ -104,7 +105,7 @@ class PPENetwork(Network): # Particle Parameter Estimation (PPE) Network Class
 			  self.settings[self.parameter]["learning_rate"], self.settings[self.parameter]["epochs"]))
 
 		# Get the specific Keras parameter model
-		model = models.parameter_model(self.parameter, self.data.get_image_shape(), 
+		model = models.ppe_model(self.parameter, self.data.get_image_shape(), 
 									   self.settings[self.parameter]["learning_rate"])
 
 		# Get the images from the different samples
@@ -121,11 +122,9 @@ class PPENetwork(Network): # Particle Parameter Estimation (PPE) Network Class
 								  			 utils.callback_early_stop("val_mean_absolute_error", 
 											   						   self.settings[self.parameter]["stop_size"], 
 																	   self.settings[self.parameter]["stop_epochs"])])
-		
-		trained_epochs = len(train_history.history['loss'])
 
 		if self.output_name is not None:
-			# Save history to training output
+			# Save history
 			utils.save_regression_history(train_history, self.output_name)
 
 			# Evaluate the test sample on the trained model and save output to file
@@ -133,8 +132,6 @@ class PPENetwork(Network): # Particle Parameter Estimation (PPE) Network Class
 			utils.save_regression_output(self.data.data["test_labels"], 
 										 self.data.data["test_pars"], 
 										 test_output, self.output_name)
-
-		return train_history.history['val_mean_absolute_error'][trained_epochs-1]        
 
 	def evaluate(self):
 		print("PPENetwork: evaluate() ...")
@@ -150,9 +147,50 @@ class PPENetwork(Network): # Particle Parameter Estimation (PPE) Network Class
 			 "filters_2":[64], "size_2":[3], "pool_2":[2],
 			 "dense":[128], "dropout":[0.0], "stop_size":[5], "stop_epochs":[5]}
 
-		t = ta.Scan(x=x, y=y, model=models.parameter_model_fit, grid_downsample=1.0, 
-					params=p, dataset_name='parameter_model', experiment_no='0',
+		t = ta.Scan(x=x, y=y, model=models.ppe_model_fit, grid_downsample=1.0, 
+					params=p, dataset_name='ppe_model', experiment_no='0',
 					clear_tf_session=False, val_split=0.2)
+
+class PARNetwork(Network): # Combined particle parameter estimation network
+	def __init__(self, data_handler, output_name, settings):
+		Network.__init__(self, data_handler, output_name, settings)
+
+	def train(self):
+		print("PARNetwork: train() ...")
+		print("Output:{0} Weights:{1}".format(self.output_name, self.settings["weights"])) 
+		print("Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(
+			  self.settings["norm"], self.settings["batch_size"],
+			  self.settings["learning_rate"], self.settings["epochs"]))
+
+		# Get the specific Keras parameter model
+		model = models.par_model(self.data.get_image_shape(), self.settings["learning_rate"])
+
+		# Get the images and pars from the different samples
+		train_images, val_images, test_images = self.data.get_images(self.settings["norm"])			
+		train_pars, val_pars, test_pars = self.data.get_transformed_pars()
+
+		# Fit the model with the training data and store the training "history"
+		train_history = model.fit(train_images, 
+								  train_pars,
+								  batch_size=int(self.settings["batch_size"]), 
+								  epochs=int(self.settings["epochs"]), 
+								  verbose=1,
+								  validation_data=(val_images, val_pars),
+								  callbacks=[utils.callback_checkpoint(self.settings["weights"]),
+								  			 utils.callback_early_stop("val_mean_absolute_error", 
+											   						   self.settings["stop_size"], 
+																	   self.settings["stop_epochs"])])
+
+		if self.output_name is not None:
+			# Save history
+			utils.save_regression_history(train_history, self.output_name)
+
+			# Evaluate the test sample on the trained model and save output to file
+			test_output = model.predict(test_images, verbose=0)
+			test_output = self.data.inverse_transform_pars(test_output)
+			utils.save_regression_output(self.data.data["test_labels"], 
+										 self.data.data["test_pars"], 
+										 test_output, self.output_name)
 
 # Parse the command line argument options
 def parse_args():
@@ -161,7 +199,7 @@ def parse_args():
 	# Input and output files (history file will have similar name to output file)
 	parser.add_argument('input', help = 'Path to combined input "image" .txt file')
 	parser.add_argument('-o', '--output',   default = '../../output/output.txt', help = 'Output .txt file')
-	parser.add_argument('-t', '--type',	 	default = 'ppe', help = 'Type of network pid or ppe')
+	parser.add_argument('-t', '--type',	 	default = 'ppe', help = '(ppe, pid, par)')
 	parser.add_argument('-w', '--weights', 	default = '../../output/cp.ckpt',	 help = 'Network weights')
 
 	# What function are we doing?
@@ -180,7 +218,7 @@ def parse_args():
 	# Check arguments
 	args = parser.parse_args()
 
-	if args.type != "ppe" and args.type != "pid":
+	if args.type not in ["ppe", "pid", "par"]:
 		print("Error: Specify Network!")
 		sys.exit()			
 	elif args.no_hit and args.no_time:
@@ -242,6 +280,25 @@ def main():
 			network.evaluate()
 		elif args.opt:
 			network.optimise()	
+
+	elif args.type == "par":
+
+		# Load settings into dict
+		settings_file = open("par_settings.dat", "r")
+		settings_dict = csv.DictReader(settings_file)
+		settings_list = []
+		for par in settings_dict:
+			settings_list.append(par)
+		settings_file.close()
+
+		network = PARNetwork(data, args.output, settings_list[0])
+		if args.train:
+			network.train()
+		elif args.eval:
+			network.evaluate()
+		elif args.opt:
+			network.optimise()
+
 
 if __name__=='__main__':
 	main()

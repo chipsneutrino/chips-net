@@ -20,7 +20,8 @@ class DataHandler:
 		self.no_hit = no_hit			# Don't use hit channel (bool)
 		self.no_time = no_time			# Don't use time channel (bool)
 		self.data = None				# Data dictionary
-		self.scaler = None				# StandardScaler for both channels (hit,time)
+		self.img_scaler = None			# StandardScalers for both channels (hit,time)
+		self.par_scaler = None			# List of StandardScalers for all the parameters
 
 	# Loads the data from .txt file splitting up the arrays and places them in a large dictionary
 	def load_data(self):
@@ -54,7 +55,11 @@ class DataHandler:
 		# We do not want the val/test sets to influence the model
 		hit_scaler = StandardScaler().fit(train_hit_images)
 		time_scaler = StandardScaler().fit(train_time_images)
-		self.scaler = [hit_scaler, time_scaler]
+		self.img_scaler = [hit_scaler, time_scaler]
+
+		# Fit the Standard Scalers for the different parameters
+		# Use to scale the training features when fitting together
+		self.par_scaler = StandardScaler().fit(train_pars)
 
 	# Decode the .txt format
 	# [Labels(1), Parameters(8), charge_pixels(32*32), time_pixels(32*32)]
@@ -106,8 +111,8 @@ class DataHandler:
 				hit_img = tf.keras.utils.normalize(hit_img, axis=1)
 				time_img = tf.keras.utils.normalize(time_img, axis=1)
 			elif norm == "sss":
-				hit_img = self.scaler[0].transform(hit_img)
-				time_img = self.scaler[1].transform(time_img)
+				hit_img = self.img_scaler[0].transform(hit_img)
+				time_img = self.img_scaler[1].transform(time_img)
 		
 			# Reshape and combine the channels
 			hit_img = hit_img.reshape(hit_img.shape[0], *image_shape) 
@@ -116,6 +121,16 @@ class DataHandler:
 
 		return images[0], images[1], images[2] # Train_images, Validation_images, Test_images
 
+	def get_transformed_pars(self):
+		train_pars = self.par_scaler.transform(self.data["train_pars"])
+		val_pars = self.par_scaler.transform(self.data["val_pars"])
+		test_pars = self.par_scaler.transform(self.data["test_pars"])
+
+		return train_pars, val_pars, test_pars
+
+	def inverse_transform_pars(self, pars):
+		return self.par_scaler.inverse_transform(pars)	
+		
 ###################################################
 #               Callback Functions                #
 ###################################################
@@ -265,7 +280,9 @@ def save_regression_output(test_labels, test_parameters, test_output, output_fil
 		out = str(test_labels[num])
 		out += (" " + str(test_parameters[num][0]) + " " + str(test_parameters[num][1]) + " " + str(test_parameters[num][2]) + " " + str(test_parameters[num][3]))
 		out += (" " + str(test_parameters[num][4]) + " " + str(test_parameters[num][5]) + " " + str(test_parameters[num][6]) + " " + str(test_parameters[num][7]))
-		out += (" " + str(test_output[num, 0])) + "\n"
+		for par in range(len(test_output[num])):
+			out += (" " + str(test_output[num][par]))
+		out += "\n";
 		output.write(out)
 	output.close()     
 
