@@ -80,8 +80,6 @@ def pid_model_fit(x_train, y_train, x_val, y_val, params):
 
 def ppe_model(parameter, input_shape, learning_rate):
 
-	# TODO: Implement different tuned models for each parameter
-
 	# Structure the sequential model
 	model = tf.keras.Sequential([
 		layers.Conv2D(filters=32, kernel_size=3, padding='same', activation='relu', input_shape=input_shape),
@@ -139,8 +137,6 @@ def ppe_model_fit(x_train, y_train, x_val, y_val, params):
 
 def par_model(input_shape, learning_rate):
 
-	# TODO: Implement different tuned models for each parameter
-
 	# Structure the sequential model
 	model = tf.keras.Sequential([
 		layers.Conv2D(filters=32, kernel_size=3, padding='same', activation='relu', input_shape=input_shape),
@@ -165,3 +161,36 @@ def par_model(input_shape, learning_rate):
 
 	# Return the compiled model
 	return model
+
+# Used for talos optimisation of the combined parameter model
+def par_model_fit(x_train, y_train, x_val, y_val, params):
+
+	# Structure the sequential model
+	model = tf.keras.Sequential([
+		layers.Conv2D(filters=params["filters_1"], kernel_size=params["size_1"], padding='same', activation='relu', input_shape=(32,32,2)),
+		layers.Conv2D(filters=params["filters_1"], kernel_size=params["size_1"], activation='relu'),
+		layers.MaxPooling2D(pool_size=params["pool_1"]),
+		layers.Conv2D(filters=params["filters_2"], kernel_size=params["size_2"], padding='same', activation='relu'),
+		layers.Conv2D(filters=params["filters_2"], kernel_size=params["size_2"], activation='relu'),
+		layers.MaxPooling2D(pool_size=params["pool_2"]),
+		layers.Flatten(),
+		layers.Dense(params["dense"], activation='relu'),
+		layers.Dropout(params["dropout"]),
+		layers.Dense(8, activation='linear')
+	])
+
+	# Print the model summary
+	model.summary()
+
+	# Compile the model
+	model.compile(loss='mean_squared_error',
+				  optimizer=optimizers.Adam(lr=params["learning_rate"]),
+				  metrics=['mae', 'mse']) 
+
+	# Fit the model
+	history = model.fit(x_train, y_train, batch_size=params["batch_size"], 
+						epochs=params["epochs"], verbose=1, validation_data=(x_val, y_val),
+						callbacks=[utils.callback_early_stop("val_mean_absolute_error", params["stop_size"], params["stop_epochs"])])
+	
+	# Finally we return the history object and the model
+	return history, model

@@ -7,7 +7,7 @@ import os
 from sklearn.preprocessing import StandardScaler
 
 ###################################################
-#                   DataHandler                   #
+#                DataHandler Class                #
 ###################################################
 
 class DataHandler:
@@ -27,8 +27,7 @@ class DataHandler:
 	def load_data(self):
 		print("DataHandler: load_data() ...")
 
-		# Load the txt file into a numpy array
-		data = np.loadtxt(self.input_file, dtype='float32')
+		data = np.loadtxt(self.input_file, dtype='float32')					# Load txt file into a np array
 
 		np.random.shuffle(data) 											# Shuffle the combined array
 
@@ -39,6 +38,7 @@ class DataHandler:
 		# Split into training, validation and test samples
 		split_data = np.split(data, [num_training, num_training+num_validate, total_events])		
 
+		# Decode the split data samples into separate np arrays
 		train_labels, train_pars, train_hit_images, train_time_images = self.decode(split_data[0])
 		val_labels, val_pars, val_hit_images, val_time_images = self.decode(split_data[1])
 		test_labels, test_pars, test_hit_images, test_time_images = self.decode(split_data[2])
@@ -74,6 +74,7 @@ class DataHandler:
 
 		return labels, parameters, hit_images, time_images		# Return decoded arrays
 
+	# Print the shapes of the np array contained within self.data
 	def print(self):
 		# Training Data
 		print("Training Data -> Labels:{0} Parameters:{1} HitImages:{2} TimeImages:{3}".format(
@@ -95,22 +96,21 @@ class DataHandler:
 		else:
 			return (self.image_size, self.image_size, 2)
 
-	# Returns the images (0=train,1=validation,2=test)
+	# Returns the training, validation and testing images after normalisation if required
 	def get_images(self, norm):
 		dict_keys = [("train_hit_images", "train_time_images"), 
-				("val_hit_images", "val_time_images"), 
-				("test_hit_images", "test_time_images")]
+					 ("val_hit_images", "val_time_images"), 
+					 ("test_hit_images", "test_time_images")]
 
 		images = []	# Store the different sample images in a list
 		image_shape = (self.image_size, self.image_size, 1)	# Single channel shape
 		for sample in range(3):
 			hit_img = self.data[dict_keys[sample][0]]
 			time_img = self.data[dict_keys[sample][1]]
-			# Normalise if we need to
-			if norm == "ebe":
+			if norm == "ebe": # Event by event normalisation
 				hit_img = tf.keras.utils.normalize(hit_img, axis=1)
 				time_img = tf.keras.utils.normalize(time_img, axis=1)
-			elif norm == "sss":
+			elif norm == "sss": # Sample wide StandardScaler normalisation 
 				hit_img = self.img_scaler[0].transform(hit_img)
 				time_img = self.img_scaler[1].transform(time_img)
 		
@@ -121,18 +121,19 @@ class DataHandler:
 
 		return images[0], images[1], images[2] # Train_images, Validation_images, Test_images
 
+	# Transform the parameters for the different samples
 	def get_transformed_pars(self):
 		train_pars = self.par_scaler.transform(self.data["train_pars"])
 		val_pars = self.par_scaler.transform(self.data["val_pars"])
 		test_pars = self.par_scaler.transform(self.data["test_pars"])
-
 		return train_pars, val_pars, test_pars
 
+	# Inverse transform the parameters
 	def inverse_transform_pars(self, pars):
 		return self.par_scaler.inverse_transform(pars)	
 		
 ###################################################
-#               Callback Functions                #
+#               Callback Methods                  #
 ###################################################
 
 # Saves the current model state at each epoch
@@ -142,14 +143,14 @@ def callback_checkpoint(path):
 # Stores tensorboard information at each epoch
 def callback_tensorboard(logDir):
 	return callbacks.TensorBoard(log_dir=logDir, write_graph=True, write_grads=True,
-								   histogram_freq=1, write_images = True)
+								 histogram_freq=1, write_images = True)
 
 def callback_early_stop(monitor, delta, epochs):
 	return callbacks.EarlyStopping(monitor=monitor, min_delta=float(delta), patience=int(epochs),
 							  	   verbose=1, mode='min')
 
 ###################################################
-#               Plotting Functions                #
+#               Plotting Methods                  #
 ###################################################
 
 # pyplot a specific channel array as an image
@@ -197,9 +198,8 @@ def plot_regression_history(history):
 	plt.show()
 
 # pyplot the (true-estimated) distribution
-def plot_true_minus_estimation(diff):
-	plt.hist(diff, bins=50)
-	#plt.hist(diff, bins=50, range=[-1500, 1500]) # Can specify a range
+def plot_true_minus_estimation(diff, bins=50, hist_range=[-1500, 1500]):
+	plt.hist(diff, bins=bins, range=hist_range)
 	plt.ylabel('Events')
 	plt.xlabel('True - Estimation')
 	plt.show()
@@ -234,7 +234,7 @@ def save_category_output(categories, test_labels, test_parameters, test_output, 
 		print("Error: Arrays are not the same size")
 		sys.exit()	
 
-	# [label, beamE, parameters, testOutput[Outputs for the different categories]]
+	# [label, parameters, testOutput[Outputs for the different categories]]
 	output = open(output_file, "w")
 	for num in range(len(test_labels)):
 		out = str(test_labels[num])
@@ -274,7 +274,7 @@ def save_regression_output(test_labels, test_parameters, test_output, output_fil
 		print("Error: test_labels and test_output not the same length")
 		sys.exit()	
 
-	# [label, beamE, parameters, test_output]
+	# [label, parameters, test_output]
 	output = open(output_file, "w")
 	for num in range(len(test_labels)):
 		out = str(test_labels[num])
