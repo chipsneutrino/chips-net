@@ -5,8 +5,8 @@
 #include <vector>
 #include <fstream>
 
-void cvn_make_images(const char* in_dir="", const char* out_name="", 
-                    int label=-999, int PDG_code=-999, int images_to_make=50000) {
+void make_images(const char* in_dir="", const char* out_name="", 
+                 int label=-999, int PDG_code=-999, int images_to_make=50000) {
 
     // Other Options
     int num_files           = 200;      // Number of files in input directory

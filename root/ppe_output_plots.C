@@ -1,6 +1,6 @@
-void cvn_parameter_output_plots(int par = 6, const char* outputFile = "../output/parameter.txt",
-                                const char* historyFile = "../output/parameter_history.txt",
-                                const char* plotFileName = "../plots/parameter_plots.root") {
+void ppe_output_plots(int par = 6, const char* outputFile = "../output/parameter.txt",
+                      const char* historyFile = "../output/parameter_history.txt",
+                      const char* plotFileName = "../plots/parameter_plots.root") {
 
     TTree *outputTree = new TTree("outputTree", "outputTree");
     outputTree->ReadFile(outputFile, "label:beamE:p0:p1:p2:p3:p4:p5:p6:output");
