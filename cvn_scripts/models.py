@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.python.keras import layers
 from tensorflow.python.keras import optimizers
+from tensorflow.python.keras import regularizers
 import utils
 
 def pid_model(categories, input_shape, learning_rate):
@@ -194,3 +195,49 @@ def par_model_fit(x_train, y_train, x_val, y_val, params):
 	
 	# Finally we return the history object and the model
 	return history, model
+
+def Conv2d_All(x, nb_filter,kernel_size, padding='same',strides=(1,1),name=None):
+	if name is not None:
+		bn_name = name + '_bn'
+		conv_name = name + '_conv'
+	else:
+		bn_name = None
+		conv_name = None
+		
+	x = layers.Conv2D(nb_filter,kernel_size,padding=padding,strides=strides,activation='relu',name=conv_name)(x)
+	x = layers.BatchNormalization(axis=3,name=bn_name)(x)
+	return x
+
+def Inception(x,nb_filter):
+	b1x1 = Conv2d_All(x,nb_filter,(1,1), padding='same',strides=(1,1),name=None)
+	b3x3 = Conv2d_All(x,nb_filter,(1,1), padding='same',strides=(1,1),name=None)
+	b3x3 = Conv2d_All(b3x3,nb_filter,(3,3), padding='same',strides=(1,1),name=None)
+	b5x5 = Conv2d_All(x,nb_filter,(1,1), padding='same',strides=(1,1),name=None)
+	b5x5 = Conv2d_All(b5x5,nb_filter,(1,1), padding='same',strides=(1,1),name=None)
+	bpool = layers.MaxPool2D(pool_size=(3,3),strides=(1,1),padding='same')(x)
+	bpool = Conv2d_All(bpool,nb_filter,(1,1),padding='same',strides=(1,1),name=None)
+	x = layers.concatenate([b1x1,b3x3,b5x5,bpool],axis=3)
+	return x
+
+def googleNet_model():
+	inputs = layers.Input(shape=(32,32,2), dtype='float32', name='inputs')
+	x = Conv2d_All(inputs,64,(3,3),strides=(2,2),padding='same')
+	x = layers.MaxPool2D(pool_size=(2,2),strides=(2,2),padding='same')(x)
+	x = Conv2d_All(x,192,(3,3),strides=(1,1),padding='same')
+	x = layers.MaxPool2D(pool_size=(2,2),strides=(2,2),padding='same')(x)
+	x = Inception(x,64)
+	x = Inception(x,120)
+	x = layers.MaxPool2D(pool_size=(2,2),strides=(2,2),padding='same')(x)
+	x = Inception(x,128)
+	x = layers.AveragePooling2D(pool_size=(2,2),strides=(2,2),padding='same')(x)
+	x = layers.Flatten()(x)
+	x = layers.Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.1))(x)
+	#x   = layers.Dense(1024, activation='relu')(x)
+	out = layers.Dense(8, activation='linear', name='out')(x)
+	model = tf.keras.Model(inputs=inputs, outputs=[out])
+
+	model.compile(optimizer=tf.train.AdamOptimizer(learning_rate=0.001),
+			  	  loss='mean_squared_error',
+			  	  metrics=['mae', 'mse'])
+
+	return model
