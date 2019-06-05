@@ -1,4 +1,5 @@
-# The implementation of the PID and Parameter Estimation Convolutional Visual Networks
+# The implementation of the different Convolutional Neural Networks for CHIPS
+
 import os
 import sys
 import csv
@@ -10,304 +11,341 @@ import tensorflow as tf
 import models
 import utils
 
-class Network(): # Parent Network Class
-	def __init__(self, data_handler, output_name, settings):
-		self.data = data_handler
-		self.output_name = output_name
-		self.settings = settings
 
-class PIDNetwork(Network): # Particle Identification (PID) Network Class, inherits from Network
-	def __init__(self, data_handler, output_name, settings):
-		Network.__init__(self, data_handler, output_name, settings)
+class Network():  # Parent Network Class
+    def __init__(self, data_handler, output_name, settings):
+        self.data = data_handler
+        self.output_name = output_name
+        self.settings = settings
 
-	def train(self):
-		print("PIDNetwork: train() ...")
-		print("Output:{0} Weights:{1}".format(self.output_name, self.settings["weights"])) 
-		print("Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(
-			  self.settings["norm"], self.settings["batch_size"], self.settings["learning_rate"], self.settings["epochs"]))
 
-		# Get the specific Keras parameter model
-		categories = 5
-		model = models.pid_model(categories, self.data.get_image_shape(), self.settings["learning_rate"])	
+class PIDNetwork(Network):  # Particle Identification (PID) Network Class, inherits from Network
+    def __init__(self, data_handler, output_name, settings):
+        Network.__init__(self, data_handler, output_name, settings)
 
-		# Get the images from the different samples
-		train_images, val_images, test_images = self.data.get_images(self.settings["norm"])		
+    def train(self):
+        print("PIDNetwork: train() ...")
+        print("Output:{0} Weights:{1}".format(
+            self.output_name, self.settings["weights"]))
+        print("Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(
+            self.settings["norm"], self.settings["batch_size"], self.settings["learning_rate"], self.settings["epochs"]))
 
-		# Fit the model with the training data and store the training "history"
-		history = model.fit(train_images, 
-							self.data.data["train_labels"],
-							batch_size=int(self.settings["batch_size"]), 
-							epochs=int(self.settings["epochs"]),
-							verbose=1, 
-							validation_data=(val_images, self.data.data["val_labels"]),
-							callbacks=[utils.callback_checkpoint(self.settings["weights"]),
-							    	   utils.callback_early_stop("val_acc", 
-											   					 self.settings["stop_size"], 
-											   					 self.settings["stop_epochs"])])    
+        # Get the specific Keras parameter model
+        categories = 5
+        model = models.pid_model(
+            categories, self.data.get_image_shape(), self.settings["learning_rate"])
 
-		# Save history
-		utils.save_category_history(history, self.output_name)	
+        # Get the images from the different samples
+        train_images, val_images, test_images = self.data.get_images(
+            self.settings["norm"])
 
-		# Evaluate the test sample on the trained model and save output to file
-		test_output = model.predict(test_images, verbose=0)
-		utils.save_category_output(categories, self.data.data["test_labels"], self.data.data["test_pars"], 
-								   test_output, self.output_name)
+        # Fit the model with the training data and store the training "history"
+        history = model.fit(train_images,
+                            self.data.data["train_labels"],
+                            batch_size=int(self.settings["batch_size"]),
+                            epochs=int(self.settings["epochs"]),
+                            verbose=1,
+                            validation_data=(
+                                val_images, self.data.data["val_labels"]),
+                            callbacks=[utils.callback_checkpoint(self.settings["weights"]),
+                                       utils.callback_early_stop("val_acc",
+                                                                 self.settings["stop_size"],
+                                                                 self.settings["stop_epochs"])])
 
-	def evaluate(self):
-		print("PIDNetwork: evaluate() ...")
+        # Save history
+        utils.save_category_history(history, self.output_name)
 
-	def optimise(self):
-		print("PIDNetwork: optimise() ...")
+        # Evaluate the test sample on the trained model and save output to file
+        test_output = model.predict(test_images, verbose=0)
+        utils.save_category_output(categories, self.data.data["test_labels"], self.data.data["test_pars"],
+                                   test_output, self.output_name)
 
-		x, val_images, test_images = self.data.get_images(self.norm)		
-		y = self.data.data["train_labels"]		
+    def evaluate(self):
+        print("PIDNetwork: evaluate() ...")
 
-		p = {"learning_rate":[0.001], "batch_size":[500], "epochs":[40],
-			 "filters_1":[64], "size_1":[3], "pool_1":[2],
-			 "filters_2":[128], "size_2":[3], "pool_2":[2],
-			 "filters_3":[256], "size_3":[3], "pool_3":[2],
-			 "dense":[512], "dropout":[0.2], "categories":[5],
-			 "stop_size":[0.01], "stop_epochs":[5]}
+    def optimise(self):
+        print("PIDNetwork: optimise() ...")
 
-		t = ta.Scan(x=x, y=y, model=models.pid_model_fit, grid_downsample=1.0, 
-					params=p, dataset_name='pid_model', experiment_no='0',
-					clear_tf_session=False, val_split=0.2)
+        x, val_images, test_images = self.data.get_images(self.norm)
+        y = self.data.data["train_labels"]
 
-class PPENetwork(Network): # Particle Parameter Estimation (PPE) Network Class, inherits from Network
-	def __init__(self, data_handler, output_name, settings, parameter):
-		Network.__init__(self, data_handler, output_name, settings)
-		self.parameter = parameter
+        p = {"learning_rate": [0.001], "batch_size": [500], "epochs": [40],
+             "filters_1": [64], "size_1": [3], "pool_1": [2],
+             "filters_2": [128], "size_2": [3], "pool_2": [2],
+             "filters_3": [256], "size_3": [3], "pool_3": [2],
+             "dense": [512], "dropout": [0.2], "categories": [5],
+             "stop_size": [0.01], "stop_epochs": [5]}
 
-	# Train the PPENetwork is self.parameter = -1 we will train all the parameter networks
-	def train(self):
-		if self.parameter != -1:
-			self.train_parameter()
-		else:
-			name, ext = os.path.splitext(self.output_name)				
-			for par in range(8):
-				# Change the output file name everytime
-				self.output_name = name + "_" + str(par) + ".txt"	
+        t = ta.Scan(x=x, y=y, model=models.pid_model_fit, grid_downsample=1.0,
+                    params=p, dataset_name='pid_model', experiment_no='0',
+                    clear_tf_session=False, val_split=0.2)
 
-				# Set the parameter to train
-				self.parameter = par
-				self.train_parameter()				
 
-	def train_parameter(self):
-		print("PPENetwork: train_parameter() ...")
-		print("Parameter:{0}".format(self.parameter))
-		print("Output:{0} Weights:{1}".format(self.output_name, self.settings[self.parameter]["weights"])) 
-		print("Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(
-			  self.settings[self.parameter]["norm"], self.settings[self.parameter]["batch_size"],
-			  self.settings[self.parameter]["learning_rate"], self.settings[self.parameter]["epochs"]))
+# Particle Parameter Estimation (PPE) Network Class, inherits from Network
+class PPENetwork(Network):
+    def __init__(self, data_handler, output_name, settings, parameter):
+        Network.__init__(self, data_handler, output_name, settings)
+        self.parameter = parameter
 
-		# Get the specific Keras parameter model
-		model = models.ppe_model(self.parameter, self.data.get_image_shape(), 
-									   self.settings[self.parameter]["learning_rate"])
+    # Train the PPENetwork is self.parameter = -1 we will train all the parameter networks
+    def train(self):
+        if self.parameter != -1:
+            self.train_parameter()
+        else:
+            name, ext = os.path.splitext(self.output_name)
+            for par in range(8):
+                # Change the output file name everytime
+                self.output_name = name + "_" + str(par) + ".txt"
 
-		# Get the images from the different samples
-		train_images, val_images, test_images = self.data.get_images(self.settings[self.parameter]["norm"])				
+                # Set the parameter to train
+                self.parameter = par
+                self.train_parameter()
 
-		# Fit the model with the training data and store the training "history"
-		history = model.fit(train_images, 
-							self.data.data["train_pars"][:, self.parameter],
-							batch_size=int(self.settings[self.parameter]["batch_size"]), 
-							epochs=int(self.settings[self.parameter]["epochs"]), 
-							verbose=1,
-							validation_data=(val_images, self.data.data["val_pars"][:, self.parameter]),
-							callbacks=[utils.callback_checkpoint(self.settings[self.parameter]["weights"]),
-								  	   utils.callback_early_stop("val_mean_absolute_error", 
-											   					 self.settings[self.parameter]["stop_size"], 
-																 self.settings[self.parameter]["stop_epochs"])])
+    def train_parameter(self):
+        print("PPENetwork: train_parameter() ...")
+        print("Parameter:{0}".format(self.parameter))
+        print("Output:{0} Weights:{1}".format(
+            self.output_name, self.settings[self.parameter]["weights"]))
+        print("Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(
+            self.settings[self.parameter]["norm"], self.settings[self.parameter]["batch_size"],
+            self.settings[self.parameter]["learning_rate"], self.settings[self.parameter]["epochs"]))
 
-		# Save history
-		utils.save_regression_history(history, self.output_name)
+        # Get the specific Keras parameter model
+        model = models.ppe_model(self.parameter, self.data.get_image_shape(),
+                                 self.settings[self.parameter]["learning_rate"])
 
-		# Evaluate the test sample on the trained model and save output to file
-		test_output = model.predict(test_images, verbose=0)
-		utils.save_regression_output(self.data.data["test_labels"], self.data.data["test_pars"], 
-									 test_output, self.output_name)
+        # Get the images from the different samples
+        train_images, val_images, test_images = self.data.get_images(
+            self.settings[self.parameter]["norm"])
 
-	def evaluate(self):
-		print("PPENetwork: evaluate() ...")
+        # Fit the model with the training data and store the training "history"
+        history = model.fit(train_images,
+                            self.data.data["train_pars"][:, self.parameter],
+                            batch_size=int(
+                                self.settings[self.parameter]["batch_size"]),
+                            epochs=int(
+                                self.settings[self.parameter]["epochs"]),
+                            verbose=1,
+                            validation_data=(
+                                val_images, self.data.data["val_pars"][:, self.parameter]),
+                            callbacks=[utils.callback_checkpoint(self.settings[self.parameter]["weights"]),
+                                       utils.callback_early_stop("val_mean_absolute_error",
+                                                                 self.settings[self.parameter]["stop_size"],
+                                                                 self.settings[self.parameter]["stop_epochs"])])
 
-	def optimise(self):
-		print("PPENetwork: optimise() ...")
+        # Save history
+        utils.save_regression_history(history, self.output_name)
 
-		x, val_images, test_images = self.data.get_images(self.settings[self.parameter]["norm"])		
-		y = self.data.data["train_labels"]	
+        # Evaluate the test sample on the trained model and save output to file
+        test_output = model.predict(test_images, verbose=0)
+        utils.save_regression_output(self.data.data["test_labels"], self.data.data["test_pars"],
+                                     test_output, self.output_name)
 
-		p = {"learning_rate":[0.001], "batch_size":[500], "epochs":[40],
-			 "filters_1":[32], "size_1":[3], "pool_1":[2],
-			 "filters_2":[64], "size_2":[3], "pool_2":[2],
-			 "dense":[128], "dropout":[0.0], "stop_size":[5], "stop_epochs":[5]}
+    def evaluate(self):
+        print("PPENetwork: evaluate() ...")
 
-		t = ta.Scan(x=x, y=y, model=models.ppe_model_fit, grid_downsample=1.0, 
-					params=p, dataset_name='ppe_model', experiment_no='0',
-					clear_tf_session=False, val_split=0.2)
+    def optimise(self):
+        print("PPENetwork: optimise() ...")
 
-class PARNetwork(Network): # Combined particle parameter estimation network, inherits from Network
-	def __init__(self, data_handler, output_name, settings):
-		Network.__init__(self, data_handler, output_name, settings)
+        x, val_images, test_images = self.data.get_images(
+            self.settings[self.parameter]["norm"])
+        y = self.data.data["train_labels"]
 
-	def train(self):
-		print("PARNetwork: train() ...")
-		print("Output:{0} Weights:{1}".format(self.output_name, self.settings["weights"])) 
-		print("Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(
-			  self.settings["norm"], self.settings["batch_size"],
-			  self.settings["learning_rate"], self.settings["epochs"]))
+        p = {"learning_rate": [0.001], "batch_size": [500], "epochs": [40],
+             "filters_1": [32], "size_1": [3], "pool_1": [2],
+             "filters_2": [64], "size_2": [3], "pool_2": [2],
+             "dense": [128], "dropout": [0.0], "stop_size": [5], "stop_epochs": [5]}
 
-		# Get the specific Keras parameter model
-		model = models.par_model(self.data.get_image_shape(), self.settings["learning_rate"])
+        t = ta.Scan(x=x, y=y, model=models.ppe_model_fit, grid_downsample=1.0,
+                    params=p, dataset_name='ppe_model', experiment_no='0',
+                    clear_tf_session=False, val_split=0.2)
 
-		# Get the images and transformed parameters from the different samples
-		train_images, val_images, test_images = self.data.get_images(self.settings["norm"])			
-		train_pars, val_pars, test_pars = self.data.get_transformed_pars()
 
-		# Fit the model with the training data and store the training "history"
-		history = model.fit(train_images, 
-							train_pars,
-							batch_size=int(self.settings["batch_size"]), 
-							epochs=int(self.settings["epochs"]), 
-							verbose=1,
-							validation_data=(val_images, val_pars),
-							callbacks=[utils.callback_checkpoint(self.settings["weights"]),
-							 		   utils.callback_early_stop("val_mean_absolute_error", 
-											   					 self.settings["stop_size"], 
-																 self.settings["stop_epochs"])])
+# Combined particle parameter estimation network, inherits from Network
+class PARNetwork(Network):
+    def __init__(self, data_handler, output_name, settings):
+        Network.__init__(self, data_handler, output_name, settings)
 
-		# Save history
-		utils.save_regression_history(history, self.output_name)
+    def train(self):
+        print("PARNetwork: train() ...")
+        print("Output:{0} Weights:{1}".format(
+            self.output_name, self.settings["weights"]))
+        print("Norm:{0} BatchSize:{1} LearningRate:{2} NumEpochs:{3}".format(
+            self.settings["norm"], self.settings["batch_size"],
+            self.settings["learning_rate"], self.settings["epochs"]))
 
-		# Evaluate the test sample on the trained model and save output to file
-		test_output = model.predict(test_images, verbose=0)
-		test_output = self.data.inverse_transform_pars(test_output)
-		utils.save_regression_output(self.data.data["test_labels"], self.data.data["test_pars"], 
-									 test_output, self.output_name)
+        # Get the specific Keras parameter model
+        model = models.par_model(
+            self.data.get_image_shape(), self.settings["learning_rate"])
 
-	def evaluate(self):
-		print("PARNetwork: evaluate() ...")
+        # Get the images and transformed parameters from the different samples
+        train_images, val_images, test_images = self.data.get_images(
+            self.settings["norm"])
+        train_pars, val_pars, test_pars = self.data.get_transformed_pars()
 
-	def optimise(self):
-		print("PARNetwork: optimise() ...")
+        # Fit the model with the training data and store the training "history"
+        history = model.fit(train_images,
+                            train_pars,
+                            batch_size=int(self.settings["batch_size"]),
+                            epochs=int(self.settings["epochs"]),
+                            verbose=1,
+                            validation_data=(val_images, val_pars),
+                            callbacks=[utils.callback_checkpoint(self.settings["weights"]),
+                                       utils.callback_early_stop("val_mean_absolute_error",
+                                                                 self.settings["stop_size"],
+                                                                 self.settings["stop_epochs"])])
 
-		x, val_images, test_images = self.data.get_images(self.settings["norm"])	
-		y, val_pars, test_pars = self.data.get_transformed_pars()	
+        # Save history
+        utils.save_regression_history(history, self.output_name)
 
-		p = {"learning_rate":[0.001], "batch_size":[500], "epochs":[40],
-			 "filters_1":[32], "size_1":[3], "pool_1":[2],
-			 "filters_2":[64], "size_2":[3], "pool_2":[2],
-			 "dense":[128], "dropout":[0.0], "stop_size":[5], "stop_epochs":[5]}
+        # Evaluate the test sample on the trained model and save output to file
+        test_output = model.predict(test_images, verbose=0)
+        test_output = self.data.inverse_transform_pars(test_output)
+        utils.save_regression_output(self.data.data["test_labels"], self.data.data["test_pars"],
+                                     test_output, self.output_name)
 
-		t = ta.Scan(x=x, y=y, model=models.par_model_fit, grid_downsample=1.0, 
-					params=p, dataset_name='par_model', experiment_no='0',
-					clear_tf_session=False, val_split=0.2)
+    def evaluate(self):
+        print("PARNetwork: evaluate() ...")
+
+    def optimise(self):
+        print("PARNetwork: optimise() ...")
+
+        x, val_images, test_images = self.data.get_images(
+            self.settings["norm"])
+        y, val_pars, test_pars = self.data.get_transformed_pars()
+
+        p = {"learning_rate": [0.001], "batch_size": [500], "epochs": [40],
+             "filters_1": [32], "size_1": [3], "pool_1": [2],
+             "filters_2": [64], "size_2": [3], "pool_2": [2],
+             "dense": [128], "dropout": [0.0], "stop_size": [5], "stop_epochs": [5]}
+
+        t = ta.Scan(x=x, y=y, model=models.par_model_fit, grid_downsample=1.0,
+                    params=p, dataset_name='par_model', experiment_no='0',
+                    clear_tf_session=False, val_split=0.2)
 
 # Parse the command line argument options
+
+
 def parse_args():
-	parser = argparse.ArgumentParser(description='Train/Evaluate/Optimise CHIPS CVN Networks...')
+    parser = argparse.ArgumentParser(
+        description='Train/Evaluate/Optimise CHIPS CVN Networks...')
 
-	# Input and output files (history file will have similar name to output file)
-	parser.add_argument('input', help = 'Path to combined input "image" .txt file')
-	parser.add_argument('-o', '--output',   default = 'output.txt', help = 'Output .txt file')
-	parser.add_argument('-t', '--type',	 	default = 'ppe', 		help = '(ppe, pid, par)')
-	parser.add_argument('-w', '--weights', 	default = 'cp.ckpt',	help = 'Output weights')
+    # Input and output files (history file will have similar name to output file)
+    parser.add_argument(
+        'input', help='Path to combined input "image" .txt file')
+    parser.add_argument('-o', '--output',
+                        default='output.txt', help='Output .txt file')
+    parser.add_argument('-t', '--type',	 	default='ppe',
+                        help='(ppe, pid, par)')
+    parser.add_argument('-w', '--weights',
+                        default='cp.ckpt',	help='Output weights')
 
-	# What function are we doing?
-	parser.add_argument('--train', 			action  = 'store_true', help = 'Train the network')
-	parser.add_argument('--eval',  			action  = 'store_true', help = 'Evaluate on the network')
-	parser.add_argument('--opt', 			action  = 'store_true', help = 'Optimise the network')
+    # What function are we doing?
+    parser.add_argument('--train', 			action='store_true',
+                        help='Train the network')
+    parser.add_argument('--eval',  			action='store_true',
+                        help='Evaluate on the network')
+    parser.add_argument('--opt', 			action='store_true',
+                        help='Optimise the network')
 
-	# Network Parameters
-	parser.add_argument('-p', '--par',		default = -1,			help = 'Parameter to fit (-1)')
-	parser.add_argument('--val_frac',   	default = 0.1,  		help = 'Validation Fraction (0.1)')
-	parser.add_argument('--test_frac',  	default = 0.1,  		help = 'Testing Fraction (0.1)')
-	parser.add_argument('--no_hit',  		action  = 'store_true', help = 'Do not use hit channel')
-	parser.add_argument('--no_time', 		action  = 'store_true', help = 'Do not use time channel')
-	parser.add_argument('-s', '--size', 	default = 32, 			help = 'Input image size (32)')
+    # Network Parameters
+    parser.add_argument('-p', '--par',		default=-1,
+                        help='Parameter to fit (-1)')
+    parser.add_argument('--val_frac',   	default=0.1,
+                        help='Validation Fraction (0.1)')
+    parser.add_argument('--test_frac',  	default=0.1,
+                        help='Testing Fraction (0.1)')
+    parser.add_argument('--no_hit',  		action='store_true',
+                        help='Do not use hit channel')
+    parser.add_argument('--no_time', 		action='store_true',
+                        help='Do not use time channel')
+    parser.add_argument('-s', '--size', 	default=32,
+                        help='Input image size (32)')
 
-	# Check arguments
-	args = parser.parse_args()
+    # Check arguments
+    args = parser.parse_args()
 
-	if args.type not in ["ppe", "pid", "par"]:
-		print("Error: Specify Network!")
-		sys.exit()			
-	elif args.no_hit and args.no_time:
-		print("Error: Need to use at least one channel!")
-		sys.exit()	
-	elif args.train and args.eval or args.train and args.opt or args.eval and args.opt:
-		print("Error: Can only do one thing at a time!")
-		sys.exit()
-	elif args.train and args.eval and args.opt:
-		print("Error: Can only do one thing at a time!")
-		sys.exit()	
-	elif not args.train and not args.eval and not args.opt:
-		print("Error: Need to specify something to do!")
-		sys.exit()				
+    if args.type not in ["ppe", "pid", "par"]:
+        print("Error: Specify Network!")
+        sys.exit()
+    elif args.no_hit and args.no_time:
+        print("Error: Need to use at least one channel!")
+        sys.exit()
+    elif args.train and args.eval or args.train and args.opt or args.eval and args.opt:
+        print("Error: Can only do one thing at a time!")
+        sys.exit()
+    elif args.train and args.eval and args.opt:
+        print("Error: Can only do one thing at a time!")
+        sys.exit()
+    elif not args.train and not args.eval and not args.opt:
+        print("Error: Need to specify something to do!")
+        sys.exit()
 
-	return args  
+    return args
+
 
 def main():
-	print("\n#### CHIPS CVN - It must be magic ####\n")
+    print("\n#### CHIPS CVN - It must be magic ####\n")
 
-	args = parse_args() # Get the command line arguments
+    args = parse_args()  # Get the command line arguments
 
-	# Load the data into the DataHandler and print the data summary
-	data = utils.DataHandler(args.input, float(args.val_frac), float(args.test_frac),
-					   		 int(args.size), args.no_hit, args.no_time)
-	data.load_data()
-	data.print()
+    # Load the data into the DataHandler and print the data summary
+    data = utils.DataHandler(args.input, float(args.val_frac), float(args.test_frac),
+                             int(args.size), args.no_hit, args.no_time)
+    data.load_data()
+    data.print()
 
-	# PIDNetwork
-	if args.type == "pid":
+    # PIDNetwork
+    if args.type == "pid":
 
-		# Load settings into list of dicts
-		settings_dict = csv.DictReader(open("pid_settings.dat", "r"))
-		settings_list = []
-		for par in settings_dict:
-			settings_list.append(par)
+        # Load settings into list of dicts
+        settings_dict = csv.DictReader(open("pid_settings.dat", "r"))
+        settings_list = []
+        for par in settings_dict:
+            settings_list.append(par)
 
-		network = PIDNetwork(data, args.output, settings_list[0])
-		if args.train:
-			network.train()
-		elif args.eval:
-			network.evaluate()
-		elif args.opt:
-			network.optimise()	
+        network = PIDNetwork(data, args.output, settings_list[0])
+        if args.train:
+            network.train()
+        elif args.eval:
+            network.evaluate()
+        elif args.opt:
+            network.optimise()
 
-	# PPENetwork
-	elif args.type == "ppe":
+    # PPENetwork
+    elif args.type == "ppe":
 
-		# Load settings into list of dicts
-		settings_dict = csv.DictReader(open("ppe_settings.dat", "r"))
-		settings_list = []
-		for par in settings_dict:
-			settings_list.append(par)
+        # Load settings into list of dicts
+        settings_dict = csv.DictReader(open("ppe_settings.dat", "r"))
+        settings_list = []
+        for par in settings_dict:
+            settings_list.append(par)
 
-		network = PPENetwork(data, args.output, settings_list, int(args.par))
-		if args.train:
-			network.train()
-		elif args.eval:
-			network.evaluate()
-		elif args.opt:
-			network.optimise()
-		
-	# PARNetwork
-	elif args.type == "par":
+        network = PPENetwork(data, args.output, settings_list, int(args.par))
+        if args.train:
+            network.train()
+        elif args.eval:
+            network.evaluate()
+        elif args.opt:
+            network.optimise()
 
-		# Load settings into list of dicts
-		settings_dict = csv.DictReader(open("par_settings.dat", "r"))
-		settings_list = []
-		for par in settings_dict:
-			settings_list.append(par)
+    # PARNetwork
+    elif args.type == "par":
 
-		network = PARNetwork(data, args.output, settings_list[0])
-		if args.train:
-			network.train()
-		elif args.eval:
-			network.evaluate()
-		elif args.opt:
-			network.optimise()
+        # Load settings into list of dicts
+        settings_dict = csv.DictReader(open("par_settings.dat", "r"))
+        settings_list = []
+        for par in settings_dict:
+            settings_list.append(par)
+
+        network = PARNetwork(data, args.output, settings_list[0])
+        if args.train:
+            network.train()
+        elif args.eval:
+            network.evaluate()
+        elif args.opt:
+            network.optimise()
 
 
-if __name__=='__main__':
-	main()
+if __name__ == '__main__':
+    main()
