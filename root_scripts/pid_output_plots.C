@@ -1,6 +1,13 @@
-void pid_output_plots(const char* outputFile = "../output/pid.txt",
-                      const char* historyFile = "../output/pid_history.txt",
-                      const char* plotFileName = "../plots/pid_plots.root"){
+/*
+    ROOT Macro to generate output plots for the PID network
+
+    Author: Josh Tingey
+    Email: j.tingey.16@ucl.ac.uk
+*/
+
+void pid_output_plots(const char* outputFile = "../../output/output.txt",
+                      const char* historyFile = "../../output/output_history.txt",
+                      const char* plotFileName = "../../plots/output_plots.root"){
 
     gStyle->SetOptStat(0);
 
@@ -13,10 +20,7 @@ void pid_output_plots(const char* outputFile = "../output/pid.txt",
 
     // Open and read the network output file into a outputTree
     TTree *outputTree = new TTree("outputTree", "outputTree");
-    outputTree->ReadFile(outputFile, "label:beamE:p0:p1:p2:p3:p4:p5:p6:o0:o1:o2:o3:o4");
-
-
-    outputTree->ReadFile(outputFile, "label:beamE:o0:o1:o2:o3:o4");
+    outputTree->ReadFile(outputFile, "label:p0:p1:p2:p3:p4:p5:p6:p7:o0:o1:o2:o3:o4");
 
     // Open and read the network training file into a outputTree
     TTree *historyTree = new TTree("historyTree", "historyTree");
@@ -166,26 +170,26 @@ void pid_output_plots(const char* outputFile = "../output/pid.txt",
     NCSel->Sumw2();
 
     TString nueCCQECutString = Form("(label==0.0)&&(o0+o1>%f)", maxFomCut);
-    outputTree->Draw("beamE>>nueCCQEAll", "(label==0.0)");
-    outputTree->Draw("beamE>>nueCCQESel", nueCCQECutString.Data());
+    outputTree->Draw("p0>>nueCCQEAll", "(label==0.0)");
+    outputTree->Draw("p0>>nueCCQESel", nueCCQECutString.Data());
     TEfficiency* nueCCQEEff = new TEfficiency(*nueCCQESel,*nueCCQEAll);
 
     TString nueCCnonQECutString = Form("(label==1.0)&&(o0+o1>%f)", maxFomCut);
-    outputTree->Draw("beamE>>nueCCnonQEAll", "(label==1.0)");
-    outputTree->Draw("beamE>>nueCCnonQESel", nueCCnonQECutString.Data());
+    outputTree->Draw("p0>>nueCCnonQEAll", "(label==1.0)");
+    outputTree->Draw("p0>>nueCCnonQESel", nueCCnonQECutString.Data());
     TEfficiency* nueCCnonQEEff = new TEfficiency(*nueCCnonQESel,*nueCCnonQEAll);
 
     TString numuCCQECutString = Form("(label==2.0)&&(o0+o1>%f)", maxFomCut);
     TString numuCCnonQECutString = Form("(label==3.0)&&(o0+o1>%f)", maxFomCut);
-    outputTree->Draw("beamE>>numuCCAll", "(label==2.0)");
-    outputTree->Draw("beamE>>numuCCAll", "(label==3.0)");
-    outputTree->Draw("beamE>>numuCCSel", numuCCQECutString.Data());
-    outputTree->Draw("beamE>>numuCCSel", numuCCnonQECutString.Data());
+    outputTree->Draw("p0>>numuCCAll", "(label==2.0)");
+    outputTree->Draw("p0>>numuCCAll", "(label==3.0)");
+    outputTree->Draw("p0>>numuCCSel", numuCCQECutString.Data());
+    outputTree->Draw("p0>>numuCCSel", numuCCnonQECutString.Data());
     TEfficiency* numuCCEff = new TEfficiency(*numuCCSel,*numuCCAll);
 
     TString allNCCutString = Form("(label==4.0)&&(o0+o1>%f)", maxFomCut);
-    outputTree->Draw("beamE>>NCAll", "(label==4.0)");
-    outputTree->Draw("beamE>>NCSel", allNCCutString.Data());
+    outputTree->Draw("p0>>NCAll", "(label==4.0)");
+    outputTree->Draw("p0>>NCSel", allNCCutString.Data());
     TEfficiency* NCEff = new TEfficiency(*NCSel,*NCAll);
 
     // Now find the signal purity
@@ -196,8 +200,8 @@ void pid_output_plots(const char* outputFile = "../output/pid.txt",
 
     TString signal_string = Form("(%f*((label==0.0)&&(o0+o1>%f))) + (%f*((label==1.0)&&(o0+o1>%f)))", w0, maxFomCut, w1, maxFomCut);
     TString total_string  = Form("(%f*((label==0.0)&&(o0+o1>%f))) + (%f*((label==1.0)&&(o0+o1>%f))) + (%f*((label==2.0)&&(o0+o1>%f))) + (%f*((label==3.0)&&(o0+o1>%f))) + (%f*((label==4.0)&&(o0+o1>%f)))", w0, maxFomCut, w1, maxFomCut, w2, maxFomCut, w3, maxFomCut, w4, maxFomCut);
-    outputTree->Draw("beamE>>nueCCSignal", signal_string.Data());
-    outputTree->Draw("beamE>>nueCCTotal", total_string.Data());
+    outputTree->Draw("p0>>nueCCSignal", signal_string.Data());
+    outputTree->Draw("p0>>nueCCTotal", total_string.Data());
     nueCCSignal->Divide(nueCCTotal);
 
     TCanvas *c5 = new TCanvas("c5", "", 800, 600);
@@ -236,8 +240,8 @@ void pid_output_plots(const char* outputFile = "../output/pid.txt",
 
     c5->SetGridy();
     c5->Update();
-    c5->SaveAs("plots/cvn_pid_effPur.png");
-    c5->SaveAs("plots/cvn_pid_effPur.C");
+    c5->SaveAs("../../plots/options/option2_pid_effPur.png");
+    c5->SaveAs("../../plots/options/option2_pid_effPur.C");
 
     ifstream history;
     history.open(historyFile);

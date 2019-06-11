@@ -1,9 +1,14 @@
+# Keras model implementations
+#
+# Author: Josh Tingey
+# Email: j.tingey.16@ucl.ac.uk
+#
+
 import tensorflow as tf
 from tensorflow.python.keras import layers
 from tensorflow.python.keras import optimizers
 from tensorflow.python.keras import regularizers
 import utils
-
 
 def pid_model(categories, input_shape, learning_rate):
 
@@ -45,8 +50,6 @@ def pid_model(categories, input_shape, learning_rate):
     return model
 
 # Used for talos optimisation of the pid model
-
-
 def pid_model_fit(x_train, y_train, x_val, y_val, params):
 
     # Structure the sequential model
@@ -122,8 +125,6 @@ def ppe_model(parameter, input_shape, learning_rate):
     return model
 
 # Used for talos optimisation of parameter models
-
-
 def ppe_model_fit(x_train, y_train, x_val, y_val, params):
 
     # Structure the sequential model
@@ -188,8 +189,6 @@ def par_model(input_shape, learning_rate):
     return model
 
 # Used for talos optimisation of the combined parameter model
-
-
 def par_model_fit(x_train, y_train, x_val, y_val, params):
 
     # Structure the sequential model

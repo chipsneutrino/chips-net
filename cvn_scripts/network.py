@@ -1,4 +1,8 @@
-# The implementation of the different Convolutional Neural Networks for CHIPS
+# The implementation of the different Convolutional Visual Networks for CHIPS
+#
+# Author: Josh Tingey
+# Email: j.tingey.16@ucl.ac.uk
+#
 
 import os
 import sys
@@ -11,15 +15,15 @@ import tensorflow as tf
 import models
 import utils
 
-
-class Network():  # Parent Network Class
+# Parent Network Class
+class Network():
     def __init__(self, data_handler, output_name, settings):
         self.data = data_handler
         self.output_name = output_name
         self.settings = settings
 
-
-class PIDNetwork(Network):  # Particle Identification (PID) Network Class, inherits from Network
+# Particle Identification (PID) Network Class, inherits from Network
+class PIDNetwork(Network):
     def __init__(self, data_handler, output_name, settings):
         Network.__init__(self, data_handler, output_name, settings)
 
@@ -223,9 +227,7 @@ class PARNetwork(Network):
                     params=p, dataset_name='par_model', experiment_no='0',
                     clear_tf_session=False, val_split=0.2)
 
-# Parse the command line argument options
-
-
+# Parse the command line arguments
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Train/Evaluate/Optimise CHIPS CVN Networks...')
@@ -233,8 +235,7 @@ def parse_args():
     # Input and output files (history file will have similar name to output file)
     parser.add_argument(
         'input', help='Path to combined input "image" .txt file')
-    parser.add_argument('-o', '--output',
-                        default='output.txt', help='Output .txt file')
+    parser.add_argument('-o', '--output', help='Output .txt file')
     parser.add_argument('-t', '--type',	 	default='ppe',
                         help='(ppe, pid, par)')
     parser.add_argument('-w', '--weights',
@@ -283,7 +284,7 @@ def parse_args():
 
     return args
 
-
+# main()
 def main():
     print("\n#### CHIPS CVN - It must be magic ####\n")
 
@@ -299,7 +300,7 @@ def main():
     if args.type == "pid":
 
         # Load settings into list of dicts
-        settings_dict = csv.DictReader(open("pid_settings.dat", "r"))
+        settings_dict = csv.DictReader(open("../config/pid_settings.dat", "r"))
         settings_list = []
         for par in settings_dict:
             settings_list.append(par)
@@ -316,7 +317,7 @@ def main():
     elif args.type == "ppe":
 
         # Load settings into list of dicts
-        settings_dict = csv.DictReader(open("ppe_settings.dat", "r"))
+        settings_dict = csv.DictReader(open("../config/ppe_settings.dat", "r"))
         settings_list = []
         for par in settings_dict:
             settings_list.append(par)
@@ -333,7 +334,7 @@ def main():
     elif args.type == "par":
 
         # Load settings into list of dicts
-        settings_dict = csv.DictReader(open("par_settings.dat", "r"))
+        settings_dict = csv.DictReader(open("../config/par_settings.dat", "r"))
         settings_list = []
         for par in settings_dict:
             settings_list.append(par)
@@ -345,7 +346,6 @@ def main():
             network.evaluate()
         elif args.opt:
             network.optimise()
-
 
 if __name__ == '__main__':
     main()

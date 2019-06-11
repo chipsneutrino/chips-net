@@ -1,40 +1,49 @@
-void ppe_output_plots(int par = 6, const char* outputFile = "../output/parameter.txt",
-                      const char* historyFile = "../output/parameter_history.txt",
-                      const char* plotFileName = "../plots/parameter_plots.root") {
+/*
+    ROOT Macro to generate output plots for the PPE network
+
+    Author: Josh Tingey
+    Email: j.tingey.16@ucl.ac.uk
+*/
+
+void ppe_output_plots(int par = 7, const char* outputFile = "../../output/output.txt",
+                      const char* historyFile = "../../output/output_history.txt",
+                      const char* plotFileName = "../../plots/output_plots.root") {
 
     TTree *outputTree = new TTree("outputTree", "outputTree");
-    outputTree->ReadFile(outputFile, "label:beamE:p0:p1:p2:p3:p4:p5:p6:output");
+    outputTree->ReadFile(outputFile, "label:p0:p1:p2:p3:p4:p5:p6:p7:output");
 
     TFile * plotFile = new TFile(plotFileName,"RECREATE");
 
-    // Names and Ranges
+    // Names and Ranges [beamE, vtxX, vtxY, vtxZ, vtxT, theta, phi, lepE]
     int bins = 50;
-    const int num_pars = 7;
+    const int num_pars = 8;
 
     float rad_to_deg = 180/TMath::Pi();
 
-    float diff_ranges[num_pars]            = {2000, 2000, 2000, 10, 50, 50, 1};
-    float par_low[num_pars]                = {-12500, -12500, -6000, -50, -50, -50, 0};
-    float par_high[num_pars]               = {12500, 12500, 6000, 20, 50, 50, 5000};
+    float diff_ranges[num_pars]            = {1, 2000, 2000, 2000, 10, 50, 50, 1};
+    float par_low[num_pars]                = {0, -12500, -12500, -6000, -50, -50, -50, 0};
+    float par_high[num_pars]               = {5000, 12500, 12500, 6000, 20, 50, 50, 5000};
 
-    const char* pars[num_pars]             = {"p0","p1","p2","p3","p4","p5","p6"};
+    const char* pars[num_pars]             = {"p0","p1","p2","p3","p4","p5","p6", "p7"};
 
-    const char* diff_axis[num_pars]        = {"True-Reco vtxX [mm]","True-Reco vtxY [mm]","True-Reco vtxZ [mm]","True-Reco vtxT [ns]",
+    const char* diff_axis[num_pars]        = {"(True-Reco)/True Neutrino Energy [MeV]", 
+                                              "True-Reco vtxX [mm]","True-Reco vtxY [mm]","True-Reco vtxZ [mm]","True-Reco vtxT [ns]",
                                               "True-Reco Track Theta Direction [degrees]","True-Reco Track Phi Direction [degrees]",
                                               "(True-Reco)/True Track Energy [MeV]"};
 
-    const char* sigma_axis[num_pars]        = {"True-Reco vtxX #sigma [mm]","True-Reco vtxY #sigma [mm]","True-Reco vtxZ #sigma [mm]","True-Reco vtxT #sigma [ns]",
+    const char* sigma_axis[num_pars]       = {"(True-Reco)/True Neutrino Energy #sigma [MeV]", 
+                                              "True-Reco vtxX #sigma [mm]","True-Reco vtxY #sigma [mm]","True-Reco vtxZ #sigma [mm]","True-Reco vtxT #sigma [ns]",
                                               "True-Reco Track Theta Direction #sigma [degrees]","True-Reco Track Phi Direction #sigma [degrees]",
                                               "(True-Reco)/True Track Energy #sigma [MeV]"};
 
-    const char* true_est_xAxis[num_pars]   = {"True vtxX [mm]","True vtxY [mm]","True vtxZ [mm]","True vtxT [ns]",
+    const char* true_est_xAxis[num_pars]   = {"True Neutrino Energy [MeV]","True vtxX [mm]","True vtxY [mm]","True vtxZ [mm]","True vtxT [ns]",
                                               "True Theta Dir [degrees]","True Phi Dir [degrees]","True Track Energy [MeV]"};
 
-    const char* true_est_yAxis[num_pars]   = {"Est vtxX [mm]","Est vtxY [mm]","Est vtxZ [mm]","Est vtxT [ns]",
+    const char* true_est_yAxis[num_pars]   = {"Est Neutrino Energy [MeV]","Est vtxX [mm]","Est vtxY [mm]","Est vtxZ [mm]","Est vtxT [ns]",
                                               "Est Theta Dir [degrees]","Est Phi Dir [degrees]","Est Track Energy [MeV]"};
 
-    const char* compare_names[num_pars]    = {"compare_vtxX","compare_vtxY","compare_vtxZ","compare_vtxT",
-                                              "compare_theta","compare_phi","compare_energy"};
+    const char* compare_names[num_pars]    = {"compare_neutrino_energy","compare_vtxX","compare_vtxY","compare_vtxZ","compare_vtxT",
+                                              "compare_theta","compare_phi","compare_track_energy"};
 
     // Create the history plots
     ifstream in;
@@ -97,11 +106,11 @@ void ppe_output_plots(int par = 6, const char* outputFile = "../output/parameter
     true_est_h->GetXaxis()->SetTitle(true_est_xAxis[par]); true_est_h->GetXaxis()->CenterTitle();
     true_est_h->GetYaxis()->SetTitle(true_est_yAxis[par]); true_est_h->GetYaxis()->CenterTitle();  
 
-    if (par==6) {
+    if (par == 0 || par == 7) {
         // Draw (True-Reco)/True for energy
         TString diff_h_string = Form("((%s-output)/%s)>>diff_h", pars[par], pars[par]);
         outputTree->Draw(diff_h_string.Data());        
-    } else if (par == 4 || par == 5) {
+    } else if (par == 5 || par == 6) {
         // Convert to degrees for the directions
         TString diff_h_string = Form("((%s-output)*%f)>>diff_h", pars[par], rad_to_deg);
         outputTree->Draw(diff_h_string.Data());            
@@ -111,7 +120,7 @@ void ppe_output_plots(int par = 6, const char* outputFile = "../output/parameter
         outputTree->Draw(diff_h_string.Data());
     }
 
-    if (par == 4 || par == 5) {
+    if (par == 5 || par == 6) {
         TString true_est_h_string = Form("(%s*%f):(output*%f)>>true_est_h", pars[par], rad_to_deg, rad_to_deg);
         outputTree->Draw(true_est_h_string.Data()); 
     } else {
@@ -144,7 +153,7 @@ void ppe_output_plots(int par = 6, const char* outputFile = "../output/parameter
 
             // Fill the histogram
             float bin_width, bin_low, bin_high;
-            if (iPar == 4 || iPar == 5) {
+            if (iPar == 5 || iPar == 6) {
                 bin_width = ((1-(-1))/(float)num_bins);
                 bin_low  = (-1) + (iBin*bin_width);
                 bin_high = (-1) + ((iBin+1)*bin_width);
@@ -155,11 +164,11 @@ void ppe_output_plots(int par = 6, const char* outputFile = "../output/parameter
             }
 
             TString cut_string = Form("%s>%f && %s<%f", pars[iPar], bin_low, pars[iPar], bin_high);
-            if (par==6) {
+            if (par == 0 || par == 7) {
                 // Draw (True-Reco)/True for energy
                 TString plot_string = Form("((%s-output)/%s)>>%s", pars[par], pars[par], plotName.Data());
                 outputTree->Draw(plot_string.Data(), cut_string.Data());       
-            } else if (par == 4 || par == 5) {
+            } else if (par == 5 || par == 6) {
                 // Convert to degrees for the directions
                 TString plot_string = Form("((%s-output)*%f)>>%s", pars[par], rad_to_deg, plotName.Data());
                 outputTree->Draw(plot_string.Data(), cut_string.Data());            
@@ -211,7 +220,7 @@ void ppe_output_plots(int par = 6, const char* outputFile = "../output/parameter
         par_true_hists[iPar]->GetXaxis()->SetTitle(true_est_xAxis[iPar]); par_true_hists[iPar]->GetXaxis()->CenterTitle();
         par_true_hists[iPar]->GetYaxis()->SetTitle("Events"); par_true_hists[iPar]->GetYaxis()->CenterTitle(); 
 
-        if (iPar == 4 || iPar == 5) {
+        if (iPar == 5 || iPar == 6) {
             TString true_string = Form("(%s*%f)>>%s", pars[iPar], rad_to_deg, pars[iPar]);
             outputTree->Draw(true_string.Data());
         } else {

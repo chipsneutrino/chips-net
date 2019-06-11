@@ -1,5 +1,8 @@
 /*
     ROOT Macro to generate the "Image" files for use in the CHIPS CVN from the WCSim output
+
+    Author: Josh Tingey
+    Email: j.tingey.16@ucl.ac.uk
 */
 
 #include <vector>

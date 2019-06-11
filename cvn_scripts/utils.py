@@ -1,3 +1,9 @@
+# CHIPS CVN utilities, mainly data handling and plotting
+#
+# Author: Josh Tingey
+# Email: j.tingey.16@ucl.ac.uk
+#
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import callbacks
@@ -6,11 +12,7 @@ import sys
 import os
 from sklearn.preprocessing import StandardScaler
 
-###################################################
-#                DataHandler Class                #
-###################################################
-
-
+# DataHandler Class
 class DataHandler:
     def __init__(self, input_file, val_frac, test_frac,
                  image_size, no_hit, no_time):
@@ -143,43 +145,41 @@ class DataHandler:
     def inverse_transform_pars(self, pars):
         return self.par_scaler.inverse_transform(pars)
 
-###################################################
-#               Callback Methods                  #
-###################################################
+    # pyplot a specific channel array as an image
+    def plot_image(self, index):
 
-# Saves the current model state at each epoch
+        image_shape = (self.image_size, self.image_size, 1)  # Single channel shape
 
+        hit_img = self.data["train_hit_images"]
+        time_img = self.data["train_time_images"]
+        hit_img = hit_img.reshape(hit_img.shape[0], *image_shape)
+        time_img = time_img.reshape(time_img.shape[0], *image_shape)
 
+        print("Hit channel plot: {}".format(index))
+        hit_plot = hit_img[index, :].reshape((self.image_size, self.image_size))
+        plt.imshow(hit_plot)
+        plt.show()
+
+        rint("Time channel plot: {}".format(index))
+        time_plot = time_img[index, :].reshape((self.image_size, self.image_size))
+        plt.imshow(time_plot)
+        plt.show()
+
+# Tensorflow Callback: Saves the current model state at each epoch
 def callback_checkpoint(path):
     return callbacks.ModelCheckpoint(path, save_weights_only=True, verbose=0)
 
-# Stores tensorboard information at each epoch
-
-
+# Tensorflow Callback: Stores tensorboard information at each epoch
 def callback_tensorboard(logDir):
     return callbacks.TensorBoard(log_dir=logDir, write_graph=True, write_grads=True,
                                  histogram_freq=1, write_images=True)
 
-
+# Tensorflow Callback: Stop training early if no improvement is seen
 def callback_early_stop(monitor, delta, epochs):
     return callbacks.EarlyStopping(monitor=monitor, min_delta=float(delta), patience=int(epochs),
                                    verbose=1, mode='min')
 
-###################################################
-#               Plotting Methods                  #
-###################################################
-
-# pyplot a specific channel array as an image
-
-
-def plot_image(image, index, size):
-    plot = image[index, :].reshape((size, size))
-    plt.imshow(plot)
-    plt.show()
-
-# pyplot the history of a category based training
-
-
+# Plotting: Plot the history of a category based training
 def plot_category_history(history):
     # summarize history for accuracy
     plt.plot(history.history['acc'])
@@ -198,9 +198,7 @@ def plot_category_history(history):
     plt.legend(['train', 'test'], loc='upper left')
     plt.show()
 
-# pyplot the history of a regression based training
-
-
+# Plotting: Plot the history of a regression based training
 def plot_regression_history(history):
     # summarize history for accuracy
     plt.plot(history.history['mean_absolute_error'])
@@ -219,22 +217,14 @@ def plot_regression_history(history):
     plt.legend(['train', 'test'], loc='upper left')
     plt.show()
 
-# pyplot the (true-estimated) distribution
-
-
+# Plotting: Plot the (true-estimated) distribution
 def plot_true_minus_estimation(diff, bins=50, hist_range=[-1500, 1500]):
     plt.hist(diff, bins=bins, range=hist_range)
     plt.ylabel('Events')
     plt.xlabel('True - Estimation')
     plt.show()
 
-###################################################
-#                Output Functions                 #
-###################################################
-
-# Saves the history of a category based training
-
-
+# Output: Save the history of a category based training
 def save_category_history(train_history, output_file):
     print("utils: save_category_history()")
 
@@ -253,9 +243,7 @@ def save_category_history(train_history, output_file):
         output.write(out)
     output.close()
 
-# Save the test output from a category based model
-
-
+# Output: Save the test output from a category based model
 def save_category_output(categories, test_labels, test_parameters, test_output, output_file):
     print("utils: save_category_output()")
 
@@ -277,9 +265,7 @@ def save_category_output(categories, test_labels, test_parameters, test_output, 
         output.write(out)
     output.close()
 
-# Saves the history of a regression based training
-
-
+# Output: Save the history of a regression based training
 def save_regression_history(train_history, output_file):
     print("Output: save_regression_history")
 
@@ -300,9 +286,7 @@ def save_regression_history(train_history, output_file):
         output.write(out)
     output.close()
 
-# Save the test output from a regression based model
-
-
+# Output: Save the test output from a regression based model
 def save_regression_output(test_labels, test_parameters, test_output, output_file):
     print("Output: save_regression_output")
 
