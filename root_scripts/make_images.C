@@ -8,11 +8,12 @@
 #include <vector>
 #include <fstream>
 
-void make_images(const char* in_dir="", const char* out_name="", 
-                 int label=-999, int PDG_code=-999, int images_to_make=50000) {
+void make_images(const char* in_dir="", const char* out_name="",
+                 int label=-999, int PDG_code=-999, int endcap_height = 590,
+                 int images_to_make=100000) {
 
     // Other Options
-    int num_files           = 200;      // Number of files in input directory
+    int num_files           = 100;      // Number of files in input directory
     int num_hits_cut        = 100;      // Cut to apply on the number of hits
     bool make_plots         = false;    // Shall we produce a plots file with monitoring histograms
     bool save_parameters    = true;     // Save additional parameters
@@ -96,18 +97,22 @@ void make_images(const char* in_dir="", const char* out_name="",
                 }              
             }
 
-            // RUn through all the events in the file
+            // Run through all the events in the file
             for(int evt=0; evt<num_events; evt++){
             	main_tree->GetEntry(evt);
-                try { wcsimrootevent = wcsimrootsuperevent->GetTrigger(0);
-                } catch (std::exception& e) {
+                try 
+                { 
+                    wcsimrootevent = wcsimrootsuperevent->GetTrigger(0);
+                } 
+                catch (std::exception& e) 
+                {
                     std::cerr << "Exception catched : " << e.what() << std::endl;
                     num_skipped ++;
                     continue;
                 }
 
                 int num_cherenkov_digi_hits = wcsimrootevent->GetNcherenkovdigihits();
-                if (num_cherenkov_digi_hits < num_hits_cut) { // THIS IS THE CUT!!!
+                if (num_cherenkov_digi_hits < num_hits_cut) {
                     num_skipped ++;
                     wcsimrootsuperevent->ReInitialize();
                     continue;
@@ -174,6 +179,10 @@ void make_images(const char* in_dir="", const char* out_name="",
             
                     if (hit_x == 0.0) {continue;} // Due to the divide in the ATan() method below
                     if (hit_z == 0.0) {continue;} // Due to the divide in the ATan() method below
+
+                    //////////////////////// THIS IS THE ENDCAP CUT
+                    if (hit_z>(-endcap_height)) && (hit_z<(endcap_height)) continue;
+                    //////////////////////// END OF THE ENDCAP CUT
 
                     float hit_phi = 0;
                     if (hit_x > 0 && hit_y < 0)      { hit_phi = TMath::ATan(hit_y/hit_x); }
