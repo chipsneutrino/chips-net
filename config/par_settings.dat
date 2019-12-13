@@ -1,2 +1,0 @@
-weights,batch_size,learning_rate,epochs,norm,stop_size,stop_epochs
-../../output/cp_par.ckpt,500,0.001,20,none,20,5

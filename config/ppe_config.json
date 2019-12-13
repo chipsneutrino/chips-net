@@ -1,0 +1,16 @@
+{
+    "exp_name": "ppe_test",
+    "type": "ppe",
+    "parameter": 0,
+    "use_hit": true,
+    "use_time": true,
+    "img_size": 32,
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "loss": "mean_squared_error",
+    "metrics": ["mae", "mse"],
+    "es_monitor": "val_mean_absolute_error",
+    "es_delta": 5,
+    "es_epochs": 5,
+    "epochs": 20
+}
