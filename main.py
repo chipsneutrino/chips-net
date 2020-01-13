@@ -2,34 +2,41 @@
 # Author: Josh Tingey
 # Email: j.tingey.16@ucl.ac.uk
 
+import argparse
 import config
 import data
 import models
 import utils
+import tensorflow as tf
+
+# Parse the command line arguments
+def parse_args():
+    parser = argparse.ArgumentParser( description='CHIPS CVN')
+    parser.add_argument('-i', '--input',  help='path to input directory')
+    parser.add_argument('-o', '--output', help='Output .txt file')
+    parser.add_argument('-c', '--config', help='Config .json file')
+    return parser.parse_args()
 
 # main()
 def main():
     print("\nCHIPS CVN - It's Magic\n")
-
-    args = utils.parse_args()
+    args = parse_args()
     conf = config.process_config(args.config)
 
-    # Create the train, val and test datasets...
-    train_ds = data.DataHandler(args.train, conf)
-    val_ds = data.DataHandler(args.train, conf)
-    test_ds = data.DataHandler(args.train, conf)
+    strategy = tf.distribute.MirroredStrategy()
+    with strategy.scope():
 
-    if conf.type == "pid":
-        model = models.PIDModel(conf)
-    elif conf.type == "ppe":
+        train_ds = data.dataset(["/mnt/storage/jtingey/tf/train/"])
+        val_ds = data.dataset(["/mnt/storage/jtingey/tf/val/"])
+        test_ds = data.dataset(["/mnt/storage/jtingey/tf/test/"])
+
         model = models.PPEModel(conf)
-    elif conf.type == "par":
-        model = models.ParModel(conf)
-
-    model.build()
-    model.plot()
-    model.summary()
-    model.compile()
+        model.build()
+        model.compile()
+        model.plot()
+        model.summary()
+        model.fit(train_ds, val_ds)
+        model.evaluate(test_ds)
 
 if __name__ == '__main__':
     main()

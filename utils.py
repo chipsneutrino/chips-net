@@ -5,16 +5,8 @@
 import argparse
 import matplotlib.pyplot as plt
 import os
-
-# Parse the command line arguments
-def parse_args():
-    parser = argparse.ArgumentParser( description='CHIPS CVN')
-    parser.add_argument('--train', help='path to train files directory')
-    parser.add_argument('--val', help='path to val files directory')
-    parser.add_argument('--test', help='path to test files directory')
-    parser.add_argument('-o', '--output', help='Output .txt file')
-    parser.add_argument('-c', '--config', help='Config .json file')
-    return parser.parse_args()
+import sys
+import time
 
 # Plotting: Plot the history of a category based training
 def plot_category_history(history):

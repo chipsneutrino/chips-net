@@ -11,9 +11,6 @@ def process_json(json_config):
     with open(json_config, 'r') as config_file:
         config_dict = json.load(config_file)
 
-    # Print the config
-    print(json.dumps(config_dict, indent=4, sort_keys=True))
-
     # convert the dictionary to a namespace using bunch lib
     config = Bunch(config_dict)
 
@@ -42,5 +39,8 @@ def process_config(json_config):
     config.summary_dir = os.path.join("experiments", config.exp_name, "summary/")
     config.checkpoint_dir = os.path.join("experiments", config.exp_name, "checkpoint/")
     create_directories(config)
+    return config
 
+def get_config(json_config):
+    config, _ = process_json(json_config)    
     return config
