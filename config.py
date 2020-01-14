@@ -6,6 +6,7 @@ import json
 from bunch import Bunch
 import os
 
+
 def process_json(json_config):
     # parse the configurations from the config json file provided
     with open(json_config, 'r') as config_file:
@@ -16,31 +17,36 @@ def process_json(json_config):
 
     return config, config_dict
 
+
 def create_directories(config):
     try:
         os.mkdir("experiments")
-    except:
+    except FileExistsError:
         pass
     try:
         os.mkdir(os.path.join("experiments", config.exp_name))
-    except:
+    except FileExistsError:
         pass
     try:
         os.mkdir(os.path.join("experiments", config.exp_name, "summary/"))
-    except:
+    except FileExistsError:
         pass
     try:
         os.mkdir(os.path.join("experiments", config.exp_name, "checkpoint/"))
-    except:
+    except FileExistsError:
         pass
+
 
 def process_config(json_config):
     config, _ = process_json(json_config)
-    config.summary_dir = os.path.join("experiments", config.exp_name, "summary/")
-    config.checkpoint_dir = os.path.join("experiments", config.exp_name, "checkpoint/")
+    config.summary_dir = os.path.join("experiments", config.exp_name,
+                                      "summary/")
+    config.checkpoint_dir = os.path.join("experiments", config.exp_name,
+                                         "checkpoint/")
     create_directories(config)
     return config
 
+
 def get_config(json_config):
-    config, _ = process_json(json_config)    
+    config, _ = process_json(json_config)
     return config

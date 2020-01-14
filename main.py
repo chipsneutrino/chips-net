@@ -6,18 +6,17 @@ import argparse
 import config
 import data
 import models
-import utils
 import tensorflow as tf
 
-# Parse the command line arguments
+
 def parse_args():
-    parser = argparse.ArgumentParser( description='CHIPS CVN')
+    parser = argparse.ArgumentParser(description='CHIPS CVN')
     parser.add_argument('-i', '--input',  help='path to input directory')
     parser.add_argument('-o', '--output', help='Output .txt file')
     parser.add_argument('-c', '--config', help='Config .json file')
     return parser.parse_args()
 
-# main()
+
 def main():
     print("\nCHIPS CVN - It's Magic\n")
     args = parse_args()
@@ -37,6 +36,7 @@ def main():
         model.summary()
         model.fit(train_ds, val_ds)
         model.evaluate(test_ds)
+
 
 if __name__ == '__main__':
     main()
