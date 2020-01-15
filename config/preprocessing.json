@@ -1,8 +1,0 @@
-{
-    "val_split": 0.1,
-    "test_split": 0.1,
-    "norm": false,
-    "norm_type": null,
-    "fluctuate": false,
-    "fluctuate_type": null
-}

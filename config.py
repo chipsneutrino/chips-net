@@ -26,9 +26,11 @@ def create_directories(config):
     """Creates the directories for the experiment defined in the config."""
     try:
         os.mkdir("experiments")
-        os.mkdir(os.path.join("experiments", config.exp_name))
-        os.mkdir(os.path.join("experiments", config.exp_name, "summary/"))
-        os.mkdir(os.path.join("experiments", config.exp_name, "checkpoint/"))
+    except FileExistsError:
+        pass
+
+    try:
+        os.mkdir(os.path.join("experiments", config.experiment))
     except FileExistsError:
         pass
 
@@ -36,10 +38,7 @@ def create_directories(config):
 def process_config(json_config):
     """Get the configuration and create experiment directories."""
     config, _ = process_json(json_config)
-    config.summary_dir = os.path.join("experiments", config.exp_name,
-                                      "summary/")
-    config.checkpoint_dir = os.path.join("experiments", config.exp_name,
-                                         "checkpoint/")
+    config.exp_dir = os.path.join("experiments", config.experiment)
     create_directories(config)
     return config
 
