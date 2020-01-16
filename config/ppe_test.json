@@ -3,10 +3,14 @@
     "input_dirs": ["/unix/chips/production/beam_nuel_qel_cc/tf/chips_1200_sk1pe/test/"],
     "img_shape": [64, 64, 3],
     "model": "ppe",
-    "parameter": "vtxX",
+    "parameter": "lepEnergy",
     "batch_size": 64,
     "l_rate": 0.001,
+    "dense_units": 64,
+    "dropout": 0.2,
+    "kernel_size": 3,
+    "filters": 32,
     "es_delta": 5,
     "es_epochs": 5,
-    "train_epochs": 1
+    "train_epochs": 5
 }

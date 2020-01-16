@@ -1,0 +1,17 @@
+{
+    "experiment": "ppe_test_study",
+    "input_dirs": ["/mnt/storage/jtingey/test/"],
+    "img_shape": [64, 64, 3],
+    "model": "ppe",
+    "parameter": "lepEnergy",
+    "trials": 200,
+    "batch_size": [32, 64, 128],
+    "l_rate": [0.0005, 0.01],
+    "dense_units": [64, 128],
+    "dropout": [0.0, 0.5],
+    "kernel_size": [3, 5],
+    "filters": [32, 64, 128],
+    "es_delta": 5,
+    "es_epochs": 5,
+    "train_epochs": 3
+}

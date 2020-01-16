@@ -13,20 +13,15 @@ from tensorflow import keras
 from tensorflow.keras import optimizers, callbacks, Model, Input
 from tensorflow.keras.layers import (Dense, Dropout, Conv2D,
                                      MaxPooling2D, Flatten)
+import sherpa
 
 
 class BaseModel:
     """Base model class which all implementations derive from."""
     def __init__(self, conf):
         self.conf = conf
-
-    def init(self, pars):
-        """Initialises the model."""
-        '''
-        We take in a parameter namespace to use in initialising the model
-        7) Early stopping delta (es_delta) *
-        8) Early stopping epochs (es_epochs) *
-        '''
+        self.build()
+        self.compile()
 
     def compile(self):
         """Compiles the model."""
@@ -42,7 +37,7 @@ class BaseModel:
                                show_layer_names=True, rankdir='TB',
                                expand_nested=False, dpi=96)
 
-    def fit(self, train_ds, val_ds):
+    def fit(self, train_ds, val_ds, extra_callbacks=[]):
         """Given a training and validation dataset, fit the model."""
         callbacks_list = []
 
@@ -58,6 +53,7 @@ class BaseModel:
                                            patience=self.conf.es_epochs,
                                            verbose=1, mode='min')
         callbacks_list.append(stopping)
+        callbacks_list += extra_callbacks
 
         train_ds = train_ds.batch(self.conf.batch_size, drop_remainder=True)
         val_ds = val_ds.batch(self.conf.batch_size, drop_remainder=True)
@@ -74,59 +70,33 @@ class BaseModel:
         self.model.evaluate(test_ds)
 
 
-class PIDModel(BaseModel):
-    """PID event categorisation model class."""
-    def __init__(self, conf):
-        super().__init__(conf)
-
-    def build(self):
-        """Builds the model using the keras functional API."""
-        inputs = Input(shape=self.conf.img_shape, name='img')
-        x = Conv2D(filters=64, kernel_size=3, padding='same',
-                   activation='relu')(inputs)
-        x = Conv2D(filters=64, kernel_size=3, activation='relu')(x)
-        x = MaxPooling2D(pool_size=2)(x)
-        x = Dropout(0.2)(x)
-        x = Conv2D(filters=128, kernel_size=3, padding='same',
-                   activation='relu')(x)
-        x = Conv2D(filters=128, kernel_size=3, activation='relu')(x)
-        x = MaxPooling2D(pool_size=2)(x)
-        x = Dropout(0.2)(x)
-        x = Conv2D(filters=256, kernel_size=3, padding='same',
-                   activation='relu')(x)
-        x = Conv2D(filters=256, kernel_size=3, activation='relu')(x)
-        x = MaxPooling2D(pool_size=2)(x)
-        x = Dropout(0.2)(x)
-        x = Flatten()(x)
-        x = Dense(512, activation='relu')(x)
-        x = Dropout(0.2)(x)
-        outputs = Dense(self.conf.categories, activation='softmax')(x)
-        self.model = Model(inputs=inputs,
-                           outputs=outputs,
-                           name='pid_model')
-
-        self.loss = "sparse_categorical_crossentropy"
-        self.metrics = ["accuracy"]
-        self.es_monitor = "val_acc"
-
-
 class SingleParModel(BaseModel):
-    """Parameter estimation model class."""
+    """Single parameter estimation model class."""
     def __init__(self, conf):
         super().__init__(conf)
 
     def build(self):
         """Builds the model using the keras functional API."""
         inputs = Input(shape=self.conf.img_shape, name='img')
-        x = Conv2D(filters=32, kernel_size=3, padding='same', activation='relu')(inputs)
-        x = Conv2D(filters=32, kernel_size=3, activation='relu')(x)
+        x = Conv2D(filters=self.conf.filters,
+                   kernel_size=self.conf.kernel_size,
+                   padding='same', activation='relu')(inputs)
+        x = Conv2D(filters=self.conf.filters,
+                   kernel_size=self.conf.kernel_size,
+                   activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
-        x = Conv2D(filters=64, kernel_size=3, padding='same', activation='relu')(x)
-        x = Conv2D(filters=64, kernel_size=3, activation='relu')(x)
+        x = Dropout(self.conf.dropout)(x)
+        x = Conv2D(filters=(self.conf.filters*2),
+                   kernel_size=self.conf.kernel_size,
+                   padding='same', activation='relu')(x)
+        x = Conv2D(filters=(self.conf.filters*2),
+                   kernel_size=self.conf.kernel_size,
+                   activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
+        x = Dropout(self.conf.dropout)(x)
         x = Flatten()(x)
-        x = Dense(64, activation='relu')(x)
-        x = Dropout(0.0)(x)
+        x = Dense(self.conf.dense_units, activation='relu')(x)
+        x = Dropout(self.conf.dropout)(x)
         outputs = Dense(1, activation='linear', name=self.conf.parameter)(x)
         self.model = Model(inputs=inputs,
                            outputs=outputs,
@@ -135,3 +105,15 @@ class SingleParModel(BaseModel):
         self.loss = "mean_squared_error"
         self.metrics = ["mae", "mse"]
         self.es_monitor = "val_mae"
+
+    def study_parameters(conf):
+        """Returns the list of possible parameters for a SHERPA study."""
+        pars = [
+            sherpa.Ordinal(name='batch_size', range=conf.batch_size),
+            sherpa.Continuous(name='l_rate', range=conf.l_rate, scale='log'),
+            sherpa.Ordinal(name='dense_units', range=conf.dense_units),
+            sherpa.Continuous(name='dropout', range=conf.dropout),
+            sherpa.Ordinal(name='kernel_size', range=conf.kernel_size),
+            sherpa.Ordinal(name='filters', range=conf.filters),
+        ]
+        return pars
