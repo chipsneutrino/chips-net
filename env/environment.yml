@@ -11,6 +11,7 @@ dependencies:
   - pydot
   - flask
   - graphviz
+  - jupyterlab
   - root 
   - root-binaries 
   - root-dependencies 

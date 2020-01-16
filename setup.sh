@@ -6,24 +6,27 @@ CURRENTDIR=$(pwd)
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 cd $DIR
 
-if [ -d "miniconda/envs/chips-cvn/" ]
+if [ -d "env/miniconda/envs/chips-cvn/" ]
 then
     echo "Conda env installed"
-    source miniconda/bin/activate
+    source env/miniconda/bin/activate
     conda activate chips-cvn
 else
+    # Go to the env directory
+    cd env/
+
     # Download the latest version of miniconda3
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh --no-check-certificate
 
     # Install miniconda3 in the current directory
-    bash miniconda.sh -b -p $DIR/miniconda
+    bash miniconda.sh -b -p $DIR/env/miniconda
     rm miniconda.sh
 
     # Activate miniconda and create the chips-cvn environment
     source miniconda/bin/activate
-    conda config --add envs_dirs $DIR/miniconda/envs
-    conda config --add envs_dirs $DIR/miniconda/envs
-    conda env create -f $DIR/env.yml
+    conda config --add envs_dirs $DIR/env/miniconda/envs
+    conda config --add envs_dirs $DIR/env/miniconda/envs
+    conda env create -f $DIR/env/environment.yml
 
     # Clean the miniconda install
     conda clean --all -y
