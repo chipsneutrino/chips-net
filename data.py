@@ -145,8 +145,19 @@ def preprocess_file(file, out_dir, split):
                    test_examples)
 
 
+def make_directories(out_dir):
+    """Makes the output directory structure."""
+    try:
+        os.mkdir(os.path.join(out_dir, "train/"))
+        os.mkdir(os.path.join(out_dir, "val/"))
+        os.mkdir(os.path.join(out_dir, "test/"))
+    except FileExistsError:
+        pass
+
+
 def preprocess_dir(in_dir, out_dir, split, single):
     """Preprocess all the files from the input directory into tfrecords."""
+    make_directories(out_dir)
     if not single:  # File independence allows for parallelisation
         Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
             preprocess_file)(os.path.join(in_dir, f), out_dir, split)
