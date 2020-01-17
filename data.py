@@ -57,8 +57,7 @@ def dataset(dirs, shape):
     ds = ds.interleave(tf.data.TFRecordDataset, cycle_length=len(files),
                        num_parallel_calls=tf.data.experimental.AUTOTUNE)
     ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-    ds = ds.map(lambda x: parse(x, shape),
-                num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    ds = ds.map(lambda x: parse(x, shape), num_parallel_calls=tf.data.experimental.AUTOTUNE)
     return ds
 
 
@@ -105,8 +104,7 @@ def gen_examples(true, reco):
             'parameters': _bytes_feature(parameters[i].tostring()),
             'image': _bytes_feature(images[i].tostring())
         }
-        examples.append(tf.train.Example(features=tf.train.Features(
-            feature=feature_dict)))
+        examples.append(tf.train.Example(features=tf.train.Features(feature=feature_dict)))
 
     return examples
 
@@ -137,12 +135,9 @@ def preprocess_file(file, out_dir, split):
 
     name, ext = os.path.splitext(file)
     base = os.path.basename(name)
-    write_examples(os.path.join(out_dir, "train/", base + "_train.tfrecords"),
-                   train_examples)
-    write_examples(os.path.join(out_dir, "val/", base + "_val.tfrecords"),
-                   val_examples)
-    write_examples(os.path.join(out_dir, "test/", base + "_test.tfrecords"),
-                   test_examples)
+    write_examples(os.path.join(out_dir, "train/", base + "_train.tfrecords"), train_examples)
+    write_examples(os.path.join(out_dir, "val/", base + "_val.tfrecords"), val_examples)
+    write_examples(os.path.join(out_dir, "test/", base + "_test.tfrecords"), test_examples)
 
 
 def make_directories(out_dir):
@@ -160,8 +155,7 @@ def preprocess_dir(in_dir, out_dir, split, single):
     make_directories(out_dir)
     if not single:  # File independence allows for parallelisation
         Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
-            preprocess_file)(os.path.join(in_dir, f), out_dir, split)
-                for f in os.listdir(in_dir))
+            preprocess_file)(os.path.join(in_dir, f), out_dir, split) for f in os.listdir(in_dir))
     else:  # For debugging we keep the option to use a single process
         for f in os.listdir(in_dir):
             preprocess_file(os.path.join(in_dir, f), out_dir, split)
@@ -172,14 +166,10 @@ def parse_args():
     parser = argparse.ArgumentParser(description='CHIPS CVN Data')
     parser.add_argument('-i', '--in_dir', help='path to input directory')
     parser.add_argument('-o', '--out_dir', help='path to output directory')
-    parser.add_argument('-s', '--split', help='val and test split fraction',
-                        default=0.1)
-    parser.add_argument('--norm', action='store_true',
-                        help='Normalise the samples')
-    parser.add_argument('--fluctuate', action='store_true',
-                        help='Fluctuate the samples')
-    parser.add_argument('--single', action='store_true',
-                        help='Use a single process')
+    parser.add_argument('-s', '--split', help='val and test split fraction', default=0.1)
+    parser.add_argument('--norm', action='store_true', help='Normalise the samples')
+    parser.add_argument('--fluctuate', action='store_true', help='Fluctuate the samples')
+    parser.add_argument('--single', action='store_true', help='Use a single process')
     return parser.parse_args()
 
 

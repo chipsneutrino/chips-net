@@ -23,16 +23,15 @@ def run_study(conf):
     """Creates a SHERPA hyperparameter study."""
     pars = models.SingleParModel.study_parameters(conf)
     algorithm = sherpa.algorithms.RandomSearch(max_num_trials=conf.trials)
-    study = sherpa.Study(parameters=pars, algorithm=algorithm,
-                         lower_is_better=False, output_dir=conf.exp_dir)
+    study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
+                         output_dir=conf.exp_dir)
 
     for trial in study:
         # Adjust the configuration for this trial
         for key in trial.parameters.keys():
             conf[key] = trial.parameters[key]
 
-        train_ds, val_ds, test_ds = data.datasets(conf.input_dirs,
-                                                  conf.img_shape)
+        train_ds, val_ds, test_ds = data.datasets(conf.input_dirs, conf.img_shape)
 
         model = models.SingleParModel(conf)
         cb = [study.keras_callback(trial, objective_name='val_mae')]
@@ -52,8 +51,7 @@ def parse_args():
     """Parse the command line arguments."""
     parser = argparse.ArgumentParser(description='CHIPS CVN')
     parser.add_argument('config', help='path to the configuration file')
-    parser.add_argument('--study', action='store_true',
-                        help='Are we running a sherpa study?')
+    parser.add_argument('--study', action='store_true', help='Are we running a sherpa study?')
     return parser.parse_args()
 
 
@@ -69,8 +67,7 @@ def main():
         if args.study:
             run_study(conf)
         else:
-            train_ds, val_ds, test_ds = data.datasets(conf.input_dirs,
-                                                      conf.img_shape)
+            train_ds, val_ds, test_ds = data.datasets(conf.input_dirs, conf.img_shape)
             model = models.SingleParModel(conf)
             train_ds.cache()
             val_ds.cache()
