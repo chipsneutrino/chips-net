@@ -1,0 +1,17 @@
+{
+    "type": "train",
+    "experiment": "classification_model_test/",
+    "input_dirs": ["/mnt/storage/jtingey/test/"],
+    "img_shape": [64, 64, 3],
+    "model": "classification_model",
+    "categories": 17,
+    "batch_size": 64,
+    "l_rate": 0.001,
+    "dense_units": 512,
+    "dropout": 0.2,
+    "kernel_size": 3,
+    "filters": 64,
+    "es_delta": 5,
+    "es_epochs": 5,
+    "train_epochs": 3
+}

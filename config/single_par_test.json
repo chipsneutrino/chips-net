@@ -1,8 +1,9 @@
 {
-    "experiment": "ppe_test/",
-    "input_dirs": ["/unix/chips/production/beam_nuel_qel_cc/tf/chips_1200_sk1pe/test/"],
+    "type": "train",
+    "experiment": "single_par_model_test/",
+    "input_dirs": ["/mnt/storage/jtingey/test/"],
     "img_shape": [64, 64, 3],
-    "model": "ppe",
+    "model": "single_par_model",
     "parameter": "lepEnergy",
     "batch_size": 64,
     "l_rate": 0.001,
