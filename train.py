@@ -19,25 +19,28 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 
 
-def run_study(conf):
+def run_study(config):
     """Creates a SHERPA hyperparameter study."""
-    pars = models.SingleParModel.study_parameters(conf)
-    algorithm = sherpa.algorithms.RandomSearch(max_num_trials=conf.trials)
+    pars = models.SingleParModel.study_parameters(config)
+    algorithm = sherpa.algorithms.RandomSearch(max_num_trials=config.trials)
     study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
-                         output_dir=conf.exp_dir)
+                         output_dir=config.exp_dir)
 
     for trial in study:
         # Adjust the configuration for this trial
         for key in trial.parameters.keys():
-            conf[key] = trial.parameters[key]
+            config[key] = trial.parameters[key]
 
-        train_ds, val_ds, test_ds = data.datasets(conf.input_dirs, conf.img_shape)
+        train_ds, val_ds, test_ds = data.datasets(config.input_dirs, config.img_shape)
 
-        model = models.SingleParModel(conf)
+        model = models.SingleParModel(config)
         cb = [study.keras_callback(trial, objective_name='val_mae')]
         model.fit(train_ds, val_ds, cb)
         study.finalize(trial)
     study.save()
+
+
+def train_model(config)
 
 
 def evaluate_model(model, test_ds):
@@ -60,15 +63,15 @@ def main():
     print("\nCHIPS CVN - It's Magic\n")
 
     args = parse_args()
-    conf = config.process_config(args.config)
+    config = config.process_config(args.config)
 
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
         if args.study:
-            run_study(conf)
+            run_study(config)
         else:
-            train_ds, val_ds, test_ds = data.datasets(conf.input_dirs, conf.img_shape)
-            model = models.SingleParModel(conf)
+            train_ds, val_ds, test_ds = data.datasets(config.input_dirs, config.img_shape)
+            model = models.SingleParModel(config)
             train_ds.cache()
             val_ds.cache()
             model.fit(train_ds, val_ds)
