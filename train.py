@@ -4,26 +4,48 @@ Author: Josh Tingey
 Email: j.tingey.16@ucl.ac.uk
 
 This script is the main chips-cvn training script. Given the input
-configuration it trains the given model and then evaluates the test 
-dataset. It can also carry out hyperparameter optimisation using 
+configuration it trains the given model and then evaluates the test
+dataset. It can also carry out hyperparameter optimisation using
 SHERPA which requires a modified configuration file.
 """
 
 import argparse
-import tensorflow as tf
+import os
 import sherpa
 import config
 import data
 import models
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow as tf
 
 
-def make_study(conf):
+def run_study(conf):
     """Creates a SHERPA hyperparameter study."""
     pars = models.SingleParModel.study_parameters(conf)
     algorithm = sherpa.algorithms.RandomSearch(max_num_trials=conf.trials)
     study = sherpa.Study(parameters=pars, algorithm=algorithm,
                          lower_is_better=False, output_dir=conf.exp_dir)
-    return study
+
+    for trial in study:
+        # Adjust the configuration for this trial
+        for key in trial.parameters.keys():
+            conf[key] = trial.parameters[key]
+
+        train_ds, val_ds, test_ds = data.datasets(conf.input_dirs,
+                                                  conf.img_shape)
+
+        model = models.SingleParModel(conf)
+        cb = [study.keras_callback(trial, objective_name='val_mae')]
+        model.fit(train_ds, val_ds, cb)
+        study.finalize(trial)
+    study.save()
+
+
+def evaluate_model(model, test_ds):
+    """Evaluate the trained model on the test dataset."""
+    test_ds = test_ds.batch(64)
+    predictions = model.model.predict(test_ds)
+    print(predictions.shape)
 
 
 def parse_args():
@@ -45,19 +67,7 @@ def main():
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
         if args.study:
-            study = make_study(conf)
-            for trial in study:
-                # Adjust the configuration for this trial
-                for key in trial.parameters.keys():
-                    conf[key] = trial.parameters[key]
-
-                train_ds, val_ds, test_ds = data.datasets(conf.input_dirs,
-                                                          conf.img_shape)
-
-                model = models.SingleParModel(conf)
-                cb = [study.keras_callback(trial, objective_name='val_mae')]
-                model.fit(train_ds, val_ds, cb)
-                study.finalize(trial)
+            run_study(conf)
         else:
             train_ds, val_ds, test_ds = data.datasets(conf.input_dirs,
                                                       conf.img_shape)
@@ -65,7 +75,7 @@ def main():
             train_ds.cache()
             val_ds.cache()
             model.fit(train_ds, val_ds)
-            model.evaluate(test_ds)
+            evaluate_model(model, test_ds)
 
 
 if __name__ == '__main__':

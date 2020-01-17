@@ -42,6 +42,7 @@ class BaseModel:
         callbacks_list = []
 
         checkpoint = callbacks.ModelCheckpoint(filepath=self.conf.exp_dir,
+                                               save_weights_only=True,
                                                verbose=0)
         callbacks_list.append(checkpoint)
 

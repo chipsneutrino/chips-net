@@ -1,5 +1,5 @@
 {
-    "experiment": "ppe_test_study",
+    "experiment": "ppe_test_study/",
     "input_dirs": ["/mnt/storage/jtingey/test/"],
     "img_shape": [64, 64, 3],
     "model": "ppe",

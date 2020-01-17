@@ -10,6 +10,7 @@ the output directories for experiments.
 
 import json
 from bunch import Bunch
+import shutil
 import os
 
 
@@ -22,24 +23,29 @@ def process_json(json_config):
     return config, config_dict
 
 
-def create_directories(config):
-    """Creates the directories for the experiment defined in the config."""
+def create_directory(config):
+    """Creates the directory for the experiment defined in the config."""
     try:
         os.mkdir("experiments")
     except FileExistsError:
         pass
 
+    experiment_dir = os.path.join("experiments", config.experiment)
+    if os.path.isdir(experiment_dir):
+        shutil.rmtree(experiment_dir)
+
     try:
-        os.mkdir(os.path.join("experiments", config.experiment))
+        os.mkdir(experiment_dir)
     except FileExistsError:
         pass
+
+    return experiment_dir
 
 
 def process_config(json_config):
     """Get the configuration and create experiment directories."""
     config, _ = process_json(json_config)
-    config.exp_dir = os.path.join("experiments", config.experiment)
-    create_directories(config)
+    config.exp_dir = create_directory(config)
     return config
 
 
