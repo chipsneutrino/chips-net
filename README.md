@@ -21,5 +21,5 @@ $ python data.py -i [input_directory] -o [output_directory]
 To train a model run...
 
 ```
-$ python train.py -i [input_directory] -o [output_directory] -c [json_configuration]
+$ python train.py [json_configuration]
 ```
