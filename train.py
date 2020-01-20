@@ -11,7 +11,9 @@ SHERPA which requires a modified configuration file.
 
 import argparse
 import os
+import time
 import sherpa
+import ROOT
 import config
 import data
 import models
@@ -27,11 +29,10 @@ def run_study(config):
                          output_dir=config.exp_dir)
 
     for trial in study:
-        # Adjust the configuration for this trial
         for key in trial.parameters.keys():
-            config[key] = trial.parameters[key]
+            config[key] = trial.parameters[key]  # Adjust the configuration for this trial
 
-        train_ds, val_ds, test_ds = data.datasets(config.input_dirs, config.img_shape)
+        train_ds, val_ds = data.get_train_and_val_ds(config.input_dirs, config.img_shape)
 
         model = models.get_model(config)
         model.build()
@@ -43,20 +44,32 @@ def run_study(config):
 
 def train_model(config):
     """Trains a model according to the configuration."""
-    train_ds, val_ds, test_ds = data.datasets(config.input_dirs, config.img_shape)
+    train_ds, val_ds = data.get_train_and_val_ds(config.input_dirs, config.img_shape)
     model = models.get_model(config)
     model.build()
     train_ds.cache()
     val_ds.cache()
     model.fit(train_ds, val_ds)
-    evaluate_model(model, test_ds)
 
 
-def evaluate_model(model, test_ds):
+def test_model(config):
     """Evaluate the trained model on the test dataset."""
+
+    model = models.get_trained_model(config)
+    h = ROOT.TH1F("test", "test", 100, -2000, 2000)
+    test_ds = data.get_test_ds(config.input_dirs, config.img_shape)
     test_ds = test_ds.batch(64)
-    predictions = model.model.predict(test_ds)
-    print(predictions.shape)
+
+    start_time = time.time()
+    for x, y in test_ds:
+        predictions = model.model.predict(x)
+        for i in range(len(predictions)):
+            h.Fill(float(predictions[i] - y["lepEnergy"][i]))
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+    myfile = ROOT.TFile("test.root", "RECREATE")
+    h.Write()
+    myfile.Close()
 
 
 def parse_args():
@@ -79,6 +92,9 @@ def main():
             run_study(conf)
         if conf.type == "train":
             train_model(conf)
+            test_model(conf)
+        if conf.type == "test":
+            test_model(conf)
         else:
             print("Error: type not valid!")
             raise SystemExit

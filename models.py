@@ -12,6 +12,7 @@ import os
 from tensorflow import keras
 from tensorflow.keras import optimizers, callbacks, Model, Input
 from tensorflow.keras.layers import Dense, Dropout, Conv2D, MaxPooling2D, Flatten
+import tensorflow as tf
 import sherpa
 
 
@@ -25,7 +26,7 @@ class BaseModel:
         self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.l_rate),
                            loss=self.loss, metrics=self.metrics)
 
-        self.model.summary()  # Print the model summary
+        self.model.summary()
 
         # Plot an image of the model to file
         file_name = os.path.join(self.config.exp_dir, "plot.png")
@@ -36,16 +37,17 @@ class BaseModel:
         """Given a training and validation dataset, fit the model."""
         callbacks_list = []
 
-        checkpoint = callbacks.ModelCheckpoint(filepath=self.config.exp_dir, save_weights_only=True,
+        checkpoint_path = self.config.exp_dir + "cp-{epoch:04d}.ckpt"
+        checkpoint = callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True,
                                                verbose=0)
         callbacks_list.append(checkpoint)
 
         tensorboard = callbacks.TensorBoard(log_dir="tmp", histogram_freq=1)
         callbacks_list.append(tensorboard)
 
-        stopping = callbacks.EarlyStopping(monitor=self.es_monitor, min_delta=self.config.es_delta,
-                                           patience=self.config.es_epochs, verbose=1, mode='min')
-        callbacks_list.append(stopping)
+        #stopping = callbacks.EarlyStopping(monitor=self.es_monitor, min_delta=self.config.es_delta,
+        #                                   patience=self.config.es_epochs, verbose=1, mode='min')
+        #callbacks_list.append(stopping)
         callbacks_list += extra_callbacks
 
         train_ds = train_ds.batch(self.config.batch_size, drop_remainder=True)
@@ -124,12 +126,12 @@ class ClassificationModel(BaseModel):
         x = Flatten()(x)
         x = Dense(self.config.dense_units, activation='relu')(x)
         x = Dropout(self.config.dropout)(x)
-        outputs = Dense(self.conf.categories, activation='softmax', name="category")(x)
+        outputs = Dense(self.config.categories, activation='softmax', name="category")(x)
         self.model = Model(inputs=inputs, outputs=outputs, name='classification_model')
 
         self.loss = "sparse_categorical_crossentropy"
         self.metrics = ["accuracy"]
-        self.es_monitor = "val_acc"
+        self.es_monitor = "val_accuracy"
 
         self.compile()
 
@@ -148,10 +150,19 @@ class ClassificationModel(BaseModel):
 
 def get_model(config):
     """Returns the correct model for the configuration."""
-    if config.model == "single_par_model":
+    if config.model == "single_par":
         return SingleParModel(config)
-    elif config.model == "classification_model":
+    elif config.model == "classification":
         return ClassificationModel(config)
     else:
         print("Error: model not valid!")
         raise SystemExit
+
+
+def get_trained_model(config):
+    """Returns the correct model with its trained weights loaded."""
+    model = get_model(config)
+    model.build()
+    latest = tf.train.latest_checkpoint(config.exp_dir)
+    model.model.load_weights(latest).expect_partial()
+    return model

@@ -31,7 +31,7 @@ def create_directory(config):
         pass
 
     experiment_dir = os.path.join("experiments", config.experiment)
-    if os.path.isdir(experiment_dir):
+    if os.path.isdir(experiment_dir) and config.type != "test":
         shutil.rmtree(experiment_dir)
 
     try:
@@ -51,5 +51,5 @@ def process_config(json_config):
 
 def get_config(json_config):
     """Get the configuration without creating experiment directories."""
-    config, _ = process_json(json_config)
-    return config
+    config, config_dict = process_json(json_config)
+    return config_dict

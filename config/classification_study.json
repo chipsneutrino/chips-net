@@ -1,5 +1,5 @@
 {
-    "type": "test",
+    "type": "study",
     "experiment": "classification/",
     "input_dirs": [
         "/unix/chips/production/beam_nuel_coh_cc/tf/chips_1200_sk1pe/",
@@ -23,12 +23,13 @@
     "img_shape": [64, 64, 3],
     "model": "classification",
     "categories": 10,
-    "batch_size": 64,
-    "l_rate": 0.001,
-    "dense_units": 512,
-    "dropout": 0.2,
-    "kernel_size": 3,
-    "filters": 64,
+    "trials": 200,
+    "batch_size": [32, 64, 128],
+    "l_rate": [0.0005, 0.01],
+    "dense_units": [128, 258, 512],
+    "dropout": [0.0, 0.5],
+    "kernel_size": [3, 5],
+    "filters": [32, 64, 128],
     "es_delta": 5,
     "es_epochs": 5,
     "train_epochs": 3

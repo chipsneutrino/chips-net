@@ -2,3 +2,5 @@ __pycache__/
 tmp/
 experiments/
 env/miniconda/
+*.ipynb_checkpoints
+*.root

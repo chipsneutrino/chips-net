@@ -1,5 +1,5 @@
 {
-    "type": "test",
+    "type": "train",
     "experiment": "single_par/",
     "input_dirs": ["/mnt/storage/jtingey/test/"],
     "img_shape": [64, 64, 3],

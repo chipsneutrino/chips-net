@@ -17,6 +17,8 @@ import uproot
 import numpy as np
 import tensorflow as tf
 
+import config
+
 
 def parse(serialised_example, shape):
     """Parses a single serialised example an image and labels dict."""
@@ -61,31 +63,49 @@ def dataset(dirs, shape):
     return ds
 
 
-def datasets(dirs, shape):
-    """Returns the train, val and test datasets from the input directories."""
+def get_train_and_val_ds(dirs, shape):
+    """Returns the train and val datasets from the input directories."""
     train_dirs = []
     val_dirs = []
-    test_dirs = []
     for directory in dirs:
         train_dirs.append(os.path.join(directory, "train"))
         val_dirs.append(os.path.join(directory, "val"))
-        test_dirs.append(os.path.join(directory, "test"))
 
     train_ds = dataset(train_dirs, shape)
     val_ds = dataset(val_dirs, shape)
+    return train_ds, val_ds
+
+
+def get_test_ds(dirs, shape):
+    """Returns the test dataset from the input directories."""
+    test_dirs = []
+    for directory in dirs:
+        test_dirs.append(os.path.join(directory, "test"))
+
     test_ds = dataset(test_dirs, shape)
-    return train_ds, val_ds, test_ds
+    return test_ds
 
 
-def _bytes_feature(value):
+def get_categories(pdgs, types, conf):
+    """assigns the correct category given the true_pdg and true_type."""
+    categories = np.zeros((len(pdgs)), dtype=np.int32)
+    for event in range(len(pdgs)):
+        key = str(pdgs[event]) + "-" + str(types[event])
+        categories[event] = conf[key]
+    return categories
+
+
+def bytes_feature(value):
     """Returns a bytes_list from a string / byte."""
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-def gen_examples(true, reco):
+def gen_examples(true, reco, conf):
     """Generates a list of examples from the input .root map file."""
     # Get the numpy arrays from the .root map file
-    categories = true.array("true_type_")
+    pdgs = true.array("true_pdg")
+    types = true.array("true_type")
+    categories = get_categories(pdgs, types, conf)
     parameters = np.stack((true.array("true_vtx_x"),
                            true.array("true_vtx_y"),
                            true.array("true_vtx_z"),
@@ -100,9 +120,9 @@ def gen_examples(true, reco):
     examples = []  # Generate examples using a feature dict
     for i in range(len(categories)):
         feature_dict = {
-            'category': _bytes_feature(categories[i].tostring()),
-            'parameters': _bytes_feature(parameters[i].tostring()),
-            'image': _bytes_feature(images[i].tostring())
+            'category': bytes_feature(categories[i].tostring()),
+            'parameters': bytes_feature(parameters[i].tostring()),
+            'image': bytes_feature(images[i].tostring())
         }
         examples.append(tf.train.Example(features=tf.train.Features(feature=feature_dict)))
 
@@ -116,12 +136,12 @@ def write_examples(name, examples):
             writer.write(example.SerializeToString())
 
 
-def preprocess_file(file, out_dir, split):
+def preprocess_file(file, out_dir, split, conf):
     """Preprocess a .root map file into train, val and test tfrecords files."""
     examples = []
     file_u = uproot.open(file)
     try:
-        examples = gen_examples(file_u["true"], file_u["reco"])
+        examples = gen_examples(file_u["true"], file_u["reco"], conf)
     except Exception as err:  # Catch when there is an uproot exception
         print("Error:", type(err), err)
         return
@@ -140,35 +160,37 @@ def preprocess_file(file, out_dir, split):
     write_examples(os.path.join(out_dir, "test/", base + "_test.tfrecords"), test_examples)
 
 
-def make_directories(out_dir):
+def make_directories(directory, geom):
     """Makes the output directory structure."""
+    in_dir = os.path.join(directory, "map/", geom)
+    out_dir = os.path.join(directory, "tf/", geom)
     try:
+        os.mkdir(out_dir)
         os.mkdir(os.path.join(out_dir, "train/"))
         os.mkdir(os.path.join(out_dir, "val/"))
         os.mkdir(os.path.join(out_dir, "test/"))
     except FileExistsError:
         pass
+    return in_dir, out_dir
 
 
-def preprocess_dir(in_dir, out_dir, split, single):
+def preprocess_dir(in_dir, out_dir, split, conf, single):
     """Preprocess all the files from the input directory into tfrecords."""
-    make_directories(out_dir)
     if not single:  # File independence allows for parallelisation
         Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
-            preprocess_file)(os.path.join(in_dir, f), out_dir, split) for f in os.listdir(in_dir))
+            preprocess_file)(os.path.join(in_dir, f), out_dir,
+                             split, conf) for f in os.listdir(in_dir))
     else:  # For debugging we keep the option to use a single process
         for f in os.listdir(in_dir):
-            preprocess_file(os.path.join(in_dir, f), out_dir, split)
+            preprocess_file(os.path.join(in_dir, f), out_dir, split, conf)
 
 
 def parse_args():
     """Parse the command line arguments."""
     parser = argparse.ArgumentParser(description='CHIPS CVN Data')
-    parser.add_argument('-i', '--in_dir', help='path to input directory')
-    parser.add_argument('-o', '--out_dir', help='path to output directory')
+    parser.add_argument('directory', help='path to input directory')
     parser.add_argument('-s', '--split', help='val and test split fraction', default=0.1)
-    parser.add_argument('--norm', action='store_true', help='Normalise the samples')
-    parser.add_argument('--fluctuate', action='store_true', help='Fluctuate the samples')
+    parser.add_argument('-g', '--geom', help='detector geometry name')
     parser.add_argument('--single', action='store_true', help='Use a single process')
     return parser.parse_args()
 
@@ -176,7 +198,9 @@ def parse_args():
 def main():
     """Main function called by script."""
     args = parse_args()
-    preprocess_dir(args.in_dir, args.out_dir, args.split, args.single)
+    conf = config.get_config("config/categories.json")
+    in_dir, out_dir = make_directories(args.directory, args.geom)
+    preprocess_dir(in_dir, out_dir, args.split, conf, args.single)
 
 
 if __name__ == '__main__':
