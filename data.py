@@ -12,6 +12,7 @@ import os
 import argparse
 from joblib import Parallel, delayed
 import multiprocessing
+import random
 
 import uproot
 import numpy as np
@@ -54,6 +55,8 @@ def dataset(dirs, shape):
     for d in dirs:
         for file in os.listdir(d):
             files.append(os.path.join(d, file))
+
+    random.shuffle(files)
 
     ds = tf.data.Dataset.from_tensor_slices(files)
     ds = ds.interleave(tf.data.TFRecordDataset, cycle_length=len(files),
