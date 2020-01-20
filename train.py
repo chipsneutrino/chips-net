@@ -17,6 +17,7 @@ import ROOT
 import config
 import data
 import models
+import plots
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 
@@ -47,8 +48,6 @@ def train_model(config):
     train_ds, val_ds = data.get_train_and_val_ds(config.input_dirs, config.img_shape)
     model = models.get_model(config)
     model.build()
-    train_ds.cache()
-    val_ds.cache()
     model.fit(train_ds, val_ds)
 
 
@@ -79,9 +78,25 @@ def parse_args():
     return parser.parse_args()
 
 
+def gpu_setup():
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            # Currently, memory growth needs to be the same across GPUs
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+            print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+        except RuntimeError as e:
+            # Memory growth must be set before GPUs have been initialized
+            print(e)
+
+
 def main():
     """Main function called by script."""
     print("\nCHIPS CVN - It's Magic\n")
+
+    gpu_setup()
 
     args = parse_args()
     conf = config.process_config(args.config)
