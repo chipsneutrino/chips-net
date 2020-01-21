@@ -1,7 +1,7 @@
 {
     "type": "study",
     "experiment": "single_par/",
-    "input_dirs": ["/mnt/storage/jtingey/test/"],
+    "input_dirs": ["/mnt/storage/jtingey/data/beam_nuel_qel_cc/chips_1200_sk1pe/"],
     "img_shape": [64, 64, 3],
     "model": "single_par",
     "parameter": "lepEnergy",
@@ -14,5 +14,5 @@
     "filters": [32, 64, 128],
     "es_delta": 5,
     "es_epochs": 5,
-    "train_epochs": 3
+    "train_epochs": 5
 }

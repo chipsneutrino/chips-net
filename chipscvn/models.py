@@ -126,10 +126,11 @@ class ClassificationModel(BaseModel):
         x = Flatten()(x)
         x = Dense(self.config.dense_units, activation='relu')(x)
         x = Dropout(self.config.dropout)(x)
-        outputs = Dense(self.config.categories, activation='softmax', name="category")(x)
-        self.model = Model(inputs=inputs, outputs=outputs, name='classification_model')
+        pdg_output = Dense(self.config.pdgs, activation='softmax', name="pdg")(x)
+        type_output = Dense(self.config.types, activation='softmax', name="type")(x)
+        self.model = Model(inputs=inputs, outputs=[pdg_output, type_output], name='classification_model')
 
-        self.loss = "sparse_categorical_crossentropy"
+        self.loss = ['binary_crossentropy', 'sparse_categorical_crossentropy']
         self.metrics = ["accuracy"]
         self.es_monitor = "val_accuracy"
 
