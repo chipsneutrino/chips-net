@@ -139,15 +139,17 @@ def write_examples(name, examples):
             writer.write(example.SerializeToString())
 
 
-def preprocess_file(file, out_dir, split, conf):
+def preprocess_file(num, files, out_dir, split, conf):
     """Preprocess a .root map file into train, val and test tfrecords files."""
+    print("Processing job {}...".format(num))
     examples = []
-    file_u = uproot.open(file)
-    try:
-        examples = gen_examples(file_u["true"], file_u["reco"], conf)
-    except Exception as err:  # Catch when there is an uproot exception
-        print("Error:", type(err), err)
-        return
+    for file in files:
+        file_u = uproot.open(file)
+        try:
+            examples.extend(gen_examples(file_u["true"], file_u["reco"], conf))
+        except Exception as err:  # Catch when there is an uproot exception
+            print("Error:", type(err), err)
+            pass
 
     # Split into training, validation and testing samples
     val_split = int((1.0-split-split) * len(examples))
@@ -156,11 +158,9 @@ def preprocess_file(file, out_dir, split, conf):
     val_examples = examples[val_split:test_split]
     test_examples = examples[test_split:]
 
-    name, ext = os.path.splitext(file)
-    base = os.path.basename(name)
-    write_examples(os.path.join(out_dir, "train/", base + "_train.tfrecords"), train_examples)
-    write_examples(os.path.join(out_dir, "val/", base + "_val.tfrecords"), val_examples)
-    write_examples(os.path.join(out_dir, "test/", base + "_test.tfrecords"), test_examples)
+    write_examples(os.path.join(out_dir, "train/", str(num) + "_train.tfrecords"), train_examples)
+    write_examples(os.path.join(out_dir, "val/", str(num) + "_val.tfrecords"), val_examples)
+    write_examples(os.path.join(out_dir, "test/", str(num) + "_test.tfrecords"), test_examples)
 
 
 def make_directories(directory, geom):
@@ -177,15 +177,17 @@ def make_directories(directory, geom):
     return in_dir, out_dir
 
 
-def preprocess_dir(in_dir, out_dir, split, conf, single):
+def preprocess_dir(in_dir, out_dir, split, join, conf, single):
     """Preprocess all the files from the input directory into tfrecords."""
+    files = [os.path.join(in_dir, file) for file in os.listdir(in_dir)]
+    file_lists = [files[n:n+join] for n in range(0, len(files), join)]
     if not single:  # File independence allows for parallelisation
         Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
-            preprocess_file)(os.path.join(in_dir, f), out_dir,
-                             split, conf) for f in os.listdir(in_dir))
+            preprocess_file)(counter, f_list, out_dir, 
+                             split, conf) for counter, f_list in enumerate(file_lists))
     else:  # For debugging we keep the option to use a single process
-        for f in os.listdir(in_dir):
-            preprocess_file(os.path.join(in_dir, f), out_dir, split, conf)
+        for counter, f_list in enumerate(file_lists):
+            preprocess_file(counter, f_list, out_dir, split, conf)
 
 
 def parse_args():
@@ -193,7 +195,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='CHIPS CVN Data')
     parser.add_argument('directory', help='path to input directory')
     parser.add_argument('-s', '--split', help='val and test split fraction', default=0.1)
-    parser.add_argument('-g', '--geom', help='detector geometry name')
+    parser.add_argument('-g', '--geom', help='detector geometry name', default="chips_1200_sk1pe")
+    parser.add_argument('-j', '--join', help='how many input files to join together', default=10)
     parser.add_argument('--single', action='store_true', help='Use a single process')
     return parser.parse_args()
 
@@ -203,7 +206,7 @@ def main():
     args = parse_args()
     conf = config.get_config("config/categories.json")
     in_dir, out_dir = make_directories(args.directory, args.geom)
-    preprocess_dir(in_dir, out_dir, args.split, conf, args.single)
+    preprocess_dir(in_dir, out_dir, args.split, args.join, conf, args.single)
 
 
 if __name__ == '__main__':
