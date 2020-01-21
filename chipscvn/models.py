@@ -24,7 +24,7 @@ class BaseModel:
     def compile(self):
         """Compiles the model."""
         self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.l_rate),
-                           loss=self.loss, metrics=self.metrics)
+                           loss=self.loss, loss_weights=self.loss_weights, metrics=self.metrics)
 
         self.model.summary()
 
@@ -51,7 +51,9 @@ class BaseModel:
         callbacks_list += extra_callbacks
 
         train_ds = train_ds.batch(self.config.batch_size, drop_remainder=True)
+        train_ds = train_ds.take(self.config.max_examples)
         val_ds = val_ds.batch(self.config.batch_size, drop_remainder=True)
+        val_ds = val_ds.take(self.config.max_examples)
 
         self.history = self.model.fit(train_ds, epochs=self.config.train_epochs, verbose=1,
                                       validation_data=val_ds, callbacks=callbacks_list)
@@ -85,6 +87,7 @@ class SingleParModel(BaseModel):
         self.model = Model(inputs=inputs, outputs=outputs, name='ppe_model')
 
         self.loss = "mean_squared_error"
+        self.loss_weights = None
         self.metrics = ["mae", "mse"]
         self.es_monitor = "val_mae"
 
@@ -130,8 +133,18 @@ class ClassificationModel(BaseModel):
         type_output = Dense(self.config.types, activation='softmax', name="type")(x)
         self.model = Model(inputs=inputs, outputs=[pdg_output, type_output], name='classification_model')
 
-        self.loss = ['binary_crossentropy', 'sparse_categorical_crossentropy']
-        self.metrics = ["accuracy"]
+        self.loss = {
+	        "pdg": "sparse_categorical_crossentropy",
+	        "type": "sparse_categorical_crossentropy",
+        }
+        self.loss_weights = {
+            "pdg": 1.0, 
+            "type": 1.0
+        }
+        self.metrics = {
+            "pdg": "accuracy", 
+            "type": "accuracy"
+        }
         self.es_monitor = "val_accuracy"
 
         self.compile()

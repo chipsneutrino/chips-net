@@ -5,6 +5,7 @@
     "img_shape": [64, 64, 3],
     "model": "single_par",
     "parameter": "lepEnergy",
+    "max_examples": 2500,
     "batch_size": 64,
     "l_rate": 0.001,
     "dense_units": 128,
@@ -13,5 +14,5 @@
     "filters": 64,
     "es_delta": 5,
     "es_epochs": 5,
-    "train_epochs": 2
+    "train_epochs": 5
 }

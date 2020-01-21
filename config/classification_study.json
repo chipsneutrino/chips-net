@@ -24,6 +24,7 @@
     "model": "classification",
     "pdgs": 2,
     "types": 7,
+    "max_examples": 2500,
     "trials": 200,
     "batch_size": [64, 128],
     "l_rate": [0.0005, 0.01],

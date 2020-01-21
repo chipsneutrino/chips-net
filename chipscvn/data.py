@@ -19,21 +19,7 @@ import numpy as np
 import tensorflow as tf
 
 
-# PDG classification mapping
-pdg_keys = tf.constant([12, 14])
-pdg_vals = tf.constant([ 0,  1])
-pdg_table = tf.lookup.StaticHashTable(
-    tf.lookup.KeyValueTensorInitializer(pdg_keys, pdg_vals), -1)
-
-
-# Event type classification mapping
-type_keys = tf.constant([0, 98, 98, 2, 6, 7, 8, 9, 92, 96, 1, 3, 4, 5, 91, 97, 100])
-type_vals = tf.constant([0,  0,  0, 1, 1, 1, 1, 1,  1,  1, 2, 3, 3, 3,  4,  5,   6])
-type_table = tf.lookup.StaticHashTable(
-    tf.lookup.KeyValueTensorInitializer(type_keys, type_vals), -1)
-
-
-def parse(serialised_example, shape):
+def parse(serialised_example, shape, pdg_table, type_table):
     """Parses a single serialised example an image and labels dict."""
     features = {
         'types': tf.io.FixedLenFeature([], tf.string),
@@ -75,7 +61,22 @@ def dataset(dirs, shape):
     ds = ds.interleave(tf.data.TFRecordDataset, cycle_length=len(files),
                        num_parallel_calls=tf.data.experimental.AUTOTUNE)
     ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-    ds = ds.map(lambda x: parse(x, shape), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+    # PDG classification mapping
+    pdg_keys = tf.constant([12, 14])
+    pdg_vals = tf.constant([ 0,  1])
+    pdg_table = tf.lookup.StaticHashTable(
+        tf.lookup.KeyValueTensorInitializer(pdg_keys, pdg_vals), -1)
+
+
+    # Event type classification mapping
+    type_keys = tf.constant([0, 98, 98, 2, 6, 7, 8, 9, 92, 96, 1, 3, 4, 5, 91, 97, 100])
+    type_vals = tf.constant([0,  0,  0, 1, 1, 1, 1, 1,  1,  1, 2, 3, 3, 3,  4,  5,   6])
+    type_table = tf.lookup.StaticHashTable(
+        tf.lookup.KeyValueTensorInitializer(type_keys, type_vals), -1)
+
+    ds = ds.map(lambda x: parse(x, shape, pdg_table, type_table), 
+                num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
     return ds
 
