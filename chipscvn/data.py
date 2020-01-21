@@ -18,25 +18,24 @@ import uproot
 import numpy as np
 import tensorflow as tf
 
-import config
-
 
 def parse(serialised_example, shape):
     """Parses a single serialised example an image and labels dict."""
     features = {
-        'category': tf.io.FixedLenFeature([], tf.string),
+        'types': tf.io.FixedLenFeature([], tf.string),
         'parameters': tf.io.FixedLenFeature([], tf.string),
         'image': tf.io.FixedLenFeature([], tf.string),
     }
     example = tf.io.parse_single_example(serialised_example, features)
 
-    category = tf.io.decode_raw(example['category'], tf.int32)
+    types = tf.io.decode_raw(example['types'], tf.int32)
     parameters = tf.io.decode_raw(example['parameters'], tf.float32)
     image = tf.io.decode_raw(example['image'], tf.float32)
     image = tf.reshape(image, shape)
 
     labels = {  # We generate a dictionary with all the true labels
-        'category': category,
+        'pdg': types[0],
+        'type': types[1],
         'vtxX': parameters[0],
         'vtxY': parameters[1],
         'vtxZ': parameters[2],
@@ -103,12 +102,11 @@ def bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-def gen_examples(true, reco, conf):
+def gen_examples(true, reco):
     """Generates a list of examples from the input .root map file."""
     # Get the numpy arrays from the .root map file
-    pdgs = true.array("true_pdg")
-    types = true.array("true_type")
-    categories = get_categories(pdgs, types, conf)
+    types = np.stack((true.array("true_pdg"),
+                      true.array("true_type")), axis=1)
     parameters = np.stack((true.array("true_vtx_x"),
                            true.array("true_vtx_y"),
                            true.array("true_vtx_z"),
@@ -121,9 +119,9 @@ def gen_examples(true, reco, conf):
                        reco.array("filtered_hit_hough_map_vtx")), axis=3)
 
     examples = []  # Generate examples using a feature dict
-    for i in range(len(categories)):
+    for i in range(len(types)):
         feature_dict = {
-            'category': bytes_feature(categories[i].tostring()),
+            'types': bytes_feature(types[i].tostring()),
             'parameters': bytes_feature(parameters[i].tostring()),
             'image': bytes_feature(images[i].tostring())
         }
@@ -139,14 +137,14 @@ def write_examples(name, examples):
             writer.write(example.SerializeToString())
 
 
-def preprocess_file(num, files, out_dir, split, conf):
+def preprocess_file(num, files, out_dir, split):
     """Preprocess a .root map file into train, val and test tfrecords files."""
     print("Processing job {}...".format(num))
     examples = []
     for file in files:
         file_u = uproot.open(file)
         try:
-            examples.extend(gen_examples(file_u["true"], file_u["reco"], conf))
+            examples.extend(gen_examples(file_u["true"], file_u["reco"]))
         except Exception as err:  # Catch when there is an uproot exception
             print("Error:", type(err), err)
             pass
@@ -177,17 +175,17 @@ def make_directories(directory, geom):
     return in_dir, out_dir
 
 
-def preprocess_dir(in_dir, out_dir, split, join, conf, single):
+def preprocess_dir(in_dir, out_dir, split, join, single):
     """Preprocess all the files from the input directory into tfrecords."""
     files = [os.path.join(in_dir, file) for file in os.listdir(in_dir)]
     file_lists = [files[n:n+join] for n in range(0, len(files), join)]
     if not single:  # File independence allows for parallelisation
         Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
             preprocess_file)(counter, f_list, out_dir, 
-                             split, conf) for counter, f_list in enumerate(file_lists))
+                             split) for counter, f_list in enumerate(file_lists))
     else:  # For debugging we keep the option to use a single process
         for counter, f_list in enumerate(file_lists):
-            preprocess_file(counter, f_list, out_dir, split, conf)
+            preprocess_file(counter, f_list, out_dir, split)
 
 
 def parse_args():
@@ -204,9 +202,8 @@ def parse_args():
 def main():
     """Main function called by script."""
     args = parse_args()
-    conf = config.get_config("config/categories.json")
     in_dir, out_dir = make_directories(args.directory, args.geom)
-    preprocess_dir(in_dir, out_dir, args.split, args.join, conf, args.single)
+    preprocess_dir(in_dir, out_dir, args.split, args.join, args.single)
 
 
 if __name__ == '__main__':
