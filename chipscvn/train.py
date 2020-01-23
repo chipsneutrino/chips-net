@@ -17,7 +17,6 @@ import ROOT
 import config
 import data
 import models
-import plots
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 
@@ -37,7 +36,7 @@ def run_study(config):
 
         model = models.get_model(config)
         model.build()
-        cb = [study.keras_callback(trial, objective_name='val_mae')]
+        cb = [study.keras_callback(trial, objective_name='val_loss', context_names=['val_pdg_accuracy', 'val_type_accuracy', 'val_nuEnergy_mae'])]
         model.fit(train_ds, val_ds, cb)
         study.finalize(trial)
     study.save()

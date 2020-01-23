@@ -64,10 +64,9 @@ def dataset(dirs, shape):
 
     # PDG classification mapping
     pdg_keys = tf.constant([12, 14])
-    pdg_vals = tf.constant([ 0,  1])
+    pdg_vals = tf.constant([0,  1])
     pdg_table = tf.lookup.StaticHashTable(
         tf.lookup.KeyValueTensorInitializer(pdg_keys, pdg_vals), -1)
-
 
     # Event type classification mapping
     type_keys = tf.constant([0, 98, 98, 2, 6, 7, 8, 9, 92, 96, 1, 3, 4, 5, 91, 97, 100])
@@ -75,7 +74,7 @@ def dataset(dirs, shape):
     type_table = tf.lookup.StaticHashTable(
         tf.lookup.KeyValueTensorInitializer(type_keys, type_vals), -1)
 
-    ds = ds.map(lambda x: parse(x, shape, pdg_table, type_table), 
+    ds = ds.map(lambda x: parse(x, shape, pdg_table, type_table),
                 num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
     return ds
@@ -197,7 +196,7 @@ def preprocess_dir(in_dir, out_dir, split, join, single):
     file_lists = [files[n:n+join] for n in range(0, len(files), join)]
     if not single:  # File independence allows for parallelisation
         Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
-            preprocess_file)(counter, f_list, out_dir, 
+            preprocess_file)(counter, f_list, out_dir,
                              split) for counter, f_list in enumerate(file_lists))
     else:  # For debugging we keep the option to use a single process
         for counter, f_list in enumerate(file_lists):
