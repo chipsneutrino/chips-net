@@ -104,10 +104,9 @@ def main():
     with strategy.scope():
         if conf.type == "study":
             run_study(conf)
-        if conf.type == "train":
+        elif conf.type == "train":
             train_model(conf)
-            test_model(conf)
-        if conf.type == "test":
+        elif conf.type == "test":
             test_model(conf)
         else:
             print("Error: type not valid!")
