@@ -25,6 +25,7 @@ dependencies:
   - pep8
   - autopep8
   - pytest
+  - root_numpy
   - pip
   - pip:
     - keras-vis
