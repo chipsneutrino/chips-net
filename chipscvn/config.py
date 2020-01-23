@@ -25,21 +25,24 @@ def process_json(json_config):
 
 def create_directory(config):
     """Creates the directory for the experiment defined in the config."""
+    # Need to force the location of the experiment dir relative to script
+    experiments_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   "../experiments")
     try:
-        os.mkdir("experiments")
+        os.mkdir(experiments_dir)
     except FileExistsError:
         pass
 
-    experiment_dir = os.path.join("experiments", config.experiment)
-    if os.path.isdir(experiment_dir) and config.type != "test":
-        shutil.rmtree(experiment_dir)
+    exp_dir = os.path.join(experiments_dir, config.experiment)
+    if os.path.isdir(exp_dir) and config.type != "test":
+        shutil.rmtree(exp_dir)
 
     try:
-        os.mkdir(experiment_dir)
+        os.mkdir(exp_dir)
     except FileExistsError:
         pass
 
-    return experiment_dir
+    return exp_dir
 
 
 def process_config(json_config):
@@ -47,9 +50,3 @@ def process_config(json_config):
     config, _ = process_json(json_config)
     config.exp_dir = create_directory(config)
     return config
-
-
-def get_config(json_config):
-    """Get the configuration without creating experiment directories."""
-    config, config_dict = process_json(json_config)
-    return config_dict
