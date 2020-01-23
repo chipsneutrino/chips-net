@@ -26,7 +26,7 @@ class BaseModel:
         self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.l_rate),
                            loss=self.loss, loss_weights=self.loss_weights, metrics=self.metrics)
 
-        self.model.summary()
+        #self.model.summary()
 
         # Plot an image of the model to file
         file_name = os.path.join(self.config.exp_dir, "plot.png")
@@ -173,10 +173,14 @@ def get_model(config):
         raise SystemExit
 
 
-def get_trained_model(config):
+def get_trained_model(config, checkpoint_num=None):
     """Returns the correct model with its trained weights loaded."""
     model = get_model(config)
     model.build()
-    latest = tf.train.latest_checkpoint(config.exp_dir)
-    model.model.load_weights(latest).expect_partial()
+    if checkpoint_num == None:
+        latest = tf.train.latest_checkpoint(config.exp_dir)
+        model.model.load_weights(latest).expect_partial()
+    else:
+        checkpoint_path = config.exp_dir + "cp-" + str(checkpoint_num).zfill(4) + ".ckpt"
+        model.model.load_weights(checkpoint_path).expect_partial()
     return model

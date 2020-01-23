@@ -8,7 +8,7 @@
     "max_examples": 2500,
     "batch_size": 64,
     "l_rate": 0.001,
-    "dense_units": 128,
+    "dense_units": 256,
     "dropout": 0.0,
     "kernel_size": 3,
     "filters": 64,
