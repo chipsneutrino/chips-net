@@ -11,6 +11,7 @@ then
     echo "Conda env installed"
     source env/miniconda/bin/activate
     conda activate chips-cvn
+    conda env update --file $DIR/env/environment.yml
 else
     # Go to the env directory
     cd env/
@@ -24,6 +25,7 @@ else
 
     # Activate miniconda and create the chips-cvn environment
     source miniconda/bin/activate
+    conda update -n base -c defaults conda
     conda config --add envs_dirs $DIR/env/miniconda/envs
     conda config --add envs_dirs $DIR/env/miniconda/envs
     conda env create -f $DIR/env/environment.yml
