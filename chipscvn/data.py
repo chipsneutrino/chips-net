@@ -37,9 +37,9 @@ class DataLoader:
         self.type_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(type_keys, type_vals), -1)
 
-        self.train_dirs = [os.path.join(in_dir, "train") for in_dir in self.config.input_dirs]
-        self.val_dirs = [os.path.join(in_dir, "val") for in_dir in self.config.input_dirs]
-        self.test_dirs = [os.path.join(in_dir, "test") for in_dir in self.config.input_dirs]
+        self.train_dirs = [os.path.join(in_dir, "train") for in_dir in self.config.data.input_dirs]
+        self.val_dirs = [os.path.join(in_dir, "val") for in_dir in self.config.data.input_dirs]
+        self.test_dirs = [os.path.join(in_dir, "test") for in_dir in self.config.data.input_dirs]
 
     def parse(self, serialised_example):
         """Parses a single serialised example an image and labels dict."""
@@ -53,7 +53,7 @@ class DataLoader:
         types = tf.io.decode_raw(example['types'], tf.int32)
         parameters = tf.io.decode_raw(example['parameters'], tf.float32)
         image = tf.io.decode_raw(example['image'], tf.float32)
-        image = tf.reshape(image, self.config.img_shape)
+        image = tf.reshape(image, self.config.data.img_shape)
 
         labels = {  # We generate a dictionary with all the true labels
             'pdg': self.pdg_table.lookup(types[0]),
@@ -82,11 +82,11 @@ class DataLoader:
                            cycle_length=len(files),
                            num_parallel_calls=tf.data.experimental.AUTOTUNE)
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-
         ds = ds.map(lambda x: self.parse(x),
                     num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        ds = ds.batch(self.config.batch_size, drop_remainder=True)
-
+        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+        ds = ds.take(self.config.data.max_examples)
+        
         return ds
 
     def train_data(self):
@@ -114,13 +114,10 @@ class DataCreator:
         """Initialise the output directories."""
         self.in_dir = os.path.join(directory, "map/", geom)
         self.out_dir = os.path.join(directory, "tf/", geom)
-        try:
-            os.mkdir(self.out_dir)
-            os.mkdir(os.path.join(self.out_dir, "train/"))
-            os.mkdir(os.path.join(self.out_dir, "val/"))
-            os.mkdir(os.path.join(self.out_dir, "test/"))
-        except FileExistsError:
-            pass
+        os.makedirs(self.out_dir, exist_ok=True)
+        os.makedirs(os.path.join(self.out_dir, "train/"), exist_ok=True)
+        os.makedirs(os.path.join(self.out_dir, "val/"), exist_ok=True)
+        os.makedirs(os.path.join(self.out_dir, "test/"), exist_ok=True)
 
     def bytes_feature(self, value):
         """Returns a bytes_list from a string / byte."""

@@ -1,52 +1,36 @@
-"""Provides configuration from .json files
+"""Provides configuration from yaml files
 
 Author: Josh Tingey
 Email: j.tingey.16@ucl.ac.uk
 
-This module produces a configuration namespace from an input .json config
+This module produces a configuration namespace from an input yaml config
 file that can be used in the rest of the chips-cvn code. It also formats
 the output directories for experiments.
 """
 
-import json
-from bunch import Bunch
-import shutil
 import os
+import yaml
+from dotmap import DotMap
 
 
-def process_json(json_config):
+def process_yaml(config_path):
     """Returns the configuration namespace specified in the config file."""
-    with open(json_config, 'r') as config_file:
-        config_dict = json.load(config_file)
+    with open(config_path, "r") as config_file:
+        config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
 
-    config = Bunch(config_dict)  # Convert dict to namespace
-    return config, config_dict
-
-
-def create_directory(config):
-    """Creates the directory for the experiment defined in the config."""
-    # Need to force the location of the experiment dir relative to script
-    experiments_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                   "../experiments")
-    try:
-        os.mkdir(experiments_dir)
-    except FileExistsError:
-        pass
-
-    exp_dir = os.path.join(experiments_dir, config.experiment)
-    if os.path.isdir(exp_dir) and config.type != "test":
-        shutil.rmtree(exp_dir)
-
-    try:
-        os.mkdir(exp_dir)
-    except FileExistsError:
-        pass
-
-    return exp_dir
+    config = DotMap(config_dict)  # Convert yaml dict to namespace
+    return config
 
 
-def process_config(json_config):
-    """Get the configuration and create experiment directories."""
-    config, _ = process_json(json_config)
-    config.exp_dir = create_directory(config)
+def process_config(config_path):
+    config = process_yaml(config_path)
+
+    # Set the experiment directories
+    config.exp.exp_dir = os.path.join(config.exp.experiment_dir, config.exp.name)
+    os.makedirs(config.exp.exp_dir, exist_ok=True)
+    config.exp.tensorboard_dir = os.path.join(config.exp.exp_dir, "tensorboard")
+    os.makedirs(config.exp.tensorboard_dir, exist_ok=True)
+    config.exp.checkpoints_dir = os.path.join(config.exp.exp_dir, "checkpoints")
+    os.makedirs(config.exp.checkpoints_dir, exist_ok=True)
+
     return config

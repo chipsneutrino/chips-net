@@ -10,6 +10,7 @@ This includes helper, plotting and output functions.
 import tensorflow as tf
 import chipscvn.models as models
 import chipscvn.trainers as trainers
+import chipscvn.studies as studies
 
 
 def gpu_setup():
@@ -28,11 +29,11 @@ def gpu_setup():
 
 def get_model(config):
     """Returns the correct model for the configuration."""
-    if config.model == "single_par":
+    if config.model.name == "single_par":
         return models.SingleParModel(config)
-    elif config.model == "classification":
+    elif config.model.name == "classification":
         return models.ClassificationModel(config)
-    elif config.model == "multi_task":
+    elif config.model.name == "multi_task":
         return models.MultiTaskModel(config)
     else:
         print("Error: model not valid!")
@@ -41,12 +42,25 @@ def get_model(config):
 
 def get_trainer(config, model, data):
     """Returns the correct trainer for the configuration."""
-    if config.model == "single_par":
+    if config.model.name == "single_par":
         return trainers.BasicTrainer(config, model, data)
-    elif config.model == "classification":
+    elif config.model.name == "classification":
         return trainers.BasicTrainer(config, model, data)
-    elif config.model == "multi_task":
+    elif config.model.name == "multi_task":
         return trainers.BasicTrainer(config, model, data)
+    else:
+        print("Error: model not valid!")
+        raise SystemExit
+
+
+def get_study(config):
+    """Returns the correct study for the configuration."""
+    if config.model.name == "single_par":
+        return studies.SingleParStudy(config)
+    elif config.model.name == "classification":
+        return studies.ClassificationStudy(config)
+    elif config.model.name == "multi_task":
+        return studies.MultiTaskStudy(config)
     else:
         print("Error: model not valid!")
         raise SystemExit

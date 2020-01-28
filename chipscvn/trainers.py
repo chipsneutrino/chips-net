@@ -31,7 +31,7 @@ class BaseTrainer(object):
 
 
 class BasicTrainer(BaseTrainer):
-    """Build the model, overide in derived model class."""
+    """Basic trainer class, implements a simple keras API fitter."""
     def __init__(self, config, model, data):
         super().__init__(config, model, data)
         self.init_callbacks()
@@ -40,14 +40,14 @@ class BasicTrainer(BaseTrainer):
         """Initialise the keras callbacks to be called at the end of each epoch."""
         self.callbacks.append(  # Tensorboard callback for viewing plots of model training
             callbacks.TensorBoard(
-                log_dir=self.config.exp_dir,
+                log_dir=self.config.exp.tensorboard_dir,
                 histogram_freq=1,
             )
         )
 
         self.callbacks.append(  # Checkpoint callback to save model weights at epoch end
             callbacks.ModelCheckpoint(
-                filepath=os.path.join(self.config.exp_dir, "cp-{epoch:04d}.ckpt"),
+                filepath=os.path.join(self.config.exp.checkpoints_dir, "cp-{epoch:04d}.ckpt"),
                 save_weights_only=True,
                 verbose=0)
         )
@@ -55,21 +55,20 @@ class BasicTrainer(BaseTrainer):
         self.callbacks.append(  # Early stopping callback to stop training if not improving
             callbacks.EarlyStopping(
                 monitor=self.model.es_monitor,
-                min_delta=self.config.es_delta,
-                patience=self.config.es_epochs,
+                min_delta=self.config.trainer.es_delta,
+                patience=self.config.trainer.es_epochs,
                 verbose=1,
                 mode='min')
         )
 
-    def train(self):
+    def train(self, additional_callbacks=[]):
         """Train the model using the keras fit api call."""
-        train_ds = self.data.train_data().take(self.config.max_examples)
-        val_ds = self.data.val_data().take(250)
+        self.callbacks.extend(additional_callbacks)
 
         self.history = self.model.model.fit(
-            train_ds,
-            epochs=self.config.train_epochs,
+            self.data.train_data(),
+            epochs=self.config.trainer.num_epochs,
             verbose=1,
-            validation_data=val_ds,
-            callbacks=self.callbacks,
+            validation_data=self.data.val_data(),
+            callbacks=self.callbacks
         )
