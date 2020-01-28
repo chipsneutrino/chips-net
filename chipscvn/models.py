@@ -9,59 +9,39 @@ of the chips-cvn code
 """
 
 import os
-from tensorflow import keras
-from tensorflow.keras import optimizers, callbacks, Model, Input
+from tensorflow.keras import optimizers, Model, Input
 from tensorflow.keras.layers import Dense, Dropout, Conv2D, MaxPooling2D, Flatten
 import tensorflow as tf
 import sherpa
 
 
 class BaseModel:
-    """Base model class which all implementations derive from."""
+    """Base model class which all model implementations derive from."""
     def __init__(self, config):
         self.config = config
+        self.build()
 
-    def compile(self):
-        """Compiles the model."""
-        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.l_rate),
-                           loss=self.loss, loss_weights=self.loss_weights, metrics=self.metrics)
+    def load(self, checkpoint_num=None):
+        """Returns the correct model with its trained weights loaded."""
+        if checkpoint_num is None:
+            latest = tf.train.latest_checkpoint(self.config.exp_dir)
+            self.model.load_weights(latest).expect_partial()
+        else:
+            checkpoint_path = self.config.exp_dir + "cp-" + str(checkpoint_num).zfill(4) + ".ckpt"
+            self.model.load_weights(checkpoint_path).expect_partial()
 
-        #self.model.summary()
+    def summarise(self):
+        """Prints model to stdout and plots diagram of model to file."""
+        self.model.summary()  # Print the model structure to stdout
 
         # Plot an image of the model to file
-        file_name = os.path.join(self.config.exp_dir, "plot.png")
-        keras.utils.plot_model(self.model, to_file=file_name, show_shapes=True,
-                               show_layer_names=True, rankdir='TB', expand_nested=False, dpi=96)
+        file_name = os.path.join(self.config.exp_dir, "model_diagram.png")
+        tf.keras.utils.plot_model(self.model, to_file=file_name, show_shapes=True,
+                                  show_layer_names=True, rankdir='TB', expand_nested=False, dpi=96)
 
-    def fit(self, train_ds, val_ds, extra_callbacks=[]):
-        """Given a training and validation dataset, fit the model."""
-        callbacks_list = []
-
-        checkpoint_path = self.config.exp_dir + "cp-{epoch:04d}.ckpt"
-        checkpoint = callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True,
-                                               verbose=0)
-        callbacks_list.append(checkpoint)
-
-        tensorboard = callbacks.TensorBoard(log_dir="tmp", histogram_freq=1)
-        callbacks_list.append(tensorboard)
-
-        #stopping = callbacks.EarlyStopping(monitor=self.es_monitor, min_delta=self.config.es_delta,
-        #                                   patience=self.config.es_epochs, verbose=1, mode='min')
-        #callbacks_list.append(stopping)
-        callbacks_list += extra_callbacks
-
-        train_ds = train_ds.batch(self.config.batch_size, drop_remainder=True)
-        train_ds = train_ds.take(self.config.max_examples)
-        val_ds = val_ds.batch(self.config.batch_size, drop_remainder=True)
-        val_ds = val_ds.take(250)
-
-        self.history = self.model.fit(train_ds, epochs=self.config.train_epochs, verbose=1,
-                                      validation_data=val_ds, callbacks=callbacks_list)
-
-    def evaluate(self, test_ds):
-        """Evaluate the trained model on a test dataset."""
-        test_ds = test_ds.batch(self.config.batch_size, drop_remainder=True)
-        self.model.evaluate(test_ds)
+    def build(self):
+        """Build the model, overide in derived model class."""
+        raise NotImplementedError
 
 
 class SingleParModel(BaseModel):
@@ -90,8 +70,12 @@ class SingleParModel(BaseModel):
         self.loss_weights = None
         self.metrics = ["mae", "mse"]
         self.es_monitor = "val_mae"
+        self.parameters = [self.config.parameter]
 
-        self.compile()
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.l_rate),
+                           loss=self.loss,
+                           loss_weights=self.loss_weights,
+                           metrics=self.metrics)
 
     def study_parameters(self):
         """Returns the list of possible parameters for a SHERPA study."""
@@ -146,8 +130,12 @@ class ClassificationModel(BaseModel):
             "type": "accuracy"
         }
         self.es_monitor = "val_accuracy"
+        self.parameters = ["pdg", "type"]
 
-        self.compile()
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.l_rate),
+                           loss=self.loss,
+                           loss_weights=self.loss_weights,
+                           metrics=self.metrics)
 
     def study_parameters(self):
         """Returns the list of possible parameters for a SHERPA study."""
@@ -209,8 +197,12 @@ class MultiTaskModel(BaseModel):
             "nuEnergy": "mae"
         }
         self.es_monitor = "val_accuracy"
+        self.parameters = ["pdg", "type", "nuEnergy"]
 
-        self.compile()
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.l_rate),
+                           loss=self.loss,
+                           loss_weights=self.loss_weights,
+                           metrics=self.metrics)
 
     def study_parameters(self):
         """Returns the list of possible parameters for a SHERPA study."""
@@ -223,29 +215,3 @@ class MultiTaskModel(BaseModel):
             sherpa.Ordinal(name='filters', range=self.config.filters),
         ]
         return pars
-
-
-def get_model(config):
-    """Returns the correct model for the configuration."""
-    if config.model == "single_par":
-        return SingleParModel(config)
-    elif config.model == "classification":
-        return ClassificationModel(config)
-    elif config.model == "multi_task":
-        return MultiTaskModel(config)
-    else:
-        print("Error: model not valid!")
-        raise SystemExit
-
-
-def get_trained_model(config, checkpoint_num=None):
-    """Returns the correct model with its trained weights loaded."""
-    model = get_model(config)
-    model.build()
-    if checkpoint_num == None:
-        latest = tf.train.latest_checkpoint(config.exp_dir)
-        model.model.load_weights(latest).expect_partial()
-    else:
-        checkpoint_path = config.exp_dir + "cp-" + str(checkpoint_num).zfill(4) + ".ckpt"
-        model.model.load_weights(checkpoint_path).expect_partial()
-    return model
