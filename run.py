@@ -13,6 +13,7 @@ import argparse
 import os
 import logging
 
+from comet_ml import Experiment
 import tensorflow as tf
 
 import chipscvn.config
@@ -25,6 +26,12 @@ import chipscvn.utils
 
 def train_model(config):
     """Trains a model according to the configuration."""
+    try:
+        Experiment()
+    except Exception:
+        print("Error: Need to set comet_ml env variables")
+        pass
+
     data = chipscvn.data.DataLoader(config)
     model = chipscvn.utils.get_model(config)
     model.summarise()
