@@ -17,7 +17,7 @@ model: # Variables used in building the model
     kernel_size: 3
     filters: 64
 trainer: # Variables used by the trainer
-    num_epochs: 2
+    num_epochs: 5
     es_delta: 5
     es_epochs: 5
 study: # We list the number of trials and then all the variables we want to tune
@@ -30,3 +30,7 @@ study: # We list the number of trials and then all the variables we want to tune
         dropout: [0.0, 0.5]
         kernel_size: [3, 5]
         filters: [32, 64, 128]
+eval: # Variables used by the evaluator
+    input_dirs: 
+        - "/mnt/storage/jtingey/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
+    

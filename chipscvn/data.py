@@ -86,7 +86,7 @@ class DataLoader:
                     num_parallel_calls=tf.data.experimental.AUTOTUNE)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
         ds = ds.take(self.config.data.max_examples)
-        
+
         return ds
 
     def train_data(self):

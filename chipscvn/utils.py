@@ -11,6 +11,7 @@ import tensorflow as tf
 import chipscvn.models as models
 import chipscvn.trainers as trainers
 import chipscvn.studies as studies
+import chipscvn.evaluators as evaluators
 
 
 def gpu_setup():
@@ -61,6 +62,19 @@ def get_study(config):
         return studies.ClassificationStudy(config)
     elif config.model.name == "multi_task":
         return studies.MultiTaskStudy(config)
+    else:
+        print("Error: model not valid!")
+        raise SystemExit
+
+
+def get_evaluator(config):
+    """Returns the correct evaluator for the configuration."""
+    if config.model.name == "single_par":
+        return evaluators.BasicEvaluator(config)
+    elif config.model.name == "classification":
+        return evaluators.BasicEvaluator(config)
+    elif config.model.name == "multi_task":
+        return evaluators.BasicEvaluator(config)
     else:
         print("Error: model not valid!")
         raise SystemExit

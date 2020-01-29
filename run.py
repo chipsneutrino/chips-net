@@ -38,8 +38,10 @@ def study_model(config):
     study.run()
 
 
-def test_model(config):
+def evaluate_model(config):
     """Evaluate the trained model according to the configuration."""
+    evaluator = chipscvn.utils.get_evaluator(config)
+    evaluator.run()
 
 
 def parse_args():
@@ -48,7 +50,7 @@ def parse_args():
     parser.add_argument('config', help='path to the configuration file')
     parser.add_argument('--train', action='store_true', help='train the configuration model')
     parser.add_argument('--study', action='store_true', help='study the configuration model')
-    parser.add_argument('--evaluate', action='store_true', help='test the configuration model')
+    parser.add_argument('--evaluate', action='store_true', help='evaluate the configuration model')
     parser.add_argument('--verbose', action='store_true', help='Make tensorflow verbose')
     return parser.parse_args()
 
@@ -70,10 +72,10 @@ def main():
             train_model(config)
         elif args.study:
             study_model(config)
-        elif args.test:
-            test_model(config)
+        elif args.evaluate:
+            evaluate_model(config)
         else:
-            print("\nError: must select task [train, study, test]")
+            print("\nError: must select task [train, study, evaluate]")
             raise SystemExit
 
 
