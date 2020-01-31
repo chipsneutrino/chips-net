@@ -1,0 +1,36 @@
+---
+exp: # Variables that define the experiment
+    name: "energy_estimation_example"
+    experiment_dir: "experiments/"
+data: # Variables used to load the data
+    input_dirs: 
+        - "example_data/beam_nuel_qel_cc/tf/chips_1200_sk1pe/"
+    img_shape: [64, 64, 3]
+    batch_size: 64
+    max_examples: 2500
+model: # Variables used in building the model
+    name: "single_par"
+    parameter: "lepEnergy"
+    lr: 0.001
+    dense_units: 256
+    dropout: 0.0
+    kernel_size: 3
+    filters: 64
+trainer: # Variables used by the trainer
+    num_epochs: 5
+    es_delta: 5
+    es_epochs: 5
+study: # We list the number of trials and then all the variables we want to tune
+    trials: 200
+    data:
+        batch_size: [32, 64, 128]
+    model:
+        lr: [0.0005, 0.01]
+        dense_units: [64, 128]
+        dropout: [0.0, 0.5]
+        kernel_size: [3, 5]
+        filters: [32, 64, 128]
+eval: # Variables used by the evaluator
+    input_dirs: 
+        - "example_data/beam_nuel_qel_cc/tf/chips_1200_sk1pe/"
+        

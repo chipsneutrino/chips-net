@@ -4,3 +4,4 @@ experiments/
 env/miniconda/
 *.ipynb_checkpoints
 *.root
+example_data/
