@@ -32,7 +32,7 @@ class DataLoader:
         self.pdg_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(pdg_keys, pdg_vals), -1)
 
-        type_keys = tf.constant([0, 98, 98, 2, 6, 7, 8, 9, 92, 96, 1, 3, 4, 5, 91, 97, 100])
+        type_keys = tf.constant([0, 98, 99, 2, 6, 7, 8, 9, 92, 96, 1, 3, 4, 5, 91, 97, 100])
         type_vals = tf.constant([0,  0,  0, 1, 1, 1, 1, 1,  1,  1, 2, 3, 3, 3,  4,  5,   6])
         self.type_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(type_keys, type_vals), -1)
@@ -140,7 +140,7 @@ class DataCreator:
             true.array("true_lep_energy")),
             axis=1)
         images = np.stack((
-            reco.array("filtered_charge_map_origin"),
+            reco.array("filtered_charge_map_vtx"),
             reco.array("filtered_time_map_vtx"),
             reco.array("filtered_hit_hough_map_vtx")),
             axis=3)

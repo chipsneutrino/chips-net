@@ -17,7 +17,7 @@ model: # Variables used in building the model
     kernel_size: 3
     filters: 64
 trainer: # Variables used by the trainer
-    num_epochs: 5
+    num_epochs: 3
     es_delta: 5
     es_epochs: 5
 study: # We list the number of trials and then all the variables we want to tune
