@@ -26,8 +26,7 @@ data: # Variables used to load the data
     max_examples: 2500
 model: # Variables used in building the model
     name: "classification"
-    pdgs: 2
-    types: 7
+    categories: 10
     lr: 0.001
     dense_units: 512
     dropout: 0.2

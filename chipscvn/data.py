@@ -32,10 +32,15 @@ class DataLoader:
         self.pdg_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(pdg_keys, pdg_vals), -1)
 
-        type_keys = tf.constant([0, 98, 99, 2, 6, 7, 8, 9, 92, 96, 1, 3, 4, 5, 91, 97, 100])
-        type_vals = tf.constant([0,  0,  0, 1, 1, 1, 1, 1,  1,  1, 2, 3, 3, 3,  4,  5,   6])
+        type_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 91, 92, 96, 97, 98, 99, 100])
+        type_vals = tf.constant([6, 0, 4, 1, 1, 1, 4, 4, 4, 4,  2,  4,  4,  3,  6,  6,   5])
         self.type_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(type_keys, type_vals), -1)
+
+        cat_keys = tf.constant(["00", "10", "01", "11", "02", "12", "03", "13", "04", "14", "06", "16", "15"], dtype=tf.string)
+        cat_vals = tf.constant([  0,    1,    2,    3,    4,    5,    6,    7,    8,    8,    8,    8,    9])
+        self.cat_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(cat_keys, cat_vals), -1)
 
         self.train_dirs = [os.path.join(in_dir, "train") for in_dir in self.config.data.input_dirs]
         self.val_dirs = [os.path.join(in_dir, "val") for in_dir in self.config.data.input_dirs]
@@ -55,9 +60,16 @@ class DataLoader:
         image = tf.io.decode_raw(example['image'], tf.float32)
         image = tf.reshape(image, self.config.data.img_shape)
 
+        pdg = self.pdg_table.lookup(types[0])
+        type = self.type_table.lookup(types[1])
+        category = self.cat_table.lookup(
+            tf.strings.join((tf.strings.as_string(pdg), tf.strings.as_string(type)))
+        )
+
         labels = {  # We generate a dictionary with all the true labels
-            'pdg': self.pdg_table.lookup(types[0]),
-            'type': self.type_table.lookup(types[1]),
+            'pdg': pdg,
+            'type': type,
+            'category': category,
             'vtxX': parameters[0],
             'vtxY': parameters[1],
             'vtxZ': parameters[2],

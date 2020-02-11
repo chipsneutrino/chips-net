@@ -100,28 +100,16 @@ class ClassificationModel(BaseModel):
         x = Flatten()(x)
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dropout(self.config.model.dropout)(x)
-        pdg_output = Dense(self.config.model.pdgs, activation='softmax', name="pdg")(x)
-        type_output = Dense(self.config.model.types, activation='softmax', name="type")(x)
-        self.model = Model(inputs=inputs, outputs=[pdg_output, type_output], name='classification_model')
+        outputs = Dense(self.config.model.categories, activation='softmax', name="category")(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name='classification_model')
 
-        self.loss = {
-            "pdg": "sparse_categorical_crossentropy",
-            "type": "sparse_categorical_crossentropy",
-        }
-        self.loss_weights = {
-            "pdg": 1.0,
-            "type": 1.0
-        }
-        self.metrics = {
-            "pdg": "accuracy",
-            "type": "accuracy"
-        }
+        self.loss = "sparse_categorical_crossentropy"
+        self.metrics = ["accuracy"]
         self.es_monitor = "val_accuracy"
-        self.parameters = ["pdg", "type"]
+        self.parameters = ["category"]
 
         self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
-                           loss_weights=self.loss_weights,
                            metrics=self.metrics)
 
 
