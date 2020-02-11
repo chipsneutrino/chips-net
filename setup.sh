@@ -24,7 +24,6 @@ else
 
     # Activate miniconda and create the chips-cvn environment
     source miniconda/bin/activate
-    conda update -n base -c defaults conda
     conda config --add envs_dirs $DIR/env/miniconda/envs
     conda config --add envs_dirs $DIR/env/miniconda/envs
     conda env create -f $DIR/env/environment.yml

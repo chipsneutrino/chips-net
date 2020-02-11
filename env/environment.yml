@@ -3,6 +3,7 @@ channels:
   - defaults
   - conda-forge
 dependencies:
+  - python=3.7
   - numpy
   - pandas
   - matplotlib
@@ -30,5 +31,5 @@ dependencies:
   - pip
   - pip:
     - keras-vis
-    - tensorflow==2.1.0
+    - tensorflow
     - parameter-sherpa
