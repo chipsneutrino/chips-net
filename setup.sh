@@ -11,7 +11,6 @@ then
     echo "Conda env installed"
     source env/miniconda/bin/activate
     conda activate chips-cvn
-    conda env update --file $DIR/env/environment.yml
 else
     # Go to the env directory
     cd env/
