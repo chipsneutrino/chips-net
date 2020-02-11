@@ -12,6 +12,8 @@ import time
 
 import pandas as pd
 import numpy as np
+from tensorflow.keras import Model
+from sklearn.preprocessing import StandardScaler
 
 import chipscvn.data as data
 import chipscvn.utils as utils
@@ -46,8 +48,8 @@ class BasicEvaluator(BaseEvaluator):
     def run(self):
         """Run the evaluator, just running a simple test on the model."""
         self.model.load()
-        result = self.model.model.evaluate(self.data.test_data())
-        print(result)
+        #result = self.model.model.evaluate(self.data.test_data())
+        #print(result)
 
 
 def predict(data, model):
@@ -58,6 +60,7 @@ def predict(data, model):
     labels_dict = {
         'pdg': [],
         'type': [],
+        'category': [],
         'vtxX': [],
         'vtxY': [],
         'vtxZ': [],
@@ -85,3 +88,41 @@ def predict(data, model):
 
     print("--- %s seconds to test model ---" % (time.time() - start_time))
     return labels, predictions
+
+
+def predict_dense(data, model):
+    """Get dense layer output on some data given a model."""
+    start_time = time.time()  # Time how long it takes
+
+    # Create a new model that outputs the dense layer of the original model
+    dense_model = Model(inputs=model.model.input,
+                        outputs=model.model.get_layer('dense').output)
+
+    dense_list = []
+    labels_dict = {
+        'pdg': [],
+        'type': [],
+        'category': [],
+        'vtxX': [],
+        'vtxY': [],
+        'vtxZ': [],
+        'dirTheta': [],
+        'dirPhi': [],
+        'nuEnergy': [],
+        'lepEnergy': []
+    }
+
+    for x, y in data:  # Run prediction on individual batches
+        dense_list.append(dense_model.predict(x))
+        for name, array in list(y.items()):
+            labels_dict[name].append(array.numpy())
+
+    for key in labels_dict:
+        labels_dict[key] = np.concatenate(labels_dict[key]).ravel()
+
+    labels = pd.DataFrame.from_dict(labels_dict)
+    dense_output = pd.DataFrame(np.concatenate(dense_list))
+    dense_output = StandardScaler().fit_transform(dense_output)
+
+    print("--- %s seconds to test model ---" % (time.time() - start_time))
+    return labels, dense_output
