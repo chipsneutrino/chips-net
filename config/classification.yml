@@ -35,7 +35,7 @@ model: # Variables used in building the model
 trainer: # Variables used by the trainer
     num_epochs: 5
     es_delta: 5
-    es_epochs: 3
+    es_epochs: 5
 study: # We list the number of trials and then all the variables we want to tune
     trials: 200
     data:

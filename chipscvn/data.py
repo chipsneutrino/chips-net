@@ -89,7 +89,7 @@ class DataLoader:
             'vtxY': reco_pars[1],
             'vtxZ': reco_pars[2],
             'dirTheta': reco_pars[3],
-            'vtxPhi': reco_pars[4],
+            'dirPhi': reco_pars[4],
         }
 
         return inputs, labels
