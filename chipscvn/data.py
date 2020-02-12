@@ -81,7 +81,7 @@ class DataLoader:
 
         return image, labels
 
-    def dataset(self, dirs):
+    def dataset(self, dirs, example_fraction):
         """Returns a dataset formed from all the files in the input directories."""
         files = []  # Add all files in dirs to a list
         for d in dirs:
@@ -97,21 +97,21 @@ class DataLoader:
         ds = ds.map(lambda x: self.parse(x),
                     num_parallel_calls=tf.data.experimental.AUTOTUNE)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
-        ds = ds.take(self.config.data.max_examples)
+        ds = ds.take(int(self.config.data.max_examples*example_fraction))
 
         return ds
 
     def train_data(self):
         """Returns the training dataset."""
-        return self.dataset(self.train_dirs)
+        return self.dataset(self.train_dirs, 1.0)
 
     def val_data(self):
         """Returns the validation dataset."""
-        return self.dataset(self.val_dirs)
+        return self.dataset(self.val_dirs, 0.1)
 
     def test_data(self):
         """Returns the testing dataset."""
-        return self.dataset(self.test_dirs)
+        return self.dataset(self.test_dirs, 0.1)
 
 
 class DataCreator:
