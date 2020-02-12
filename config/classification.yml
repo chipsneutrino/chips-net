@@ -23,19 +23,19 @@ data: # Variables used to load the data
         - "/mnt/storage/jtingey/data/cosmic_numu_all/chips_1200_sk1pe/"
     img_shape: [64, 64, 3]
     batch_size: 64
-    max_examples: 2500
+    max_examples: 5000
 model: # Variables used in building the model
     name: "classification"
     categories: 10
-    lr: 0.001
+    lr: 0.0002
     dense_units: 512
     dropout: 0.2
     kernel_size: 3
     filters: 64
 trainer: # Variables used by the trainer
-    num_epochs: 3
+    num_epochs: 5
     es_delta: 5
-    es_epochs: 5
+    es_epochs: 3
 study: # We list the number of trials and then all the variables we want to tune
     trials: 200
     data:

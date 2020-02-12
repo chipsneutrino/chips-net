@@ -50,36 +50,49 @@ class DataLoader:
         """Parses a single serialised example an image and labels dict."""
         features = {
             'types': tf.io.FixedLenFeature([], tf.string),
-            'parameters': tf.io.FixedLenFeature([], tf.string),
+            'true_pars': tf.io.FixedLenFeature([], tf.string),
             'image': tf.io.FixedLenFeature([], tf.string),
+            'reco_pars': tf.io.FixedLenFeature([], tf.string)
         }
         example = tf.io.parse_single_example(serialised_example, features)
 
+        # Get the true parameters and form the 'labels' dictionary
         types = tf.io.decode_raw(example['types'], tf.int32)
-        parameters = tf.io.decode_raw(example['parameters'], tf.float32)
-        image = tf.io.decode_raw(example['image'], tf.float32)
-        image = tf.reshape(image, self.config.data.img_shape)
+        true_pars = tf.io.decode_raw(example['true_pars'], tf.float32)
 
         pdg = self.pdg_table.lookup(types[0])
         type = self.type_table.lookup(types[1])
-        category = self.cat_table.lookup(
-            tf.strings.join((tf.strings.as_string(pdg), tf.strings.as_string(type)))
-        )
+        category = self.cat_table.lookup(tf.strings.join((tf.strings.as_string(pdg), 
+                                                          tf.strings.as_string(type))))
 
         labels = {  # We generate a dictionary with all the true labels
             'pdg': pdg,
             'type': type,
             'category': category,
-            'vtxX': parameters[0],
-            'vtxY': parameters[1],
-            'vtxZ': parameters[2],
-            'dirTheta': parameters[3],
-            'dirPhi': parameters[4],
-            'nuEnergy': parameters[5],
-            'lepEnergy': parameters[6],
+            'vtxX': true_pars[0],
+            'vtxY': true_pars[1],
+            'vtxZ': true_pars[2],
+            'dirTheta': true_pars[3],
+            'dirPhi': true_pars[4],
+            'nuEnergy': true_pars[5],
+            'lepEnergy': true_pars[6],
         }
 
-        return image, labels
+        # Get the images and reco parameters and form the 'inputs' dictionary
+        image = tf.io.decode_raw(example['image'], tf.float32)
+        image = tf.reshape(image, self.config.data.img_shape)
+        reco_pars = tf.io.decode_raw(example['reco_pars'], tf.float32)
+
+        inputs = {  # We generate a dictionary with the images and other reco parameters
+            'image': image,
+            'vtxX': reco_pars[0],
+            'vtxY': reco_pars[1],
+            'vtxZ': reco_pars[2],
+            'dirTheta': reco_pars[3],
+            'vtxPhi': reco_pars[4],
+        }
+
+        return inputs, labels
 
     def dataset(self, dirs, example_fraction):
         """Returns a dataset formed from all the files in the input directories."""
@@ -138,11 +151,11 @@ class DataCreator:
     def gen_examples(self, true, reco):
         """Generates a list of examples from the input .root map file."""
         # Get the numpy arrays from the .root map file
-        types = np.stack((  # Integer labels
+        types = np.stack((  # True Parameters (integers)
             true.array("true_pdg"),
             true.array("true_type")),
             axis=1)
-        parameters = np.stack((  # Float labels
+        true_pars = np.stack((  # True Parameters (floats)
             true.array("true_vtx_x"),
             true.array("true_vtx_y"),
             true.array("true_vtx_z"),
@@ -151,18 +164,26 @@ class DataCreator:
             true.array("true_nu_energy"),
             true.array("true_lep_energy")),
             axis=1)
-        images = np.stack((
+        image = np.stack((  # Image
             reco.array("filtered_charge_map_vtx"),
             reco.array("filtered_time_map_vtx"),
             reco.array("filtered_hit_hough_map_vtx")),
             axis=3)
+        reco_pars = np.stack((  # Reco Parameters
+            reco.array("vtx_x"),
+            reco.array("vtx_y"),
+            reco.array("vtx_z"),
+            reco.array("dir_theta"),
+            reco.array("dir_phi")),
+            axis=1)
 
         examples = []  # Generate examples using a feature dict
         for i in range(len(types)):
             feature_dict = {
                 'types': self.bytes_feature(types[i].tostring()),
-                'parameters': self.bytes_feature(parameters[i].tostring()),
-                'image': self.bytes_feature(images[i].tostring())
+                'true_pars': self.bytes_feature(true_pars[i].tostring()),
+                'image': self.bytes_feature(image[i].tostring()),
+                'reco_pars': self.bytes_feature(reco_pars[i].tostring())
             }
             examples.append(tf.train.Example(features=tf.train.Features(feature=feature_dict)))
 

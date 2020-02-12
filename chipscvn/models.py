@@ -50,7 +50,7 @@ class SingleParModel(BaseModel):
 
     def build(self):
         """Builds the model using the keras functional API."""
-        inputs = Input(shape=self.config.data.img_shape, name='img')
+        inputs = Input(shape=self.config.data.img_shape, name='image')
         x = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(inputs)
         x = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
@@ -84,7 +84,7 @@ class ClassificationModel(BaseModel):
 
     def build(self):
         """Builds the model using the keras functional API."""
-        inputs = Input(shape=self.config.data.img_shape, name='img')
+        inputs = Input(shape=self.config.data.img_shape, name='image')
         x = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(inputs)
         x = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
@@ -95,6 +95,10 @@ class ClassificationModel(BaseModel):
         x = Dropout(self.config.model.dropout)(x)
         x = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, padding='same', activation='relu')(x)
         x = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, activation='relu')(x)
+        x = MaxPooling2D(pool_size=2)(x)
+        x = Dropout(self.config.model.dropout)(x)
+        x = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, padding='same', activation='relu')(x)
+        x = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
         x = Dropout(self.config.model.dropout)(x)
         x = Flatten()(x)
@@ -120,7 +124,7 @@ class MultiTaskModel(BaseModel):
 
     def build(self):
         """Builds the model using the keras functional API."""
-        inputs = Input(shape=self.config.data.img_shape, name='img')
+        inputs = Input(shape=self.config.data.img_shape, name='image')
         x = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(inputs)
         x = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
