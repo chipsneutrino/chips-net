@@ -33,3 +33,4 @@ dependencies:
     - keras-vis
     - tensorflow
     - parameter-sherpa
+    - comet_ml
