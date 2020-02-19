@@ -83,6 +83,12 @@ class DataLoader:
         image = tf.reshape(image, self.config.data.img_shape)
         reco_pars = tf.io.decode_raw(example['reco_pars'], tf.float32)
 
+        charge_rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.charge_spread)
+        time_rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.time_spread)
+        hough_rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.hough_spread)
+        tot_rand = tf.stack([charge_rand, time_rand, hough_rand], axis=2)
+        image = tf.math.add(image, tot_rand)
+
         inputs = {  # We generate a dictionary with the images and other reco parameters
             'image': image,
             'vtxX': reco_pars[0],

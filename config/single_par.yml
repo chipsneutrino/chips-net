@@ -8,6 +8,9 @@ data: # Variables used to load the data
     img_shape: [64, 64, 3]
     batch_size: 64
     max_examples: 2500
+    charge_spread: 0.5
+    time_spread: 2
+    hough_spread: 5
 model: # Variables used in building the model
     name: "single_par"
     parameter: "lepEnergy"
@@ -17,7 +20,7 @@ model: # Variables used in building the model
     kernel_size: 3
     filters: 64
 trainer: # Variables used by the trainer
-    num_epochs: 3
+    num_epochs: 5
     es_delta: 5
     es_epochs: 5
 study: # We list the number of trials and then all the variables we want to tune

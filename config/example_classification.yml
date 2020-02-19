@@ -9,6 +9,9 @@ data: # Variables used to load the data
     img_shape: [64, 64, 3]
     batch_size: 64
     max_examples: 2500
+    charge_spread: 0.5
+    time_spread: 2
+    hough_spread: 5
 model: # Variables used in building the model
     name: "classification"
     categories: 2

@@ -60,6 +60,16 @@ class SingleParModel(BaseModel):
         x = MaxPooling2D(pool_size=2)(x)
         x = Dropout(self.config.model.dropout)(x)
         x = Flatten()(x)
+
+        vtxX_input = Input(shape=(1), name='vtxX')
+        vtxY_input = Input(shape=(1), name='vtxY')
+        vtxZ_input = Input(shape=(1), name='vtxZ')
+        dirTheta_input = Input(shape=(1), name='dirTheta')
+        dirPhi_input = Input(shape=(1), name='dirPhi')
+        x = concatenate([x, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input])
+
+        x = Dense(self.config.model.dense_units, activation='relu')(x)
+        x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dropout(self.config.model.dropout)(x)
         outputs = Dense(1, activation='linear', name=self.config.model.parameter)(x)
@@ -111,6 +121,8 @@ class ClassificationModel(BaseModel):
         x = concatenate([x, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input])
 
         x = Dense(self.config.model.dense_units, activation='relu')(x)
+        x = Dense(self.config.model.dense_units, activation='relu')(x)
+        x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dropout(self.config.model.dropout)(x)
         outputs = Dense(self.config.model.categories, activation='softmax', name="category")(x)
         self.model = Model(inputs=[image_input, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input], 
@@ -147,6 +159,16 @@ class MultiTaskModel(BaseModel):
         x = MaxPooling2D(pool_size=2)(x)
         x = Dropout(self.config.model.dropout)(x)
         x = Flatten()(x)
+
+        vtxX_input = Input(shape=(1), name='vtxX')
+        vtxY_input = Input(shape=(1), name='vtxY')
+        vtxZ_input = Input(shape=(1), name='vtxZ')
+        dirTheta_input = Input(shape=(1), name='dirTheta')
+        dirPhi_input = Input(shape=(1), name='dirPhi')
+        x = concatenate([x, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input])
+
+        x = Dense(self.config.model.dense_units, activation='relu')(x)
+        x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dropout(self.config.model.dropout)(x)
         pdg_path = Dense(self.config.model.dense_units, activation='relu')(x)
