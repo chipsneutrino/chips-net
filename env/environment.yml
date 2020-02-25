@@ -34,3 +34,4 @@ dependencies:
     - tensorflow
     - parameter-sherpa
     - comet_ml
+    - tf-explain
