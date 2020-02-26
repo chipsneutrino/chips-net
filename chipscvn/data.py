@@ -20,15 +20,15 @@ import tensorflow as tf
 
 
 class DataLoader:
-    """Data loader that generates datasets from the configuration."""
+    """Generates tf datasets from the configuration."""
     def __init__(self, config):
         self.config = config
         self.init()
 
     def init(self):
-        """Initialise the PDG and type lookup tables and input directories."""
-        pdg_keys = tf.constant([12, 14])
-        pdg_vals = tf.constant([0,  1])
+        """Initialise the PDG, type and category lookup tables and input directories."""
+        pdg_keys = tf.constant([11, 12, 13, 14])
+        pdg_vals = tf.constant([0,  0,  1,  1])
         self.pdg_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(pdg_keys, pdg_vals), -1)
 
@@ -37,104 +37,157 @@ class DataLoader:
         self.type_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(type_keys, type_vals), -1)
 
+        # Category keys are a string of pdg+type, e.g an nuel ccqe event is "0"+"0" = "00"
         cat_keys = tf.constant(["00", "10", "01", "11", "02", "12", "03", "13", "04", "14", "06", "16", "15"], dtype=tf.string)
         cat_vals = tf.constant([  0,    1,    2,    3,    4,    5,    6,    7,    8,    8,    8,    8,    9])
         self.cat_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(cat_keys, cat_vals), -1)
 
+        # Generate the lists of train, val and test file directories from the configuration
         self.train_dirs = [os.path.join(in_dir, "train") for in_dir in self.config.data.input_dirs]
         self.val_dirs = [os.path.join(in_dir, "val") for in_dir in self.config.data.input_dirs]
         self.test_dirs = [os.path.join(in_dir, "test") for in_dir in self.config.data.input_dirs]
 
     def parse(self, serialised_example):
-        """Parses a single serialised example an image and labels dict."""
+        """Parses a single serialised example into an input plus a labels dict."""
         features = {
-            'types': tf.io.FixedLenFeature([], tf.string),
-            'true_pars': tf.io.FixedLenFeature([], tf.string),
+            'true_pars_i': tf.io.FixedLenFeature([], tf.string),
+            'true_pars_f': tf.io.FixedLenFeature([], tf.string),
+            'reco_pars_i': tf.io.FixedLenFeature([], tf.string),
+            'reco_pars_f': tf.io.FixedLenFeature([], tf.string),
             'image': tf.io.FixedLenFeature([], tf.string),
-            'reco_pars': tf.io.FixedLenFeature([], tf.string)
         }
         example = tf.io.parse_single_example(serialised_example, features)
 
-        # Get the true parameters and form the 'labels' dictionary
-        types = tf.io.decode_raw(example['types'], tf.int32)
-        true_pars = tf.io.decode_raw(example['true_pars'], tf.float32)
+        # Decode the parameter arrays using their types
+        true_pars_i = tf.io.decode_raw(example['true_pars_i'], tf.int32)
+        true_pars_f = tf.io.decode_raw(example['true_pars_f'], tf.float32)
+        reco_pars_i = tf.io.decode_raw(example['reco_pars_i'], tf.int32)
+        reco_pars_f = tf.io.decode_raw(example['reco_pars_f'], tf.float32)
 
-        pdg = self.pdg_table.lookup(types[0])
-        type = self.type_table.lookup(types[1])
+        # Unpack the pdg and type and use to determine event category
+        pdg = self.pdg_table.lookup(true_pars_i[0])
+        type = self.type_table.lookup(true_pars_i[1])
         category = self.cat_table.lookup(tf.strings.join((tf.strings.as_string(pdg), 
                                                           tf.strings.as_string(type))))
 
         labels = {  # We generate a dictionary with all the true labels
-            'pdg': pdg,
-            'type': type,
-            'category': category,
-            'vtxX': true_pars[0],
-            'vtxY': true_pars[1],
-            'vtxZ': true_pars[2],
-            'dirTheta': true_pars[3],
-            'dirPhi': true_pars[4],
-            'nuEnergy': true_pars[5],
-            'lepEnergy': true_pars[6],
+            'true_pdg': pdg,
+            'true_type': type,
+            'true_category': category,
+            'true_vtxX': true_pars_f[0],
+            'true_vtxY': true_pars_f[1],
+            'true_vtxZ': true_pars_f[2],
+            'true_dirTheta': true_pars_f[3],
+            'true_dirPhi': true_pars_f[4],
+            'true_nuEnergy': true_pars_f[5],
+            'true_lepEnergy': true_pars_f[6],
         }
 
-        # Get the images and reco parameters and form the 'inputs' dictionary
+        # Decode and reshape the "image" arrays into a tf tensor
         image = tf.io.decode_raw(example['image'], tf.float32)
         image = tf.reshape(image, self.config.data.img_shape)
-        reco_pars = tf.io.decode_raw(example['reco_pars'], tf.float32)
 
+        # Split the image into charge+time and hough tensors
+        ct_image, h_image = tf.split(image, [2, 1], 2)
+        tf.expand_dims(h_image, 2) 
+
+        # Apply augmentation to charge+time image
         charge_rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.charge_spread)
         time_rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.time_spread)
-        hough_rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.hough_spread)
-        tot_rand = tf.stack([charge_rand, time_rand, hough_rand], axis=2)
-        image = tf.math.add(image, tot_rand)
+        tot_rand = tf.stack([charge_rand, time_rand], axis=2)
+        ct_image = tf.math.add(ct_image, tot_rand)
 
-        inputs = {  # We generate a dictionary with the images and other reco parameters
-            'image': image,
-            'vtxX': reco_pars[0],
-            'vtxY': reco_pars[1],
-            'vtxZ': reco_pars[2],
-            'dirTheta': reco_pars[3],
-            'dirPhi': reco_pars[4],
+        # Apply augmentation to hough image
+        hough_rand = tf.random.normal(shape=[64, 64, 1], mean=0, stddev=self.config.data.hough_spread)
+        h_image = tf.math.add(h_image, hough_rand)
+
+        inputs = {  # We generate a dictionary with the images and other input parameters
+            'ct_image': ct_image,
+            'h_image': h_image,
+            'raw_num_hits': reco_pars_i[0],
+            'filtered_num_hits': reco_pars_i[1],
+            'num_hough_rings': reco_pars_i[2],
+            'raw_total_digi_q': reco_pars_f[0],
+            'filtered_total_digi_q': reco_pars_f[1],
+            'first_ring_height': reco_pars_f[2],
+            'last_ring_height': reco_pars_f[3],
+            'reco_vtxX': reco_pars_f[4],
+            'reco_vtxY': reco_pars_f[5],
+            'reco_vtxZ': reco_pars_f[6],
+            'reco_dirTheta': reco_pars_f[7],
+            'reco_dirPhi': reco_pars_f[8]
         }
 
         return inputs, labels
 
-    def dataset(self, dirs, example_fraction):
+    def fiducial_cut(self, inputs, labels):
+        """Applies a fiducial volume cut on the reco vtx location."""
+        z_cut = tf.math.less_equal(tf.math.abs(inputs["reco_vtxZ"]), self.config.data.cuts.fiducial_z)
+        r = tf.math.sqrt(tf.math.pow(inputs["reco_vtxX"], 2) + tf.math.pow(inputs["reco_vtxY"], 2))
+        r_cut = tf.math.less_equal(r, self.config.data.cuts.fiducial_r)
+        return (z_cut and r_cut)
+
+    def dir_cut(self, inputs, labels):
+        """Applies a beam direction cut on the reco direction."""
+        pi_on_180 = 0.017453292519943295
+        dirX = tf.math.multiply(
+            tf.math.sin(tf.math.acos(inputs["reco_dirTheta"])),
+            tf.math.cos(inputs["reco_dirPhi"] * pi_on_180)
+        )
+        return tf.math.greater_equal(dirX, self.config.data.cuts.dir_x)
+
+    def charge_cut(self, inputs, labels):
+        """Applies a total event charge cut."""
+        return tf.math.greater_equal(inputs["raw_total_digi_q"], self.config.data.cuts.total_q)
+
+    def dataset(self, dirs):
         """Returns a dataset formed from all the files in the input directories."""
         files = []  # Add all files in dirs to a list
         for d in dirs:
             for file in os.listdir(d):
                 files.append(os.path.join(d, file))
 
-        random.shuffle(files)
+        random.shuffle(files)  # We shuffle the list as an additionally randomisation to "interleave"
         ds = tf.data.Dataset.from_tensor_slices(files)
         ds = ds.interleave(tf.data.TFRecordDataset,
                            cycle_length=len(files),
                            num_parallel_calls=tf.data.experimental.AUTOTUNE)
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-        ds = ds.map(lambda x: self.parse(x),
-                    num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
-        ds = ds.take(int(self.config.data.max_examples*example_fraction))
-
+        ds = ds.map(lambda x: self.parse(x), num_parallel_calls=tf.data.experimental.AUTOTUNE)
         return ds
 
     def train_data(self):
         """Returns the training dataset."""
-        return self.dataset(self.train_dirs, 1.0)
+        ds = self.dataset(self.train_dirs)
+        ds = ds.filter(self.dir_cut)
+        ds = ds.filter(self.charge_cut)
+        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+        ds = ds.take(self.config.data.max_examples)  # Only take 10% of max examples
+        return ds
 
     def val_data(self):
         """Returns the validation dataset."""
-        return self.dataset(self.val_dirs, 0.1)
+        ds = self.dataset(self.val_dirs)
+        ds = ds.filter(self.dir_cut)
+        ds = ds.filter(self.charge_cut)
+        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+        ds = ds.take(int(self.config.data.max_examples*0.1))  # Only take 10% of max examples
+        return ds
 
     def test_data(self):
         """Returns the testing dataset."""
-        return self.dataset(self.test_dirs, 0.1)
+        ds = self.dataset(self.test_dirs)
+        ds = ds.filter(self.fiducial_cut)
+        ds = ds.filter(self.dir_cut)
+        ds = ds.filter(self.charge_cut)
+        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+        ds = ds.take(int(self.config.data.max_examples*0.1))  # Only take 10% of max examples
+        return ds
 
 
 class DataCreator:
-    """Data creator that generates tfrecord files from ROOT map files."""
+    """Generates tfrecord files from ROOT map files."""
     def __init__(self, directory, geom, split, join, single):
         self.split = split
         self.join = join
@@ -156,12 +209,14 @@ class DataCreator:
 
     def gen_examples(self, true, reco):
         """Generates a list of examples from the input .root map file."""
-        # Get the numpy arrays from the .root map file
-        types = np.stack((  # True Parameters (integers)
+
+        # Get the numpy arrays from the .root map file, we need to seperate by type
+        # for the deserialisation during reading to work correctly.
+        true_pars_i = np.stack((  # True Parameters (integers)
             true.array("true_pdg"),
             true.array("true_type")),
             axis=1)
-        true_pars = np.stack((  # True Parameters (floats)
+        true_pars_f = np.stack((  # True Parameters (floats)
             true.array("true_vtx_x"),
             true.array("true_vtx_y"),
             true.array("true_vtx_z"),
@@ -170,33 +225,43 @@ class DataCreator:
             true.array("true_nu_energy"),
             true.array("true_lep_energy")),
             axis=1)
-        image = np.stack((  # Image
-            reco.array("filtered_charge_map_vtx"),
-            reco.array("filtered_time_map_vtx"),
-            reco.array("filtered_hit_hough_map_vtx")),
-            axis=3)
-        reco_pars = np.stack((  # Reco Parameters
+        reco_pars_i = np.stack((  # Reco Parameters (integers)
+            reco.array("raw_num_hits"),
+            reco.array("filtered_num_hits"),
+            reco.array("num_hough_rings")),
+            axis=1)
+        reco_pars_f = np.stack((  # Reco Parameters (floats)
+            reco.array("raw_total_digi_q"),
+            reco.array("filtered_total_digi_q"),
+            reco.array("first_ring_height"),
+            reco.array("last_ring_height"),
             reco.array("vtx_x"),
             reco.array("vtx_y"),
             reco.array("vtx_z"),
             reco.array("dir_theta"),
             reco.array("dir_phi")),
             axis=1)
+        image = np.stack((  # Image
+            reco.array("filtered_charge_map_vtx"),
+            reco.array("filtered_time_map_vtx"),
+            reco.array("filtered_hit_hough_map_vtx")),
+            axis=3)
 
         examples = []  # Generate examples using a feature dict
-        for i in range(len(types)):
+        for i in range(len(true_pars_i)):
             feature_dict = {
-                'types': self.bytes_feature(types[i].tostring()),
-                'true_pars': self.bytes_feature(true_pars[i].tostring()),
-                'image': self.bytes_feature(image[i].tostring()),
-                'reco_pars': self.bytes_feature(reco_pars[i].tostring())
+                'true_pars_i': self.bytes_feature(true_pars_i[i].tostring()),
+                'true_pars_f': self.bytes_feature(true_pars_f[i].tostring()),
+                'reco_pars_i': self.bytes_feature(reco_pars_i[i].tostring()),
+                'reco_pars_f': self.bytes_feature(reco_pars_f[i].tostring()),
+                'image': self.bytes_feature(image[i].tostring())
             }
             examples.append(tf.train.Example(features=tf.train.Features(feature=feature_dict)))
 
         return examples
 
     def write_examples(self, name, examples):
-        """Write a list of tf.train.Example to a tfrecords file."""
+        """Write a list of examples to a tfrecords file."""
         with tf.io.TFRecordWriter(name) as writer:
             for example in examples:
                 writer.write(example.SerializeToString())

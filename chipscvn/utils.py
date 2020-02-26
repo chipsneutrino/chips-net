@@ -15,6 +15,7 @@ import chipscvn.evaluators as evaluators
 
 
 def gpu_setup():
+    """Sets up the system GPU's, memory growth is turned on."""
     gpus = tf.config.experimental.list_physical_devices('GPU')
     if gpus:
         try:

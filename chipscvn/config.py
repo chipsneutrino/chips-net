@@ -1,4 +1,4 @@
-"""Provides configuration from yaml files
+"""Provides the CVN configuration from yaml files
 
 Author: Josh Tingey
 Email: j.tingey.16@ucl.ac.uk
@@ -17,12 +17,12 @@ def process_yaml(config_path):
     """Returns the configuration namespace specified in the config file."""
     with open(config_path, "r") as config_file:
         config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
-
-    config = DotMap(config_dict)  # Convert yaml dict to namespace
-    return config
+        
+    return DotMap(config_dict)  # Convert yaml dict to namespace
 
 
 def process_config(config_path):
+    """Setup the config namespace and experiment output directories."""
     config = process_yaml(config_path)
 
     # Set the experiment directories
