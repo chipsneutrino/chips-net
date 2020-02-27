@@ -26,7 +26,7 @@ class BaseModel:
             latest = tf.train.latest_checkpoint(self.config.exp.checkpoints_dir)
             self.model.load_weights(latest).expect_partial()
         else:
-            checkpoint_path = self.config.exp.checkpoints_dir + "cp-" + str(checkpoint_num).zfill(4) + ".ckpt"
+            checkpoint_path = self.config.exp.checkpoints_dir + 'cp-' + str(checkpoint_num).zfill(4) + '.ckpt'
             self.model.load_weights(checkpoint_path).expect_partial()
 
     def summarise(self):
@@ -34,7 +34,7 @@ class BaseModel:
         self.model.summary()  # Print the model structure to stdout
 
         # Plot an image of the model to file
-        file_name = os.path.join(self.config.exp.exp_dir, "model_diagram.png")
+        file_name = os.path.join(self.config.exp.exp_dir, 'model_diagram.png')
         tf.keras.utils.plot_model(self.model, to_file=file_name, show_shapes=True,
                                   show_layer_names=True, rankdir='TB', expand_nested=False, dpi=96)
 
@@ -98,16 +98,16 @@ class SingleParModel(BaseModel):
 
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
+        x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
         x = Dropout(self.config.model.dropout)(x)
         outputs = Dense(1, activation='linear', name=self.config.model.parameter)(x)
         self.model = Model(inputs=[ct_input, h_input, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input], 
                            outputs=outputs, name='single_par_model')
 
-        self.loss = "mean_squared_error"
+        self.loss = 'mean_squared_error'
         self.loss_weights = None
-        self.metrics = ["mae", "mse"]
-        self.es_monitor = "val_mae"
+        self.metrics = ['mae', 'mse']
+        self.es_monitor = 'val_mae'
         self.parameters = [self.config.model.parameter]
 
         self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
@@ -170,16 +170,16 @@ class ClassificationModel(BaseModel):
 
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
+        x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
         x = Dropout(self.config.model.dropout)(x)
-        outputs = Dense(self.config.model.categories, activation='softmax', name="true_category")(x)
+        outputs = Dense(self.config.model.categories, activation='softmax', name='true_category')(x)
         self.model = Model(inputs=[ct_input, h_input, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input], 
                            outputs=outputs, name='classification_model')
 
-        self.loss = "sparse_categorical_crossentropy"
-        self.metrics = ["accuracy"]
-        self.es_monitor = "val_accuracy"
-        self.parameters = ["category"]
+        self.loss = 'sparse_categorical_crossentropy'
+        self.metrics = ['accuracy']
+        self.es_monitor = 'val_accuracy'
+        self.parameters = ['true_category']
 
         self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
@@ -240,34 +240,34 @@ class MultiTaskModel(BaseModel):
 
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
+        x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
         x = Dropout(self.config.model.dropout)(x)
         pdg_path = Dense(self.config.model.dense_units, activation='relu')(x)
         type_path = Dense(self.config.model.dense_units, activation='relu')(x)
         energy_path = Dense(self.config.model.dense_units, activation='relu')(x)
-        pdg_output = Dense(self.config.model.pdgs, activation='softmax', name="true_pdg")(pdg_path)
-        type_output = Dense(self.config.model.types, activation='softmax', name="true_type")(type_path)
-        energy_output = Dense(1, activation='linear', name="true_nuEnergy")(energy_path)
+        pdg_output = Dense(self.config.model.pdgs, activation='softmax', name='true_pdg')(pdg_path)
+        type_output = Dense(self.config.model.types, activation='softmax', name='true_type')(type_path)
+        energy_output = Dense(1, activation='linear', name='true_nuEnergy')(energy_path)
         self.model = Model(inputs=[ct_input, h_input, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input],
                            outputs=[pdg_output, type_output, energy_output], name='multi_task_model')
 
         self.loss = {
-            "pdg": "sparse_categorical_crossentropy",
-            "type": "sparse_categorical_crossentropy",
-            "nuEnergy": "mean_squared_error",
+            'pdg': 'sparse_categorical_crossentropy',
+            'type': 'sparse_categorical_crossentropy',
+            'nuEnergy': 'mean_squared_error',
         }
         self.loss_weights = {
-            "pdg": 1.0,
-            "type": 1.0,
-            "nuEnergy": 1.0
+            'pdg': 1.0,
+            'type': 1.0,
+            'nuEnergy': 1.0
         }
         self.metrics = {
-            "pdg": "accuracy",
-            "type": "accuracy",
-            "nuEnergy": "mae"
+            'pdg': 'accuracy',
+            'type': 'accuracy',
+            'nuEnergy': 'mae'
         }
-        self.es_monitor = "val_accuracy"
-        self.parameters = ["pdg", "type", "nuEnergy"]
+        self.es_monitor = 'val_accuracy'
+        self.parameters = ['pdg', 'type', 'nuEnergy']
 
         self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,

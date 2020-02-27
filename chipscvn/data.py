@@ -37,16 +37,16 @@ class DataLoader:
         self.type_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(type_keys, type_vals), -1)
 
-        # Category keys are a string of pdg+type, e.g an nuel ccqe event is "0"+"0" = "00"
-        cat_keys = tf.constant(["00", "10", "01", "11", "02", "12", "03", "13", "04", "14", "06", "16", "15"], dtype=tf.string)
+        # Category keys are a string of pdg+type, e.g an nuel ccqe event is '0'+'0' = '00'
+        cat_keys = tf.constant(['00', '10', '01', '11', '02', '12', '03', '13', '04', '14', '06', '16', '15'], dtype=tf.string)
         cat_vals = tf.constant([  0,    1,    2,    3,    4,    5,    6,    7,    8,    8,    8,    8,    9])
         self.cat_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(cat_keys, cat_vals), -1)
 
         # Generate the lists of train, val and test file directories from the configuration
-        self.train_dirs = [os.path.join(in_dir, "train") for in_dir in self.config.data.input_dirs]
-        self.val_dirs = [os.path.join(in_dir, "val") for in_dir in self.config.data.input_dirs]
-        self.test_dirs = [os.path.join(in_dir, "test") for in_dir in self.config.data.input_dirs]
+        self.train_dirs = [os.path.join(in_dir, 'train') for in_dir in self.config.data.input_dirs]
+        self.val_dirs = [os.path.join(in_dir, 'val') for in_dir in self.config.data.input_dirs]
+        self.test_dirs = [os.path.join(in_dir, 'test') for in_dir in self.config.data.input_dirs]
 
     def parse(self, serialised_example):
         """Parses a single serialised example into an input plus a labels dict."""
@@ -102,6 +102,19 @@ class DataLoader:
         hough_rand = tf.random.normal(shape=[64, 64, 1], mean=0, stddev=self.config.data.hough_spread)
         h_image = tf.math.add(h_image, hough_rand)
 
+        # Calculate cut booleans
+        pi_on_180 = 0.017453292519943295
+        z_cut = tf.math.less_equal(tf.math.abs(reco_pars_f[6]), self.config.data.cuts.fiducial_z)
+        r_cut = tf.math.less_equal(
+            tf.math.sqrt(tf.math.pow(reco_pars_f[4], 2) + tf.math.pow(reco_pars_f[5], 2)),
+            self.config.data.cuts.fiducial_r
+        )
+        dir_cut = tf.math.greater_equal(tf.math.multiply(
+            tf.math.sin(tf.math.acos(reco_pars_f[7])), tf.math.cos(reco_pars_f[8] * pi_on_180)),
+            self.config.data.cuts.dir_x
+        )
+        q_cut = tf.math.greater_equal(reco_pars_f[0], self.config.data.cuts.total_q)
+        
         inputs = {  # We generate a dictionary with the images and other input parameters
             'ct_image': ct_image,
             'h_image': h_image,
@@ -116,30 +129,26 @@ class DataLoader:
             'reco_vtxY': reco_pars_f[5],
             'reco_vtxZ': reco_pars_f[6],
             'reco_dirTheta': reco_pars_f[7],
-            'reco_dirPhi': reco_pars_f[8]
+            'reco_dirPhi': reco_pars_f[8],
+            'z_cut': z_cut,
+            'r_cut': r_cut,
+            'dir_cut': dir_cut,
+            'q_cut': q_cut
         }
 
         return inputs, labels
 
     def fiducial_cut(self, inputs, labels):
         """Applies a fiducial volume cut on the reco vtx location."""
-        z_cut = tf.math.less_equal(tf.math.abs(inputs["reco_vtxZ"]), self.config.data.cuts.fiducial_z)
-        r = tf.math.sqrt(tf.math.pow(inputs["reco_vtxX"], 2) + tf.math.pow(inputs["reco_vtxY"], 2))
-        r_cut = tf.math.less_equal(r, self.config.data.cuts.fiducial_r)
-        return (z_cut and r_cut)
+        return (inputs["z_cut"] and inputs["r_cut"])
 
     def dir_cut(self, inputs, labels):
         """Applies a beam direction cut on the reco direction."""
-        pi_on_180 = 0.017453292519943295
-        dirX = tf.math.multiply(
-            tf.math.sin(tf.math.acos(inputs["reco_dirTheta"])),
-            tf.math.cos(inputs["reco_dirPhi"] * pi_on_180)
-        )
-        return tf.math.greater_equal(dirX, self.config.data.cuts.dir_x)
+        return inputs['dir_cut']
 
     def charge_cut(self, inputs, labels):
         """Applies a total event charge cut."""
-        return tf.math.greater_equal(inputs["raw_total_digi_q"], self.config.data.cuts.total_q)
+        return inputs['q_cut']
 
     def dataset(self, dirs):
         """Returns a dataset formed from all the files in the input directories."""
@@ -178,9 +187,6 @@ class DataLoader:
     def test_data(self):
         """Returns the testing dataset."""
         ds = self.dataset(self.test_dirs)
-        ds = ds.filter(self.fiducial_cut)
-        ds = ds.filter(self.dir_cut)
-        ds = ds.filter(self.charge_cut)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
         ds = ds.take(int(self.config.data.max_examples*0.1))  # Only take 10% of max examples
         return ds
@@ -213,38 +219,38 @@ class DataCreator:
         # Get the numpy arrays from the .root map file, we need to seperate by type
         # for the deserialisation during reading to work correctly.
         true_pars_i = np.stack((  # True Parameters (integers)
-            true.array("true_pdg"),
-            true.array("true_type")),
+            true.array('true_pdg'),
+            true.array('true_type')),
             axis=1)
         true_pars_f = np.stack((  # True Parameters (floats)
-            true.array("true_vtx_x"),
-            true.array("true_vtx_y"),
-            true.array("true_vtx_z"),
-            true.array("true_dir_costheta"),
-            true.array("true_dir_phi"),
-            true.array("true_nu_energy"),
-            true.array("true_lep_energy")),
+            true.array('true_vtx_x'),
+            true.array('true_vtx_y'),
+            true.array('true_vtx_z'),
+            true.array('true_dir_costheta'),
+            true.array('true_dir_phi'),
+            true.array('true_nu_energy'),
+            true.array('true_lep_energy')),
             axis=1)
         reco_pars_i = np.stack((  # Reco Parameters (integers)
-            reco.array("raw_num_hits"),
-            reco.array("filtered_num_hits"),
-            reco.array("num_hough_rings")),
+            reco.array('raw_num_hits'),
+            reco.array('filtered_num_hits'),
+            reco.array('num_hough_rings')),
             axis=1)
         reco_pars_f = np.stack((  # Reco Parameters (floats)
-            reco.array("raw_total_digi_q"),
-            reco.array("filtered_total_digi_q"),
-            reco.array("first_ring_height"),
-            reco.array("last_ring_height"),
-            reco.array("vtx_x"),
-            reco.array("vtx_y"),
-            reco.array("vtx_z"),
-            reco.array("dir_theta"),
-            reco.array("dir_phi")),
+            reco.array('raw_total_digi_q'),
+            reco.array('filtered_total_digi_q'),
+            reco.array('first_ring_height'),
+            reco.array('last_ring_height'),
+            reco.array('vtx_x'),
+            reco.array('vtx_y'),
+            reco.array('vtx_z'),
+            reco.array('dir_theta'),
+            reco.array('dir_phi')),
             axis=1)
         image = np.stack((  # Image
-            reco.array("filtered_charge_map_vtx"),
-            reco.array("filtered_time_map_vtx"),
-            reco.array("filtered_hit_hough_map_vtx")),
+            reco.array('filtered_charge_map_vtx'),
+            reco.array('filtered_time_map_vtx'),
+            reco.array('filtered_hit_hough_map_vtx')),
             axis=3)
 
         examples = []  # Generate examples using a feature dict
@@ -268,14 +274,14 @@ class DataCreator:
 
     def preprocess_file(self, num, files):
         """Preprocess joined .root map files into train, val and test tfrecords files."""
-        print("Processing job {}...".format(num))
+        print('Processing job {}...'.format(num))
         examples = []
         for file in files:
             file_u = uproot.open(file)
             try:
-                examples.extend(self.gen_examples(file_u["true"], file_u["reco"]))
+                examples.extend(self.gen_examples(file_u['true'], file_u['reco']))
             except Exception as err:  # Catch when there is an uproot exception and skip
-                print("Error:", type(err), err)
+                print('Error:', type(err), err)
                 pass
 
         # Split into training, validation and testing samples
@@ -286,11 +292,11 @@ class DataCreator:
         test_examples = examples[test_split:]
 
         self.write_examples(
-            os.path.join(self.out_dir, "train/", str(num) + "_train.tfrecords"), train_examples)
+            os.path.join(self.out_dir, 'train/', str(num) + '_train.tfrecords'), train_examples)
         self.write_examples(
-            os.path.join(self.out_dir, "val/", str(num) + "_val.tfrecords"), val_examples)
+            os.path.join(self.out_dir, 'val/', str(num) + '_val.tfrecords'), val_examples)
         self.write_examples(
-            os.path.join(self.out_dir, "test/", str(num) + "_test.tfrecords"), test_examples)
+            os.path.join(self.out_dir, 'test/', str(num) + '_test.tfrecords'), test_examples)
 
     def preprocess(self):
         """Preprocess all the files from the input directory into tfrecords."""

@@ -29,7 +29,7 @@ def train_model(config):
     try:
         Experiment()
     except Exception:
-        print("Error: Need to set comet_ml env variables")
+        print('Error: Need to set comet_ml env variables')
         pass
 
     data = chipscvn.data.DataLoader(config)
@@ -69,7 +69,7 @@ def main():
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
         logging.disable(logging.CRITICAL)
 
-    print("\n--- It's Magic, it must be the CHIPS CVN ---")
+    print('\n--- Its Magic, it must be the CHIPS CVN ---')
     chipscvn.utils.gpu_setup()  # Setup the GPU's so they work on all machines
     config = chipscvn.config.process_config(args.config)
 
@@ -82,7 +82,7 @@ def main():
         elif args.evaluate:
             evaluate_model(config)
         else:
-            print("\nError: must select task [train, study, evaluate]")
+            print('\nError: must select task [train, study, evaluate]')
             raise SystemExit
 
 

@@ -47,7 +47,7 @@ class BasicTrainer(BaseTrainer):
 
         self.callbacks.append(  # Checkpoint callback to save model weights at epoch end
             callbacks.ModelCheckpoint(
-                filepath=os.path.join(self.config.exp.checkpoints_dir, "cp-{epoch:04d}.ckpt"),
+                filepath=os.path.join(self.config.exp.checkpoints_dir, 'cp-{epoch:04d}.ckpt'),
                 save_weights_only=True,
                 verbose=0)
         )

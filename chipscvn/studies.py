@@ -36,7 +36,7 @@ class BaseStudy(object):
                 elif 'trainer.' in key:
                     self.config[key.replace('trainer.', '')] = trial.parameters[key]
                 else:
-                    print("Error: invalid study parameter key!")
+                    print('Error: invalid study parameter key!')
                     raise SystemExit
 
             data = chipscvn.data.DataLoader(self.config)

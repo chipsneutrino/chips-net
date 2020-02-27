@@ -18,7 +18,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='CHIPS CVN Data')
     parser.add_argument('directory', help='path to input directory')
     parser.add_argument('-s', '--split', help='val and test split fraction', default=0.1)
-    parser.add_argument('-g', '--geom', help='detector geometry name', default="chips_1200_sk1pe")
+    parser.add_argument('-g', '--geom', help='detector geometry name', default='chips_1200_sk1pe')
     parser.add_argument('-j', '--join', help='how many input files to join together', default=10)
     parser.add_argument('--single', action='store_true', help='Use a single process')
     return parser.parse_args()

@@ -60,3 +60,4 @@ eval: # Variables used by the evaluator
         - "/mnt/storage/jtingey/data/beam_nuel_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/data/beam_numu_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/data/cosmic_numu_all/chips_1200_sk1pe/"
+    

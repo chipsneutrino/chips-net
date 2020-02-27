@@ -11,6 +11,11 @@ data: # Variables used to load the data
     charge_spread: 0.5
     time_spread: 2
     hough_spread: 5
+    cuts:
+        fiducial_r: 1150
+        fiducial_z: 500
+        dir_x: 0.9
+        total_q: 150
 model: # Variables used in building the model
     name: "single_par"
     parameter: "lepEnergy"
