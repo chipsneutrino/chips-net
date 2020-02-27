@@ -72,15 +72,18 @@ def main():
 
     print('\n--- Its Magic, it must be the CHIPS CVN ---')
     chipscvn.utils.gpu_setup()  # Setup the GPU's so they work on all machines
-    config = chipscvn.config.process_config(args.config)
+    config = chipscvn.config.get(args.config)
 
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
         if args.train:
+            chipscvn.config.setup_dirs(config, True)
             train_model(config)
         elif args.study:
+            chipscvn.config.setup_dirs(config, True)
             study_model(config)
         elif args.evaluate:
+            chipscvn.config.setup_dirs(config, False)
             evaluate_model(config)
         else:
             print('\nError: must select task [train, study, evaluate]')
