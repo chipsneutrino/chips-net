@@ -37,6 +37,7 @@ def train_model(config):
     model.summarise()
     trainer = chipscvn.utils.get_trainer(config, model, data)
     trainer.train()
+    trainer.save()
 
 
 def study_model(config):

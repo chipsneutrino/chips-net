@@ -9,6 +9,7 @@ customisation of the training loop if required.
 """
 
 import os
+import csv
 from tensorflow.keras import callbacks
 
 
@@ -72,3 +73,10 @@ class BasicTrainer(BaseTrainer):
             validation_data=self.data.val_data(),
             callbacks=self.callbacks
         )
+
+    def save(self):
+        """Saves the training history to file."""
+        csv_name = os.path.join(self.config.exp.exp_dir, 'history.csv')
+        w = csv.writer(open(csv_name, "w"))
+        for key, val in self.history.history.items():
+            w.writerow([key, val])
