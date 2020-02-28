@@ -101,19 +101,6 @@ class DataLoader:
         # Apply augmentation to hough image
         hough_rand = tf.random.normal(shape=[64, 64, 1], mean=0, stddev=self.config.data.hough_spread)
         h_image = tf.math.add(h_image, hough_rand)
-
-        # Calculate cut booleans
-        pi_on_180 = 0.017453292519943295
-        z_cut = tf.math.less_equal(tf.math.abs(reco_pars_f[6]), self.config.data.cuts.fiducial_z)
-        r_cut = tf.math.less_equal(
-            tf.math.sqrt(tf.math.pow(reco_pars_f[4], 2) + tf.math.pow(reco_pars_f[5], 2)),
-            self.config.data.cuts.fiducial_r
-        )
-        dir_cut = tf.math.greater_equal(tf.math.multiply(
-            tf.math.sin(tf.math.acos(reco_pars_f[7])), tf.math.cos(reco_pars_f[8] * pi_on_180)),
-            self.config.data.cuts.dir_x
-        )
-        q_cut = tf.math.greater_equal(reco_pars_f[0], self.config.data.cuts.total_q)
         
         inputs = {  # We generate a dictionary with the images and other input parameters
             'ct_image': ct_image,
@@ -129,26 +116,10 @@ class DataLoader:
             'reco_vtxY': reco_pars_f[5],
             'reco_vtxZ': reco_pars_f[6],
             'reco_dirTheta': reco_pars_f[7],
-            'reco_dirPhi': reco_pars_f[8],
-            'z_cut': z_cut,
-            'r_cut': r_cut,
-            'dir_cut': dir_cut,
-            'q_cut': q_cut
+            'reco_dirPhi': reco_pars_f[8]
         }
 
         return inputs, labels
-
-    def fiducial_cut(self, inputs, labels):
-        """Applies a fiducial volume cut on the reco vtx location."""
-        return (inputs["z_cut"] and inputs["r_cut"])
-
-    def dir_cut(self, inputs, labels):
-        """Applies a beam direction cut on the reco direction."""
-        return inputs['dir_cut']
-
-    def charge_cut(self, inputs, labels):
-        """Applies a total event charge cut."""
-        return inputs['q_cut']
 
     def dataset(self, dirs):
         """Returns a dataset formed from all the files in the input directories."""
@@ -169,8 +140,6 @@ class DataLoader:
     def train_data(self):
         """Returns the training dataset."""
         ds = self.dataset(self.train_dirs)
-        ds = ds.filter(self.dir_cut)
-        ds = ds.filter(self.charge_cut)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
         ds = ds.take(self.config.data.max_examples)  # Only take 10% of max examples
         return ds
@@ -178,8 +147,6 @@ class DataLoader:
     def val_data(self):
         """Returns the validation dataset."""
         ds = self.dataset(self.val_dirs)
-        ds = ds.filter(self.dir_cut)
-        ds = ds.filter(self.charge_cut)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
         ds = ds.take(int(self.config.data.max_examples*0.1))  # Only take 10% of max examples
         return ds

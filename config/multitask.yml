@@ -29,11 +29,6 @@ data: # Variables used to load the data
     charge_spread: 0.5
     time_spread: 2
     hough_spread: 5
-    cuts:
-        fiducial_r: 1150
-        fiducial_z: 500
-        dir_x: 0.9
-        total_q: 150
 model: # Variables used in building the model
     name: "multi_task"
     pdgs: 2
@@ -62,3 +57,8 @@ eval: # Variables used by the evaluator
         - "/mnt/storage/jtingey/data/beam_nuel_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/data/beam_numu_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/data/cosmic_numu_all/chips_1200_sk1pe/"
+    cuts:
+        fiducial_r: 1150
+        fiducial_z: 500
+        dir_x: 0.9
+        total_q: 100

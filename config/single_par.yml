@@ -1,21 +1,16 @@
 ---
 exp: # Variables that define the experiment
-    name: "single_par"
+    name: "numu_dis_cc_energy_resolution"
     experiment_dir: "experiments/"
-data: # Variables used to load the data
+data: # Variables used to load thata
     input_dirs: 
-        - "/mnt/storage/jtingey/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/data/beam_numu_dis_cc/chips_1200_sk1pe/"
     img_shape: [64, 64, 3]
     batch_size: 64
     max_examples: 5000
     charge_spread: 0.5
     time_spread: 2
     hough_spread: 5
-    cuts:
-        fiducial_r: 1150
-        fiducial_z: 500
-        dir_x: 0.9
-        total_q: 150
 model: # Variables used in building the model
     name: "single_par"
     parameter: "true_nuEnergy"
@@ -25,9 +20,8 @@ model: # Variables used in building the model
     dropout: 0.0
     kernel_size: 3
     filters: 64
-
 trainer: # Variables used by the trainer
-    num_epochs: 5
+    num_epochs: 3
     es_delta: 5
     es_epochs: 5
 study: # We list the number of trials and then all the variables we want to tune
@@ -42,5 +36,9 @@ study: # We list the number of trials and then all the variables we want to tune
         filters: [32, 64, 128]
 eval: # Variables used by the evaluator
     input_dirs: 
-        - "/mnt/storage/jtingey/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
-    
+        - "/mnt/storage/jtingey/data/beam_numu_dis_cc/chips_1200_sk1pe/"
+    cuts:
+        fiducial_r: 1150
+        fiducial_z: 500
+        dir_x: 0.9
+        total_q: 100   

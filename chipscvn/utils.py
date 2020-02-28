@@ -71,11 +71,11 @@ def get_study(config):
 def get_evaluator(config):
     """Returns the correct evaluator for the configuration."""
     if config.model.name == "single_par":
-        return evaluators.BasicEvaluator(config)
+        raise NotImplementedError
     elif config.model.name == "classification":
-        return evaluators.BasicEvaluator(config)
+        return evaluators.ClassificationEvaluator(config)
     elif config.model.name == "multi_task":
-        return evaluators.BasicEvaluator(config)
+        raise NotImplementedError
     else:
         print("Error: model not valid!")
         raise SystemExit
