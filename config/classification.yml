@@ -4,24 +4,24 @@ exp: # Variables that define the experiment
     experiment_dir: "experiments/"
 data: # Variables used to load the data
     input_dirs: 
-        - "/mnt/storage/jtingey/data/beam_nuel_coh_cc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_nuel_coh_nc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_nuel_dis_cc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_nuel_dis_nc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_nuel_res_cc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_nuel_res_nc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_nuel_qel_nc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_nuel_pizero_nc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_numu_coh_cc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_numu_coh_nc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_numu_dis_cc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_numu_dis_nc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_numu_res_cc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_numu_res_nc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_numu_qel_cc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_numu_qel_nc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/cosmic_numu_beam_dir/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_res_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_res_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_pizero_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_beam_dir/chips_1200_sk1pe/"
     all_chan: True
     reduced: False
     channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -54,9 +54,9 @@ study: # We list the number of trials and then all the variables we want to tune
         filters: [32, 64, 128]
 eval: # Variables used by the evaluator
     input_dirs: 
-        - "/mnt/storage/jtingey/data/beam_nuel_all/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/beam_numu_all/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/data/cosmic_numu_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_all/chips_1200_sk1pe/"
     cuts:
         fiducial_r: 1150
         fiducial_z: 500

@@ -4,7 +4,7 @@ exp: # Variables that define the experiment
     experiment_dir: "experiments/"
 data: # Variables used to load thata
     input_dirs: 
-        - "/unix/chips/production/beam_nuel_qel_cc/tf/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
     all_chan: True
     reduced: False
     channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -37,7 +37,7 @@ study: # We list the number of trials and then all the variables we want to tune
         filters: [32, 64, 128]
 eval: # Variables used by the evaluator
     input_dirs: 
-        - "/unix/chips/production/beam_nuel_qel_cc/tf/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
     cuts:
         fiducial_r: 1150
         fiducial_z: 500
