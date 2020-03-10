@@ -51,8 +51,8 @@ class SingleParModel(BaseModel):
     def build(self):
         """Builds the model using the keras functional API."""
         
-        ct_input = Input(shape=(64,64,2), name='ct_image')
-        x = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(ct_input)
+        image_input = Input(shape=self.config.data.img_size, name='image')
+        x = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
         x = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
         x = Dropout(self.config.model.dropout)(x)
@@ -69,39 +69,20 @@ class SingleParModel(BaseModel):
         x = MaxPooling2D(pool_size=2)(x)
         x = Dropout(self.config.model.dropout)(x)
         x = Flatten()(x)
-
-        h_input = Input(shape=(64,64,1), name='h_image')
-        y = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(h_input)
-        y = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, padding='same', activation='relu')(y)
-        y = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, padding='same', activation='relu')(y)
-        y = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, padding='same', activation='relu')(y)
-        y = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Flatten()(y)
         
         vtxX_input = Input(shape=(1), name='reco_vtxX')
         vtxY_input = Input(shape=(1), name='reco_vtxY')
         vtxZ_input = Input(shape=(1), name='reco_vtxZ')
         dirTheta_input = Input(shape=(1), name='reco_dirTheta')
         dirPhi_input = Input(shape=(1), name='reco_dirPhi')
-        x = concatenate([x, y, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input])
+        x = concatenate([x, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input])
 
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
         x = Dropout(self.config.model.dropout)(x)
         outputs = Dense(1, activation='linear', name=self.config.model.parameter)(x)
-        self.model = Model(inputs=[ct_input, h_input, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input], 
+        self.model = Model(inputs=[image_input, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input], 
                            outputs=outputs, name='single_par_model')
 
         self.loss = 'mean_squared_error'
@@ -123,8 +104,8 @@ class ClassificationModel(BaseModel):
 
     def build(self):
         """Builds the model using the keras functional API."""
-        ct_input = Input(shape=(64,64,2), name='ct_image')
-        x = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(ct_input)
+        image_input = Input(shape=self.config.data.img_size, name='image')
+        x = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
         x = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
         x = Dropout(self.config.model.dropout)(x)
@@ -141,39 +122,20 @@ class ClassificationModel(BaseModel):
         x = MaxPooling2D(pool_size=2)(x)
         x = Dropout(self.config.model.dropout)(x)
         x = Flatten()(x)
-
-        h_input = Input(shape=(64,64,1), name='h_image')
-        y = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(h_input)
-        y = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, padding='same', activation='relu')(y)
-        y = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, padding='same', activation='relu')(y)
-        y = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, padding='same', activation='relu')(y)
-        y = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Flatten()(y)
         
         vtxX_input = Input(shape=(1), name='reco_vtxX')
         vtxY_input = Input(shape=(1), name='reco_vtxY')
         vtxZ_input = Input(shape=(1), name='reco_vtxZ')
         dirTheta_input = Input(shape=(1), name='reco_dirTheta')
         dirPhi_input = Input(shape=(1), name='reco_dirPhi')
-        x = concatenate([x, y, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input])
+        x = concatenate([x, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input])
 
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
         x = Dropout(self.config.model.dropout)(x)
         outputs = Dense(self.config.model.categories, activation='softmax', name='true_category')(x)
-        self.model = Model(inputs=[ct_input, h_input, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input], 
+        self.model = Model(inputs=[image_input, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input], 
                            outputs=outputs, name='classification_model')
 
         self.loss = 'sparse_categorical_crossentropy'
@@ -193,8 +155,8 @@ class MultiTaskModel(BaseModel):
 
     def build(self):
         """Builds the model using the keras functional API."""
-        ct_input = Input(shape=(64,64,2), name='ct_image')
-        x = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(ct_input)
+        image_input = Input(shape=self.config.data.img_size, name='image')
+        x = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
         x = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
         x = Dropout(self.config.model.dropout)(x)
@@ -211,32 +173,13 @@ class MultiTaskModel(BaseModel):
         x = MaxPooling2D(pool_size=2)(x)
         x = Dropout(self.config.model.dropout)(x)
         x = Flatten()(x)
-
-        h_input = Input(shape=(64,64,1), name='h_image')
-        y = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(h_input)
-        y = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, padding='same', activation='relu')(y)
-        y = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, padding='same', activation='relu')(y)
-        y = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, padding='same', activation='relu')(y)
-        y = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, activation='relu')(y)
-        y = MaxPooling2D(pool_size=2)(y)
-        y = Dropout(self.config.model.dropout)(y)
-        y = Flatten()(y)
         
         vtxX_input = Input(shape=(1), name='reco_vtxX')
         vtxY_input = Input(shape=(1), name='reco_vtxY')
         vtxZ_input = Input(shape=(1), name='reco_vtxZ')
         dirTheta_input = Input(shape=(1), name='reco_dirTheta')
         dirPhi_input = Input(shape=(1), name='reco_dirPhi')
-        x = concatenate([x, y, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input])
+        x = concatenate([x, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input])
 
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dense(self.config.model.dense_units, activation='relu')(x)
@@ -248,7 +191,7 @@ class MultiTaskModel(BaseModel):
         pdg_output = Dense(self.config.model.pdgs, activation='softmax', name='true_pdg')(pdg_path)
         type_output = Dense(self.config.model.types, activation='softmax', name='true_type')(type_path)
         energy_output = Dense(1, activation='linear', name='true_nuEnergy')(energy_path)
-        self.model = Model(inputs=[ct_input, h_input, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input],
+        self.model = Model(inputs=[image_input, vtxX_input, vtxY_input, vtxZ_input, dirTheta_input, dirPhi_input],
                            outputs=[pdg_output, type_output, energy_output], name='multi_task_model')
 
         self.loss = {

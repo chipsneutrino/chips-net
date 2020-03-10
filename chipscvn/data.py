@@ -84,27 +84,31 @@ class DataLoader:
             'true_lepEnergy': true_pars_f[6],
         }
 
-        # Decode and reshape the "image" arrays into a tf tensor
-        image = tf.io.decode_raw(example['image'], tf.float32)
-        image = tf.reshape(image, self.config.data.img_shape)
+        # Decode and reshape the "image" into a tf tensor
+        image_type = tf.float32
+        if self.config.data.reduced:
+            image_type = tf.uint8
 
-        # Split the image into charge+time and hough tensors
-        ct_image, h_image = tf.split(image, [2, 1], 2)
-        tf.expand_dims(h_image, 2) 
+        full_image = tf.io.decode_raw(example['image'], image_type)
+        if self.config.data.all_chan:
+            full_image = tf.reshape(full_image, [64, 64, 13])
+        else:
+            full_image = tf.reshape(full_image, [64, 64, 3])
 
-        # Apply augmentation to charge+time image
-        charge_rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.charge_spread)
-        time_rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.time_spread)
-        tot_rand = tf.stack([charge_rand, time_rand], axis=2)
-        ct_image = tf.math.add(ct_image, tot_rand)
+        unstacked = tf.unstack(full_image, axis=2)
+        channels = []
+        for i, enabled in enumerate(self.config.data.channels):
+            if enabled:
+                if self.config.data.reduced:
+                    channels.append(unstacked[i])
+                else:
+                    rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.r_spread[i], dtype=image_type)
+                    channels.append(tf.math.add(unstacked[i], rand))  # THIS COULD TAKE VALUES BELOW ZERO!!!
 
-        # Apply augmentation to hough image
-        hough_rand = tf.random.normal(shape=[64, 64, 1], mean=0, stddev=self.config.data.hough_spread)
-        h_image = tf.math.add(h_image, hough_rand)
+        image = tf.stack(channels, axis=2)
         
         inputs = {  # We generate a dictionary with the images and other input parameters
-            'ct_image': ct_image,
-            'h_image': h_image,
+            'image': image,
             'raw_num_hits': reco_pars_i[0],
             'filtered_num_hits': reco_pars_i[1],
             'num_hough_rings': reco_pars_i[2],
@@ -161,10 +165,12 @@ class DataLoader:
 
 class DataCreator:
     """Generates tfrecord files from ROOT map files."""
-    def __init__(self, directory, geom, split, join, single):
+    def __init__(self, directory, geom, split, join, single, all_maps, reduce):
         self.split = split
         self.join = join
         self.single = single
+        self.all_maps = all_maps
+        self.reduce = reduce
         self.init(directory, geom)
 
     def init(self, directory, geom):
@@ -214,11 +220,51 @@ class DataCreator:
             reco.array('dir_theta'),
             reco.array('dir_phi')),
             axis=1)
-        image = np.stack((  # Image
-            reco.array('filtered_charge_map_vtx'),
-            reco.array('filtered_time_map_vtx'),
-            reco.array('filtered_hit_hough_map_vtx')),
-            axis=3)
+
+        channels = []
+        ranges = []
+
+        channels.append('filtered_charge_map_vtx')
+        ranges.append((0.0, 15.0))
+        channels.append('filtered_time_map_vtx')
+        ranges.append((0.0, 80.0))
+        channels.append('filtered_hit_hough_map_vtx')
+        ranges.append((0.0, 1500.0))
+
+        if self.all_maps:
+            channels.append('raw_hit_map_origin')
+            ranges.append((0.0, 15.0))
+            channels.append('raw_charge_map_origin')
+            ranges.append((0.0, 15.0))
+            channels.append('raw_time_map_origin')
+            ranges.append((0.0, 80.0))
+            channels.append('filtered_hit_map_origin')
+            ranges.append((0.0, 15.0))
+            channels.append('filtered_charge_map_origin')
+            ranges.append((0.0, 15.0))
+            channels.append('filtered_time_map_origin')
+            ranges.append((0.0, 80.0))
+            channels.append('raw_hit_map_vtx')
+            ranges.append((0.0, 15.0))
+            channels.append('raw_charge_map_vtx')
+            ranges.append((0.0, 15.0))
+            channels.append('raw_time_map_vtx')
+            ranges.append((0.0, 80.0))
+            channels.append('filtered_hit_map_vtx')
+            ranges.append((0.0, 15.0))
+
+        channel_images = []
+        for i, channel in enumerate(channels):
+            channel_image = reco.array(channel)
+            if self.reduce:
+                channel_image.clip(ranges[i][0], ranges[i][1], out=channel_image)  # Clip to between the ranges
+                channel_image -= ranges[i][0]  # Set minimum to be zero
+                channel_image /= (ranges[i][1]-ranges[i][0]) # normalize the data to 0 - 1
+                channel_image *= 256.
+                channel_image = channel_image.astype(np.uint8)
+            channel_images.append(channel_image)
+
+        image = np.stack(channel_images, axis=3)
 
         examples = []  # Generate examples using a feature dict
         for i in range(len(true_pars_i)):

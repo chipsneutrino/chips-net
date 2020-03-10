@@ -1,21 +1,22 @@
 ---
 exp: # Variables that define the experiment
-    name: "numu_dis_cc_energy_resolution"
+    name: "numu_qel_cc_energy_resolution"
     experiment_dir: "experiments/"
 data: # Variables used to load thata
     input_dirs: 
-        - "/mnt/storage/jtingey/data/beam_numu_dis_cc/chips_1200_sk1pe/"
-    img_shape: [64, 64, 3]
+        - "/unix/chips/production/beam_nuel_qel_cc/tf/chips_1200_sk1pe/"
+    all_chan: True
+    reduced: False
+    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    #r_spread: [9, 6, 2, 9, 9, 6, 9, 9, 6, 9, 9, 6, 9]
+    r_spread: [0.0, 0.0, 0.0, 0.5, 0.5, 2.0, 0.5, 0.5, 2.0, 0.5, 0.5, 2.0, 0.5]
+    img_size: [64, 64, 3]
     batch_size: 64
     max_examples: 5000
-    charge_spread: 0.5
-    time_spread: 2
-    hough_spread: 5
 model: # Variables used in building the model
     name: "single_par"
     parameter: "true_nuEnergy"
     lr: 0.0002
-    inputs: [[0,1], [2]]
     dense_units: 256
     dropout: 0.0
     kernel_size: 3
@@ -36,7 +37,7 @@ study: # We list the number of trials and then all the variables we want to tune
         filters: [32, 64, 128]
 eval: # Variables used by the evaluator
     input_dirs: 
-        - "/mnt/storage/jtingey/data/beam_numu_dis_cc/chips_1200_sk1pe/"
+        - "/unix/chips/production/beam_nuel_qel_cc/tf/chips_1200_sk1pe/"
     cuts:
         fiducial_r: 1150
         fiducial_z: 500

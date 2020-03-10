@@ -22,12 +22,14 @@ data: # Variables used to load the data
         - "/mnt/storage/jtingey/data/beam_numu_qel_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/data/beam_numu_qel_nc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/data/cosmic_numu_beam_dir/chips_1200_sk1pe/"
-    img_shape: [64, 64, 3]
+    all_chan: True
+    reduced: False
+    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    #r_spread: [9, 6, 2, 9, 9, 6, 9, 9, 6, 9, 9, 6, 9]
+    r_spread: [0.0, 0.0, 0.0, 0.5, 0.5, 2.0, 0.5, 0.5, 2.0, 0.5, 0.5, 2.0, 0.5]
+    img_size: [64, 64, 3]
     batch_size: 64
     max_examples: 5000
-    charge_spread: 0.5
-    time_spread: 2
-    hough_spread: 5
 model: # Variables used in building the model
     name: "classification"
     categories: 10
