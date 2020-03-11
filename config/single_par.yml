@@ -6,13 +6,13 @@ data: # Variables used to load thata
     input_dirs: 
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
     all_chan: True
-    reduced: False
+    reduced: True
     channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    #r_spread: [9, 6, 2, 9, 9, 6, 9, 9, 6, 9, 9, 6, 9]
-    r_spread: [0.0, 0.0, 0.0, 0.5, 0.5, 2.0, 0.5, 0.5, 2.0, 0.5, 0.5, 2.0, 0.5]
+    r_spread: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     img_size: [64, 64, 3]
+    par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    max_examples: 5000
+    max_examples: 10000
 model: # Variables used in building the model
     name: "single_par"
     parameter: "true_nuEnergy"
@@ -37,9 +37,11 @@ study: # We list the number of trials and then all the variables we want to tune
         filters: [32, 64, 128]
 eval: # Variables used by the evaluator
     input_dirs: 
-        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_all/chips_1200_sk1pe/"
     cuts:
-        fiducial_r: 1150
-        fiducial_z: 500
-        dir_x: 0.9
-        total_q: 100   
+        q: 250.0
+        hough: 250.0
+        theta: 0.75
+        phi: 0.75  

@@ -1,9 +1,10 @@
 ---
 exp: # Variables that define the experiment
-    name: "classification"
+    name: "classification_extra_samples"
     experiment_dir: "experiments/"
 data: # Variables used to load the data
     input_dirs: 
+        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_nc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_cc/chips_1200_sk1pe/"
@@ -13,6 +14,7 @@ data: # Variables used to load the data
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_nc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_pizero_nc/chips_1200_sk1pe/"
+        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_nc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_cc/chips_1200_sk1pe/"
@@ -21,15 +23,17 @@ data: # Variables used to load the data
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_nc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_pizero_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_beam_dir/chips_1200_sk1pe/"
     all_chan: True
-    reduced: False
-    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    #r_spread: [9, 6, 2, 9, 9, 6, 9, 9, 6, 9, 9, 6, 9]
-    r_spread: [0.0, 0.0, 0.0, 0.5, 0.5, 2.0, 0.5, 0.5, 2.0, 0.5, 0.5, 2.0, 0.5]
+    reduced: True
+    channels: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0]
+    r_spread: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     img_size: [64, 64, 3]
+    par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    max_examples: 5000
+    max_examples: 20000
 model: # Variables used in building the model
     name: "classification"
     categories: 10
@@ -39,7 +43,7 @@ model: # Variables used in building the model
     kernel_size: 3
     filters: 64
 trainer: # Variables used by the trainer
-    num_epochs: 5
+    num_epochs: 3
     es_delta: 5
     es_epochs: 5
 study: # We list the number of trials and then all the variables we want to tune
@@ -58,8 +62,8 @@ eval: # Variables used by the evaluator
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_all/chips_1200_sk1pe/"
     cuts:
-        fiducial_r: 1150
-        fiducial_z: 500
-        dir_x: 0.9
-        total_q: 100
+        q: 250.0
+        hough: 250.0
+        theta: 0.75
+        phi: 0.75
     

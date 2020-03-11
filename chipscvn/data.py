@@ -84,6 +84,21 @@ class DataLoader:
             'true_lepEnergy': true_pars_f[6],
         }
 
+        inputs = {  # We generate a dictionary with the images and other input parameters
+            'raw_num_hits': reco_pars_i[0],
+            'filtered_num_hits': reco_pars_i[1],
+            'num_hough_rings': reco_pars_i[2],
+            'raw_total_digi_q': reco_pars_f[0],
+            'filtered_total_digi_q': reco_pars_f[1],
+            'first_ring_height': reco_pars_f[2],
+            'last_ring_height': reco_pars_f[3],
+            'reco_vtxX': tf.math.divide(reco_pars_f[4], self.config.data.par_scale[0]),
+            'reco_vtxY': tf.math.divide(reco_pars_f[5], self.config.data.par_scale[1]),
+            'reco_vtxZ': tf.math.divide(reco_pars_f[6], self.config.data.par_scale[2]),
+            'reco_dirTheta': tf.math.divide(reco_pars_f[7], self.config.data.par_scale[3]),
+            'reco_dirPhi': tf.math.divide(reco_pars_f[8], self.config.data.par_scale[4])
+        }
+
         # Decode and reshape the "image" into a tf tensor
         image_type = tf.float32
         if self.config.data.reduced:
@@ -99,30 +114,18 @@ class DataLoader:
         channels = []
         for i, enabled in enumerate(self.config.data.channels):
             if enabled:
+                rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.r_spread[i], dtype=tf.float32)
                 if self.config.data.reduced:
-                    channels.append(unstacked[i])
-                else:
-                    rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.r_spread[i], dtype=image_type)
-                    channels.append(tf.math.add(unstacked[i], rand))  # THIS COULD TAKE VALUES BELOW ZERO!!!
+                    rand = tf.cast(rand, tf.uint8)
+                channels.append(tf.math.add(unstacked[i], rand))  # THIS COULD TAKE VALUES BELOW ZERO!!!
 
-        image = tf.stack(channels, axis=2)
+        #image = tf.stack(channels, axis=2)
+
+        for i, input_image in enumerate(channels):
+            input_image = tf.expand_dims(input_image, 2) 
+            input_name = 'image_' + str(i)
+            inputs[input_name] = input_image
         
-        inputs = {  # We generate a dictionary with the images and other input parameters
-            'image': image,
-            'raw_num_hits': reco_pars_i[0],
-            'filtered_num_hits': reco_pars_i[1],
-            'num_hough_rings': reco_pars_i[2],
-            'raw_total_digi_q': reco_pars_f[0],
-            'filtered_total_digi_q': reco_pars_f[1],
-            'first_ring_height': reco_pars_f[2],
-            'last_ring_height': reco_pars_f[3],
-            'reco_vtxX': reco_pars_f[4],
-            'reco_vtxY': reco_pars_f[5],
-            'reco_vtxZ': reco_pars_f[6],
-            'reco_dirTheta': reco_pars_f[7],
-            'reco_dirPhi': reco_pars_f[8]
-        }
-
         return inputs, labels
 
     def dataset(self, dirs):
@@ -224,9 +227,9 @@ class DataCreator:
         channels = []
         ranges = []
 
-        channels.append('filtered_charge_map_vtx')
+        channels.append('raw_charge_map_vtx')
         ranges.append((0.0, 15.0))
-        channels.append('filtered_time_map_vtx')
+        channels.append('raw_time_map_vtx')
         ranges.append((0.0, 80.0))
         channels.append('filtered_hit_hough_map_vtx')
         ranges.append((0.0, 1500.0))
@@ -246,12 +249,12 @@ class DataCreator:
             ranges.append((0.0, 80.0))
             channels.append('raw_hit_map_vtx')
             ranges.append((0.0, 15.0))
-            channels.append('raw_charge_map_vtx')
-            ranges.append((0.0, 15.0))
-            channels.append('raw_time_map_vtx')
-            ranges.append((0.0, 80.0))
             channels.append('filtered_hit_map_vtx')
             ranges.append((0.0, 15.0))
+            channels.append('filtered_charge_map_vtx')
+            ranges.append((0.0, 15.0))
+            channels.append('filtered_time_map_vtx')
+            ranges.append((0.0, 80.0))
 
         channel_images = []
         for i, channel in enumerate(channels):
