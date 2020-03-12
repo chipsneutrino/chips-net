@@ -41,7 +41,7 @@ eval: # Variables used by the evaluator
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_all/chips_1200_sk1pe/"
     cuts:
-        q: 250.0
-        hough: 250.0
-        theta: 0.75
-        phi: 0.75  
+        q: 500.0
+        hough: 500.0
+        theta: 0.7
+        phi: 0.3

@@ -14,6 +14,8 @@ import pandas as pd
 import numpy as np
 from tensorflow.keras import Model
 from sklearn.preprocessing import StandardScaler
+import ROOT
+from root_numpy import fill_hist
 
 import chipscvn.data as data
 import chipscvn.utils as utils
@@ -78,15 +80,19 @@ class ClassificationEvaluator(BaseEvaluator):
             'reco_vtxZ': [],
             'reco_dirTheta': [],
             'reco_dirPhi': [],
-            'predictions': [],
-            'dense_output': [],
-            'ct_image': [],
-            'h_image': []
+            'output': [],
+            'dense': []
         }
+
+        for i in range(self.config.data.img_size[2]):
+            input_name = 'image_' + str(i)
+            events[input_name] = []
 
         # Create a new model that outputs the dense layer of the original model
         dense_model = Model(inputs=self.model.model.input,
                             outputs=self.model.model.get_layer('dense_final').output)
+
+        print('--- running inference...\n')
 
         for x, y in self.data:  # Run prediction on individual batches
             # Fill events dict with 'inputs' data
@@ -99,11 +105,196 @@ class ClassificationEvaluator(BaseEvaluator):
                 if name in events.keys():
                     events[name].extend(array.numpy())
 
-            events['predictions'].extend(self.model.model.predict(x))
-            events['dense_output'].extend(dense_model.predict(x))
+            events['output'].extend(self.model.model.predict(x))
+            events['dense'].extend(dense_model.predict(x))
 
-        self.events = pd.DataFrame.from_dict(events)
-        print('--- %s seconds to test model ---' % (time.time() - start_time))
+        self.events = pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
+
+        print('--- combining outputs...\n')
+
+        # Determine the combined true category
+        self.events['true_cat_combined'] = self.events.apply(self.true_classifier, axis=1)
+        self.events['true_cat_combined'] = self.events['true_cat_combined'].astype('int')
+
+        # Combine outputs into final category prediction values
+        self.events['nuel_cc_pred'] = self.events.apply(self.nuel_cc_pred, axis=1)
+        self.events['numu_cc_pred'] = self.events.apply(self.numu_cc_pred, axis=1)
+        self.events['nc_pred'] = self.events.apply(self.nc_pred, axis=1)
+        self.events['cosmic_pred'] = self.events.apply(self.cosmic_pred, axis=1)
+
+        print('--- applying cuts...\n')
+
+        # Calculate if event is to be cut
+        self.events['activity_cut'] = self.events.apply(self.activity_cut, axis=1)
+        self.events['dir_cut'] = self.events.apply(self.dir_cut, axis=1)
+        self.events['cut'] = self.events.apply(self.combine_cuts, axis=1)
+        # TODO: Implement a fiducial cut!
+
+        print('--- calculating weights...\n')
+
+        # Seperate into category specific dataframes for ease of use later
+        self.events_0 = self.events[(self.events.true_cat_combined == 0) & (self.events.true_type == 1)]
+        self.events_1 = self.events[(self.events.true_cat_combined == 0) & (self.events.true_type != 1)]
+        self.events_2 = self.events[(self.events.true_cat_combined == 1) & (self.events.true_type == 1)]
+        self.events_3 = self.events[(self.events.true_cat_combined == 1) & (self.events.true_type != 1)]
+        self.events_4 = self.events[self.events.true_cat_combined == 2]
+        self.events_5 = self.events[self.events.true_cat_combined == 3]
+
+        # Calculate the weight to give each category
+        self.w_0 = (1.0/self.events[self.events.true_cat_combined == 0].shape[0])*(
+            self.config.eval.weights.nuel*self.config.eval.weights.total)
+        self.w_1 = (1.0/self.events[self.events.true_cat_combined == 1].shape[0])*(
+            self.config.eval.weights.numu*self.config.eval.weights.total)
+        self.w_2 = (1.0/self.events[self.events.true_cat_combined == 2].shape[0])*(
+            self.config.eval.weights.nc*self.config.eval.weights.total)
+        self.w_3 = (1.0/self.events[self.events.true_cat_combined == 3].shape[0])*(
+            self.config.eval.weights.cosmic*self.config.eval.weights.total)
+        print('--- Num-> Nuel:{}, Numu:{}, NC:{}, Cosmic:{}\n'.format(self.events_0.shape[0], 
+                                                                      self.events_1.shape[0],
+                                                                      self.events_2.shape[0],
+                                                                      self.events_3.shape[0]))
+        print('--- Weights-> Nuel:{0:.4f}, Numu:{1:.4f}, NC:{2:.4f}, Cosmic:{3:.4f}\n'.format(self.w_0, 
+                                                                                              self.w_1, 
+                                                                                              self.w_2, 
+                                                                                              self.w_3))
+        print('--- Done (took %s seconds) ---\n' % (time.time() - start_time))
+
+    def cut_summary(self):
+        self.events_0.loc[self.events_0['cut'] == False].shape[0]
+        print("Nuel CC QE: {}, Survived: {}\n".format(
+            self.events_0.shape[0], self.events_0.loc[self.events_0['cut'] == False].shape[0]/self.events_0.shape[0]))
+        print("Nuel CC nQE: {}, Survived: {}\n".format(
+            self.events_1.shape[0], self.events_1.loc[self.events_1['cut'] == False].shape[0]/self.events_1.shape[0]))
+        print("Numu CC QE: {}, Survived: {}\n".format(
+            self.events_2.shape[0], self.events_2.loc[self.events_2['cut'] == False].shape[0]/self.events_2.shape[0]))
+        print("Numu CC nQE: {}, Survived: {}\n".format(
+            self.events_3.shape[0], self.events_3.loc[self.events_3['cut'] == False].shape[0]/self.events_3.shape[0]))
+        print("NC: {}, Survived: {}\n".format(
+            self.events_4.shape[0], self.events_4.loc[self.events_4['cut'] == False].shape[0]/self.events_4.shape[0]))
+        print("Cosmic: {}, Survived: {}\n".format(
+            self.events_5.shape[0], self.events_5.loc[self.events_5['cut'] == False].shape[0]/self.events_5.shape[0]))
+
+    def true_classifier(self, event):
+        if event['true_category'] in [0,2,4,6]:
+            return 0
+        elif event['true_category'] in [1,3,5,7]:
+            return 1
+        elif event['true_category'] == 8:
+            return 2
+        elif event['true_category'] == 9:
+            return 3
+
+    def nuel_cc_pred(self, event):
+        return event['output'][0]+event['output'][2]+event['output'][4]+event['output'][6]
+
+    def numu_cc_pred(self, event):
+        return event['output'][1]+event['output'][3]+event['output'][5]+event['output'][7]
+
+    def nc_pred(self, event):
+        return event['output'][8]
+
+    def cosmic_pred(self, event):
+        return event['output'][9]
+
+    def activity_cut(self, event):
+        cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or 
+               (event['first_ring_height'] <= self.config.eval.cuts.hough))
+        return cut
+
+    def dir_cut(self, event):
+        cut = ((event['reco_dirTheta'] <= -self.config.eval.cuts.theta) or 
+               (event['reco_dirTheta'] >= self.config.eval.cuts.theta) or 
+               (event['reco_dirPhi'] <= -self.config.eval.cuts.phi) or 
+               (event['reco_dirPhi'] >= self.config.eval.cuts.phi))
+        return cut
+
+    def combine_cuts(self, event):
+        return event['activity_cut'] or event['dir_cut']
+
+    def make_cat_plot(self, parameter, bins, low, high, scale='none', cut=False):
+        h_0 = ROOT.TH1F("h_0", parameter, bins, low, high)
+        h_0.SetLineColor(79)
+        h_0.SetLineWidth(2)
+        h_0.GetXaxis().SetTitle(parameter)
+        if cut:
+            fill_hist(h_0, self.events_0.loc[self.events_0['cut'] == False][parameter].values)
+        else:
+            fill_hist(h_0, self.events_0[parameter].values)
+        
+        h_1 = ROOT.TH1F("h_1", parameter, bins, low, high)
+        h_1.SetLineColor(209)
+        h_1.SetLineWidth(2)
+        if cut:
+            fill_hist(h_1, self.events_1.loc[self.events_1['cut'] == False][parameter].values)
+        else:
+            fill_hist(h_1, self.events_1[parameter].values)
+
+        h_2 = ROOT.TH1F("h_2", parameter, bins, low, high)
+        h_2.SetLineColor(64)
+        h_2.SetLineWidth(2)
+        if cut:
+            fill_hist(h_2, self.events_2.loc[self.events_2['cut'] == False][parameter].values)
+        else:
+            fill_hist(h_2, self.events_2[parameter].values)
+    
+        h_3 = ROOT.TH1F("h_3", parameter, bins, low, high)
+        h_3.SetLineColor(214)
+        h_3.SetLineWidth(2)
+        if cut:
+            fill_hist(h_3, self.events_3.loc[self.events_3['cut'] == False][parameter].values)
+        else:
+            fill_hist(h_3, self.events_3[parameter].values)
+
+        h_4 = ROOT.TH1F("h_4", parameter, bins, low, high)
+        h_4.SetLineColor(ROOT.kRed)
+        h_4.SetLineWidth(2)
+        if cut:
+            fill_hist(h_4, self.events_4.loc[self.events_4['cut'] == False][parameter].values)
+        else:
+            fill_hist(h_4, self.events_4[parameter].values)
+
+        h_5 = ROOT.TH1F("h_5", parameter, bins, low, high)
+        h_5.SetLineColor(ROOT.kBlack)
+        h_5.SetLineWidth(2)
+        if cut:
+            fill_hist(h_5, self.events_5.loc[self.events_5['cut'] == False][parameter].values)
+        else:
+            fill_hist(h_5, self.events_5[parameter].values)
+
+        leg = ROOT.TLegend(0.65, 0.65, 0.89, 0.89, "Event Type")
+        leg.AddEntry(h_0, "#nu_{e} CC QE", "PL")
+        leg.AddEntry(h_1, "#nu_{e} CC nQE", "PL")
+        leg.AddEntry(h_2, "#nu_{#mu} CC QE", "PL")
+        leg.AddEntry(h_3, "#nu_{#mu} CC nQE", "PL")
+        leg.AddEntry(h_4, "NC", "PL")
+        leg.AddEntry(h_5, "Cosmic", "PL")
+        leg.SetTextSize(0.03)
+        leg.SetTextFont(42)
+        leg.SetBorderSize(0)
+
+        if scale == 'norm':
+            h_0.GetYaxis().SetTitle("Fraction of Events")
+            h_0.Scale(1.0/h_0.GetEntries())
+            h_1.Scale(1.0/h_1.GetEntries())
+            h_2.Scale(1.0/h_2.GetEntries())
+            h_3.Scale(1.0/h_3.GetEntries())
+            h_4.Scale(1.0/h_4.GetEntries())
+            h_5.Scale(1.0/h_5.GetEntries())
+        elif scale == 'weight':
+            h_0.GetYaxis().SetTitle("Number of Events Per Year")
+            h_0.Scale(self.w_0)
+            h_1.Scale(self.w_0)
+            h_2.Scale(self.w_1)
+            h_3.Scale(self.w_1)
+            h_4.Scale(self.w_2)
+            h_5.Scale(self.w_3)
+        elif scale == 'none':
+            h_0.GetYaxis().SetTitle("Frequency")
+        else:
+            print("Error: Don't understand the scaling command")
+            return
+
+        return [h_0, h_1, h_2, h_3, h_4, h_5], leg
 
 
 class EnergyEvaluator(BaseEvaluator):
@@ -150,10 +341,14 @@ class EnergyEvaluator(BaseEvaluator):
             'reco_vtxZ': [],
             'reco_dirTheta': [],
             'reco_dirPhi': [],
-            'pred_nuEnergy': [],
-            'ct_image': [],
-            'h_image': []
+            'pred_nuEnergy': []
         }
+
+        for i in range(self.config.data.img_size[2]):
+            input_name = 'image_' + str(i)
+            events[input_name] = []
+
+        print('--- running inference...\n')
 
         for x, y in self.data:  # Run prediction on individual batches
             # Fill events dict with 'inputs' data
@@ -168,6 +363,30 @@ class EnergyEvaluator(BaseEvaluator):
 
             events['pred_nuEnergy'].extend(self.model.model.predict(x))
 
-        self.events = pd.DataFrame.from_dict(events)
-        print('--- %s seconds to test model ---' % (time.time() - start_time))
+        self.events = pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
+
+        print('--- applying cuts...\n')
+
+        # Calculate if event is to be cut
+        self.events['activity_cut'] = self.events.apply(self.activity_cut, axis=1)
+        self.events['dir_cut'] = self.events.apply(self.dir_cut, axis=1)
+        self.events['cut'] = self.events.apply(self.combine_cuts, axis=1)
+        # TODO: Implement a fiducial cut!
+
+        print('--- Done (took %s seconds) ---' % (time.time() - start_time))
+
+    def activity_cut(self, event):
+        cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or 
+               (event['first_ring_height'] <= self.config.eval.cuts.hough))
+        return cut
+
+    def dir_cut(self, event):
+        cut = ((events['reco_dirTheta'] <= -self.config.eval.cuts.theta) or 
+               (events['reco_dirTheta'] >= self.config.eval.cuts.theta) or 
+               (events['reco_dirPhi'] <= -self.config.eval.cuts.phi) or 
+               (events['reco_dirPhi'] >= self.config.eval.cuts.phi))
+        return cut
+
+    def combine_cuts(self, event):
+        return event['activity_cut'] or event['dir_cut']
 

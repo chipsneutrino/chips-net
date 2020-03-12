@@ -148,7 +148,7 @@ class DataLoader:
         """Returns the training dataset."""
         ds = self.dataset(self.train_dirs)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
-        ds = ds.take(self.config.data.max_examples)  # Only take 10% of max examples
+        ds = ds.take(self.config.data.max_examples)  # Take up to max examples
         return ds
 
     def val_data(self):
@@ -162,7 +162,7 @@ class DataLoader:
         """Returns the testing dataset."""
         ds = self.dataset(self.test_dirs)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
-        ds = ds.take(int(self.config.data.max_examples*0.1))  # Only take 10% of max examples
+        ds = ds.take(self.config.data.max_examples)  # Take up to max examples
         return ds
 
 
