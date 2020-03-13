@@ -19,7 +19,10 @@ def get(config_path):
     with open(config_path, 'r') as config_file:
         config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
 
-    return DotMap(config_dict)  # Convert yaml dict to namespace
+    config_space = DotMap(config_dict)  # Convert yaml dict to namespace
+    config_space.config_path = config_path
+
+    return config_space
 
 
 def setup_dirs(config, remove_first):
@@ -34,3 +37,6 @@ def setup_dirs(config, remove_first):
     os.makedirs(config.exp.tensorboard_dir, exist_ok=True)
     config.exp.checkpoints_dir = os.path.join(config.exp.exp_dir, 'checkpoints')
     os.makedirs(config.exp.checkpoints_dir, exist_ok=True)
+
+    if remove_first:  # Copy file to keep record of training configuration
+        shutil.copyfile(config.config_path, os.path.join(config.exp.exp_dir, "config.yaml"))
