@@ -52,7 +52,7 @@ class ClassificationEvaluator(BaseEvaluator):
         self.data = data_loader.test_data()
 
     def run(self):
-        """Run the evaluator, just running a simple test on the model."""
+        """Run the full evaluation."""
         print('--- Running Evaluation ---\n')
         start_time = time.time()  # Time how long it takes
         events = {  # Dict to hold all the event data
@@ -160,6 +160,7 @@ class ClassificationEvaluator(BaseEvaluator):
         print('--- Done (took %s seconds) ---\n' % (time.time() - start_time))
 
     def cut_summary(self):
+        """Print a summary of how the cuts effect the different categories."""
         self.events_0.loc[self.events_0['cut'] is False].shape[0]
         print("Nuel CC QE: {}, Survived: {}\n".format(
             self.events_0.shape[0],
@@ -181,6 +182,7 @@ class ClassificationEvaluator(BaseEvaluator):
             self.events_5.loc[self.events_5['cut'] is False].shape[0]/self.events_5.shape[0]))
 
     def true_classifier(self, event):
+        """Classify events into one of the 4 true categories."""
         if event['true_category'] in [0, 2, 4, 6]:
             return 0
         elif event['true_category'] in [1, 3, 5, 7]:
@@ -191,23 +193,29 @@ class ClassificationEvaluator(BaseEvaluator):
             return 3
 
     def nuel_cc_pred(self, event):
+        """Combine the 4 nuel CC event types into a single category score."""
         return event['output'][0]+event['output'][2]+event['output'][4]+event['output'][6]
 
     def numu_cc_pred(self, event):
+        """Combine the 4 numu CC event types into a single category score."""
         return event['output'][1]+event['output'][3]+event['output'][5]+event['output'][7]
 
     def nc_pred(self, event):
+        """Just return the network NC score."""
         return event['output'][8]
 
     def cosmic_pred(self, event):
+        """Just return the network cosmic score."""
         return event['output'][9]
 
     def activity_cut(self, event):
+        """Calculate if the event should be cut due to activity."""
         cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or
                (event['first_ring_height'] <= self.config.eval.cuts.hough))
         return cut
 
     def dir_cut(self, event):
+        """Calculate if the event should be cut due to reconstructed beam direction."""
         cut = ((event['reco_dirTheta'] <= -self.config.eval.cuts.theta) or
                (event['reco_dirTheta'] >= self.config.eval.cuts.theta) or
                (event['reco_dirPhi'] <= -self.config.eval.cuts.phi) or
@@ -215,9 +223,11 @@ class ClassificationEvaluator(BaseEvaluator):
         return cut
 
     def combine_cuts(self, event):
+        """Combine all singular cuts to see if the event should be cut."""
         return event['activity_cut'] or event['dir_cut']
 
     def make_cat_plot(self, parameter, bins, low, high, scale='none', cut=False):
+        """Make the histograms and legend for a parameter, data is split in categories."""
         h_0 = ROOT.TH1F("h_0", parameter, bins, low, high)
         h_0.SetLineColor(79)
         h_0.SetLineWidth(2)
@@ -321,7 +331,7 @@ class EnergyEvaluator(BaseEvaluator):
         self.data = data_loader.test_data()
 
     def run(self):
-        """Run the evaluator, just running a simple test on the model."""
+        """Run the full evaluation."""
         print('--- Running Evaluation ---\n')
         start_time = time.time()  # Time how long it takes
         events = {  # Dict to hold all the event data
@@ -382,11 +392,13 @@ class EnergyEvaluator(BaseEvaluator):
         print('--- Done (took %s seconds) ---' % (time.time() - start_time))
 
     def activity_cut(self, event):
+        """Calculate if the event should be cut due to activity."""
         cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or
                (event['first_ring_height'] <= self.config.eval.cuts.hough))
         return cut
 
     def dir_cut(self, event):
+        """Calculate if the event should be cut due to reconstructed beam direction."""
         cut = ((event['reco_dirTheta'] <= -self.config.eval.cuts.theta) or
                (event['reco_dirTheta'] >= self.config.eval.cuts.theta) or
                (event['reco_dirPhi'] <= -self.config.eval.cuts.phi) or
@@ -394,4 +406,5 @@ class EnergyEvaluator(BaseEvaluator):
         return cut
 
     def combine_cuts(self, event):
+        """Combine all singular cuts to see if the event should be cut."""
         return event['activity_cut'] or event['dir_cut']

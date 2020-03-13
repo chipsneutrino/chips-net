@@ -58,6 +58,7 @@ class SingleParStudy(BaseStudy):
         super().__init__(config)
 
     def init_study(self):
+        """Initialise the SHERPA study."""
         pars = [
             sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
             sherpa.Continuous(name='model.lr', range=self.config.study.model.lr, scale='log'),
@@ -79,6 +80,7 @@ class ClassificationStudy(BaseStudy):
         super().__init__(config)
 
     def init_study(self):
+        """Initialise the SHERPA study."""
         pars = [
             sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
             sherpa.Continuous(name='model.lr', range=self.config.study.model.lr, scale='log'),
@@ -100,6 +102,7 @@ class MultiTaskStudy(BaseStudy):
         super().__init__(config)
 
     def init_study(self):
+        """Initialise the SHERPA study."""
         pars = [
             sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
             sherpa.Continuous(name='model.lr', range=self.config.study.model.lr, scale='log'),
