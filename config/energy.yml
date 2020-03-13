@@ -1,9 +1,7 @@
 ---
 data: # Variables used to load the data
     input_dirs: 
-        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
     all_chan: True
     reduced: True
     channels: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0]
@@ -13,23 +11,17 @@ data: # Variables used to load the data
     batch_size: 64
     max_examples: 5000
 model: # Variables used to build the models
-    - cosmic:
-        name: "cosmic"
-        path: "models/cosmic_base/"
-        lr: 0.0002
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    - beam:
-        name: "beam"
-        path: "models/beam_base/"
-        lr: 0.0002
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
+    dir: "models"
+    path: "cosmic_base"
+    name: "parameter"
+    parameter: "true_nuEnergy"
+    lr: 0.0002
+    dense_units: 256
+    dropout: 0.0
+    kernel_size: 3
+    filters: 64
 eval: # Variables used by the evaluator
+    type: "classification"
     cuts:
         q: 500.0
         hough: 500.0
@@ -45,5 +37,5 @@ eval: # Variables used by the evaluator
         numu: 0.001995 #0.665
         nc: 0.0009 #0.3
         cosmic: 0.997
-    
-    
+        
+        

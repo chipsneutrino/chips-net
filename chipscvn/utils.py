@@ -55,7 +55,7 @@ def get_trainer(config, model, data):
     elif config.model.name == "multi":
         return trainers.BasicTrainer(config, model, data)
     else:
-        print("Error: model not valid!")
+        print("Error: trainer not valid!")
         raise SystemExit
 
 
@@ -70,20 +70,16 @@ def get_study(config):
     elif config.model.name == "multi":
         return studies.MultiStudy(config)
     else:
-        print("Error: model not valid!")
+        print("Error: study not valid!")
         raise SystemExit
 
 
 def get_evaluator(config):
     """Returns the correct evaluator for the configuration."""
-    if config.model.name == "parameter":
+    if config.eval.type == "energy":
         return evaluators.EnergyEvaluator(config)
-    elif config.model.name == "cosmic":
-        raise NotImplementedError
-    elif config.model.name == "beam":
-        return evaluators.BeamEvaluator(config)
-    elif config.model.name == "multi":
-        raise NotImplementedError
+    elif config.eval.type == "classification":
+        return evaluators.ClassificationEvaluator(config)
     else:
-        print("Error: model not valid!")
+        print("Error: evaluator not valid!")
         raise SystemExit

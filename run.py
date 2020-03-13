@@ -83,7 +83,6 @@ def main():
             chipscvn.config.setup_dirs(config, True)
             study_model(config)
         elif args.evaluate:
-            chipscvn.config.setup_dirs(config, False)
             evaluate_model(config)
         else:
             print('\nError: must select task [train, study, evaluate]')
