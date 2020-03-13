@@ -26,7 +26,8 @@ class BaseModel:
             latest = tf.train.latest_checkpoint(self.config.exp.checkpoints_dir)
             self.model.load_weights(latest).expect_partial()
         else:
-            checkpoint_path = self.config.exp.checkpoints_dir + 'cp-' + str(checkpoint_num).zfill(4) + '.ckpt'
+            checkpoint_path = (
+                self.config.exp.checkpoints_dir + 'cp-' + str(checkpoint_num).zfill(4) + '.ckpt')
             self.model.load_weights(checkpoint_path).expect_partial()
 
     def summarise(self):
@@ -50,7 +51,7 @@ class SingleParModel(BaseModel):
 
     def build(self):
         """Builds the model using the keras functional API."""
-        
+
         inputs = []
         paths = []
 

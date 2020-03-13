@@ -11,9 +11,7 @@ customisation of the training loop if required.
 import time
 
 import pandas as pd
-import numpy as np
 from tensorflow.keras import Model
-from sklearn.preprocessing import StandardScaler
 import ROOT
 from root_numpy import fill_hist
 
@@ -133,10 +131,14 @@ class ClassificationEvaluator(BaseEvaluator):
         print('--- calculating weights...\n')
 
         # Seperate into category specific dataframes for ease of use later
-        self.events_0 = self.events[(self.events.true_cat_combined == 0) & (self.events.true_type == 1)]
-        self.events_1 = self.events[(self.events.true_cat_combined == 0) & (self.events.true_type != 1)]
-        self.events_2 = self.events[(self.events.true_cat_combined == 1) & (self.events.true_type == 1)]
-        self.events_3 = self.events[(self.events.true_cat_combined == 1) & (self.events.true_type != 1)]
+        self.events_0 = self.events[(self.events.true_cat_combined == 0) &
+                                    (self.events.true_type == 1)]
+        self.events_1 = self.events[(self.events.true_cat_combined == 0) &
+                                    (self.events.true_type != 1)]
+        self.events_2 = self.events[(self.events.true_cat_combined == 1) &
+                                    (self.events.true_type == 1)]
+        self.events_3 = self.events[(self.events.true_cat_combined == 1) &
+                                    (self.events.true_type != 1)]
         self.events_4 = self.events[self.events.true_cat_combined == 2]
         self.events_5 = self.events[self.events.true_cat_combined == 3]
 
@@ -149,35 +151,39 @@ class ClassificationEvaluator(BaseEvaluator):
             self.config.eval.weights.nc*self.config.eval.weights.total)
         self.w_3 = (1.0/self.events[self.events.true_cat_combined == 3].shape[0])*(
             self.config.eval.weights.cosmic*self.config.eval.weights.total)
-        print('--- Num-> Nuel:{}, Numu:{}, NC:{}, Cosmic:{}\n'.format(self.events_0.shape[0], 
+        print('--- Num-> Nuel:{}, Numu:{}, NC:{}, Cosmic:{}\n'.format(self.events_0.shape[0],
                                                                       self.events_1.shape[0],
                                                                       self.events_2.shape[0],
                                                                       self.events_3.shape[0]))
-        print('--- Weights-> Nuel:{0:.4f}, Numu:{1:.4f}, NC:{2:.4f}, Cosmic:{3:.4f}\n'.format(self.w_0, 
-                                                                                              self.w_1, 
-                                                                                              self.w_2, 
-                                                                                              self.w_3))
+        print('--- Weights-> Nuel:{0:.4f}, Numu:{1:.4f}, NC:{2:.4f}, Cosmic:{3:.4f}\n'.format(
+            self.w_0, self.w_1, self.w_2, self.w_3))
         print('--- Done (took %s seconds) ---\n' % (time.time() - start_time))
 
     def cut_summary(self):
-        self.events_0.loc[self.events_0['cut'] == False].shape[0]
+        self.events_0.loc[self.events_0['cut'] is False].shape[0]
         print("Nuel CC QE: {}, Survived: {}\n".format(
-            self.events_0.shape[0], self.events_0.loc[self.events_0['cut'] == False].shape[0]/self.events_0.shape[0]))
+            self.events_0.shape[0],
+            self.events_0.loc[self.events_0['cut'] is False].shape[0]/self.events_0.shape[0]))
         print("Nuel CC nQE: {}, Survived: {}\n".format(
-            self.events_1.shape[0], self.events_1.loc[self.events_1['cut'] == False].shape[0]/self.events_1.shape[0]))
+            self.events_1.shape[0],
+            self.events_1.loc[self.events_1['cut'] is False].shape[0]/self.events_1.shape[0]))
         print("Numu CC QE: {}, Survived: {}\n".format(
-            self.events_2.shape[0], self.events_2.loc[self.events_2['cut'] == False].shape[0]/self.events_2.shape[0]))
+            self.events_2.shape[0],
+            self.events_2.loc[self.events_2['cut'] is False].shape[0]/self.events_2.shape[0]))
         print("Numu CC nQE: {}, Survived: {}\n".format(
-            self.events_3.shape[0], self.events_3.loc[self.events_3['cut'] == False].shape[0]/self.events_3.shape[0]))
+            self.events_3.shape[0],
+            self.events_3.loc[self.events_3['cut'] is False].shape[0]/self.events_3.shape[0]))
         print("NC: {}, Survived: {}\n".format(
-            self.events_4.shape[0], self.events_4.loc[self.events_4['cut'] == False].shape[0]/self.events_4.shape[0]))
+            self.events_4.shape[0],
+            self.events_4.loc[self.events_4['cut'] is False].shape[0]/self.events_4.shape[0]))
         print("Cosmic: {}, Survived: {}\n".format(
-            self.events_5.shape[0], self.events_5.loc[self.events_5['cut'] == False].shape[0]/self.events_5.shape[0]))
+            self.events_5.shape[0],
+            self.events_5.loc[self.events_5['cut'] is False].shape[0]/self.events_5.shape[0]))
 
     def true_classifier(self, event):
-        if event['true_category'] in [0,2,4,6]:
+        if event['true_category'] in [0, 2, 4, 6]:
             return 0
-        elif event['true_category'] in [1,3,5,7]:
+        elif event['true_category'] in [1, 3, 5, 7]:
             return 1
         elif event['true_category'] == 8:
             return 2
@@ -197,14 +203,14 @@ class ClassificationEvaluator(BaseEvaluator):
         return event['output'][9]
 
     def activity_cut(self, event):
-        cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or 
+        cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or
                (event['first_ring_height'] <= self.config.eval.cuts.hough))
         return cut
 
     def dir_cut(self, event):
-        cut = ((event['reco_dirTheta'] <= -self.config.eval.cuts.theta) or 
-               (event['reco_dirTheta'] >= self.config.eval.cuts.theta) or 
-               (event['reco_dirPhi'] <= -self.config.eval.cuts.phi) or 
+        cut = ((event['reco_dirTheta'] <= -self.config.eval.cuts.theta) or
+               (event['reco_dirTheta'] >= self.config.eval.cuts.theta) or
+               (event['reco_dirPhi'] <= -self.config.eval.cuts.phi) or
                (event['reco_dirPhi'] >= self.config.eval.cuts.phi))
         return cut
 
@@ -217,15 +223,15 @@ class ClassificationEvaluator(BaseEvaluator):
         h_0.SetLineWidth(2)
         h_0.GetXaxis().SetTitle(parameter)
         if cut:
-            fill_hist(h_0, self.events_0.loc[self.events_0['cut'] == False][parameter].values)
+            fill_hist(h_0, self.events_0.loc[self.events_0['cut'] is False][parameter].values)
         else:
             fill_hist(h_0, self.events_0[parameter].values)
-        
+
         h_1 = ROOT.TH1F("h_1", parameter, bins, low, high)
         h_1.SetLineColor(209)
         h_1.SetLineWidth(2)
         if cut:
-            fill_hist(h_1, self.events_1.loc[self.events_1['cut'] == False][parameter].values)
+            fill_hist(h_1, self.events_1.loc[self.events_1['cut'] is False][parameter].values)
         else:
             fill_hist(h_1, self.events_1[parameter].values)
 
@@ -233,15 +239,15 @@ class ClassificationEvaluator(BaseEvaluator):
         h_2.SetLineColor(64)
         h_2.SetLineWidth(2)
         if cut:
-            fill_hist(h_2, self.events_2.loc[self.events_2['cut'] == False][parameter].values)
+            fill_hist(h_2, self.events_2.loc[self.events_2['cut'] is False][parameter].values)
         else:
             fill_hist(h_2, self.events_2[parameter].values)
-    
+
         h_3 = ROOT.TH1F("h_3", parameter, bins, low, high)
         h_3.SetLineColor(214)
         h_3.SetLineWidth(2)
         if cut:
-            fill_hist(h_3, self.events_3.loc[self.events_3['cut'] == False][parameter].values)
+            fill_hist(h_3, self.events_3.loc[self.events_3['cut'] is False][parameter].values)
         else:
             fill_hist(h_3, self.events_3[parameter].values)
 
@@ -249,7 +255,7 @@ class ClassificationEvaluator(BaseEvaluator):
         h_4.SetLineColor(ROOT.kRed)
         h_4.SetLineWidth(2)
         if cut:
-            fill_hist(h_4, self.events_4.loc[self.events_4['cut'] == False][parameter].values)
+            fill_hist(h_4, self.events_4.loc[self.events_4['cut'] is False][parameter].values)
         else:
             fill_hist(h_4, self.events_4[parameter].values)
 
@@ -257,7 +263,7 @@ class ClassificationEvaluator(BaseEvaluator):
         h_5.SetLineColor(ROOT.kBlack)
         h_5.SetLineWidth(2)
         if cut:
-            fill_hist(h_5, self.events_5.loc[self.events_5['cut'] == False][parameter].values)
+            fill_hist(h_5, self.events_5.loc[self.events_5['cut'] is False][parameter].values)
         else:
             fill_hist(h_5, self.events_5[parameter].values)
 
@@ -376,17 +382,16 @@ class EnergyEvaluator(BaseEvaluator):
         print('--- Done (took %s seconds) ---' % (time.time() - start_time))
 
     def activity_cut(self, event):
-        cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or 
+        cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or
                (event['first_ring_height'] <= self.config.eval.cuts.hough))
         return cut
 
     def dir_cut(self, event):
-        cut = ((events['reco_dirTheta'] <= -self.config.eval.cuts.theta) or 
-               (events['reco_dirTheta'] >= self.config.eval.cuts.theta) or 
-               (events['reco_dirPhi'] <= -self.config.eval.cuts.phi) or 
-               (events['reco_dirPhi'] >= self.config.eval.cuts.phi))
+        cut = ((event['reco_dirTheta'] <= -self.config.eval.cuts.theta) or
+               (event['reco_dirTheta'] >= self.config.eval.cuts.theta) or
+               (event['reco_dirPhi'] <= -self.config.eval.cuts.phi) or
+               (event['reco_dirPhi'] >= self.config.eval.cuts.phi))
         return cut
 
     def combine_cuts(self, event):
         return event['activity_cut'] or event['dir_cut']
-

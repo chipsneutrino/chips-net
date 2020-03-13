@@ -43,7 +43,9 @@ class BaseStudy(object):
             model = chipscvn.utils.get_model(self.config)
             model.summarise()
             trainer = chipscvn.utils.get_trainer(self.config, model, data)
-            cb = [self.study.keras_callback(trial, objective_name=self.objective, context_names=self.context)]
+            cb = [self.study.keras_callback(trial,
+                                            objective_name=self.objective,
+                                            context_names=self.context)]
             trainer.train(cb)
             self.study.finalize(trial)
 

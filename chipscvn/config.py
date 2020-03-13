@@ -18,7 +18,7 @@ def get(config_path):
     """Returns the configuration namespace specified in the config file."""
     with open(config_path, 'r') as config_file:
         config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
-        
+
     return DotMap(config_dict)  # Convert yaml dict to namespace
 
 
@@ -34,4 +34,3 @@ def setup_dirs(config, remove_first):
     os.makedirs(config.exp.tensorboard_dir, exist_ok=True)
     config.exp.checkpoints_dir = os.path.join(config.exp.exp_dir, 'checkpoints')
     os.makedirs(config.exp.checkpoints_dir, exist_ok=True)
-

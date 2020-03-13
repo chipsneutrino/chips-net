@@ -68,7 +68,7 @@ class DataLoader:
         # Unpack the pdg and type and use to determine event category
         pdg = self.pdg_table.lookup(true_pars_i[0])
         type = self.type_table.lookup(true_pars_i[1])
-        category = self.cat_table.lookup(tf.strings.join((tf.strings.as_string(pdg), 
+        category = self.cat_table.lookup(tf.strings.join((tf.strings.as_string(pdg),
                                                           tf.strings.as_string(type))))
 
         labels = {  # We generate a dictionary with all the true labels
@@ -114,18 +114,20 @@ class DataLoader:
         channels = []
         for i, enabled in enumerate(self.config.data.channels):
             if enabled:
-                rand = tf.random.normal(shape=[64, 64], mean=0, stddev=self.config.data.r_spread[i], dtype=tf.float32)
+                rand = tf.random.normal(shape=[64, 64], mean=0,
+                                        stddev=self.config.data.r_spread[i],
+                                        dtype=tf.float32)
                 if self.config.data.reduced:
                     rand = tf.cast(rand, tf.uint8)
-                channels.append(tf.math.add(unstacked[i], rand))  # THIS COULD TAKE VALUES BELOW ZERO!!!
+                channels.append(tf.math.add(unstacked[i], rand))  # COULD TAKE VALUES BELOW ZERO!!!
 
-        #image = tf.stack(channels, axis=2)
+        #  image = tf.stack(channels, axis=2)
 
         for i, input_image in enumerate(channels):
-            input_image = tf.expand_dims(input_image, 2) 
+            input_image = tf.expand_dims(input_image, 2)
             input_name = 'image_' + str(i)
             inputs[input_name] = input_image
-        
+
         return inputs, labels
 
     def dataset(self, dirs):
@@ -135,7 +137,7 @@ class DataLoader:
             for file in os.listdir(d):
                 files.append(os.path.join(d, file))
 
-        random.shuffle(files)  # We shuffle the list as an additionally randomisation to "interleave"
+        random.shuffle(files)  # Shuffle the list as an additionally randomisation to "interleave"
         ds = tf.data.Dataset.from_tensor_slices(files)
         ds = ds.interleave(tf.data.TFRecordDataset,
                            cycle_length=len(files),
@@ -260,9 +262,9 @@ class DataCreator:
         for i, channel in enumerate(channels):
             channel_image = reco.array(channel)
             if self.reduce:
-                channel_image.clip(ranges[i][0], ranges[i][1], out=channel_image)  # Clip to between the ranges
+                channel_image.clip(ranges[i][0], ranges[i][1], out=channel_image)
                 channel_image -= ranges[i][0]  # Set minimum to be zero
-                channel_image /= (ranges[i][1]-ranges[i][0]) # normalize the data to 0 - 1
+                channel_image /= (ranges[i][1]-ranges[i][0])  # normalize the data to 0 - 1
                 channel_image *= 256.
                 channel_image = channel_image.astype(np.uint8)
             channel_images.append(channel_image)

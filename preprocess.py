@@ -20,8 +20,10 @@ def parse_args():
     parser.add_argument('-s', '--split', help='val and test split fraction', default=0.1)
     parser.add_argument('-g', '--geom', help='detector geometry name', default='chips_1200_sk1pe')
     parser.add_argument('-j', '--join', help='how many input files to join together', default=10)
-    parser.add_argument('--all', action='store_true', help='pass through all maps to tfrecords file')
-    parser.add_argument('--reduce', action='store_true', help='encode images in 8-bit rather than floats')
+    parser.add_argument('--all', action='store_true',
+                        help='pass through all maps to tfrecords file')
+    parser.add_argument('--reduce', action='store_true',
+                        help='encode images in 8-bit rather than floats')
     parser.add_argument('--single', action='store_true', help='Use a single process')
     return parser.parse_args()
 
