@@ -43,6 +43,12 @@ class DataLoader:
         self.cat_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(cat_keys, cat_vals), -1)
 
+        # Cosmic category lookup table
+        cosmic_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        cosmic_vals = tf.constant([0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
+        self.cosmic_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(cosmic_keys, cosmic_vals), -1)
+
         # Generate the lists of train, val and test file directories from the configuration
         self.train_dirs = [os.path.join(in_dir, 'train') for in_dir in self.config.data.input_dirs]
         self.val_dirs = [os.path.join(in_dir, 'val') for in_dir in self.config.data.input_dirs]
@@ -70,11 +76,13 @@ class DataLoader:
         type = self.type_table.lookup(true_pars_i[1])
         category = self.cat_table.lookup(tf.strings.join((tf.strings.as_string(pdg),
                                                           tf.strings.as_string(type))))
+        cosmic = self.cosmic_table.lookup(category)
 
         labels = {  # We generate a dictionary with all the true labels
             'true_pdg': pdg,
             'true_type': type,
             'true_category': category,
+            'true_cosmic': cosmic,
             'true_vtxX': true_pars_f[0],
             'true_vtxY': true_pars_f[1],
             'true_vtxZ': true_pars_f[2],

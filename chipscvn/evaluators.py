@@ -34,13 +34,13 @@ class BaseEvaluator(object):
         raise NotImplementedError
 
 
-class ClassificationEvaluator(BaseEvaluator):
-    """Implements the classification evaluation."""
+class EnergyEvaluator(BaseEvaluator):
+    """Implements the energy estimation evaluation."""
     def __init__(self, config):
         super().__init__(config)
 
     def init_evaluator(self):
-        """Initialise the classification evaluator, loading the evaluation data and model."""
+        """Initialise the evaluator, loading the evaluation data and model."""
         self.config.data.input_dirs = self.config.eval.input_dirs
 
         # Get the model to evaluate and load the most recent weights
@@ -59,6 +59,105 @@ class ClassificationEvaluator(BaseEvaluator):
             'true_pdg': [],
             'true_type': [],
             'true_category': [],
+            'true_cosmic': [],
+            'true_vtxX': [],
+            'true_vtxY': [],
+            'true_vtxZ': [],
+            'true_dirTheta': [],
+            'true_dirPhi': [],
+            'true_nuEnergy': [],
+            'true_lepEnergy': [],
+            'raw_num_hits': [],
+            'filtered_num_hits': [],
+            'num_hough_rings': [],
+            'raw_total_digi_q': [],
+            'filtered_total_digi_q': [],
+            'first_ring_height': [],
+            'last_ring_height': [],
+            'reco_vtxX': [],
+            'reco_vtxY': [],
+            'reco_vtxZ': [],
+            'reco_dirTheta': [],
+            'reco_dirPhi': [],
+            'pred_nuEnergy': []
+        }
+
+        for i in range(self.config.data.img_size[2]):
+            input_name = 'image_' + str(i)
+            events[input_name] = []
+
+        print('--- running inference...\n')
+
+        for x, y in self.data:  # Run prediction on individual batches
+            # Fill events dict with 'inputs' data
+            for name, array in list(x.items()):
+                if name in events.keys():
+                    events[name].extend(array.numpy())
+
+            # Fill events dict with 'labels' data
+            for name, array in list(y.items()):
+                if name in events.keys():
+                    events[name].extend(array.numpy())
+
+            events['pred_nuEnergy'].extend(self.model.model.predict(x))
+
+        self.events = pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
+
+        print('--- applying cuts...\n')
+
+        # Calculate if event is to be cut
+        self.events['activity_cut'] = self.events.apply(self.activity_cut, axis=1)
+        self.events['dir_cut'] = self.events.apply(self.dir_cut, axis=1)
+        self.events['cut'] = self.events.apply(self.combine_cuts, axis=1)
+        # TODO: Implement a fiducial cut!
+
+        print('--- Done (took %s seconds) ---' % (time.time() - start_time))
+
+    def activity_cut(self, event):
+        """Calculate if the event should be cut due to activity."""
+        cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or
+               (event['first_ring_height'] <= self.config.eval.cuts.hough))
+        return cut
+
+    def dir_cut(self, event):
+        """Calculate if the event should be cut due to reconstructed beam direction."""
+        cut = ((event['reco_dirTheta'] <= -self.config.eval.cuts.theta) or
+               (event['reco_dirTheta'] >= self.config.eval.cuts.theta) or
+               (event['reco_dirPhi'] <= -self.config.eval.cuts.phi) or
+               (event['reco_dirPhi'] >= self.config.eval.cuts.phi))
+        return cut
+
+    def combine_cuts(self, event):
+        """Combine all singular cuts to see if the event should be cut."""
+        return event['activity_cut'] or event['dir_cut']
+
+
+class BeamEvaluator(BaseEvaluator):
+    """Implements the Beam event classification model evaluation."""
+    def __init__(self, config):
+        super().__init__(config)
+
+    def init_evaluator(self):
+        """Initialise the evaluator, loading the evaluation data and model."""
+        self.config.data.input_dirs = self.config.eval.input_dirs
+
+        # Get the model to evaluate and load the most recent weights
+        self.model = utils.get_model(self.config)
+        self.model.load()
+
+        # Load the test dataset into memory for easier manipulation
+        data_loader = data.DataLoader(self.config)
+        self.data = data_loader.test_data()
+
+    def run(self):
+        """Run the full evaluation."""
+        print('--- Running Evaluation ---\n')
+        start_time = time.time()  # Time how long it takes
+        events = {  # Dict to hold all the event data
+            'true_pdg': [],
+            'true_type': [],
+            'true_category': [],
+            'true_cosmic': [],
             'true_vtxX': [],
             'true_vtxY': [],
             'true_vtxZ': [],
@@ -311,100 +410,3 @@ class ClassificationEvaluator(BaseEvaluator):
             return
 
         return [h_0, h_1, h_2, h_3, h_4, h_5], leg
-
-
-class EnergyEvaluator(BaseEvaluator):
-    """Implements the energy estimation evaluation."""
-    def __init__(self, config):
-        super().__init__(config)
-
-    def init_evaluator(self):
-        """Initialise the energy estimation evaluator, loading the evaluation data and model."""
-        self.config.data.input_dirs = self.config.eval.input_dirs
-
-        # Get the model to evaluate and load the most recent weights
-        self.model = utils.get_model(self.config)
-        self.model.load()
-
-        # Load the test dataset into memory for easier manipulation
-        data_loader = data.DataLoader(self.config)
-        self.data = data_loader.test_data()
-
-    def run(self):
-        """Run the full evaluation."""
-        print('--- Running Evaluation ---\n')
-        start_time = time.time()  # Time how long it takes
-        events = {  # Dict to hold all the event data
-            'true_pdg': [],
-            'true_type': [],
-            'true_category': [],
-            'true_vtxX': [],
-            'true_vtxY': [],
-            'true_vtxZ': [],
-            'true_dirTheta': [],
-            'true_dirPhi': [],
-            'true_nuEnergy': [],
-            'true_lepEnergy': [],
-            'raw_num_hits': [],
-            'filtered_num_hits': [],
-            'num_hough_rings': [],
-            'raw_total_digi_q': [],
-            'filtered_total_digi_q': [],
-            'first_ring_height': [],
-            'last_ring_height': [],
-            'reco_vtxX': [],
-            'reco_vtxY': [],
-            'reco_vtxZ': [],
-            'reco_dirTheta': [],
-            'reco_dirPhi': [],
-            'pred_nuEnergy': []
-        }
-
-        for i in range(self.config.data.img_size[2]):
-            input_name = 'image_' + str(i)
-            events[input_name] = []
-
-        print('--- running inference...\n')
-
-        for x, y in self.data:  # Run prediction on individual batches
-            # Fill events dict with 'inputs' data
-            for name, array in list(x.items()):
-                if name in events.keys():
-                    events[name].extend(array.numpy())
-
-            # Fill events dict with 'labels' data
-            for name, array in list(y.items()):
-                if name in events.keys():
-                    events[name].extend(array.numpy())
-
-            events['pred_nuEnergy'].extend(self.model.model.predict(x))
-
-        self.events = pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
-
-        print('--- applying cuts...\n')
-
-        # Calculate if event is to be cut
-        self.events['activity_cut'] = self.events.apply(self.activity_cut, axis=1)
-        self.events['dir_cut'] = self.events.apply(self.dir_cut, axis=1)
-        self.events['cut'] = self.events.apply(self.combine_cuts, axis=1)
-        # TODO: Implement a fiducial cut!
-
-        print('--- Done (took %s seconds) ---' % (time.time() - start_time))
-
-    def activity_cut(self, event):
-        """Calculate if the event should be cut due to activity."""
-        cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or
-               (event['first_ring_height'] <= self.config.eval.cuts.hough))
-        return cut
-
-    def dir_cut(self, event):
-        """Calculate if the event should be cut due to reconstructed beam direction."""
-        cut = ((event['reco_dirTheta'] <= -self.config.eval.cuts.theta) or
-               (event['reco_dirTheta'] >= self.config.eval.cuts.theta) or
-               (event['reco_dirPhi'] <= -self.config.eval.cuts.phi) or
-               (event['reco_dirPhi'] >= self.config.eval.cuts.phi))
-        return cut
-
-    def combine_cuts(self, event):
-        """Combine all singular cuts to see if the event should be cut."""
-        return event['activity_cut'] or event['dir_cut']

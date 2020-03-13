@@ -1,6 +1,6 @@
 ---
 exp: # Variables that define the experiment
-    name: "multi_task"
+    name: "multi"
     experiment_dir: "experiments/"
 data: # Variables used to load the data
     input_dirs: 
@@ -33,9 +33,9 @@ data: # Variables used to load the data
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    max_examples: 20000
+    max_examples: 5000
 model: # Variables used in building the model
-    name: "multi_task"
+    name: "multi"
     pdgs: 2
     types: 7
     lr: 0.001
@@ -44,7 +44,7 @@ model: # Variables used in building the model
     kernel_size: 3
     filters: 64
 trainer: # Variables used by the trainer
-    num_epochs: 5
+    num_epochs: 3
     es_delta: 5
     es_epochs: 5
 study: # We list the number of trials and then all the variables we want to tune

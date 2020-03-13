@@ -31,12 +31,14 @@ def gpu_setup():
 
 def get_model(config):
     """Returns the correct model for the configuration."""
-    if config.model.name == "single_par":
-        return models.SingleParModel(config)
-    elif config.model.name == "classification":
-        return models.ClassificationModel(config)
-    elif config.model.name == "multi_task":
-        return models.MultiTaskModel(config)
+    if config.model.name == "parameter":
+        return models.ParameterModel(config)
+    elif config.model.name == "cosmic":
+        return models.CosmicModel(config)
+    elif config.model.name == "beam":
+        return models.BeamModel(config)
+    elif config.model.name == "multi":
+        return models.MultiModel(config)
     else:
         print("Error: model not valid!")
         raise SystemExit
@@ -44,11 +46,13 @@ def get_model(config):
 
 def get_trainer(config, model, data):
     """Returns the correct trainer for the configuration."""
-    if config.model.name == "single_par":
+    if config.model.name == "parameter":
         return trainers.BasicTrainer(config, model, data)
-    elif config.model.name == "classification":
+    elif config.model.name == "cosmic":
         return trainers.BasicTrainer(config, model, data)
-    elif config.model.name == "multi_task":
+    elif config.model.name == "beam":
+        return trainers.BasicTrainer(config, model, data)
+    elif config.model.name == "multi":
         return trainers.BasicTrainer(config, model, data)
     else:
         print("Error: model not valid!")
@@ -57,12 +61,14 @@ def get_trainer(config, model, data):
 
 def get_study(config):
     """Returns the correct study for the configuration."""
-    if config.model.name == "single_par":
-        return studies.SingleParStudy(config)
-    elif config.model.name == "classification":
-        return studies.ClassificationStudy(config)
-    elif config.model.name == "multi_task":
-        return studies.MultiTaskStudy(config)
+    if config.model.name == "parameter":
+        return studies.ParameterStudy(config)
+    elif config.model.name == "cosmic":
+        return studies.CosmicStudy(config)
+    elif config.model.name == "beam":
+        return studies.BeamStudy(config)
+    elif config.model.name == "multi":
+        return studies.MultiStudy(config)
     else:
         print("Error: model not valid!")
         raise SystemExit
@@ -70,11 +76,13 @@ def get_study(config):
 
 def get_evaluator(config):
     """Returns the correct evaluator for the configuration."""
-    if config.model.name == "single_par":
+    if config.model.name == "parameter":
         return evaluators.EnergyEvaluator(config)
-    elif config.model.name == "classification":
-        return evaluators.ClassificationEvaluator(config)
-    elif config.model.name == "multi_task":
+    elif config.model.name == "cosmic":
+        raise NotImplementedError
+    elif config.model.name == "beam":
+        return evaluators.BeamEvaluator(config)
+    elif config.model.name == "multi":
         raise NotImplementedError
     else:
         print("Error: model not valid!")

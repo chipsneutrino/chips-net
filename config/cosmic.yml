@@ -1,0 +1,79 @@
+---
+exp: # Variables that define the experiment
+    name: "cosmic"
+    experiment_dir: "experiments/"
+data: # Variables used to load the data
+    input_dirs: 
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_res_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_res_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_pizero_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_pizero_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_beam_dir/chips_1200_sk1pe/"
+    all_chan: True
+    reduced: True
+    channels: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0]
+    r_spread: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    img_size: [64, 64, 3]
+    par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
+    batch_size: 64
+    max_examples: 5000
+model: # Variables used in building the model
+    name: "cosmic"
+    categories: 10
+    lr: 0.0002
+    dense_units: 512
+    dropout: 0.2
+    kernel_size: 3
+    filters: 64
+trainer: # Variables used by the trainer
+    num_epochs: 3
+    es_delta: 5
+    es_epochs: 5
+study: # We list the number of trials and then all the variables we want to tune
+    trials: 200
+    data:
+        batch_size: [64, 128]
+    model:
+        lr: [0.0005, 0.01]
+        dense_units: [128, 256, 512]
+        dropout: [0.0, 0.5]
+        kernel_size: [3, 5]
+        filters: [32, 64, 128]
+eval: # Variables used by the evaluator
+    input_dirs: 
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_all/chips_1200_sk1pe/"
+    cuts:
+        q: 500.0
+        hough: 500.0
+        theta: 0.7
+        phi: 0.3
+    weights:
+        total:  1214186
+        #nuel:   0.000048879753398
+        #numu:   0.002113382196077
+        #nc:     0.000710731860207
+        #cosmic: 0.997127006190318
+        nuel: 0.000105 #0.035
+        numu: 0.001995 #0.665
+        nc: 0.0009 #0.3
+        cosmic: 0.997
+

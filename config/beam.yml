@@ -1,10 +1,10 @@
 ---
 exp: # Variables that define the experiment
-    name: "classification_extra_samples"
+    name: "beam"
     experiment_dir: "experiments/"
 data: # Variables used to load the data
     input_dirs: 
-        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
+        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_nc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_cc/chips_1200_sk1pe/"
@@ -14,7 +14,7 @@ data: # Variables used to load the data
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_nc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_pizero_nc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
+        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_nc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_cc/chips_1200_sk1pe/"
@@ -33,9 +33,9 @@ data: # Variables used to load the data
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    max_examples: 500
+    max_examples: 5000
 model: # Variables used in building the model
-    name: "classification"
+    name: "beam"
     categories: 10
     lr: 0.0002
     dense_units: 512
