@@ -1,7 +1,7 @@
 ---
-exp: # Variables that define the experiment
-    name: "nuel_qel_cc_energy_resolution"
-    experiment_dir: "experiments/"
+exp: # Variables used to save the experiment
+    name: "nuel_qel_cc_energy"
+    experiment_dir: "models/"
 data: # Variables used to load thata
     input_dirs: 
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
@@ -35,11 +35,3 @@ study: # We list the number of trials and then all the variables we want to tune
         dropout: [0.0, 0.5]
         kernel_size: [3, 5]
         filters: [32, 64, 128]
-eval: # Variables used by the evaluator
-    input_dirs: 
-        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
-    cuts:
-        q: 500.0
-        hough: 500.0
-        theta: 0.7
-        phi: 0.3

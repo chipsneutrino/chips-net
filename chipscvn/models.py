@@ -249,7 +249,7 @@ class BeamModel(BaseModel):
         x = Dense(self.config.model.dense_units, activation='relu')(x)
         x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
         x = Dropout(self.config.model.dropout)(x)
-        outputs = Dense(self.config.model.categories, activation='softmax', name='true_category')(x)
+        outputs = Dense(9, activation='softmax', name='true_category')(x)
         self.model = Model(inputs=inputs, outputs=outputs, name='beam_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
@@ -323,8 +323,8 @@ class MultiTaskModel(BaseModel):
         pdg_path = Dense(self.config.model.dense_units, activation='relu')(x)
         type_path = Dense(self.config.model.dense_units, activation='relu')(x)
         energy_path = Dense(self.config.model.dense_units, activation='relu')(x)
-        pdg_output = Dense(self.config.model.pdgs, activation='softmax', name='true_pdg')(pdg_path)
-        type_output = Dense(self.config.model.types, activation='softmax', name='true_type')(type_path)
+        pdg_output = Dense(2, activation='softmax', name='true_pdg')(pdg_path)
+        type_output = Dense(7, activation='softmax', name='true_type')(type_path)
         energy_output = Dense(1, activation='linear', name='true_nuEnergy')(energy_path)
         self.model = Model(inputs=inputs, outputs=[pdg_output, type_output, energy_output], name='multi_task_model')
 
