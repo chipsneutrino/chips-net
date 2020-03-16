@@ -1,0 +1,57 @@
+---
+    data: # Variables used to load the data
+        input_dirs: 
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_cc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_nc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_cc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_nc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_res_cc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_res_nc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_nc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_cc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_nc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_cc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_nc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_cc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_nc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_cc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_nc/chips_1200_sk1pe/"
+            - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_all/chips_1200_sk1pe/"
+        all_chan: True
+        reduced: True
+        stack: False
+        channels: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0]
+        rand: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        img_size: [64, 64, 3]
+        par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
+        batch_size: 64
+        max_examples: 500
+    models: # Variables used to build the models
+        cosmic:
+            dir: "models"
+            path: "cosmic_base_samples"
+            name: "cosmic"
+            lr: 0.0002
+            dense_units: 512
+            dropout: 0.2
+            kernel_size: 3
+            filters: 64
+        beam:
+            dir: "models"
+            path: "beam_base_samples"
+            name: "beam"
+            lr: 0.0002
+            dense_units: 512
+            dropout: 0.2
+            kernel_size: 3
+            filters: 64
+    eval: # Variables used by the evaluator
+        type: "combined"
+        cuts:
+            cosmic: 0.01
+            q: 500.0
+            hough: 500.0
+            theta: 0.7
+            phi: 0.3
+        

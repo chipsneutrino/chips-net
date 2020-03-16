@@ -93,7 +93,7 @@ class CosmicStudy(BaseStudy):
         self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
                                   output_dir=self.config.exp.exp_dir)
         self.objective = 'val_loss'
-        self.context = ['val_pdg_accuracy', 'val_type_accuracy']
+        self.context = ['val_accuracy']
 
 
 class BeamStudy(BaseStudy):
@@ -115,7 +115,7 @@ class BeamStudy(BaseStudy):
         self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
                                   output_dir=self.config.exp.exp_dir)
         self.objective = 'val_loss'
-        self.context = ['val_pdg_accuracy', 'val_type_accuracy']
+        self.context = ['val_accuracy']
 
 
 class CombinedStudy(BaseStudy):
@@ -138,7 +138,7 @@ class CombinedStudy(BaseStudy):
         self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
                                   output_dir=self.config.exp.exp_dir)
         self.objective = 'val_loss'
-        self.context = ['val_pdg_accuracy', 'val_type_accuracy']
+        self.context = ['val_accuracy']
 
 
 class MultiStudy(BaseStudy):
