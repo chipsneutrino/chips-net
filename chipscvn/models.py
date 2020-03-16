@@ -279,6 +279,83 @@ class BeamModel(BaseModel):
                            metrics=self.metrics)
 
 
+class CombinedCatModel(BaseModel):
+    """Combined category classification model class."""
+    def __init__(self, config):
+        super().__init__(config)
+
+    def build(self):
+        """Builds the model using the keras functional API."""
+
+        inputs = []
+        paths = []
+
+        vtxX_input = Input(shape=(1), name='reco_vtxX')
+        inputs.append(vtxX_input)
+        paths.append(vtxX_input)
+
+        vtxY_input = Input(shape=(1), name='reco_vtxY')
+        inputs.append(vtxY_input)
+        paths.append(vtxY_input)
+
+        vtxZ_input = Input(shape=(1), name='reco_vtxZ')
+        inputs.append(vtxZ_input)
+        paths.append(vtxZ_input)
+
+        dirTheta_input = Input(shape=(1), name='reco_dirTheta')
+        inputs.append(dirTheta_input)
+        paths.append(dirTheta_input)
+
+        dirPhi_input = Input(shape=(1), name='reco_dirPhi')
+        inputs.append(dirPhi_input)
+        paths.append(dirPhi_input)
+
+        images = self.config.data.img_size[2]
+        shape = (self.config.data.img_size[0], self.config.data.img_size[1], 1)
+        if self.config.data.stack:
+            images = 1
+            shape = self.config.data.img_size
+
+        for channel in range(images):
+            image_name = 'image_' + str(channel)
+            image_input = Input(shape=shape, name=(image_name))
+            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
+            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(image_path)
+            image_path = MaxPooling2D(pool_size=2)(image_path)
+            image_path = Dropout(self.config.model.dropout)(image_path)
+            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
+            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, activation='relu')(image_path)
+            image_path = MaxPooling2D(pool_size=2)(image_path)
+            image_path = Dropout(self.config.model.dropout)(image_path)
+            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
+            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, activation='relu')(image_path)
+            image_path = MaxPooling2D(pool_size=2)(image_path)
+            image_path = Dropout(self.config.model.dropout)(image_path)
+            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
+            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, activation='relu')(image_path)
+            image_path = MaxPooling2D(pool_size=2)(image_path)
+            image_path = Dropout(self.config.model.dropout)(image_path)
+            image_path = Flatten()(image_path)
+            paths.append(image_path)
+            inputs.append(image_input)
+
+        x = concatenate(paths)
+        x = Dense(self.config.model.dense_units, activation='relu')(x)
+        x = Dense(self.config.model.dense_units, activation='relu')(x)
+        x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
+        x = Dropout(self.config.model.dropout)(x)
+        outputs = Dense(3, activation='softmax', name='true_combined')(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name='beam_model')
+        self.loss = 'sparse_categorical_crossentropy'
+        self.metrics = ['accuracy']
+        self.es_monitor = 'val_accuracy'
+        self.parameters = ['true_combined']
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+
 class MultiTaskModel(BaseModel):
     """Multi-task model class."""
     def __init__(self, config):

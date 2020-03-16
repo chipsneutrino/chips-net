@@ -90,7 +90,7 @@ class CosmicStudy(BaseStudy):
             sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters),
         ]
         algorithm = sherpa.algorithms.RandomSearch(max_num_trials=self.config.study.trials)
-        self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=True,
+        self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
                                   output_dir=self.config.exp.exp_dir)
         self.objective = 'val_loss'
         self.context = ['val_pdg_accuracy', 'val_type_accuracy']
@@ -112,7 +112,30 @@ class BeamStudy(BaseStudy):
             sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters),
         ]
         algorithm = sherpa.algorithms.RandomSearch(max_num_trials=self.config.study.trials)
-        self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=True,
+        self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
+                                  output_dir=self.config.exp.exp_dir)
+        self.objective = 'val_loss'
+        self.context = ['val_pdg_accuracy', 'val_type_accuracy']
+
+
+class CombinedStudy(BaseStudy):
+    """Combined category event classification model study class."""
+    def __init__(self, config):
+        super().__init__(config)
+
+    def init_study(self):
+        """Initialise the SHERPA study."""
+        pars = [
+            sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
+            sherpa.Choice(name='data.stack', range=self.config.study.data.stack),
+            sherpa.Continuous(name='model.lr', range=self.config.study.model.lr, scale='log'),
+            sherpa.Ordinal(name='model.dense_units', range=self.config.study.model.dense_units),
+            sherpa.Continuous(name='model.dropout', range=self.config.study.model.dropout),
+            sherpa.Ordinal(name='model.kernel_size', range=self.config.study.model.kernel_size),
+            sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters),
+        ]
+        algorithm = sherpa.algorithms.RandomSearch(max_num_trials=self.config.study.trials)
+        self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
                                   output_dir=self.config.exp.exp_dir)
         self.objective = 'val_loss'
         self.context = ['val_pdg_accuracy', 'val_type_accuracy']
@@ -134,7 +157,7 @@ class MultiStudy(BaseStudy):
             sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters),
         ]
         algorithm = sherpa.algorithms.RandomSearch(max_num_trials=self.config.study.trials)
-        self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=True,
+        self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
                                   output_dir=self.config.exp.exp_dir)
         self.objective = 'val_loss'
         self.context = ['val_pdg_accuracy', 'val_type_accuracy', 'val_nuEnergy_mae']

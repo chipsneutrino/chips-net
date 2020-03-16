@@ -37,6 +37,8 @@ def get_model(config):
         return models.CosmicModel(config)
     elif config.model.name == "beam":
         return models.BeamModel(config)
+    elif config.model.name == "combined":
+        return models.CombinedCatModel(config)
     elif config.model.name == "multi":
         return models.MultiModel(config)
     else:
@@ -51,6 +53,8 @@ def get_trainer(config, model, data):
     elif config.model.name == "cosmic":
         return trainers.BasicTrainer(config, model, data)
     elif config.model.name == "beam":
+        return trainers.BasicTrainer(config, model, data)
+    elif config.model.name == "combined":
         return trainers.BasicTrainer(config, model, data)
     elif config.model.name == "multi":
         return trainers.BasicTrainer(config, model, data)
@@ -67,6 +71,8 @@ def get_study(config):
         return studies.CosmicStudy(config)
     elif config.model.name == "beam":
         return studies.BeamStudy(config)
+    elif config.model.name == "combined":
+        return studies.CombinedStudy(config)
     elif config.model.name == "multi":
         return studies.MultiStudy(config)
     else:
@@ -76,10 +82,8 @@ def get_study(config):
 
 def get_evaluator(config):
     """Returns the correct evaluator for the configuration."""
-    if config.eval.type == "energy":
-        return evaluators.EnergyEvaluator(config)
-    elif config.eval.type == "classification":
-        return evaluators.ClassificationEvaluator(config)
+    if config.eval.type == "combined":
+        return evaluators.CombinedEvaluator(config)
     else:
         print("Error: evaluator not valid!")
         raise SystemExit
