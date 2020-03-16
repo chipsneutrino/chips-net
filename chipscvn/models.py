@@ -75,9 +75,15 @@ class ParameterModel(BaseModel):
         inputs.append(dirPhi_input)
         paths.append(dirPhi_input)
 
-        for channel in range(self.config.data.img_size[2]):
+        images = self.config.data.img_size[2]
+        shape = (self.config.data.img_size[0], self.config.data.img_size[1], 1)
+        if self.config.data.stack:
+            images = 1
+            shape = self.config.data.img_size
+
+        for channel in range(images):
             image_name = 'image_' + str(channel)
-            image_input = Input(shape=(self.config.data.img_size[0], self.config.data.img_size[1], 1), name=(image_name))
+            image_input = Input(shape=shape, name=(image_name))
             image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
             image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(image_path)
             image_path = MaxPooling2D(pool_size=2)(image_path)
@@ -149,9 +155,15 @@ class CosmicModel(BaseModel):
         inputs.append(dirPhi_input)
         paths.append(dirPhi_input)
 
-        for channel in range(self.config.data.img_size[2]):
+        images = self.config.data.img_size[2]
+        shape = (self.config.data.img_size[0], self.config.data.img_size[1], 1)
+        if self.config.data.stack:
+            images = 1
+            shape = self.config.data.img_size
+
+        for channel in range(images):
             image_name = 'image_' + str(channel)
-            image_input = Input(shape=(self.config.data.img_size[0], self.config.data.img_size[1], 1), name=(image_name))
+            image_input = Input(shape=shape, name=(image_name))
             image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
             image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(image_path)
             image_path = MaxPooling2D(pool_size=2)(image_path)
@@ -221,9 +233,15 @@ class BeamModel(BaseModel):
         inputs.append(dirPhi_input)
         paths.append(dirPhi_input)
 
-        for channel in range(self.config.data.img_size[2]):
+        images = self.config.data.img_size[2]
+        shape = (self.config.data.img_size[0], self.config.data.img_size[1], 1)
+        if self.config.data.stack:
+            images = 1
+            shape = self.config.data.img_size
+
+        for channel in range(images):
             image_name = 'image_' + str(channel)
-            image_input = Input(shape=(self.config.data.img_size[0], self.config.data.img_size[1], 1), name=(image_name))
+            image_input = Input(shape=shape, name=(image_name))
             image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
             image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(image_path)
             image_path = MaxPooling2D(pool_size=2)(image_path)
@@ -292,9 +310,15 @@ class MultiTaskModel(BaseModel):
         inputs.append(dirPhi_input)
         paths.append(dirPhi_input)
 
-        for channel in range(self.config.data.img_size[2]):
+        images = self.config.data.img_size[2]
+        shape = (self.config.data.img_size[0], self.config.data.img_size[1], 1)
+        if self.config.data.stack:
+            images = 1
+            shape = self.config.data.img_size
+
+        for channel in range(images):
             image_name = 'image_' + str(channel)
-            image_input = Input(shape=(self.config.data.img_size[0], self.config.data.img_size[1], 1), name=(image_name))
+            image_input = Input(shape=shape, name=(image_name))
             image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
             image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(image_path)
             image_path = MaxPooling2D(pool_size=2)(image_path)
