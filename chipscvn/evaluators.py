@@ -11,11 +11,9 @@ derived from the BaseEvaluator class.
 import time
 
 import pandas as pd
-import numpy as np
 from tensorflow.keras import Model
 import ROOT
 from root_numpy import fill_hist
-from sklearn.preprocessing import StandardScaler
 
 import chipscvn.config
 import chipscvn.data as data
@@ -143,11 +141,6 @@ class CombinedEvaluator(BaseEvaluator):
         self.events['numu_cc_combined'] = self.events.apply(self.numu_cc_combined, axis=1)
         self.events.drop('beam_output', axis=1, inplace=True)
 
-        # Standardize the dense layer outputs by removing the mean and scaling to unit variance
-        scaler = StandardScaler()
-        self.cosmic_dense_scaled = scaler.fit_transform(np.stack(self.events["cosmic_dense"]))
-        self.beam_dense_scaled = scaler.fit_transform(np.stack(self.events["beam_dense"]))
-
     def true_classifier(self, event):
         """Classify events into one of the 4 true categories."""
         if event['true_category'] in [0, 2, 4, 6]:
@@ -243,71 +236,39 @@ class CombinedEvaluator(BaseEvaluator):
         """Combine all singular cuts to see if the event should be cut."""
         return event['cosmic_cut'] or event['activity_cut'] or event['dir_cut']
 
-    def make_cat_plot(self, parameter, bins, low, high, scale='none', cut=False):
+    def make_cat_plot(self, parameter, bins, low, high, scale='norm', cut=True):
         """Make the histograms and legend for a parameter, data is split in categories."""
 
-        h_0 = ROOT.TH1F("h_0", parameter, bins, low, high)
-        h_0.SetLineColor(ROOT.kGreen)
-        h_0.SetLineWidth(2)
-        h_0.GetXaxis().SetTitle(parameter)
-        events_0 = self.events[self.events['true_cat_combined'] == 0]
-        if cut:
-            fill_hist(h_0, events_0.loc[events_0['cut'] == False][parameter].values)
-        else:
-            fill_hist(h_0, events_0[parameter].values)
-
-        h_1 = ROOT.TH1F("h_1", parameter, bins, low, high)
-        h_1.SetLineColor(ROOT.kBlue)
-        h_1.SetLineWidth(2)
-        events_1 = self.events[self.events['true_cat_combined'] == 1]
-        if cut:
-            fill_hist(h_1, events_1.loc[events_1['cut'] == False][parameter].values)
-        else:
-            fill_hist(h_1, events_1[parameter].values)
-
-        h_2 = ROOT.TH1F("h_2", parameter, bins, low, high)
-        h_2.SetLineColor(ROOT.kRed)
-        h_2.SetLineWidth(2)
-        events_2 = self.events[self.events['true_cat_combined'] == 2]
-        if cut:
-            fill_hist(h_2, events_2.loc[events_2['cut'] == False][parameter].values)
-        else:
-            fill_hist(h_2, events_2[parameter].values)
-
-        h_3 = ROOT.TH1F("h_3", parameter, bins, low, high)
-        h_3.SetLineColor(ROOT.kBlack)
-        h_3.SetLineWidth(2)
-        events_3 = self.events[self.events['true_cat_combined'] == 3]
-        if cut:
-            fill_hist(h_3, events_3.loc[events_3['cut'] == False][parameter].values)
-        else:
-            fill_hist(h_3, events_3[parameter].values)
-
+        hists = []
+        colours = [ROOT.kGreen, ROOT.kBlue, ROOT.kRed, ROOT.kBlack]
         leg = ROOT.TLegend(0.65, 0.65, 0.89, 0.89, "Event Type")
-        leg.AddEntry(h_0, "#nu_{e} CC", "PL")
-        leg.AddEntry(h_1, "#nu_{#mu} CC", "PL")
-        leg.AddEntry(h_2, "NC", "PL")
-        leg.AddEntry(h_3, "Cosmic", "PL")
+        entries = ["#nu_{e} CC", "#nu_{#mu} CC", "NC", "Cosmic"]
+        for i in range(4):
+            name = "h_" + str(i)
+            hist = ROOT.TH1F(name, parameter, bins, low, high)
+            hist.SetLineColor(colours[i])
+            hist.SetLineWidth(2)
+            hist.GetXaxis().SetTitle(parameter)
+            events = self.events[self.events['true_cat_combined'] == i]
+            if cut and scale == 'weight':
+                fill_hist(hist,
+                          events.loc[events['cut'] == False][parameter].values,
+                          events.loc[events['cut'] == False]['weight'].values)
+            elif not cut and scale == 'weight':
+                fill_hist(hist, events[parameter].values, events['weight'].values)
+            elif cut and scale == 'norm':
+                fill_hist(hist, events.loc[events['cut'] == False][parameter].values)
+                hist.Scale(1.0/hist.GetEntries())
+            elif not cut and scale == 'norm':
+                fill_hist(hist, events[parameter].values)
+                hist.Scale(1.0/hist.GetEntries())
+            else:
+                raise NotImplementedError
+            hists.append(hist)
+            leg.AddEntry(hists[i], entries[i], "PL")
+
         leg.SetTextSize(0.03)
         leg.SetTextFont(42)
         leg.SetBorderSize(0)
 
-        if scale == 'norm':
-            h_0.GetYaxis().SetTitle("Fraction of Events")
-            h_0.Scale(1.0/h_0.GetEntries())
-            h_1.Scale(1.0/h_1.GetEntries())
-            h_2.Scale(1.0/h_2.GetEntries())
-            h_3.Scale(1.0/h_3.GetEntries())
-        elif scale == 'weight':
-            h_0.GetYaxis().SetTitle("Number of Events Per Year")
-            h_0.Scale(self.w_0)
-            h_1.Scale(self.w_0)
-            h_2.Scale(self.w_1)
-            h_3.Scale(self.w_1)
-        elif scale == 'none':
-            h_0.GetYaxis().SetTitle("Frequency")
-        else:
-            print("Error: Don't understand the scaling command")
-            return
-
-        return [h_0, h_1, h_2, h_3], leg
+        return hists, leg
