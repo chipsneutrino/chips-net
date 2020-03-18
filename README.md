@@ -14,12 +14,35 @@ Once this is done you can run setup.sh again in the future to activate the envir
 To preprocess .root map files into tfrecords run...
 
 ```
-$ python data.py -i [input_directory] -o [output_directory]
+$ python preprocess.py [input_directory] --reduce
 ```
 
 ## Training
 To train a model run...
 
 ```
-$ python train.py [json_configuration]
+$ python run.py [yaml_configuration] --train
+```
+
+## SHERPA Study
+To run a study...
+
+```
+$ python run.py [yaml_configuration] --study
+```
+
+## SHERPA Study
+To use eval and explain notebooks...
+
+```
+$ jupyter-notebook
+```
+
+and navigate to the link, you will need to make sure you are forwarding the port
+
+## Jupyter Slideshow
+To serve the slideshow...
+
+```
+$ jupyter nbconvert [notebook] --to slides --post serve
 ```
