@@ -35,32 +35,23 @@ def get_model(config):
         return models.ParameterModel(config)
     elif config.model.name == "cosmic":
         return models.CosmicModel(config)
-    elif config.model.name == "beam":
-        return models.BeamModel(config)
-    elif config.model.name == "combined":
-        return models.CombinedCatModel(config)
-    elif config.model.name == "multi":
-        return models.MultiModel(config)
+    elif config.model.name == "beam_all":
+        return models.BeamAllModel(config)
+    elif config.model.name == "beam_full_comb":
+        return models.BeamFullCombModel(config)
+    elif config.model.name == "beam_nu_nc_comb":
+        return models.BeamNuNCCombModel(config)
+    elif config.model.name == "beam_nc_comb":
+        return models.BeamNCCombModel(config)
+    elif config.model.name == "beam_multi":
+        return models.BeamMultiModel(config)
     else:
-        print("Error: model not valid!")
-        raise SystemExit
+        raise NotImplementedError
 
 
 def get_trainer(config, model, data):
     """Returns the correct trainer for the configuration."""
-    if config.model.name == "parameter":
-        return trainers.BasicTrainer(config, model, data)
-    elif config.model.name == "cosmic":
-        return trainers.BasicTrainer(config, model, data)
-    elif config.model.name == "beam":
-        return trainers.BasicTrainer(config, model, data)
-    elif config.model.name == "combined":
-        return trainers.BasicTrainer(config, model, data)
-    elif config.model.name == "multi":
-        return trainers.BasicTrainer(config, model, data)
-    else:
-        print("Error: trainer not valid!")
-        raise SystemExit
+    return trainers.BasicTrainer(config, model, data)
 
 
 def get_study(config):
@@ -68,16 +59,19 @@ def get_study(config):
     if config.model.name == "parameter":
         return studies.ParameterStudy(config)
     elif config.model.name == "cosmic":
-        return studies.CosmicStudy(config)
-    elif config.model.name == "beam":
-        return studies.BeamStudy(config)
-    elif config.model.name == "combined":
-        return studies.CombinedStudy(config)
-    elif config.model.name == "multi":
+        return studies.StandardStudy(config)
+    elif config.model.name == "beam_all":
+        return studies.StandardStudy(config)
+    elif config.model.name == "beam_full_comb":
+        return studies.StandardStudy(config)
+    elif config.model.name == "beam_nu_nc_comb":
+        return studies.StandardStudy(config)
+    elif config.model.name == "beam_nc_comb":
+        return studies.StandardStudy(config)
+    elif config.model.name == "beam_multi":
         return studies.MultiStudy(config)
     else:
-        print("Error: study not valid!")
-        raise SystemExit
+        raise NotImplementedError
 
 
 def get_evaluator(config):
@@ -85,5 +79,4 @@ def get_evaluator(config):
     if config.eval.type == "combined":
         return evaluators.CombinedEvaluator(config)
     else:
-        print("Error: evaluator not valid!")
-        raise SystemExit
+        raise NotImplementedError

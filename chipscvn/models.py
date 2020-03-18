@@ -44,6 +44,77 @@ class BaseModel:
         raise NotImplementedError
 
 
+def GetModelBase(config):
+    """Returns the base of the model that is shared"""
+    inputs = []
+    paths = []
+    if config.model.reco_pars:
+        vtxX_input = Input(shape=(1), name='r_vtxX')
+        inputs.append(vtxX_input)
+        paths.append(vtxX_input)
+
+        vtxY_input = Input(shape=(1), name='r_vtxY')
+        inputs.append(vtxY_input)
+        paths.append(vtxY_input)
+
+        vtxZ_input = Input(shape=(1), name='r_vtxZ')
+        inputs.append(vtxZ_input)
+        paths.append(vtxZ_input)
+
+        dirTheta_input = Input(shape=(1), name='r_dirTheta')
+        inputs.append(dirTheta_input)
+        paths.append(dirTheta_input)
+
+        dirPhi_input = Input(shape=(1), name='r_dirPhi')
+        inputs.append(dirPhi_input)
+        paths.append(dirPhi_input)
+
+    images = config.data.img_size[2]
+    shape = (config.data.img_size[0], config.data.img_size[1], 1)
+    if config.data.stack:
+        images = 1
+        shape = config.data.img_size
+
+    for channel in range(images):
+        image_name = 'image_' + str(channel)
+        image_input = Input(shape=shape, name=image_name)
+        image_path = Conv2D(config.model.filters, config.model.kernel_size,
+                            padding='same', activation='relu', name='conv1')(image_input)
+        image_path = Conv2D(config.model.filters, config.model.kernel_size,
+                            activation='relu', name='conv2')(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Conv2D((config.model.filters*2), config.model.kernel_size,
+                            padding='same', activation='relu', name='conv3')(image_path)
+        image_path = Conv2D((config.model.filters*2), config.model.kernel_size,
+                            activation='relu', name='conv4')(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Conv2D((config.model.filters*4), config.model.kernel_size,
+                            padding='same', activation='relu', name='conv5')(image_path)
+        image_path = Conv2D((config.model.filters*4), config.model.kernel_size,
+                            activation='relu', name='conv6')(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Conv2D((config.model.filters*8), config.model.kernel_size,
+                            padding='same', activation='relu', name='conv7')(image_path)
+        image_path = Conv2D((config.model.filters*8), config.model.kernel_size,
+                            activation='relu', name='conv8')(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Flatten()(image_path)
+        paths.append(image_path)
+        inputs.append(image_input)
+
+    x = concatenate(paths)
+    x = Dense(config.model.dense_units, activation='relu')(x)
+    x = Dense(config.model.dense_units, activation='relu')(x)
+    x = Dense(config.model.dense_units, activation='relu', name='dense_final')(x)
+    x = Dropout(config.model.dropout)(x)
+
+    return x, inputs
+
+
 class ParameterModel(BaseModel):
     """Single parameter estimation model class."""
     def __init__(self, config):
@@ -52,63 +123,7 @@ class ParameterModel(BaseModel):
     def build(self):
         """Builds the model using the keras functional API."""
 
-        inputs = []
-        paths = []
-
-        vtxX_input = Input(shape=(1), name='reco_vtxX')
-        inputs.append(vtxX_input)
-        paths.append(vtxX_input)
-
-        vtxY_input = Input(shape=(1), name='reco_vtxY')
-        inputs.append(vtxY_input)
-        paths.append(vtxY_input)
-
-        vtxZ_input = Input(shape=(1), name='reco_vtxZ')
-        inputs.append(vtxZ_input)
-        paths.append(vtxZ_input)
-
-        dirTheta_input = Input(shape=(1), name='reco_dirTheta')
-        inputs.append(dirTheta_input)
-        paths.append(dirTheta_input)
-
-        dirPhi_input = Input(shape=(1), name='reco_dirPhi')
-        inputs.append(dirPhi_input)
-        paths.append(dirPhi_input)
-
-        images = self.config.data.img_size[2]
-        shape = (self.config.data.img_size[0], self.config.data.img_size[1], 1)
-        if self.config.data.stack:
-            images = 1
-            shape = self.config.data.img_size
-
-        for channel in range(images):
-            image_name = 'image_' + str(channel)
-            image_input = Input(shape=shape, name=(image_name))
-            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
-            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Flatten()(image_path)
-            paths.append(image_path)
-            inputs.append(image_input)
-
-        x = concatenate(paths)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
-        x = Dropout(self.config.model.dropout)(x)
+        x, inputs = GetModelBase(self.config)
         outputs = Dense(1, activation='linear', name=self.config.model.parameter)(x)
         self.model = Model(inputs=inputs, outputs=outputs, name='parameter_model')
 
@@ -132,64 +147,8 @@ class CosmicModel(BaseModel):
     def build(self):
         """Builds the model using the keras functional API."""
 
-        inputs = []
-        paths = []
-
-        vtxX_input = Input(shape=(1), name='reco_vtxX')
-        inputs.append(vtxX_input)
-        paths.append(vtxX_input)
-
-        vtxY_input = Input(shape=(1), name='reco_vtxY')
-        inputs.append(vtxY_input)
-        paths.append(vtxY_input)
-
-        vtxZ_input = Input(shape=(1), name='reco_vtxZ')
-        inputs.append(vtxZ_input)
-        paths.append(vtxZ_input)
-
-        dirTheta_input = Input(shape=(1), name='reco_dirTheta')
-        inputs.append(dirTheta_input)
-        paths.append(dirTheta_input)
-
-        dirPhi_input = Input(shape=(1), name='reco_dirPhi')
-        inputs.append(dirPhi_input)
-        paths.append(dirPhi_input)
-
-        images = self.config.data.img_size[2]
-        shape = (self.config.data.img_size[0], self.config.data.img_size[1], 1)
-        if self.config.data.stack:
-            images = 1
-            shape = self.config.data.img_size
-
-        for channel in range(images):
-            image_name = 'image_' + str(channel)
-            image_input = Input(shape=shape, name=(image_name))
-            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
-            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Flatten()(image_path)
-            paths.append(image_path)
-            inputs.append(image_input)
-
-        x = concatenate(paths)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
-        x = Dropout(self.config.model.dropout)(x)
-        outputs = Dense(1, activation='sigmoid', name='true_cosmic')(x)
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(1, activation='sigmoid', name='t_cosmic_cat')(x)
         self.model = Model(inputs=inputs, outputs=outputs, name='cosmic_model')
 
         self.loss = 'binary_crossentropy'
@@ -202,73 +161,17 @@ class CosmicModel(BaseModel):
                            metrics=self.metrics)
 
 
-class BeamModel(BaseModel):
-    """Beam event classification model class."""
+class BeamAllModel(BaseModel):
+    """Beam all category classification model class."""
     def __init__(self, config):
         super().__init__(config)
 
     def build(self):
         """Builds the model using the keras functional API."""
 
-        inputs = []
-        paths = []
-
-        vtxX_input = Input(shape=(1), name='reco_vtxX')
-        inputs.append(vtxX_input)
-        paths.append(vtxX_input)
-
-        vtxY_input = Input(shape=(1), name='reco_vtxY')
-        inputs.append(vtxY_input)
-        paths.append(vtxY_input)
-
-        vtxZ_input = Input(shape=(1), name='reco_vtxZ')
-        inputs.append(vtxZ_input)
-        paths.append(vtxZ_input)
-
-        dirTheta_input = Input(shape=(1), name='reco_dirTheta')
-        inputs.append(dirTheta_input)
-        paths.append(dirTheta_input)
-
-        dirPhi_input = Input(shape=(1), name='reco_dirPhi')
-        inputs.append(dirPhi_input)
-        paths.append(dirPhi_input)
-
-        images = self.config.data.img_size[2]
-        shape = (self.config.data.img_size[0], self.config.data.img_size[1], 1)
-        if self.config.data.stack:
-            images = 1
-            shape = self.config.data.img_size
-
-        for channel in range(images):
-            image_name = 'image_' + str(channel)
-            image_input = Input(shape=shape, name=(image_name))
-            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
-            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Flatten()(image_path)
-            paths.append(image_path)
-            inputs.append(image_input)
-
-        x = concatenate(paths)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
-        x = Dropout(self.config.model.dropout)(x)
-        outputs = Dense(9, activation='softmax', name='true_category')(x)
-        self.model = Model(inputs=inputs, outputs=outputs, name='beam_model')
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(18, activation='softmax', name='t_cat')(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name='beam_all_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
         self.es_monitor = 'val_accuracy'
@@ -279,173 +182,100 @@ class BeamModel(BaseModel):
                            metrics=self.metrics)
 
 
-class CombinedCatModel(BaseModel):
-    """Combined category classification model class."""
+class BeamFullCombModel(BaseModel):
+    """Beam full combined category classification model class."""
     def __init__(self, config):
         super().__init__(config)
 
     def build(self):
         """Builds the model using the keras functional API."""
 
-        inputs = []
-        paths = []
-
-        vtxX_input = Input(shape=(1), name='reco_vtxX')
-        inputs.append(vtxX_input)
-        paths.append(vtxX_input)
-
-        vtxY_input = Input(shape=(1), name='reco_vtxY')
-        inputs.append(vtxY_input)
-        paths.append(vtxY_input)
-
-        vtxZ_input = Input(shape=(1), name='reco_vtxZ')
-        inputs.append(vtxZ_input)
-        paths.append(vtxZ_input)
-
-        dirTheta_input = Input(shape=(1), name='reco_dirTheta')
-        inputs.append(dirTheta_input)
-        paths.append(dirTheta_input)
-
-        dirPhi_input = Input(shape=(1), name='reco_dirPhi')
-        inputs.append(dirPhi_input)
-        paths.append(dirPhi_input)
-
-        images = self.config.data.img_size[2]
-        shape = (self.config.data.img_size[0], self.config.data.img_size[1], 1)
-        if self.config.data.stack:
-            images = 1
-            shape = self.config.data.img_size
-
-        for channel in range(images):
-            image_name = 'image_' + str(channel)
-            image_input = Input(shape=shape, name=(image_name))
-            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
-            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Flatten()(image_path)
-            paths.append(image_path)
-            inputs.append(image_input)
-
-        x = concatenate(paths)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
-        x = Dropout(self.config.model.dropout)(x)
-        outputs = Dense(3, activation='softmax', name='true_combined')(x)
-        self.model = Model(inputs=inputs, outputs=outputs, name='beam_model')
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(4, activation='softmax', name='t_full_cat')(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name='beam_full_comb_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
         self.es_monitor = 'val_accuracy'
-        self.parameters = ['true_combined']
+        self.parameters = ['true_category']
 
         self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
                            metrics=self.metrics)
 
 
-class MultiTaskModel(BaseModel):
-    """Multi-task model class."""
+class BeamNuNCCombModel(BaseModel):
+    """Beam Nu NC category combined classification model class."""
     def __init__(self, config):
         super().__init__(config)
 
     def build(self):
         """Builds the model using the keras functional API."""
 
-        inputs = []
-        paths = []
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(13, activation='softmax', name='t_nu_nc_cat')(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name='beam_nu_nc_comb_model')
+        self.loss = 'sparse_categorical_crossentropy'
+        self.metrics = ['accuracy']
+        self.es_monitor = 'val_accuracy'
+        self.parameters = ['true_category']
 
-        vtxX_input = Input(shape=(1), name='reco_vtxX')
-        inputs.append(vtxX_input)
-        paths.append(vtxX_input)
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
 
-        vtxY_input = Input(shape=(1), name='reco_vtxY')
-        inputs.append(vtxY_input)
-        paths.append(vtxY_input)
 
-        vtxZ_input = Input(shape=(1), name='reco_vtxZ')
-        inputs.append(vtxZ_input)
-        paths.append(vtxZ_input)
+class BeamNCCombModel(BaseModel):
+    """Beam NC category combined classification model class."""
+    def __init__(self, config):
+        super().__init__(config)
 
-        dirTheta_input = Input(shape=(1), name='reco_dirTheta')
-        inputs.append(dirTheta_input)
-        paths.append(dirTheta_input)
+    def build(self):
+        """Builds the model using the keras functional API."""
 
-        dirPhi_input = Input(shape=(1), name='reco_dirPhi')
-        inputs.append(dirPhi_input)
-        paths.append(dirPhi_input)
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(10, activation='softmax', name='t_nc_cat')(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name='beam_nc_comb_model')
+        self.loss = 'sparse_categorical_crossentropy'
+        self.metrics = ['accuracy']
+        self.es_monitor = 'val_accuracy'
+        self.parameters = ['true_category']
 
-        images = self.config.data.img_size[2]
-        shape = (self.config.data.img_size[0], self.config.data.img_size[1], 1)
-        if self.config.data.stack:
-            images = 1
-            shape = self.config.data.img_size
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
 
-        for channel in range(images):
-            image_name = 'image_' + str(channel)
-            image_input = Input(shape=shape, name=(image_name))
-            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, padding='same', activation='relu')(image_input)
-            image_path = Conv2D(self.config.model.filters, self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*2), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*4), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, padding='same', activation='relu')(image_path)
-            image_path = Conv2D((self.config.model.filters*8), self.config.model.kernel_size, activation='relu')(image_path)
-            image_path = MaxPooling2D(pool_size=2)(image_path)
-            image_path = Dropout(self.config.model.dropout)(image_path)
-            image_path = Flatten()(image_path)
-            paths.append(image_path)
-            inputs.append(image_input)
 
-        x = concatenate(paths)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu')(x)
-        x = Dense(self.config.model.dense_units, activation='relu', name='dense_final')(x)
-        x = Dropout(self.config.model.dropout)(x)
-        pdg_path = Dense(self.config.model.dense_units, activation='relu')(x)
-        type_path = Dense(self.config.model.dense_units, activation='relu')(x)
+class BeamMultiModel(BaseModel):
+    """Beam Multi-task model class."""
+    def __init__(self, config):
+        super().__init__(config)
+
+    def build(self):
+        """Builds the model using the keras functional API."""
+
+        x, inputs = GetModelBase(self.config)
+        category_path = Dense(self.config.model.dense_units, activation='relu')(x)
         energy_path = Dense(self.config.model.dense_units, activation='relu')(x)
-        pdg_output = Dense(2, activation='softmax', name='true_pdg')(pdg_path)
-        type_output = Dense(7, activation='softmax', name='true_type')(type_path)
-        energy_output = Dense(1, activation='linear', name='true_nuEnergy')(energy_path)
-        self.model = Model(inputs=inputs, outputs=[pdg_output, type_output, energy_output], name='multi_task_model')
+        category_output = Dense(18, activation='softmax', name='t_cat')(category_path)
+        energy_output = Dense(1, activation='linear', name='t_nuEnergy')(energy_path)
+        self.model = Model(inputs=inputs,
+                           outputs=[category_output, energy_output],
+                           name='beam_multi_model')
 
         self.loss = {
-            'pdg': 'sparse_categorical_crossentropy',
-            'type': 'sparse_categorical_crossentropy',
-            'nuEnergy': 'mean_squared_error',
+            't_cat': 'sparse_categorical_crossentropy',
+            't_nuEnergy': 'mean_squared_error',
         }
         self.loss_weights = {
-            'pdg': 1.0,
-            'type': 1.0,
-            'nuEnergy': 1.0
+            't_cat': 1.0,
+            't_nuEnergy': 1.0
         }
         self.metrics = {
-            'pdg': 'accuracy',
-            'type': 'accuracy',
-            'nuEnergy': 'mae'
+            't_cat': 'accuracy',
+            't_nuEnergy': 'mae'
         }
         self.es_monitor = 'val_accuracy'
-        self.parameters = ['pdg', 'type', 'nuEnergy']
+        self.parameters = ['t_cat', 't_nuEnergy']
 
         self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,

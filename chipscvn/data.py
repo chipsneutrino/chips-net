@@ -27,33 +27,130 @@ class DataLoader:
 
     def init(self):
         """Initialise the PDG, type and category lookup tables and input directories."""
-        pdg_keys = tf.constant([11, 12, 13, 14])
-        pdg_vals = tf.constant([0,  0,  1,  1])
-        self.pdg_table = tf.lookup.StaticHashTable(
-            tf.lookup.KeyValueTensorInitializer(pdg_keys, pdg_vals), -1)
 
-        type_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 91, 92, 96, 97, 98, 99, 100])
-        type_vals = tf.constant([6, 0, 4, 1, 1, 1, 4, 4, 4, 4,  2,  4,  4,  3,  6,  6,   5])
-        self.type_table = tf.lookup.StaticHashTable(
-            tf.lookup.KeyValueTensorInitializer(type_keys, type_vals), -1)
+        # Map nuel and numu (Total = 2)
+        # 0 = Nuel neutrino
+        # 1 = Numu neutrino (cosmic muons are included in this)
+        nu_keys = tf.constant([11, 12, 13, 14])
+        nu_vals = tf.constant([0,  0,  1,  1])
+        self.nu_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(nu_keys, nu_vals), -1)
 
+        # Map interaction types (Total = 10)
+        # 0 = CC-QEL
+        # 1 = CC-RES
+        # 2 = CC-DIS
+        # 3 = CC-COH
+        # 4 = NC-QEL
+        # 5 = NC-RES
+        # 6 = NC-DIS
+        # 7 = NC-COH
+        # 8 = Other
+        # 9 = Cosmic
+        int_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 91, 92, 96, 97, 98, 99, 100])
+        int_vals = tf.constant([8, 0, 4, 1, 1, 1, 5, 5, 5, 5,  2,  6,  7,  3,  8,  8,   9])
+        self.int_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(int_keys, int_vals), -1)
+
+        # Map to all categories (Total = 19)
         # Category keys are a string of pdg+type, e.g an nuel ccqe event is '0'+'0' = '00'
-        cat_keys = tf.constant(['00', '10', '01', '11', '02', '12', '03', '13', '04', '14', '06', '16', '15'], dtype=tf.string)
-        cat_vals = tf.constant([  0,    1,    2,    3,    4,    5,    6,    7,    8,    8,    8,    8,    9])
+        # 0 = Nuel CC-QEL
+        # 1 = Nuel CC-RES
+        # 2 = Nuel CC-DIS
+        # 3 = Nuel CC-COH
+        # 4 = Numu CC-QEL
+        # 5 = Numu CC-RES
+        # 6 = Numu CC-DIS
+        # 7 = Numu CC-COH
+        # 8 = Nuel NC-QEL
+        # 9 = Nuel NC-RES
+        # 10 = Nuel NC-DIS
+        # 11 = Nuel NC-COH
+        # 12 = Numu NC-QEL
+        # 13 = Numu NC-RES
+        # 14 = Numu NC-DIS
+        # 15 = Numu NC-COH
+        # 16 = Nuel Other
+        # 17 = Numu Other
+        # 18 = Cosmic
+        cat_keys = tf.constant(['00', '01', '02', '03', '10', '11', '12', '13',
+                                '04', '05', '06', '07', '14', '15', '16', '17',
+                                '08', '18', '19'], dtype=tf.string)
+        cat_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                8, 9, 10, 11, 12, 13, 14, 15,
+                                16, 17, 18])
         self.cat_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(cat_keys, cat_vals), -1)
 
-        # Cosmic category lookup table
+        # The following mappings are used to generate the inputs to different model types
+
+        # Map a cosmic flag (Total = 2)
+        # 0 = Not a Cosmic
+        # 1 = A Cosmic
         cosmic_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         cosmic_vals = tf.constant([0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
         self.cosmic_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(cosmic_keys, cosmic_vals), -1)
 
-        # Combined category lookup table
-        combined_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-        combined_vals = tf.constant([0, 1, 0, 1, 0, 1, 0, 1, 2, 3])
-        self.combined_table = tf.lookup.StaticHashTable(
-            tf.lookup.KeyValueTensorInitializer(combined_keys, combined_vals), -1)
+        # Map to full_combined categories (Total = 5)
+        # 0 = Nuel CC
+        # 1 = Numu CC
+        # 2 = NC
+        # 3 = Other
+        # 4 = Cosmic
+        comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                 8, 9, 10, 11, 12, 13, 14, 15,
+                                 16, 17, 18])
+        comb_vals = tf.constant([0, 0, 0, 0, 1, 1, 1, 1,
+                                 2, 2, 2, 2, 2, 2, 2, 2,
+                                 3, 3, 4])
+        self.comb_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(comb_keys, comb_vals), -1)
+
+        # Map to nc_nu_combined categories (Total = 14)
+        # 0 = Nuel CC-QEL
+        # 1 = Nuel CC-RES
+        # 2 = Nuel CC-DIS
+        # 3 = Nuel CC-COH
+        # 4 = Numu CC-QEL
+        # 5 = Numu CC-RES
+        # 6 = Numu CC-DIS
+        # 7 = Numu CC-COH
+        # 8 = NC-QEL
+        # 9 = NC-RES
+        # 10 = NC-DIS
+        # 11 = NC-COH
+        # 12 = Other
+        # 13 = Cosmic
+        nu_nc_comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                       8, 9, 10, 11, 12, 13, 14, 15,
+                                       16, 17, 18])
+        nu_nc_comb_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                       8, 9, 10, 11, 8, 9, 10, 11,
+                                       12, 12, 13])
+        self.nu_nc_comb_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(nu_nc_comb_keys, nu_nc_comb_vals), -1)
+
+        # Map to nc_combined categories (Total = 11)
+        # 0 = Nuel CC-QEL
+        # 1 = Nuel CC-RES
+        # 2 = Nuel CC-DIS
+        # 3 = Nuel CC-COH
+        # 4 = Numu CC-QEL
+        # 5 = Numu CC-RES
+        # 6 = Numu CC-DIS
+        # 7 = Numu CC-COH
+        # 8 = NC
+        # 9 = Other
+        # 10 = Cosmic
+        nc_comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                    8, 9, 10, 11, 12, 13, 14, 15,
+                                    16, 17, 18])
+        nc_comb_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                    8, 8, 8, 8, 8, 8, 8, 8,
+                                    9, 9, 10])
+        self.nc_comb_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(nc_comb_keys, nc_comb_vals), -1)
 
         # Generate the lists of train, val and test file directories from the configuration
         self.train_dirs = [os.path.join(in_dir, 'train') for in_dir in self.config.data.input_dirs]
@@ -77,55 +174,63 @@ class DataLoader:
         reco_pars_i = tf.io.decode_raw(example['reco_pars_i'], tf.int32)
         reco_pars_f = tf.io.decode_raw(example['reco_pars_f'], tf.float32)
 
-        # Unpack the pdg and type and use to determine event category
-        pdg = self.pdg_table.lookup(true_pars_i[0])
-        type = self.type_table.lookup(true_pars_i[1])
-        category = self.cat_table.lookup(tf.strings.join((tf.strings.as_string(pdg),
-                                                          tf.strings.as_string(type))))
-        cosmic = self.cosmic_table.lookup(category)
-        combined = self.combined_table.lookup(category)
+        # Do all the base mapping using the lookup tables
+        pdg = self.nu_table.lookup(true_pars_i[0])
+        type = self.int_table.lookup(true_pars_i[1])
+        category = self.cat_table.lookup(
+            tf.strings.join((tf.strings.as_string(pdg), tf.strings.as_string(type))))
+
+        # Do all the model specific mapping using the lookup tables
+        cosmic = self.cosmic_table.lookup(type)
+        full_comb = self.comb_table.lookup(category)
+        nu_nc_comb = self.nu_nc_comb_table.lookup(category)
+        nc_comb = self.nc_comb_table.lookup(category)
 
         labels = {  # We generate a dictionary with all the true labels
-            'true_pdg': pdg,
-            'true_type': type,
-            'true_category': category,
-            'true_cosmic': cosmic,
-            'true_combined': combined,
-            'true_vtxX': true_pars_f[0],
-            'true_vtxY': true_pars_f[1],
-            'true_vtxZ': true_pars_f[2],
-            'true_dirTheta': true_pars_f[3],
-            'true_dirPhi': true_pars_f[4],
-            'true_nuEnergy': true_pars_f[5],
-            'true_lepEnergy': true_pars_f[6],
+            't_pdg': pdg,
+            't_type': type,
+            't_cat': category,
+            't_cosmic_cat': cosmic,
+            't_full_cat': full_comb,
+            't_nu_nc_cat': nu_nc_comb,
+            't_nc_cat': nc_comb,
+            't_vtxX': true_pars_f[0],
+            't_vtxY': true_pars_f[1],
+            't_vtxZ': true_pars_f[2],
+            't_dirTheta': true_pars_f[3],
+            't_dirPhi': true_pars_f[4],
+            't_nuEnergy': true_pars_f[5],
+            't_lepEnergy': true_pars_f[6],
         }
 
         inputs = {  # We generate a dictionary with the images and other input parameters
-            'raw_num_hits': reco_pars_i[0],
-            'filtered_num_hits': reco_pars_i[1],
-            'num_hough_rings': reco_pars_i[2],
-            'raw_total_digi_q': reco_pars_f[0],
-            'filtered_total_digi_q': reco_pars_f[1],
-            'first_ring_height': reco_pars_f[2],
-            'last_ring_height': reco_pars_f[3],
-            'reco_vtxX': tf.math.divide(reco_pars_f[4], self.config.data.par_scale[0]),
-            'reco_vtxY': tf.math.divide(reco_pars_f[5], self.config.data.par_scale[1]),
-            'reco_vtxZ': tf.math.divide(reco_pars_f[6], self.config.data.par_scale[2]),
-            'reco_dirTheta': tf.math.divide(reco_pars_f[7], self.config.data.par_scale[3]),
-            'reco_dirPhi': tf.math.divide(reco_pars_f[8], self.config.data.par_scale[4])
+            'r_raw_num_hits': reco_pars_i[0],
+            'r_filtered_num_hits': reco_pars_i[1],
+            'r_num_hough_rings': reco_pars_i[2],
+            'r_raw_total_digi_q': reco_pars_f[0],
+            'r_filtered_total_digi_q': reco_pars_f[1],
+            'r_first_ring_height': reco_pars_f[2],
+            'r_last_ring_height': reco_pars_f[3],
+            'r_vtxX': tf.math.divide(reco_pars_f[4], self.config.data.par_scale[0]),
+            'r_vtxY': tf.math.divide(reco_pars_f[5], self.config.data.par_scale[1]),
+            'r_vtxZ': tf.math.divide(reco_pars_f[6], self.config.data.par_scale[2]),
+            'r_dirTheta': tf.math.divide(reco_pars_f[7], self.config.data.par_scale[3]),
+            'r_dirPhi': tf.math.divide(reco_pars_f[8], self.config.data.par_scale[4])
         }
 
-        # Decode and reshape the "image" into a tf tensor
+        # Decide which dType to use when decoding the image
         image_type = tf.float32
         if self.config.data.reduced:
             image_type = tf.uint8
 
+        # Decode and reshape the "image" into a tf tensor
         full_image = tf.io.decode_raw(example['image'], image_type)
         if self.config.data.all_chan:
             full_image = tf.reshape(full_image, [64, 64, 13])
         else:
             full_image = tf.reshape(full_image, [64, 64, 3])
 
+        # 'unstack' the image and manipulate each channel individually
         unstacked = tf.unstack(full_image, axis=2)
         channels = []
         for i, enabled in enumerate(self.config.data.channels):
@@ -134,18 +239,20 @@ class DataLoader:
                 if self.config.data.reduced:  # Scale between [0,1]
                     unstacked[i] = unstacked[i] / 256.0
 
+                # Apply a random distribution to the channel
                 rand = tf.random.normal(shape=[64, 64], mean=1,
                                         stddev=self.config.data.rand[i],
                                         dtype=tf.float32)
                 unstacked[i] = tf.math.multiply(unstacked[i], rand)
 
+                # Apply a shift to the channel
                 shift = tf.fill([64, 64], (1.0 + self.config.data.shift[i]))
                 unstacked[i] = tf.math.multiply(unstacked[i], shift)
 
                 # TODO: Could take values below zero, change to prevent this
                 channels.append(unstacked[i])
 
-        # Can choose to either stack the channels into a single tensor or keep them seperate
+        # Choose to either stack the channels back into a single tensor or keep them seperate
         if self.config.data.stack:
             image = tf.stack(channels, axis=2)
             inputs['image_0'] = image

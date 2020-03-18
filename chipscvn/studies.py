@@ -30,11 +30,12 @@ class BaseStudy(object):
             # We need to take the trial parameters and adjust the configuration to match them
             for key in trial.parameters.keys():
                 if 'data.' in key:
-                    self.config[key.replace('data.', '')] = trial.parameters[key]
+                    print("Replace")
+                    self.config.data[key.replace('data.', '')] = trial.parameters[key]
                 elif 'model.' in key:
-                    self.config[key.replace('model.', '')] = trial.parameters[key]
+                    self.config.model[key.replace('model.', '')] = trial.parameters[key]
                 elif 'trainer.' in key:
-                    self.config[key.replace('trainer.', '')] = trial.parameters[key]
+                    self.config.trainer[key.replace('trainer.', '')] = trial.parameters[key]
                 else:
                     print('Error: invalid study parameter key!')
                     raise SystemExit
@@ -74,7 +75,7 @@ class ParameterStudy(BaseStudy):
         self.context = ['val_mae', 'val_mse']
 
 
-class CosmicStudy(BaseStudy):
+class StandardStudy(BaseStudy):
     """Cosmic vs beam classification model study class."""
     def __init__(self, config):
         super().__init__(config)
@@ -84,55 +85,9 @@ class CosmicStudy(BaseStudy):
         pars = [
             sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
             sherpa.Continuous(name='model.lr', range=self.config.study.model.lr, scale='log'),
-            sherpa.Ordinal(name='model.dense_units', range=self.config.study.model.dense_units),
             sherpa.Continuous(name='model.dropout', range=self.config.study.model.dropout),
             sherpa.Ordinal(name='model.kernel_size', range=self.config.study.model.kernel_size),
-            sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters),
-        ]
-        algorithm = sherpa.algorithms.RandomSearch(max_num_trials=self.config.study.trials)
-        self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
-                                  output_dir=self.config.exp.exp_dir)
-        self.objective = 'val_loss'
-        self.context = ['val_accuracy']
-
-
-class BeamStudy(BaseStudy):
-    """Beam event classification model study class."""
-    def __init__(self, config):
-        super().__init__(config)
-
-    def init_study(self):
-        """Initialise the SHERPA study."""
-        pars = [
-            sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
-            sherpa.Continuous(name='model.lr', range=self.config.study.model.lr, scale='log'),
-            sherpa.Ordinal(name='model.dense_units', range=self.config.study.model.dense_units),
-            sherpa.Continuous(name='model.dropout', range=self.config.study.model.dropout),
-            sherpa.Ordinal(name='model.kernel_size', range=self.config.study.model.kernel_size),
-            sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters),
-        ]
-        algorithm = sherpa.algorithms.RandomSearch(max_num_trials=self.config.study.trials)
-        self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
-                                  output_dir=self.config.exp.exp_dir)
-        self.objective = 'val_loss'
-        self.context = ['val_accuracy']
-
-
-class CombinedStudy(BaseStudy):
-    """Combined category event classification model study class."""
-    def __init__(self, config):
-        super().__init__(config)
-
-    def init_study(self):
-        """Initialise the SHERPA study."""
-        pars = [
-            sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
-            sherpa.Choice(name='data.stack', range=self.config.study.data.stack),
-            sherpa.Continuous(name='model.lr', range=self.config.study.model.lr, scale='log'),
-            sherpa.Ordinal(name='model.dense_units', range=self.config.study.model.dense_units),
-            sherpa.Continuous(name='model.dropout', range=self.config.study.model.dropout),
-            sherpa.Ordinal(name='model.kernel_size', range=self.config.study.model.kernel_size),
-            sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters),
+            sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters)
         ]
         algorithm = sherpa.algorithms.RandomSearch(max_num_trials=self.config.study.trials)
         self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
@@ -160,4 +115,4 @@ class MultiStudy(BaseStudy):
         self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
                                   output_dir=self.config.exp.exp_dir)
         self.objective = 'val_loss'
-        self.context = ['val_pdg_accuracy', 'val_type_accuracy', 'val_nuEnergy_mae']
+        self.context = ['val_t_type_accuracy', 'val_t_nuEnergy_mae']

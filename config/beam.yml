@@ -1,6 +1,6 @@
 ---
 exp: # Variables used to save the experiment
-    name: "beam"
+    name: "beam_full_comb"
     experiment_dir: "models/"
 data: # Variables used to load the data
     input_dirs: 
@@ -35,7 +35,8 @@ data: # Variables used to load the data
     batch_size: 64
     max_examples: 5000
 model: # Variables used to build the model
-    name: "beam"
+    name: "beam_full_comb"
+    reco_pars: True
     lr: 0.0002
     dense_units: 512
     dropout: 0.2
