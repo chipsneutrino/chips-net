@@ -26,7 +26,7 @@ data: # Variables used to load the data
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    max_examples: 250
+    max_examples: 500
 models: # Variables used to build the models
     cosmic:
         dir: "models"

@@ -12,7 +12,7 @@ data: # Variables used to load the data
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    max_examples: 2500
+    max_examples: 5000
 models: # Variables used to build the models
     cosmic:
         dir: "models"
@@ -35,7 +35,7 @@ models: # Variables used to build the models
 eval: # Variables used by the evaluator
     type: "combined"
     cuts:
-        cosmic: 0.01
+        cosmic: 0.001
         q: 500.0
         hough: 500.0
         theta: 0.7

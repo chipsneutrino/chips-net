@@ -65,6 +65,8 @@ class CombinedEvaluator(BaseEvaluator):
         data_loader = data.DataLoader(self.config)
         self.data = data_loader.test_data()
 
+        # Names
+
     def run(self):
         """Run the full evaluation."""
         print('--- Running Evaluation ---\n')
@@ -124,6 +126,7 @@ class CombinedEvaluator(BaseEvaluator):
             events['beam_dense'].extend(beam_dense_model.predict(x))
 
         self.events = pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
+        self.events = self.events.sample(frac=1).reset_index(drop=True)  # Shuffle the dataframe
 
     def parse_outputs(self):
         """Parse the outputs into other quantities."""
@@ -202,70 +205,140 @@ class CombinedEvaluator(BaseEvaluator):
         """Calculate different cuts to be applied."""
         print('--- calculating cuts...\n')
 
+        self.events['base_cut'] = self.events.apply(self.base_cut, axis=1)
         self.events['cosmic_cut'] = self.events.apply(self.cosmic_cut, axis=1)
-        self.events['activity_cut'] = self.events.apply(self.activity_cut, axis=1)
-        self.events['dir_cut'] = self.events.apply(self.dir_cut, axis=1)
-        self.events['cut'] = self.events.apply(self.combine_cuts, axis=1)
 
-        for i in range(4):
-            cat_events = self.events[self.events.true_cat_combined == i]
-            print("Cat {}-> Total {}, Survived: {}\n".format(
-                i, cat_events.shape[0],
-                cat_events[cat_events['cut'] == False].shape[0]/cat_events.shape[0])
-            )
+    def base_cut_summary(self, all=False):
+        if all:
+            for i in range(10):
+                cat_events = self.events[self.events.true_category == i]
+                print("Cat {}-> Total {}, Survived: {}\n".format(
+                    i, cat_events.shape[0],
+                    cat_events[cat_events['base_cut'] == False].shape[0]/cat_events.shape[0]))
+        else:
+            for i in range(4):
+                cat_events = self.events[self.events.true_cat_combined == i]
+                print("Cat {}-> Total {}, Survived: {}\n".format(
+                    i, cat_events.shape[0],
+                    cat_events[cat_events['base_cut'] == False].shape[0]/cat_events.shape[0]))           
 
-    def cosmic_cut(self, event):
-        """Calculate if the event should be cut due to the cosmic network output."""
-        return (event['cosmic_output'] >= self.config.eval.cuts.cosmic)
+    def combined_cut_summary(self, all=False):
+        if all:
+            for i in range(10):
+                cat_events = self.events[self.events.true_category == i]
+                print("Cat {}-> Total {}, Survived: {}\n".format(
+                    i, cat_events.shape[0], cat_events[
+                        (cat_events.base_cut == False) &
+                        (cat_events.cosmic_cut == False)].shape[0]/cat_events.shape[0]))
+        else:
+            for i in range(4):
+                cat_events = self.events[self.events.true_cat_combined == i]
+                print("Cat {}-> Total {}, Survived: {}\n".format(
+                    i, cat_events.shape[0], cat_events[
+                        (cat_events.base_cut == False) &
+                        (cat_events.cosmic_cut == False)].shape[0]/cat_events.shape[0]))
 
-    def activity_cut(self, event):
+    def base_cut(self, event):
         """Calculate if the event should be cut due to activity."""
         cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or
-               (event['first_ring_height'] <= self.config.eval.cuts.hough))
-        return cut
-
-    def dir_cut(self, event):
-        """Calculate if the event should be cut due to reconstructed beam direction."""
-        cut = ((event['reco_dirTheta'] <= -self.config.eval.cuts.theta) or
+               (event['first_ring_height'] <= self.config.eval.cuts.hough) or
+               (event['reco_dirTheta'] <= -self.config.eval.cuts.theta) or
                (event['reco_dirTheta'] >= self.config.eval.cuts.theta) or
                (event['reco_dirPhi'] <= -self.config.eval.cuts.phi) or
                (event['reco_dirPhi'] >= self.config.eval.cuts.phi))
         return cut
 
-    def combine_cuts(self, event):
-        """Combine all singular cuts to see if the event should be cut."""
-        return event['cosmic_cut'] or event['activity_cut'] or event['dir_cut']
+    def cosmic_cut(self, event):
+        """Calculate if the event should be cut due to the cosmic network output."""
+        return (event['cosmic_output'] >= self.config.eval.cuts.cosmic)
 
-    def make_cat_plot(self, parameter, bins, low, high, scale='norm', cut=True):
-        """Make the histograms and legend for a parameter, data is split in categories."""
+    def cat_plot(self, parameter, bins, x_low, x_high, y_low, y_high, scale='norm',
+                 base_cut=True, cosmic_cut=True):
+        """Make the histograms and legend for a parameter, split by true category."""
+
+        hists = []
+        colours = [ROOT.kGreen, ROOT.kBlue,
+                   ROOT.kGreen+1, ROOT.kBlue+1,
+                   ROOT.kGreen+2, ROOT.kBlue+2,
+                   ROOT.kGreen+3, ROOT.kBlue+3,
+                   ROOT.kRed, ROOT.kBlack]
+        leg = ROOT.TLegend(0.65, 0.65, 0.89, 0.89, "Event Type")
+        entries = ["#nu_{e} CC-QEL", "#nu_{#mu} CC-QEL",
+                   "#nu_{e} CC-RES", "#nu_{#mu} CC-RES",
+                   "#nu_{e} CC-DIS", "#nu_{#mu} CC-DIS",
+                   "#nu_{e} CC-COH", "#nu_{#mu} CC-COH",
+                   "NC", "Cosmic"]
+        for i in range(10):
+            name = "h_" + parameter + "_" + str(i)
+            hist = ROOT.TH1F(name, parameter, bins, x_low, x_high)
+            hist.SetLineColor(colours[i])
+            hist.SetLineWidth(2)
+            hist.GetXaxis().SetTitle(parameter)
+
+            events = self.events[self.events['true_category'] == i]
+
+            if base_cut:
+                events = events[events.base_cut == False]
+            if cosmic_cut:
+                events = events[events.cosmic_cut == False]
+
+            if scale == 'weight':
+                fill_hist(hist, events[parameter].to_numpy(), events['weight'].to_numpy())
+            elif scale == 'norm':
+                fill_hist(hist, events[parameter].to_numpy())
+                if hist.GetEntries() > 0:
+                    hist.Scale(1.0/hist.GetEntries())
+            elif scale == 'none':
+                fill_hist(hist, events[parameter].to_numpy())
+            else:
+                raise NotImplementedError
+            hists.append(hist)
+            leg.AddEntry(hists[i], entries[i], "PL")
+
+        hists[0].GetYaxis().SetRangeUser(y_low, y_high)
+
+        leg.SetTextSize(0.03)
+        leg.SetTextFont(42)
+        leg.SetBorderSize(0)
+
+        return hists, leg
+
+    def combined_cat_plot(self, parameter, bins, x_low, x_high, y_low, y_high, scale='norm',
+                          base_cut=True, cosmic_cut=True):
+        """Make the histograms and legend for a parameter, split by combined category."""
 
         hists = []
         colours = [ROOT.kGreen, ROOT.kBlue, ROOT.kRed, ROOT.kBlack]
         leg = ROOT.TLegend(0.65, 0.65, 0.89, 0.89, "Event Type")
         entries = ["#nu_{e} CC", "#nu_{#mu} CC", "NC", "Cosmic"]
         for i in range(4):
-            name = "h_" + str(i)
-            hist = ROOT.TH1F(name, parameter, bins, low, high)
+            name = "h_" + parameter + "_" + str(i)
+            hist = ROOT.TH1F(name, parameter, bins, x_low, x_high)
             hist.SetLineColor(colours[i])
             hist.SetLineWidth(2)
             hist.GetXaxis().SetTitle(parameter)
+
             events = self.events[self.events['true_cat_combined'] == i]
-            if cut and scale == 'weight':
-                fill_hist(hist,
-                          events.loc[events['cut'] == False][parameter].values,
-                          events.loc[events['cut'] == False]['weight'].values)
-            elif not cut and scale == 'weight':
-                fill_hist(hist, events[parameter].values, events['weight'].values)
-            elif cut and scale == 'norm':
-                fill_hist(hist, events.loc[events['cut'] == False][parameter].values)
-                hist.Scale(1.0/hist.GetEntries())
-            elif not cut and scale == 'norm':
-                fill_hist(hist, events[parameter].values)
-                hist.Scale(1.0/hist.GetEntries())
+
+            if base_cut:
+                events = events[events.base_cut == False]
+            if cosmic_cut:
+                events = events[events.cosmic_cut == False]
+
+            if scale == 'weight':
+                fill_hist(hist, events[parameter].to_numpy(), events['weight'].to_numpy())
+            elif scale == 'norm':
+                fill_hist(hist, events[parameter].to_numpy())
+                if hist.GetEntries() > 0:
+                    hist.Scale(1.0/hist.GetEntries())
+            elif scale == 'none':
+                fill_hist(hist, events[parameter].to_numpy())
             else:
                 raise NotImplementedError
             hists.append(hist)
             leg.AddEntry(hists[i], entries[i], "PL")
+
+        hists[0].GetYaxis().SetRangeUser(y_low, y_high)
 
         leg.SetTextSize(0.03)
         leg.SetTextFont(42)

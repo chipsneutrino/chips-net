@@ -6,3 +6,4 @@ env/miniconda/
 *.root
 example_data/
 data/
+*.html
