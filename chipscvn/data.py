@@ -133,11 +133,17 @@ class DataLoader:
                 unstacked[i] = tf.cast(unstacked[i], tf.float32)
                 if self.config.data.reduced:  # Scale between [0,1]
                     unstacked[i] = unstacked[i] / 256.0
+
                 rand = tf.random.normal(shape=[64, 64], mean=1,
                                         stddev=self.config.data.rand[i],
                                         dtype=tf.float32)
+                unstacked[i] = tf.math.multiply(unstacked[i], rand)
+
+                shift = tf.fill([64, 64], (1.0 + self.config.data.shift[i]))
+                unstacked[i] = tf.math.multiply(unstacked[i], shift)
+
                 # TODO: Could take values below zero, change to prevent this
-                channels.append(tf.math.multiply(unstacked[i], rand))
+                channels.append(unstacked[i])
 
         # Can choose to either stack the channels into a single tensor or keep them seperate
         if self.config.data.stack:

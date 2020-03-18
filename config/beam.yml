@@ -1,34 +1,35 @@
 ---
 exp: # Variables used to save the experiment
-    name: "beam_all_samples_5_rand_stacked"
+    name: "beam"
     experiment_dir: "models/"
 data: # Variables used to load the data
     input_dirs: 
-        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_cc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_nc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_cc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_nc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_res_cc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_res_nc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_nc/chips_1200_sk1pe/"
+        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_dis_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_res_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_res_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_nc/chips_1200_sk1pe/"
         #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_pizero_nc/chips_1200_sk1pe/"
-        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_cc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_nc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_cc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_nc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_cc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_nc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_cc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_nc/chips_1200_sk1pe/"
+        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_dis_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_nc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_cc/chips_1200_sk1pe/"
+        - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_nc/chips_1200_sk1pe/"
         #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_pizero_nc/chips_1200_sk1pe/"
     all_chan: True
     reduced: True
     stack: True
     channels: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0]
     rand: [0, 0, 0.05, 0, 0, 0, 0, 0, 0, 0, 0.05, 0.05, 0]
+    shift: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
