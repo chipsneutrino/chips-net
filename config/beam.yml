@@ -1,6 +1,7 @@
 ---
+task: 'train'
 exp: # Variables used to save the experiment
-    name: "beam_full_comb"
+    name: "beam_all_long_unstacked"
     experiment_dir: "models/"
 data: # Variables used to load the data
     input_dirs: 
@@ -26,16 +27,16 @@ data: # Variables used to load the data
         #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_pizero_nc/chips_1200_sk1pe/"
     all_chan: True
     reduced: True
-    stack: True
+    stack: False
     channels: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0]
     rand: [0, 0, 0.05, 0, 0, 0, 0, 0, 0, 0, 0.05, 0.05, 0]
     shift: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    max_examples: 5000
+    max_examples: 15000
 model: # Variables used to build the model
-    name: "beam_full_comb"
+    name: "beam_all" # [beam_all, beam_full_comb, beam_nu_nc_comb, beam_nc_comb, beam_multi]
     reco_pars: True
     lr: 0.0002
     dense_units: 512

@@ -1,4 +1,5 @@
 ---
+task: 'train'
 exp: # Variables used to save the experiment
     name: "cosmic"
     experiment_dir: "models/"

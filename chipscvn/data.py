@@ -45,10 +45,10 @@ class DataLoader:
         # 5 = NC-RES
         # 6 = NC-DIS
         # 7 = NC-COH
-        # 8 = Other
-        # 9 = Cosmic
+        # 8 = Cosmic
+        # 9 = Other
         int_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 91, 92, 96, 97, 98, 99, 100])
-        int_vals = tf.constant([8, 0, 4, 1, 1, 1, 5, 5, 5, 5,  2,  6,  7,  3,  8,  8,   9])
+        int_vals = tf.constant([9, 0, 4, 1, 1, 1, 5, 5, 5, 5,  2,  6,  7,  3,  9,  9,   8])
         self.int_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(int_keys, int_vals), -1)
 
@@ -70,12 +70,12 @@ class DataLoader:
         # 13 = Numu NC-RES
         # 14 = Numu NC-DIS
         # 15 = Numu NC-COH
-        # 16 = Nuel Other
-        # 17 = Numu Other
-        # 18 = Cosmic
+        # 16 = Cosmic
+        # 17 = Nuel Other
+        # 18 = Numu Other
         cat_keys = tf.constant(['00', '01', '02', '03', '10', '11', '12', '13',
                                 '04', '05', '06', '07', '14', '15', '16', '17',
-                                '08', '18', '19'], dtype=tf.string)
+                                '18', '09', '19'], dtype=tf.string)
         cat_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
                                 8, 9, 10, 11, 12, 13, 14, 15,
                                 16, 17, 18])
@@ -87,8 +87,12 @@ class DataLoader:
         # Map a cosmic flag (Total = 2)
         # 0 = Not a Cosmic
         # 1 = A Cosmic
-        cosmic_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-        cosmic_vals = tf.constant([0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
+        cosmic_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                   8, 9, 10, 11, 12, 13, 14, 15,
+                                   16, 17, 18])
+        cosmic_vals = tf.constant([0, 0, 0, 0, 0, 0, 0, 0,
+                                   0, 0, 0, 0, 0, 0, 0, 0,
+                                   1, 0, 0])
         self.cosmic_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(cosmic_keys, cosmic_vals), -1)
 
@@ -96,14 +100,14 @@ class DataLoader:
         # 0 = Nuel CC
         # 1 = Numu CC
         # 2 = NC
-        # 3 = Other
-        # 4 = Cosmic
+        # 3 = Cosmic
+        # 4 = Other
         comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
                                  8, 9, 10, 11, 12, 13, 14, 15,
                                  16, 17, 18])
         comb_vals = tf.constant([0, 0, 0, 0, 1, 1, 1, 1,
                                  2, 2, 2, 2, 2, 2, 2, 2,
-                                 3, 3, 4])
+                                 3, 4, 4])
         self.comb_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(comb_keys, comb_vals), -1)
 
@@ -120,14 +124,14 @@ class DataLoader:
         # 9 = NC-RES
         # 10 = NC-DIS
         # 11 = NC-COH
-        # 12 = Other
-        # 13 = Cosmic
+        # 12 = Cosmic
+        # 13 = Other
         nu_nc_comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
                                        8, 9, 10, 11, 12, 13, 14, 15,
                                        16, 17, 18])
         nu_nc_comb_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
                                        8, 9, 10, 11, 8, 9, 10, 11,
-                                       12, 12, 13])
+                                       12, 13, 13])
         self.nu_nc_comb_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(nu_nc_comb_keys, nu_nc_comb_vals), -1)
 
@@ -141,14 +145,14 @@ class DataLoader:
         # 6 = Numu CC-DIS
         # 7 = Numu CC-COH
         # 8 = NC
-        # 9 = Other
-        # 10 = Cosmic
+        # 9 = Cosmic
+        # 10 = Other
         nc_comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
                                     8, 9, 10, 11, 12, 13, 14, 15,
                                     16, 17, 18])
         nc_comb_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
                                     8, 8, 8, 8, 8, 8, 8, 8,
-                                    9, 9, 10])
+                                    9, 10, 10])
         self.nc_comb_table = tf.lookup.StaticHashTable(
             tf.lookup.KeyValueTensorInitializer(nc_comb_keys, nc_comb_vals), -1)
 
@@ -181,14 +185,14 @@ class DataLoader:
             tf.strings.join((tf.strings.as_string(pdg), tf.strings.as_string(type))))
 
         # Do all the model specific mapping using the lookup tables
-        cosmic = self.cosmic_table.lookup(type)
+        cosmic = self.cosmic_table.lookup(category)
         full_comb = self.comb_table.lookup(category)
         nu_nc_comb = self.nu_nc_comb_table.lookup(category)
         nc_comb = self.nc_comb_table.lookup(category)
 
         labels = {  # We generate a dictionary with all the true labels
-            't_pdg': pdg,
-            't_type': type,
+            't_nu': pdg,
+            't_code': type,
             't_cat': category,
             't_cosmic_cat': cosmic,
             't_full_cat': full_comb,
@@ -264,6 +268,13 @@ class DataLoader:
 
         return inputs, labels
 
+    def filter_other(self, inputs, labels):
+        """Filters out 'other' cateogory events."""
+        if (labels['t_cat']) == 17 or (labels['t_cat'] == 18):
+            return False
+        else:
+            return True
+
     def dataset(self, dirs):
         """Returns a dataset formed from all the files in the input directories."""
         files = []  # Add all files in dirs to a list
@@ -278,6 +289,7 @@ class DataLoader:
                            num_parallel_calls=tf.data.experimental.AUTOTUNE)
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
         ds = ds.map(lambda x: self.parse(x), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        ds = ds.filter(self.filter_other)
         return ds
 
     def train_data(self):

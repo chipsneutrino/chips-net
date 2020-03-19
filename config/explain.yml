@@ -1,4 +1,5 @@
 ---
+task: 'evaluate'
 data: # Variables used to load the data
     input_dirs: 
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_cc/chips_1200_sk1pe/"

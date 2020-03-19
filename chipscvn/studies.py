@@ -62,11 +62,13 @@ class ParameterStudy(BaseStudy):
         """Initialise the SHERPA study."""
         pars = [
             sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
+            sherpa.Choice(name='data.stack', range=self.config.study.data.stack),
+            sherpa.Choice(name='model.reco_pars', range=self.config.study.model.reco_pars),
             sherpa.Continuous(name='model.lr', range=self.config.study.model.lr, scale='log'),
             sherpa.Ordinal(name='model.dense_units', range=self.config.study.model.dense_units),
             sherpa.Continuous(name='model.dropout', range=self.config.study.model.dropout),
             sherpa.Ordinal(name='model.kernel_size', range=self.config.study.model.kernel_size),
-            sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters),
+            sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters)
         ]
         algorithm = sherpa.algorithms.RandomSearch(max_num_trials=self.config.study.trials)
         self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=True,
@@ -84,7 +86,10 @@ class StandardStudy(BaseStudy):
         """Initialise the SHERPA study."""
         pars = [
             sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
+            sherpa.Choice(name='data.stack', range=self.config.study.data.stack),
+            sherpa.Choice(name='model.reco_pars', range=self.config.study.model.reco_pars),
             sherpa.Continuous(name='model.lr', range=self.config.study.model.lr, scale='log'),
+            sherpa.Ordinal(name='model.dense_units', range=self.config.study.model.dense_units),
             sherpa.Continuous(name='model.dropout', range=self.config.study.model.dropout),
             sherpa.Ordinal(name='model.kernel_size', range=self.config.study.model.kernel_size),
             sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters)
@@ -105,14 +110,16 @@ class MultiStudy(BaseStudy):
         """Initialise the SHERPA study."""
         pars = [
             sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
+            sherpa.Choice(name='data.stack', range=self.config.study.data.stack),
+            sherpa.Choice(name='model.reco_pars', range=self.config.study.model.reco_pars),
             sherpa.Continuous(name='model.lr', range=self.config.study.model.lr, scale='log'),
             sherpa.Ordinal(name='model.dense_units', range=self.config.study.model.dense_units),
             sherpa.Continuous(name='model.dropout', range=self.config.study.model.dropout),
             sherpa.Ordinal(name='model.kernel_size', range=self.config.study.model.kernel_size),
-            sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters),
+            sherpa.Ordinal(name='model.filters', range=self.config.study.model.filters)
         ]
         algorithm = sherpa.algorithms.RandomSearch(max_num_trials=self.config.study.trials)
         self.study = sherpa.Study(parameters=pars, algorithm=algorithm, lower_is_better=False,
                                   output_dir=self.config.exp.exp_dir)
         self.objective = 'val_loss'
-        self.context = ['val_t_type_accuracy', 'val_t_nuEnergy_mae']
+        self.context = ['val_t_cat_accuracy', 'val_t_nuEnergy_mae']

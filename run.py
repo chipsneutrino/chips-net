@@ -32,6 +32,7 @@ def train_model(config):
         print('Error: Need to set comet_ml env variables')
         pass
 
+    chipscvn.config.setup_dirs(config, True)
     data = chipscvn.data.DataLoader(config)
     model = chipscvn.utils.get_model(config)
     model.summarise()
@@ -42,6 +43,7 @@ def train_model(config):
 
 def study_model(config):
     """Conducts a SHERPA study on a model according to the configuration."""
+    chipscvn.config.setup_dirs(config, True)
     study = chipscvn.utils.get_study(config)
     study.run()
 
@@ -56,9 +58,6 @@ def parse_args():
     """Parse the command line arguments."""
     parser = argparse.ArgumentParser(description='CHIPS CVN')
     parser.add_argument('config', help='path to the configuration file')
-    parser.add_argument('--train', action='store_true', help='train the configuration model')
-    parser.add_argument('--study', action='store_true', help='study the configuration model')
-    parser.add_argument('--evaluate', action='store_true', help='evaluate the configuration model')
     parser.add_argument('--verbose', action='store_true', help='Make tensorflow verbose')
     return parser.parse_args()
 
@@ -76,16 +75,14 @@ def main():
 
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
-        if args.train:
-            chipscvn.config.setup_dirs(config, True)
+        if config.task == 'train':
             train_model(config)
-        elif args.study:
-            chipscvn.config.setup_dirs(config, True)
+        elif config.task == 'study':
             study_model(config)
-        elif args.evaluate:
+        elif config.task == 'evaluate':
             evaluate_model(config)
         else:
-            print('\nError: must select task [train, study, evaluate]')
+            print('\nError: must define a task in configuration [train, study, evaluate]')
             raise SystemExit
 
 

@@ -77,29 +77,30 @@ def GetModelBase(config):
 
     for channel in range(images):
         image_name = 'image_' + str(channel)
+        conv_name = 'conv_' + str(channel) + "_"
         image_input = Input(shape=shape, name=image_name)
         image_path = Conv2D(config.model.filters, config.model.kernel_size,
-                            padding='same', activation='relu', name='conv1')(image_input)
+                            padding='same', activation='relu', name=(conv_name + "1"))(image_input)
         image_path = Conv2D(config.model.filters, config.model.kernel_size,
-                            activation='relu', name='conv2')(image_path)
+                            activation='relu', name=(conv_name + "2"))(image_path)
         image_path = MaxPooling2D(pool_size=2)(image_path)
         image_path = Dropout(config.model.dropout)(image_path)
         image_path = Conv2D((config.model.filters*2), config.model.kernel_size,
-                            padding='same', activation='relu', name='conv3')(image_path)
+                            padding='same', activation='relu', name=(conv_name + "3"))(image_path)
         image_path = Conv2D((config.model.filters*2), config.model.kernel_size,
-                            activation='relu', name='conv4')(image_path)
+                            activation='relu', name=(conv_name + "4"))(image_path)
         image_path = MaxPooling2D(pool_size=2)(image_path)
         image_path = Dropout(config.model.dropout)(image_path)
         image_path = Conv2D((config.model.filters*4), config.model.kernel_size,
-                            padding='same', activation='relu', name='conv5')(image_path)
+                            padding='same', activation='relu', name=(conv_name + "5"))(image_path)
         image_path = Conv2D((config.model.filters*4), config.model.kernel_size,
-                            activation='relu', name='conv6')(image_path)
+                            activation='relu', name=(conv_name + "6"))(image_path)
         image_path = MaxPooling2D(pool_size=2)(image_path)
         image_path = Dropout(config.model.dropout)(image_path)
         image_path = Conv2D((config.model.filters*8), config.model.kernel_size,
-                            padding='same', activation='relu', name='conv7')(image_path)
+                            padding='same', activation='relu', name=(conv_name + "7"))(image_path)
         image_path = Conv2D((config.model.filters*8), config.model.kernel_size,
-                            activation='relu', name='conv8')(image_path)
+                            activation='relu', name=(conv_name + "8"))(image_path)
         image_path = MaxPooling2D(pool_size=2)(image_path)
         image_path = Dropout(config.model.dropout)(image_path)
         image_path = Flatten()(image_path)
@@ -169,8 +170,9 @@ class BeamAllModel(BaseModel):
     def build(self):
         """Builds the model using the keras functional API."""
 
+        self.categories = 16
         x, inputs = GetModelBase(self.config)
-        outputs = Dense(18, activation='softmax', name='t_cat')(x)
+        outputs = Dense(self.categories, activation='softmax', name='t_cat')(x)
         self.model = Model(inputs=inputs, outputs=outputs, name='beam_all_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
@@ -181,6 +183,14 @@ class BeamAllModel(BaseModel):
                            loss=self.loss,
                            metrics=self.metrics)
 
+    def combine_outputs(self, ev):
+        """Combine outputs into fully combined categories."""
+        nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
+        numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
+        nc = (ev['b_out'][8] + ev['b_out'][9] + ev['b_out'][10] + ev['b_out'][11] +
+              ev['b_out'][12] + ev['b_out'][13] + ev['b_out'][14] + ev['b_out'][15])
+        return [nuel, numu, nc]
+
 
 class BeamFullCombModel(BaseModel):
     """Beam full combined category classification model class."""
@@ -190,8 +200,9 @@ class BeamFullCombModel(BaseModel):
     def build(self):
         """Builds the model using the keras functional API."""
 
+        self.categories = 3
         x, inputs = GetModelBase(self.config)
-        outputs = Dense(4, activation='softmax', name='t_full_cat')(x)
+        outputs = Dense(self.categories, activation='softmax', name='t_full_cat')(x)
         self.model = Model(inputs=inputs, outputs=outputs, name='beam_full_comb_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
@@ -202,6 +213,13 @@ class BeamFullCombModel(BaseModel):
                            loss=self.loss,
                            metrics=self.metrics)
 
+    def combine_outputs(self, ev):
+        """Combine outputs into fully combined categories."""
+        nuel = ev['b_out'][0]
+        numu = ev['b_out'][1]
+        nc = ev['b_out'][2]
+        return [nuel, numu, nc]
+
 
 class BeamNuNCCombModel(BaseModel):
     """Beam Nu NC category combined classification model class."""
@@ -211,8 +229,9 @@ class BeamNuNCCombModel(BaseModel):
     def build(self):
         """Builds the model using the keras functional API."""
 
+        self.categories = 12
         x, inputs = GetModelBase(self.config)
-        outputs = Dense(13, activation='softmax', name='t_nu_nc_cat')(x)
+        outputs = Dense(self.categories, activation='softmax', name='t_nu_nc_cat')(x)
         self.model = Model(inputs=inputs, outputs=outputs, name='beam_nu_nc_comb_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
@@ -223,6 +242,13 @@ class BeamNuNCCombModel(BaseModel):
                            loss=self.loss,
                            metrics=self.metrics)
 
+    def combine_outputs(self, ev):
+        """Combine outputs into fully combined categories."""
+        nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
+        numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
+        nc = (ev['b_out'][8] + ev['b_out'][9] + ev['b_out'][10] + ev['b_out'][11])
+        return [nuel, numu, nc]
+
 
 class BeamNCCombModel(BaseModel):
     """Beam NC category combined classification model class."""
@@ -232,8 +258,9 @@ class BeamNCCombModel(BaseModel):
     def build(self):
         """Builds the model using the keras functional API."""
 
+        self.categories = 9
         x, inputs = GetModelBase(self.config)
-        outputs = Dense(10, activation='softmax', name='t_nc_cat')(x)
+        outputs = Dense(self.categories, activation='softmax', name='t_nc_cat')(x)
         self.model = Model(inputs=inputs, outputs=outputs, name='beam_nc_comb_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
@@ -244,6 +271,13 @@ class BeamNCCombModel(BaseModel):
                            loss=self.loss,
                            metrics=self.metrics)
 
+    def combine_outputs(self, ev):
+        """Combine outputs into fully combined categories."""
+        nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
+        numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
+        nc = ev['b_out'][8]
+        return [nuel, numu, nc]
+
 
 class BeamMultiModel(BaseModel):
     """Beam Multi-task model class."""
@@ -253,10 +287,11 @@ class BeamMultiModel(BaseModel):
     def build(self):
         """Builds the model using the keras functional API."""
 
+        self.categories = 16
         x, inputs = GetModelBase(self.config)
         category_path = Dense(self.config.model.dense_units, activation='relu')(x)
         energy_path = Dense(self.config.model.dense_units, activation='relu')(x)
-        category_output = Dense(18, activation='softmax', name='t_cat')(category_path)
+        category_output = Dense(self.categories, activation='softmax', name='t_cat')(category_path)
         energy_output = Dense(1, activation='linear', name='t_nuEnergy')(energy_path)
         self.model = Model(inputs=inputs,
                            outputs=[category_output, energy_output],
@@ -281,3 +316,11 @@ class BeamMultiModel(BaseModel):
                            loss=self.loss,
                            loss_weights=self.loss_weights,
                            metrics=self.metrics)
+
+    def combine_outputs(self, ev):
+        """Combine outputs into fully combined categories."""
+        nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
+        numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
+        nc = (ev['b_out'][8] + ev['b_out'][9] + ev['b_out'][10] + ev['b_out'][11] +
+              ev['b_out'][12] + ev['b_out'][13] + ev['b_out'][14] + ev['b_out'][15])
+        return [nuel, numu, nc]

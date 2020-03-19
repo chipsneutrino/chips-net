@@ -17,22 +17,15 @@ To preprocess .root map files into tfrecords run...
 $ python preprocess.py [input_directory] --reduce
 ```
 
-## Training
-To train a model run...
+## To Run
+To run train, study, or evaluate, modify config file and call...
 
 ```
-$ python run.py [yaml_configuration] --train
+$ python run.py [yaml_configuration]
 ```
 
-## SHERPA Study
-To run a study...
-
-```
-$ python run.py [yaml_configuration] --study
-```
-
-## SHERPA Study
-To use eval and explain notebooks...
+## Notebooks
+To use evaluate and explain notebooks...
 
 ```
 $ jupyter-notebook

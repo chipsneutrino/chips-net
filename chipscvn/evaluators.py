@@ -44,28 +44,29 @@ class CombinedEvaluator(BaseEvaluator):
         """Initialise the evaluator, loading the evaluation data and model."""
 
         # Get the cosmic classification model and load the most recent weights
-        cosmic_config = self.config
-        cosmic_config.model = self.config.models.cosmic
-        cosmic_config.exp.experiment_dir = self.config.models.cosmic.dir
-        cosmic_config.exp.name = self.config.models.cosmic.path
-        chipscvn.config.setup_dirs(cosmic_config, False)
-        self.cosmic_model = utils.get_model(cosmic_config)
-        self.cosmic_model.load()
+        c_config = self.config
+        c_config.model = self.config.models.cosmic
+        c_config.exp.experiment_dir = self.config.models.cosmic.dir
+        c_config.exp.name = self.config.models.cosmic.path
+        chipscvn.config.setup_dirs(c_config, False)
+        self.c_model = utils.get_model(c_config)
+        self.c_model.load()
 
         # Get the beam classification model and load the most recent weights
-        beam_config = self.config
-        beam_config.model = self.config.models.beam
-        beam_config.exp.experiment_dir = self.config.models.beam.dir
-        beam_config.exp.name = self.config.models.beam.path
-        chipscvn.config.setup_dirs(beam_config, False)
-        self.beam_model = utils.get_model(beam_config)
-        self.beam_model.load()
+        b_config = self.config
+        b_config.model = self.config.models.beam
+        b_config.exp.experiment_dir = self.config.models.beam.dir
+        b_config.exp.name = self.config.models.beam.path
+        chipscvn.config.setup_dirs(b_config, False)
+        self.b_model = utils.get_model(b_config)
+        self.b_model.load()
 
         # Get the test dataset
         data_loader = data.DataLoader(self.config)
         self.data = data_loader.test_data()
 
-        # Names
+        # Fully combined category names
+        self.comb_cat_names = ['Nuel-CC', 'Numu-CC', 'NC', 'Cosmic']
 
     def run(self):
         """Run the full evaluation."""
@@ -85,14 +86,14 @@ class CombinedEvaluator(BaseEvaluator):
         print('--- running inference...\n')
 
         events = {  # Create empty dict to hold all the event data
-            'true_pdg': [], 'true_type': [], 'true_category': [], 'true_cosmic': [],
-            'true_vtxX': [], 'true_vtxY': [], 'true_vtxZ': [], 'true_dirTheta': [],
-            'true_dirPhi': [], 'true_nuEnergy': [], 'true_lepEnergy': [], 'raw_num_hits': [],
-            'filtered_num_hits': [], 'num_hough_rings': [], 'raw_total_digi_q': [],
-            'filtered_total_digi_q': [], 'first_ring_height': [], 'last_ring_height': [],
-            'reco_vtxX': [], 'reco_vtxY': [], 'reco_vtxZ': [], 'reco_dirTheta': [],
-            'reco_dirPhi': [], 'cosmic_output': [], 'beam_output': [], 'cosmic_dense': [],
-            'beam_dense': []
+            't_nu': [], 't_code': [], 't_cat': [], 't_cosmic_cat': [],
+            't_full_cat': [], 't_nu_nc_cat': [], 't_nc_cat': [],
+            't_vtxX': [], 't_vtxY': [], 't_vtxZ': [], 't_dirTheta': [],
+            't_dirPhi': [], 't_nuEnergy': [], 't_lepEnergy': [], 'r_raw_num_hits': [],
+            'r_filtered_num_hits': [], 'r_num_hough_rings': [], 'r_raw_total_digi_q': [],
+            'r_filtered_total_digi_q': [], 'r_first_ring_height': [], 'r_last_ring_height': [],
+            'r_vtxX': [], 'r_vtxY': [], 'r_vtxZ': [], 'r_dirTheta': [], 'r_dirPhi': [],
+            'c_out': [], 'b_out': [], 'c_dense': [], 'b_dense': []
         }
 
         images = self.config.data.img_size[2]
@@ -101,14 +102,14 @@ class CombinedEvaluator(BaseEvaluator):
         for i in range(images):
             events[('image_' + str(i))] = []
 
-        cosmic_dense_model = Model(  # Model to ouput cosmic model dense layer
-            inputs=self.cosmic_model.model.input,
-            outputs=self.cosmic_model.model.get_layer('dense_final').output
+        c_dense_model = Model(  # Model to ouput cosmic model dense layer
+            inputs=self.c_model.model.input,
+            outputs=self.c_model.model.get_layer('dense_final').output
         )
 
-        beam_dense_model = Model(  # Model to ouput beam model dense layer
-            inputs=self.beam_model.model.input,
-            outputs=self.beam_model.model.get_layer('dense_final').output
+        b_dense_model = Model(  # Model to ouput beam model dense layer
+            inputs=self.b_model.model.input,
+            outputs=self.b_model.model.get_layer('dense_final').output
         )
 
         for x, y in self.data:  # Run prediction on individual batches
@@ -120,10 +121,10 @@ class CombinedEvaluator(BaseEvaluator):
                 if name in events.keys():
                     events[name].extend(array.numpy())
 
-            events['cosmic_output'].extend(self.cosmic_model.model.predict(x))
-            events['beam_output'].extend(self.beam_model.model.predict(x))
-            events['cosmic_dense'].extend(cosmic_dense_model.predict(x))
-            events['beam_dense'].extend(beam_dense_model.predict(x))
+            events['c_out'].extend(self.c_model.model.predict(x))
+            events['b_out'].extend(self.b_model.model.predict(x))
+            events['c_dense'].extend(c_dense_model.predict(x))
+            events['b_dense'].extend(b_dense_model.predict(x))
 
         self.events = pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
         self.events = self.events.sample(frac=1).reset_index(drop=True)  # Shuffle the dataframe
@@ -132,57 +133,35 @@ class CombinedEvaluator(BaseEvaluator):
         """Parse the outputs into other quantities."""
         print('--- parsing outputs...\n')
 
-        # Calculate the true combined category for each event
-        self.events['true_cat_combined'] = self.events.apply(self.true_classifier, axis=1)
-
         # Parse outputs into easier to use pandas columns including combined outputs
-        self.events['cosmic_output'] = self.events.cosmic_output.map(lambda x: x[0])
-        for i in range(9):
-            self.events[('beam_output_' + str(i))] = self.events.beam_output.map(lambda x: x[i])
+        self.events.c_out = self.events.c_out.map(lambda x: x[0])
+        for i in range(self.b_model.categories):
+            self.events[('b_out_' + str(i))] = self.events.b_out.map(lambda x: x[i])
 
-        self.events['nuel_cc_combined'] = self.events.apply(self.nuel_cc_combined, axis=1)
-        self.events['numu_cc_combined'] = self.events.apply(self.numu_cc_combined, axis=1)
-        self.events.drop('beam_output', axis=1, inplace=True)
-
-    def true_classifier(self, event):
-        """Classify events into one of the 4 true categories."""
-        if event['true_category'] in [0, 2, 4, 6]:
-            return int(0)
-        elif event['true_category'] in [1, 3, 5, 7]:
-            return int(1)
-        elif event['true_category'] == 8:
-            return int(2)
-        elif event['true_category'] == 9:
-            return int(3)
-        else:
-            raise NotImplementedError
-
-    def nuel_cc_combined(self, event):
-        """Combine the 4 nuel CC event types into a single category score."""
-        return (event['beam_output_0'] +
-                event['beam_output_2'] +
-                event['beam_output_4'] +
-                event['beam_output_6'])
-
-    def numu_cc_combined(self, event):
-        """Combine the 4 numu CC event types into a single category score."""
-        return (event['beam_output_1'] +
-                event['beam_output_3'] +
-                event['beam_output_5'] +
-                event['beam_output_7'])
+        self.events['scores'] = self.events.apply(self.b_model.combine_outputs, axis=1)
+        self.events['nuel_score'] = self.events.scores.map(lambda x: x[0])
+        self.events['numu_score'] = self.events.scores.map(lambda x: x[1])
+        self.events['nc_score'] = self.events.scores.map(lambda x: x[2])
+        self.events.drop('b_out', axis=1, inplace=True)
+        self.events.drop('scores', axis=1, inplace=True)
 
     def calculate_weights(self):
         """Calculate the weights to apply categorically."""
         print('--- calculating weights...\n')
 
-        tot_nuel = self.events[(self.events.true_pdg == 0) & (self.events.true_cosmic == 0)].shape[0]
-        tot_numu = self.events[(self.events.true_pdg == 1) & (self.events.true_cosmic == 0)].shape[0]
-        tot_cosmic = self.events[self.events.true_cosmic == 1].shape[0]
+        tot_nuel = self.events[(self.events.t_nu == 0) &
+                               (self.events.t_cosmic_cat == 0)].shape[0]
+        tot_numu = self.events[(self.events.t_nu == 1) &
+                               (self.events.t_cosmic_cat == 0)].shape[0]
+        tot_cosmic = self.events[self.events.t_cosmic_cat == 1].shape[0]
         print("Total-> Nuel: {}, Numu: {}, Cosmic: {}\n".format(tot_nuel, tot_numu, tot_cosmic))
 
-        self.nuel_weight = (1.0/tot_nuel)*(self.config.eval.weights.nuel*self.config.eval.weights.total)
-        self.numu_weight = (1.0/tot_numu)*(self.config.eval.weights.numu*self.config.eval.weights.total)
-        self.cosmic_weight = (1.0/tot_cosmic)*(self.config.eval.weights.cosmic*self.config.eval.weights.total)
+        self.nuel_weight = (1.0/tot_nuel)*(self.config.eval.weights.nuel *
+                                           self.config.eval.weights.total)
+        self.numu_weight = (1.0/tot_numu)*(self.config.eval.weights.numu *
+                                           self.config.eval.weights.total)
+        self.cosmic_weight = (1.0/tot_cosmic)*(self.config.eval.weights.cosmic *
+                                               self.config.eval.weights.total)
 
         print('Weights-> Nuel:{0:.4f}, Numu:{1:.4f}, Cosmic:{2:.4f}\n'.format(
             self.nuel_weight, self.numu_weight, self.cosmic_weight)
@@ -192,11 +171,11 @@ class CombinedEvaluator(BaseEvaluator):
 
     def add_weight(self, event):
         """Add the correct weight to each event."""
-        if event['true_pdg'] == 0 and event['true_cosmic'] == 0:
+        if event.t_nu == 0 and event.t_cosmic_cat == 0:
             return self.nuel_weight
-        elif event['true_pdg'] == 1 and event['true_cosmic'] == 0:
+        elif event.t_nu == 1 and event.t_cosmic_cat == 0:
             return self.numu_weight
-        elif event['true_cosmic'] == 1:
+        elif event.t_cosmic_cat == 1:
             return self.cosmic_weight
         else:
             raise NotImplementedError
@@ -208,79 +187,86 @@ class CombinedEvaluator(BaseEvaluator):
         self.events['base_cut'] = self.events.apply(self.base_cut, axis=1)
         self.events['cosmic_cut'] = self.events.apply(self.cosmic_cut, axis=1)
 
-    def base_cut_summary(self, all=False):
-        if all:
-            for i in range(10):
-                cat_events = self.events[self.events.true_category == i]
-                print("Cat {}-> Total {}, Survived: {}\n".format(
-                    i, cat_events.shape[0],
-                    cat_events[cat_events['base_cut'] == False].shape[0]/cat_events.shape[0]))
-        else:
-            for i in range(4):
-                cat_events = self.events[self.events.true_cat_combined == i]
-                print("Cat {}-> Total {}, Survived: {}\n".format(
-                    i, cat_events.shape[0],
-                    cat_events[cat_events['base_cut'] == False].shape[0]/cat_events.shape[0]))           
+    def base_cut_summary(self):
+        """Print how each category is affected by the base_cut."""
+        print("Base Cut Summary...\n")
+        for i in range(4):
+            cat_events = self.events[self.events.t_full_cat == i]
+            print("{}-> Total {}, Survived: {}\n".format(
+                self.comb_cat_names[i], cat_events.shape[0],
+                cat_events[cat_events['base_cut'] == 0].shape[0]/cat_events.shape[0]))
 
-    def combined_cut_summary(self, all=False):
-        if all:
-            for i in range(10):
-                cat_events = self.events[self.events.true_category == i]
-                print("Cat {}-> Total {}, Survived: {}\n".format(
-                    i, cat_events.shape[0], cat_events[
-                        (cat_events.base_cut == False) &
-                        (cat_events.cosmic_cut == False)].shape[0]/cat_events.shape[0]))
-        else:
-            for i in range(4):
-                cat_events = self.events[self.events.true_cat_combined == i]
-                print("Cat {}-> Total {}, Survived: {}\n".format(
-                    i, cat_events.shape[0], cat_events[
-                        (cat_events.base_cut == False) &
-                        (cat_events.cosmic_cut == False)].shape[0]/cat_events.shape[0]))
+    def combined_cut_summary(self):
+        """Print how each category is affected by the base_cut + cosmic_cut."""
+        print("Base + Cosmic Cut Summary...\n")
+        for i in range(4):
+            cat_events = self.events[self.events.t_full_cat == i]
+            print("{}-> Total {}, Survived: {}\n".format(
+                self.comb_cat_names[i], cat_events.shape[0], cat_events[
+                    (cat_events.base_cut == 0) &
+                    (cat_events.cosmic_cut == 0)].shape[0]/cat_events.shape[0]))
 
     def base_cut(self, event):
         """Calculate if the event should be cut due to activity."""
-        cut = ((event['raw_total_digi_q'] <= self.config.eval.cuts.q) or
-               (event['first_ring_height'] <= self.config.eval.cuts.hough) or
-               (event['reco_dirTheta'] <= -self.config.eval.cuts.theta) or
-               (event['reco_dirTheta'] >= self.config.eval.cuts.theta) or
-               (event['reco_dirPhi'] <= -self.config.eval.cuts.phi) or
-               (event['reco_dirPhi'] >= self.config.eval.cuts.phi))
+        cut = ((event.r_raw_total_digi_q <= self.config.eval.cuts.q) or
+               (event.r_first_ring_height <= self.config.eval.cuts.hough) or
+               (event.r_dirTheta <= -self.config.eval.cuts.theta) or
+               (event.r_dirTheta >= self.config.eval.cuts.theta) or
+               (event.r_dirPhi <= -self.config.eval.cuts.phi) or
+               (event.r_dirPhi >= self.config.eval.cuts.phi))
         return cut
 
     def cosmic_cut(self, event):
         """Calculate if the event should be cut due to the cosmic network output."""
-        return (event['cosmic_output'] >= self.config.eval.cuts.cosmic)
+        return (event.c_out >= self.config.eval.cuts.cosmic)
 
     def cat_plot(self, parameter, bins, x_low, x_high, y_low, y_high, scale='norm',
                  base_cut=True, cosmic_cut=True):
         """Make the histograms and legend for a parameter, split by true category."""
 
+        # 0 = Nuel CC-QEL
+        # 1 = Nuel CC-RES
+        # 2 = Nuel CC-DIS
+        # 3 = Nuel CC-COH
+        # 4 = Numu CC-QEL
+        # 5 = Numu CC-RES
+        # 6 = Numu CC-DIS
+        # 7 = Numu CC-COH
+        # 8 = Nuel NC-QEL
+        # 9 = Nuel NC-RES
+        # 10 = Nuel NC-DIS
+        # 11 = Nuel NC-COH
+        # 12 = Numu NC-QEL
+        # 13 = Numu NC-RES
+        # 14 = Numu NC-DIS
+        # 15 = Numu NC-COH
+        # 16 = Cosmic
+
         hists = []
-        colours = [ROOT.kGreen, ROOT.kBlue,
-                   ROOT.kGreen+1, ROOT.kBlue+1,
-                   ROOT.kGreen+2, ROOT.kBlue+2,
-                   ROOT.kGreen+3, ROOT.kBlue+3,
-                   ROOT.kRed, ROOT.kBlack]
+        colours = [ROOT.kGreen, ROOT.kGreen+1, ROOT.kGreen+2, ROOT.kGreen+3,
+                   ROOT.kBlue, ROOT.kBlue+1, ROOT.kBlue+2, ROOT.kBlue+3,
+                   ROOT.kRed, ROOT.kRed+1, ROOT.kRed+2, ROOT.kRed+3,
+                   ROOT.kOrange, ROOT.kOrange+1, ROOT.kOrange+2, ROOT.kOrange+3,
+                   ROOT.kBlack]
         leg = ROOT.TLegend(0.65, 0.65, 0.89, 0.89, "Event Type")
-        entries = ["#nu_{e} CC-QEL", "#nu_{#mu} CC-QEL",
-                   "#nu_{e} CC-RES", "#nu_{#mu} CC-RES",
-                   "#nu_{e} CC-DIS", "#nu_{#mu} CC-DIS",
-                   "#nu_{e} CC-COH", "#nu_{#mu} CC-COH",
-                   "NC", "Cosmic"]
-        for i in range(10):
+        entries = ["#nu_{e} CC-QEL", "#nu_{e} CC-RES", "#nu_{e} CC-DIS", "#nu_{e} CC-COH",
+                   "#nu_{#mu} CC-QEL", "#nu_{#mu} CC-RES", "#nu_{#mu} CC-DIS", "#nu_{#mu} CC-COH",
+                   "#nu_{e} NC-QEL", "#nu_{e} NC-RES", "#nu_{e} NC-DIS", "#nu_{e} NC-COH",
+                   "#nu_{#mu} NC-QEL", "#nu_{#mu} NC-RES", "#nu_{#mu} NC-DIS", "#nu_{#mu} NC-COH",
+                   "Cosmic"]
+        for i in range(17):
             name = "h_" + parameter + "_" + str(i)
             hist = ROOT.TH1F(name, parameter, bins, x_low, x_high)
             hist.SetLineColor(colours[i])
             hist.SetLineWidth(2)
             hist.GetXaxis().SetTitle(parameter)
 
-            events = self.events[self.events['true_category'] == i]
+            events = self.events[self.events['t_cat'] == i]
 
             if base_cut:
-                events = events[events.base_cut == False]
+                events = events[events.base_cut == 0]
             if cosmic_cut:
-                events = events[events.cosmic_cut == False]
+                events = events[events.cosmic_cut == 0]
 
             if scale == 'weight':
                 fill_hist(hist, events[parameter].to_numpy(), events['weight'].to_numpy())
@@ -318,12 +304,12 @@ class CombinedEvaluator(BaseEvaluator):
             hist.SetLineWidth(2)
             hist.GetXaxis().SetTitle(parameter)
 
-            events = self.events[self.events['true_cat_combined'] == i]
+            events = self.events[self.events['t_full_cat'] == i]
 
             if base_cut:
-                events = events[events.base_cut == False]
+                events = events[events.base_cut == 0]
             if cosmic_cut:
-                events = events[events.cosmic_cut == False]
+                events = events[events.cosmic_cut == 0]
 
             if scale == 'weight':
                 fill_hist(hist, events[parameter].to_numpy(), events['weight'].to_numpy())
