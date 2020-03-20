@@ -249,13 +249,13 @@ class CombinedEvaluator(BaseEvaluator):
                    ROOT.kOrange, ROOT.kOrange+1, ROOT.kOrange+2, ROOT.kOrange+3,
                    ROOT.kBlack]
         leg = ROOT.TLegend(0.65, 0.65, 0.89, 0.89, "Event Type")
-        entries = ["#nu_{e} CC-QEL", "#nu_{e} CC-RES", "#nu_{e} CC-DIS", "#nu_{e} CC-COH",
-                   "#nu_{#mu} CC-QEL", "#nu_{#mu} CC-RES", "#nu_{#mu} CC-DIS", "#nu_{#mu} CC-COH",
-                   "#nu_{e} NC-QEL", "#nu_{e} NC-RES", "#nu_{e} NC-DIS", "#nu_{e} NC-COH",
-                   "#nu_{#mu} NC-QEL", "#nu_{#mu} NC-RES", "#nu_{#mu} NC-DIS", "#nu_{#mu} NC-COH",
+        entries = ["EL-CC-QEL", "EL-CC-RES", "EL-CC-DIS", "EL-CC-COH",
+                   "MU-CC-QEL", "MU-CC-RES", "MU-CC-DIS", "MU-CC-COH",
+                   "EL-NC-QEL", "EL-NC-RES", "EL-NC-DIS", "EL-NC-COH",
+                   "MU-NC-QEL", "MU-NC-RES", "MU-NC-DIS", "MU-NC-COH",
                    "Cosmic"]
         for i in range(17):
-            name = "h_" + parameter + "_" + str(i)
+            name = "h_" + parameter + "_" + entries[i]
             hist = ROOT.TH1F(name, parameter, bins, x_low, x_high)
             hist.SetLineColor(colours[i])
             hist.SetLineWidth(2)
@@ -296,9 +296,9 @@ class CombinedEvaluator(BaseEvaluator):
         hists = []
         colours = [ROOT.kGreen, ROOT.kBlue, ROOT.kRed, ROOT.kBlack]
         leg = ROOT.TLegend(0.65, 0.65, 0.89, 0.89, "Event Type")
-        entries = ["#nu_{e} CC", "#nu_{#mu} CC", "NC", "Cosmic"]
+        entries = ["EL-CC", "MU-CC", "NC", "Cosmic"]
         for i in range(4):
-            name = "h_" + parameter + "_" + str(i)
+            name = "h_" + parameter + "_" + entries[i]
             hist = ROOT.TH1F(name, parameter, bins, x_low, x_high)
             hist.SetLineColor(colours[i])
             hist.SetLineWidth(2)
