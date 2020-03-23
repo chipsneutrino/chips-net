@@ -45,8 +45,9 @@ model: # Variables used to build the model
     filters: 64
 trainer: # Variables used by the trainer
     num_epochs: 3
-    es_delta: 5
-    es_epochs: 5
+    steps_per_epoch: 5000
+    es_delta: 0.001
+    es_epochs: 10
 study: # We list the number of trials and then all the variables we want to tune
     trials: 100
     data:

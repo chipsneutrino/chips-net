@@ -1,10 +1,10 @@
 ---
 task: 'train'
-exp: # Variables used to save the experiment
-    name: "beam_all_long_unstacked"
+exp: # Variables used to define the output directory
+    name: "beam_all"
     experiment_dir: "models/"
-data: # Variables used to load the data
-    input_dirs: 
+data: # Variables used to define the input data
+    input_dirs: # List of input data directories
         #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_nc/chips_1200_sk1pe/"
@@ -27,7 +27,7 @@ data: # Variables used to load the data
         #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_pizero_nc/chips_1200_sk1pe/"
     all_chan: True
     reduced: True
-    stack: False
+    stack: True
     channels: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0]
     rand: [0, 0, 0.05, 0, 0, 0, 0, 0, 0, 0, 0.05, 0.05, 0]
     shift: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -36,7 +36,7 @@ data: # Variables used to load the data
     batch_size: 64
     max_examples: 15000
 model: # Variables used to build the model
-    name: "beam_all" # [beam_all, beam_full_comb, beam_nu_nc_comb, beam_nc_comb, beam_multi]
+    name: "beam_all" # [beam_all, beam_full_comb, beam_nu_nc_comb, beam_nc_comb, beam_multi, beam_all_inception]
     reco_pars: True
     lr: 0.0002
     dense_units: 512
@@ -45,8 +45,9 @@ model: # Variables used to build the model
     filters: 64
 trainer: # Variables used by the trainer
     num_epochs: 3
-    es_delta: 5
-    es_epochs: 5
+    steps_per_epoch: 15000
+    es_delta: 0.001
+    es_epochs: 10
 study: # We list the number of trials and then all the variables we want to tune
     trials: 100
     data:

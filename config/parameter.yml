@@ -14,7 +14,7 @@ data: # Variables used to load thata
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    max_examples: 5000
+    max_examples: 2500
 model: # Variables used in building the model
     name: "parameter"
     parameter: "t_nuEnergy"
@@ -26,8 +26,9 @@ model: # Variables used in building the model
     filters: 64
 trainer: # Variables used by the trainer
     num_epochs: 3
-    es_delta: 5
-    es_epochs: 5
+    steps_per_epoch: 2500
+    es_delta: 10
+    es_epochs: 10
 study: # We list the number of trials and then all the variables we want to tune
     trials: 100
     data:

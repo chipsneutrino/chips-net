@@ -209,14 +209,12 @@ class ParameterModel(BaseModel):
         self.model = Model(inputs=inputs, outputs=outputs, name='parameter_model')
 
         self.loss = 'mean_squared_error'
-        self.loss_weights = None
         self.metrics = ['mae', 'mse']
         self.es_monitor = 'val_mae'
         self.parameters = [self.config.model.parameter]
 
         self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
-                           loss_weights=self.loss_weights,
                            metrics=self.metrics)
 
 

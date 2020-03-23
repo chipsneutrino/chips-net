@@ -59,7 +59,7 @@ class BasicTrainer(BaseTrainer):
                 min_delta=self.config.trainer.es_delta,
                 patience=self.config.trainer.es_epochs,
                 verbose=1,
-                mode='min')
+                mode='auto')
         )
 
     def train(self, additional_callbacks=[]):
@@ -71,12 +71,14 @@ class BasicTrainer(BaseTrainer):
             epochs=self.config.trainer.num_epochs,
             verbose=1,
             validation_data=self.data.val_data(),
-            callbacks=self.callbacks
+            callbacks=self.callbacks,
+            steps_per_epoch=self.config.trainer.steps_per_epoch
         )
 
     def save(self):
         """Saves the training history to file."""
-        csv_name = os.path.join(self.config.exp.exp_dir, 'history.csv')
-        w = csv.writer(open(csv_name, "w"))
-        for key, val in self.history.history.items():
-            w.writerow([key, val])
+        history_name = os.path.join(self.config.exp.exp_dir, 'history.csv')
+        with open(history_name, mode='w') as history_file:
+            writer = csv.DictWriter(history_file, self.history.history.keys())
+            writer.writeheader()
+            writer.writerow(self.history.history)
