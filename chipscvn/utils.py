@@ -45,6 +45,8 @@ def get_model(config):
         return models.BeamNCCombModel(config)
     elif config.model.name == "beam_multi":
         return models.BeamMultiModel(config)
+    elif config.model.name == "beam_all_inception":
+        return models.BeamAllInceptionModel(config)
     else:
         raise NotImplementedError
 
@@ -70,6 +72,8 @@ def get_study(config):
         return studies.StandardStudy(config)
     elif config.model.name == "beam_multi":
         return studies.MultiStudy(config)
+    elif config.model.name == "beam_all_inception":
+        return studies.StandardStudy(config)
     else:
         raise NotImplementedError
 
