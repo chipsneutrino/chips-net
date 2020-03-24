@@ -37,6 +37,11 @@ class BasicTrainer(BaseTrainer):
         super().__init__(config, model, data)
         self.init_callbacks()
 
+    def lr_scheduler(self, epoch):
+        lr = self.config.model.lr
+        print("\nLearning Rate: {}".format(lr))
+        return lr
+
     def init_callbacks(self):
         """Initialise the keras callbacks to be called at the end of each epoch."""
         self.callbacks.append(  # Tensorboard callback for viewing plots of model training
@@ -61,6 +66,9 @@ class BasicTrainer(BaseTrainer):
                 verbose=1,
                 mode='auto')
         )
+
+        # Learning rate scheduler callback
+        self.callbacks.append(callbacks.LearningRateScheduler(self.lr_scheduler))
 
     def train(self, additional_callbacks=[]):
         """Train the model using the keras fit api call."""
