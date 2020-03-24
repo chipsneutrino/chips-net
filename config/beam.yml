@@ -34,7 +34,7 @@ data: # Variables used to define the input data
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    max_examples: 15000
+    max_examples: 5000
 model: # Variables used to build the model
     name: "beam_all" # [beam_all, beam_full_comb, beam_nu_nc_comb, beam_nc_comb, beam_multi, beam_all_inception]
     reco_pars: True
@@ -45,17 +45,18 @@ model: # Variables used to build the model
     filters: 64
 trainer: # Variables used by the trainer
     num_epochs: 3
-    steps_per_epoch: 15000
+    steps_per_epoch: -1
     es_delta: 0.001
     es_epochs: 10
 study: # We list the number of trials and then all the variables we want to tune
-    trials: 100
+    trials: 50
     data:
-        batch_size: [64, 128]
-        stack: [true, False]
+        batch_size: [64]
+        stack: [true]
     model:
+        reco_pars: [true]
         lr: [0.00005, 0.001]
-        dense_units: [256, 512]
+        dense_units: [512, 1028]
         dropout: [0.0, 0.5]
-        kernel_size: [3, 5]
-        filters: [32, 64, 128]
+        kernel_size: [3]
+        filters: [64, 128]

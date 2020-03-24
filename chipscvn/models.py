@@ -109,7 +109,11 @@ def GetModelBase(config):
         paths.append(image_path)
         inputs.append(image_input)
 
-    x = concatenate(paths)
+    if len(paths) == 1:
+        x = paths[0]
+    else:
+        x = concatenate(paths)
+
     x = Dense(config.model.dense_units, activation='relu')(x)
     x = Dense(config.model.dense_units, activation='relu')(x)
     x = Dense(config.model.dense_units, activation='relu', name='dense_final')(x)
@@ -189,7 +193,11 @@ def InceptionBase(config):
         paths.append(image_path)
         inputs.append(image_input)
 
-    x = concatenate(paths)
+    if len(paths) == 1:
+        x = paths[0]
+    else:
+        x = concatenate(paths)
+
     x = Dense(1024, activation='relu')(x)
     x = Dense(config.model.dense_units, activation='relu')(x)
     x = Dense(config.model.dense_units, activation='relu', name='dense_final')(x)

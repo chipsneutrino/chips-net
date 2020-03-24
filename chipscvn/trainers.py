@@ -66,13 +66,18 @@ class BasicTrainer(BaseTrainer):
         """Train the model using the keras fit api call."""
         self.callbacks.extend(additional_callbacks)
 
+        if self.config.trainer.steps_per_epoch == -1:
+            steps = None
+        else:
+            steps = self.config.trainer.steps_per_epoch
+
         self.history = self.model.model.fit(
             self.data.train_data(),
             epochs=self.config.trainer.num_epochs,
             verbose=1,
             validation_data=self.data.val_data(),
             callbacks=self.callbacks,
-            steps_per_epoch=self.config.trainer.steps_per_epoch
+            steps_per_epoch=steps
         )
 
     def save(self):

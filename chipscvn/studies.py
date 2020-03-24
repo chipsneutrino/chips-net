@@ -27,6 +27,10 @@ class BaseStudy(object):
     def run(self):
         """Run the SHERPA study."""
         for trial in self.study:
+            print(" *** Trial: {} *** ".format(trial.id))
+            print("*******************")
+            print(trial.parameters)
+            print("*******************")
             # We need to take the trial parameters and adjust the configuration to match them
             for key in trial.parameters.keys():
                 if 'data.' in key:
@@ -49,8 +53,7 @@ class BaseStudy(object):
                                             context_names=self.context)]
             trainer.train(cb)
             self.study.finalize(trial)
-
-        self.study.save()
+            self.study.save()
 
 
 class ParameterStudy(BaseStudy):
