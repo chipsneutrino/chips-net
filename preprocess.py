@@ -22,8 +22,6 @@ def parse_args():
     parser.add_argument('-j', '--join', help='how many input files to join together', default=10)
     parser.add_argument('--all', action='store_true',
                         help='pass through all maps to tfrecords file')
-    parser.add_argument('--reduce', action='store_true',
-                        help='encode images in 8-bit rather than floats')
     parser.add_argument('--single', action='store_true', help='Use a single process')
     return parser.parse_args()
 
@@ -32,7 +30,7 @@ def main():
     """Main function called by script."""
     args = parse_args()
     creator = data.DataCreator(
-        args.directory, args.geom, args.split, args.join, args.single, args.all, args.reduce)
+        args.directory, args.geom, args.split, args.join, args.single, args.all)
     creator.preprocess()
 
 

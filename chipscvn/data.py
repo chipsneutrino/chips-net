@@ -316,12 +316,11 @@ class DataLoader:
 
 class DataCreator:
     """Generates tfrecord files from ROOT map files."""
-    def __init__(self, directory, geom, split, join, single, all_maps, reduce):
+    def __init__(self, directory, geom, split, join, single, all_maps):
         self.split = split
         self.join = join
         self.single = single
         self.all_maps = all_maps
-        self.reduce = reduce
         self.init(directory, geom)
 
     def init(self, directory, geom):
@@ -343,77 +342,75 @@ class DataCreator:
         # Get the numpy arrays from the .root map file, we need to seperate by type
         # for the deserialisation during reading to work correctly.
         true_pars_i = np.stack((  # True Parameters (integers)
-            true.array('true_pdg'),
-            true.array('true_type')),
+            true.array('t_nu'),
+            true.array('t_code')),
             axis=1)
         true_pars_f = np.stack((  # True Parameters (floats)
-            true.array('true_vtx_x'),
-            true.array('true_vtx_y'),
-            true.array('true_vtx_z'),
-            true.array('true_dir_costheta'),
-            true.array('true_dir_phi'),
-            true.array('true_nu_energy'),
-            true.array('true_lep_energy')),
+            true.array('t_vtxX'),
+            true.array('t_vtxY'),
+            true.array('t_vtxZ'),
+            true.array('t_vtxT'),
+            true.array('t_nuEnergy')),
+            axis=1)
+        true_prim_i = true.array('t_p_pdgs')  # True Primaries (integers)
+        true_prim_f = np.stack((  # True Primaries (floats)
+            true.array('t_p_energies'),
+            true.array('t_p_dirTheta'),
+            true.array('t_p_dirPhi')),
             axis=1)
         reco_pars_i = np.stack((  # Reco Parameters (integers)
-            reco.array('raw_num_hits'),
-            reco.array('filtered_num_hits'),
-            reco.array('num_hough_rings')),
+            reco.array('r_raw_num_hits'),
+            reco.array('r_filtered_num_hits'),
+            reco.array('r_num_hough_rings')),
             axis=1)
         reco_pars_f = np.stack((  # Reco Parameters (floats)
-            reco.array('raw_total_digi_q'),
-            reco.array('filtered_total_digi_q'),
-            reco.array('first_ring_height'),
-            reco.array('last_ring_height'),
-            reco.array('vtx_x'),
-            reco.array('vtx_y'),
-            reco.array('vtx_z'),
-            reco.array('dir_theta'),
-            reco.array('dir_phi')),
+            reco.array('r_raw_total_digi_q'),
+            reco.array('r_filtered_total_digi_q'),
+            reco.array('r_first_ring_height'),
+            reco.array('r_last_ring_height'),
+            reco.array('r_vtxX'),
+            reco.array('r_vtxY'),
+            reco.array('r_vtxZ'),
+            reco.array('r_vtxT'),
+            reco.array('r_dirTheta'),
+            reco.array('r_dirPhi')),
             axis=1)
 
         channels = []
         ranges = []
 
-        channels.append('raw_charge_map_vtx')
+        channels.append('r_raw_charge_map_vtx')
         ranges.append((0.0, 15.0))
-        channels.append('raw_time_map_vtx')
+        channels.append('r_raw_time_map_vtx')
         ranges.append((0.0, 80.0))
-        channels.append('filtered_hit_hough_map_vtx')
+        channels.append('r_filtered_hit_hough_map_vtx')
         ranges.append((0.0, 1500.0))
 
         if self.all_maps:
-            channels.append('raw_hit_map_origin')
+            channels.append('r_raw_hit_map_origin')
             ranges.append((0.0, 15.0))
-            channels.append('raw_charge_map_origin')
+            channels.append('r_raw_charge_map_origin')
             ranges.append((0.0, 15.0))
-            channels.append('raw_time_map_origin')
+            channels.append('r_raw_time_map_origin')
             ranges.append((0.0, 80.0))
-            channels.append('filtered_hit_map_origin')
+            channels.append('r_filtered_hit_map_origin')
             ranges.append((0.0, 15.0))
-            channels.append('filtered_charge_map_origin')
+            channels.append('r_filtered_charge_map_origin')
             ranges.append((0.0, 15.0))
-            channels.append('filtered_time_map_origin')
+            channels.append('r_filtered_time_map_origin')
             ranges.append((0.0, 80.0))
-            channels.append('raw_hit_map_vtx')
+            channels.append('r_raw_hit_map_vtx')
             ranges.append((0.0, 15.0))
-            channels.append('filtered_hit_map_vtx')
+            channels.append('r_filtered_hit_map_vtx')
             ranges.append((0.0, 15.0))
-            channels.append('filtered_charge_map_vtx')
+            channels.append('r_filtered_charge_map_vtx')
             ranges.append((0.0, 15.0))
-            channels.append('filtered_time_map_vtx')
+            channels.append('r_filtered_time_map_vtx')
             ranges.append((0.0, 80.0))
 
         channel_images = []
         for i, channel in enumerate(channels):
-            channel_image = reco.array(channel)
-            if self.reduce:
-                channel_image.clip(ranges[i][0], ranges[i][1], out=channel_image)
-                channel_image -= ranges[i][0]  # Set minimum to be zero
-                channel_image /= (ranges[i][1]-ranges[i][0])  # normalize the data to 0 - 1
-                channel_image *= 256.0
-                channel_image = channel_image.astype(np.uint8)
-            channel_images.append(channel_image)
+            channel_images.append(reco.array(channel))
 
         image = np.stack(channel_images, axis=3)
 
@@ -422,6 +419,8 @@ class DataCreator:
             feature_dict = {
                 'true_pars_i': self.bytes_feature(true_pars_i[i].tostring()),
                 'true_pars_f': self.bytes_feature(true_pars_f[i].tostring()),
+                'true_prim_i': self.bytes_feature(true_prim_i[i].tostring()),
+                'true_prim_f': self.bytes_feature(true_prim_f[i].tostring()),
                 'reco_pars_i': self.bytes_feature(reco_pars_i[i].tostring()),
                 'reco_pars_f': self.bytes_feature(reco_pars_f[i].tostring()),
                 'image': self.bytes_feature(image[i].tostring())
