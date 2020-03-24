@@ -38,7 +38,7 @@ class BasicTrainer(BaseTrainer):
         self.init_callbacks()
 
     def lr_scheduler(self, epoch):
-        lr = self.config.model.lr
+        lr = self.config.model.lr * 1/(1 + self.config.model.lr_decay * epoch)
         print("\nLearning Rate: {}".format(lr))
         return lr
 

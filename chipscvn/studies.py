@@ -92,6 +92,7 @@ class StandardStudy(BaseStudy):
             sherpa.Choice(name='data.stack', range=self.config.study.data.stack),
             sherpa.Choice(name='model.reco_pars', range=self.config.study.model.reco_pars),
             sherpa.Continuous(name='model.lr', range=self.config.study.model.lr, scale='log'),
+            sherpa.Continuous(name='model.lr_decay', range=self.config.study.model.lr_decay),
             sherpa.Ordinal(name='model.dense_units', range=self.config.study.model.dense_units),
             sherpa.Continuous(name='model.dropout', range=self.config.study.model.dropout),
             sherpa.Ordinal(name='model.kernel_size', range=self.config.study.model.kernel_size),
