@@ -166,6 +166,8 @@ class DataLoader:
         features = {
             'true_pars_i': tf.io.FixedLenFeature([], tf.string),
             'true_pars_f': tf.io.FixedLenFeature([], tf.string),
+            'true_prim_i': tf.io.FixedLenFeature([], tf.string),
+            'true_prim_f': tf.io.FixedLenFeature([], tf.string),
             'reco_pars_i': tf.io.FixedLenFeature([], tf.string),
             'reco_pars_f': tf.io.FixedLenFeature([], tf.string),
             'image': tf.io.FixedLenFeature([], tf.string),
@@ -175,6 +177,8 @@ class DataLoader:
         # Decode the parameter arrays using their types
         true_pars_i = tf.io.decode_raw(example['true_pars_i'], tf.int32)
         true_pars_f = tf.io.decode_raw(example['true_pars_f'], tf.float32)
+        true_prim_i = tf.io.decode_raw(example['true_prim_i'], tf.int32)
+        true_prim_f = tf.io.decode_raw(example['true_prim_f'], tf.float32)
         reco_pars_i = tf.io.decode_raw(example['reco_pars_i'], tf.int32)
         reco_pars_f = tf.io.decode_raw(example['reco_pars_f'], tf.float32)
 
@@ -190,6 +194,9 @@ class DataLoader:
         nu_nc_comb = self.nu_nc_comb_table.lookup(category)
         nc_comb = self.nc_comb_table.lookup(category)
 
+        # Need to reshape the primary particle array
+        true_prim_f = tf.reshape(true_prim_f, [3, 10])
+
         labels = {  # We generate a dictionary with all the true labels
             't_nu': pdg,
             't_code': type,
@@ -201,10 +208,12 @@ class DataLoader:
             't_vtxX': true_pars_f[0],
             't_vtxY': true_pars_f[1],
             't_vtxZ': true_pars_f[2],
-            't_dirTheta': true_pars_f[3],
-            't_dirPhi': true_pars_f[4],
-            't_nuEnergy': true_pars_f[5],
-            't_lepEnergy': true_pars_f[6],
+            't_vtxT': true_pars_f[3],
+            't_nuEnergy': true_pars_f[4],
+            't_p_pdgs': true_prim_i,
+            't_p_energies': true_prim_f[0],
+            't_p_dirTheta': true_prim_f[1],
+            't_p_dirPhi': true_prim_f[2]
         }
 
         inputs = {  # We generate a dictionary with the images and other input parameters
@@ -218,17 +227,13 @@ class DataLoader:
             'r_vtxX': tf.math.divide(reco_pars_f[4], self.config.data.par_scale[0]),
             'r_vtxY': tf.math.divide(reco_pars_f[5], self.config.data.par_scale[1]),
             'r_vtxZ': tf.math.divide(reco_pars_f[6], self.config.data.par_scale[2]),
-            'r_dirTheta': tf.math.divide(reco_pars_f[7], self.config.data.par_scale[3]),
-            'r_dirPhi': tf.math.divide(reco_pars_f[8], self.config.data.par_scale[4])
+            'r_vtxT': reco_pars_f[7],
+            'r_dirTheta': tf.math.divide(reco_pars_f[8], self.config.data.par_scale[3]),
+            'r_dirPhi': tf.math.divide(reco_pars_f[9], self.config.data.par_scale[4])
         }
 
-        # Decide which dType to use when decoding the image
-        image_type = tf.float32
-        if self.config.data.reduced:
-            image_type = tf.uint8
-
         # Decode and reshape the "image" into a tf tensor
-        full_image = tf.io.decode_raw(example['image'], image_type)
+        full_image = tf.io.decode_raw(example['image'], tf.uint8)
         if self.config.data.all_chan:
             full_image = tf.reshape(full_image, [64, 64, 13])
         else:
@@ -239,9 +244,9 @@ class DataLoader:
         channels = []
         for i, enabled in enumerate(self.config.data.channels):
             if enabled:
+                # Cast to float at tf does this anyway, and scale to [0,1]
                 unstacked[i] = tf.cast(unstacked[i], tf.float32)
-                if self.config.data.reduced:  # Scale between [0,1]
-                    unstacked[i] = unstacked[i] / 256.0
+                unstacked[i] = unstacked[i] / 256.0
 
                 # Apply a random distribution to the channel
                 rand = tf.random.normal(shape=[64, 64], mean=1,
@@ -296,21 +301,21 @@ class DataLoader:
         """Returns the training dataset."""
         ds = self.dataset(self.train_dirs)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
-        ds = ds.take(self.config.data.max_examples)  # Take up to max examples
+        ds = ds.take(self.config.data.train_examples)
         return ds
 
     def val_data(self):
         """Returns the validation dataset."""
         ds = self.dataset(self.val_dirs)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
-        ds = ds.take(int(self.config.data.max_examples*0.1))  # Only take 10% of max examples
+        ds = ds.take(int(self.config.data.val_examples))
         return ds
 
     def test_data(self):
         """Returns the testing dataset."""
         ds = self.dataset(self.test_dirs)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
-        ds = ds.take(self.config.data.max_examples)  # Take up to max examples
+        ds = ds.take(self.config.data.test_examples)
         return ds
 
 

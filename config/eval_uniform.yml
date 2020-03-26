@@ -19,38 +19,45 @@ data: # Variables used to load the data
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_nc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/cosmic_numu_all/chips_1200_sk1pe/"
-    all_chan: True
-    reduced: True
-    stack: True
-    channels: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0]
+    all_chan: False
+    stack: False
+    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     rand: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    shift: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    max_examples: 500
+    train_examples: 15000
+    val_examples: 500
+    test_examples: 1000
 models: # Variables used to build the models
     cosmic:
         dir: "models"
-        path: "cosmic_base_samples_5_rand_stacked"
+        path: "cosmic_very_long_unstacked"
         name: "cosmic"
+        reco_pars: True
         lr: 0.0002
+        lr_decay: 0.0
         dense_units: 512
         dropout: 0.2
         kernel_size: 3
         filters: 64
     beam:
         dir: "models"
-        path: "beam_base_samples_5_rand_stacked"
-        name: "beam"
+        path: "beam_all_very_long_unstacked" 
+        name: "beam_all"  # [beam_all, beam_full_comb, beam_nu_nc_comb, beam_nc_comb, beam_multi, beam_all_inception]
+        reco_pars: True
         lr: 0.0002
+        lr_decay: 0.0
         dense_units: 512
         dropout: 0.2
         kernel_size: 3
         filters: 64
 eval: # Variables used by the evaluator
     type: "combined"
+    steps_per_epoch: 15000
     cuts:
-        cosmic: 0.01
+        cosmic: 0.001
         q: 500.0
         hough: 500.0
         theta: 0.7

@@ -1,10 +1,10 @@
 ---
 task: 'train'
 exp: # Variables used to define the output directory
-    name: "beam_all"
+    name: "beam_nu_nc_comb_longest_unstacked_big"
     experiment_dir: "models/"
 data: # Variables used to define the input data
-    input_dirs: # List of input data directories
+    input_dirs:
         #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_coh_nc/chips_1200_sk1pe/"
@@ -14,7 +14,6 @@ data: # Variables used to define the input data
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_res_nc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_qel_nc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_nuel_pizero_nc/chips_1200_sk1pe/"
         #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_all/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_coh_nc/chips_1200_sk1pe/"
@@ -24,30 +23,30 @@ data: # Variables used to define the input data
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_res_nc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_cc/chips_1200_sk1pe/"
         - "/mnt/storage/jtingey/chips-cvn/data/beam_numu_qel_nc/chips_1200_sk1pe/"
-        #- "/mnt/storage/jtingey/chips-cvn/data/beam_numu_pizero_nc/chips_1200_sk1pe/"
-    all_chan: True
-    reduced: True
-    stack: True
-    channels: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0]
-    rand: [0, 0, 0.05, 0, 0, 0, 0, 0, 0, 0, 0.05, 0.05, 0]
+    all_chan: False
+    stack: False
+    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    rand: [0.05, 0.05, 0.05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     shift: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    max_examples: 10000
+    train_examples: 50000
+    val_examples: 2000
+    test_examples: 2000
 model: # Variables used to build the model
     name: "beam_all" # [beam_all, beam_full_comb, beam_nu_nc_comb, beam_nc_comb, beam_multi, beam_all_inception]
     reco_pars: True
-    lr: 0.0002
+    lr: 0.0001
     lr_decay: 0.0
-    dense_units: 512
+    dense_units: 1028
     dropout: 0.2
     kernel_size: 3
-    filters: 64
+    filters: 128
 trainer: # Variables used by the trainer
-    num_epochs: 4
-    steps_per_epoch: 2500
-    es_delta: 0.001
+    num_epochs: 3
+    steps_per_epoch: -1
+    es_delta: 0.0001
     es_epochs: 10
 study: # We list the number of trials and then all the variables we want to tune
     trials: 50
@@ -55,7 +54,7 @@ study: # We list the number of trials and then all the variables we want to tune
         batch_size: [64]
         stack: [true]
     model:
-        reco_pars: [true]
+        reco_pars: [true, False]
         lr: [0.00005, 0.001]
         lr_decay: [0.0, 0.0]
         dense_units: [512, 1028]

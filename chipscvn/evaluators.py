@@ -88,11 +88,13 @@ class CombinedEvaluator(BaseEvaluator):
         events = {  # Create empty dict to hold all the event data
             't_nu': [], 't_code': [], 't_cat': [], 't_cosmic_cat': [],
             't_full_cat': [], 't_nu_nc_cat': [], 't_nc_cat': [],
-            't_vtxX': [], 't_vtxY': [], 't_vtxZ': [], 't_dirTheta': [],
-            't_dirPhi': [], 't_nuEnergy': [], 't_lepEnergy': [], 'r_raw_num_hits': [],
-            'r_filtered_num_hits': [], 'r_num_hough_rings': [], 'r_raw_total_digi_q': [],
-            'r_filtered_total_digi_q': [], 'r_first_ring_height': [], 'r_last_ring_height': [],
-            'r_vtxX': [], 'r_vtxY': [], 'r_vtxZ': [], 'r_dirTheta': [], 'r_dirPhi': [],
+            't_vtxX': [], 't_vtxY': [], 't_vtxZ': [], 't_vtxT': [], 't_nuEnergy': [],
+            't_p_pdgs': [], 't_p_energies': [], 't_p_dirTheta': [], 't_p_dirPhi': [],
+            'r_raw_num_hits': [], 'r_filtered_num_hits': [], 'r_num_hough_rings': [],
+            'r_raw_total_digi_q': [], 'r_filtered_total_digi_q': [],
+            'r_first_ring_height': [], 'r_last_ring_height': [],
+            'r_vtxX': [], 'r_vtxY': [], 'r_vtxZ': [], 'r_vtxT': [],
+            'r_dirTheta': [], 'r_dirPhi': [],
             'c_out': [], 'b_out': [], 'c_dense': [], 'b_dense': []
         }
 
@@ -248,7 +250,7 @@ class CombinedEvaluator(BaseEvaluator):
                    ROOT.kRed, ROOT.kRed+1, ROOT.kRed+2, ROOT.kRed+3,
                    ROOT.kOrange, ROOT.kOrange+1, ROOT.kOrange+2, ROOT.kOrange+3,
                    ROOT.kBlack]
-        leg = ROOT.TLegend(0.65, 0.65, 0.89, 0.89, "Event Type")
+        leg = ROOT.TLegend(0.65, 0.65, 0.80, 0.89, "Event Type")
         entries = ["EL-CC-QEL", "EL-CC-RES", "EL-CC-DIS", "EL-CC-COH",
                    "MU-CC-QEL", "MU-CC-RES", "MU-CC-DIS", "MU-CC-COH",
                    "EL-NC-QEL", "EL-NC-RES", "EL-NC-DIS", "EL-NC-COH",
@@ -295,7 +297,7 @@ class CombinedEvaluator(BaseEvaluator):
 
         hists = []
         colours = [ROOT.kGreen, ROOT.kBlue, ROOT.kRed, ROOT.kBlack]
-        leg = ROOT.TLegend(0.65, 0.65, 0.89, 0.89, "Event Type")
+        leg = ROOT.TLegend(0.65, 0.65, 0.80, 0.89, "Event Type")
         entries = ["EL-CC", "MU-CC", "NC", "Cosmic"]
         for i in range(4):
             name = "h_" + parameter + "_" + entries[i]
