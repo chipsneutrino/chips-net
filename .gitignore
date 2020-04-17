@@ -7,3 +7,6 @@ env/miniconda/
 example_data/
 data/
 *.html
+.vscode
+smearing/
+.comet.sh
