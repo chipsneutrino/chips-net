@@ -82,5 +82,7 @@ def get_evaluator(config):
     """Returns the correct evaluator for the configuration."""
     if config.eval.type == "combined":
         return evaluators.CombinedEvaluator(config)
+    if config.eval.type == "energy":
+        return evaluators.EnergyEvaluator(config)
     else:
         raise NotImplementedError

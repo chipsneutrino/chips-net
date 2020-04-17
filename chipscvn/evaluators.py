@@ -333,3 +333,102 @@ class CombinedEvaluator(BaseEvaluator):
         leg.SetBorderSize(0)
 
         return hists, leg
+
+class EnergyEvaluator(BaseEvaluator):
+    """Energy estimation model evaluation."""
+    def __init__(self, config):
+        super().__init__(config)
+
+    def init_evaluator(self):
+        """Initialise the evaluator, loading the evaluation data and model."""
+
+        # Setup all the energy estimation models
+        self.nuel_qel_cc_m = self.get_model("nuel_qel_cc")
+        self.nuel_dis_cc_m = self.get_model("nuel_dis_cc")
+        self.nuel_res_cc_m = self.get_model("nuel_res_cc")
+        self.nuel_qel_nc_m = self.get_model("nuel_qel_nc")
+        self.nuel_dis_nc_m = self.get_model("nuel_dis_nc")
+        self.nuel_res_nc_m = self.get_model("nuel_res_nc")
+        self.numu_qel_cc_m = self.get_model("numu_qel_cc")
+        self.numu_dis_cc_m = self.get_model("numu_dis_cc")
+        self.numu_res_cc_m = self.get_model("numu_res_cc")
+        self.numu_qel_nc_m = self.get_model("numu_qel_nc")
+        self.numu_dis_nc_m = self.get_model("numu_dis_nc")
+        self.numu_res_nc_m = self.get_model("numu_res_nc")
+
+        # Get the test dataset
+        data_loader = data.DataLoader(self.config)
+        self.data = data_loader.test_data()
+
+    def run(self):
+        """Run the full evaluation."""
+        print('--- Running Evaluation ---\n')
+
+        start_time = time.time()  # Time how long it takes
+
+        self.run_inference()  # Get model outputs for test data
+
+        print('--- Done (took %s seconds) ---\n' % (time.time() - start_time))
+
+    def get_model(self, name):
+        """Get and loads the model from the configuration"""
+        config = self.config
+        config.model = self.config.models[name]
+        config.exp.experiment_dir = self.config.models[name].dir
+        config.exp.name = self.config.models[name].path
+        chipscvn.config.setup_dirs(config, False)
+        model = utils.get_model(config)
+        model.load()
+        return model
+
+    def run_inference(self):
+        """Get model outputs for test data."""
+        print('--- running inference...\n')
+
+        events = {  # Create empty dict to hold all the event data
+            't_nu': [], 't_code': [], 't_cat': [], 't_cosmic_cat': [],
+            't_full_cat': [], 't_nu_nc_cat': [], 't_nc_cat': [],
+            't_vtxX': [], 't_vtxY': [], 't_vtxZ': [], 't_vtxT': [], 't_nuEnergy': [],
+            't_p_pdgs': [], 't_p_energies': [], 't_p_dirTheta': [], 't_p_dirPhi': [],
+            'r_raw_num_hits': [], 'r_filtered_num_hits': [], 'r_num_hough_rings': [],
+            'r_raw_total_digi_q': [], 'r_filtered_total_digi_q': [],
+            'r_first_ring_height': [], 'r_last_ring_height': [],
+            'r_vtxX': [], 'r_vtxY': [], 'r_vtxZ': [], 'r_vtxT': [],
+            'r_dirTheta': [], 'r_dirPhi': [],
+            'nuel_cc_qel_e': [], 'nuel_cc_dis_e': [], 'nuel_cc_res_e': [],
+            'nuel_nc_qel_e': [], 'nuel_nc_dis_e': [], 'nuel_nc_res_e': [],
+            'numu_cc_qel_e': [], 'numu_cc_dis_e': [], 'numu_cc_res_e': [],
+            'numu_nc_qel_e': [], 'numu_nc_dis_e': [], 'numu_nc_res_e': []
+        }
+
+        images = self.config.data.img_size[2]
+        if self.config.data.stack:
+            images = 1
+        for i in range(images):
+            events[('image_' + str(i))] = []
+
+        for x, y in self.data:  # Run prediction on individual batches
+            for name, array in list(x.items()):  # Fill events dict with 'inputs'
+                if name in events.keys():
+                    events[name].extend(array.numpy())
+
+            for name, array in list(y.items()):  # Fill events dict with 'labels'
+                if name in events.keys():
+                    events[name].extend(array.numpy())
+
+            events['nuel_cc_qel_e'].extend(self.nuel_qel_cc_m.model.predict(x))
+            events['nuel_cc_dis_e'].extend(self.nuel_dis_cc_m.model.predict(x))
+            events['nuel_cc_res_e'].extend(self.nuel_res_cc_m.model.predict(x))
+            events['nuel_nc_qel_e'].extend(self.nuel_qel_nc_m.model.predict(x))
+            events['nuel_nc_dis_e'].extend(self.nuel_dis_nc_m.model.predict(x))
+            events['nuel_nc_res_e'].extend(self.nuel_res_nc_m.model.predict(x))
+            events['numu_cc_qel_e'].extend(self.numu_qel_cc_m.model.predict(x))
+            events['numu_cc_dis_e'].extend(self.numu_dis_cc_m.model.predict(x))
+            events['numu_cc_res_e'].extend(self.numu_res_cc_m.model.predict(x))
+            events['numu_nc_qel_e'].extend(self.numu_qel_nc_m.model.predict(x))
+            events['numu_nc_dis_e'].extend(self.numu_dis_nc_m.model.predict(x))
+            events['numu_nc_res_e'].extend(self.numu_res_nc_m.model.predict(x))
+
+
+        self.events = pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
+        self.events = self.events.sample(frac=1).reset_index(drop=True)  # Shuffle the dataframe
