@@ -1,7 +1,7 @@
-"""Provides the CVN configuration from yaml files
+# -*- coding: utf-8 -*-
 
-Author: Josh Tingey
-Email: j.tingey.16@ucl.ac.uk
+"""
+Provides a CVN configuration namespace from a yaml file
 
 This module produces a configuration namespace from an input yaml config
 file that can be used in the rest of the chips-cvn code. It also formats
@@ -15,7 +15,14 @@ from dotmap import DotMap
 
 
 def get(config_path):
-    """Returns the configuration namespace specified in the config file."""
+    """
+    Returns a configuration namespace generated from the config file.
+
+    Args:
+        config_path (str): Input configuration file path
+    Returns:
+        dotmap.DotMap: Dotmap configuration namespace
+    """
     with open(config_path, 'r') as config_file:
         config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
 
@@ -25,10 +32,16 @@ def get(config_path):
     return config_space
 
 
-def setup_dirs(config, remove_first):
-    """Sets up the experiment output directories."""
+def setup_dirs(config, remove_old):
+    """
+    Sets up the experiment output directories.
+
+    Args:
+        config (dotmap.DotMap): Configuration namespace
+        remove_old (bool): Should we remove old directories at the same path
+    """
     config.exp.exp_dir = os.path.join(config.exp.experiment_dir, config.exp.name)
-    if remove_first:
+    if remove_old:
         shutil.rmtree(config.exp.exp_dir, ignore_errors=True)
 
     # Set the experiment directories
@@ -38,5 +51,5 @@ def setup_dirs(config, remove_first):
     config.exp.checkpoints_dir = os.path.join(config.exp.exp_dir, 'checkpoints')
     os.makedirs(config.exp.checkpoints_dir, exist_ok=True)
 
-    if remove_first:  # Copy file to keep record of training configuration
+    if remove_old:  # Copy file to keep record of training configuration
         shutil.copyfile(config.config_path, os.path.join(config.exp.exp_dir, "config.yaml"))

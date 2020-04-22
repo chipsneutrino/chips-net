@@ -1,7 +1,7 @@
-"""Utilities module
+# -*- coding: utf-8 -*-
 
-Author: Josh Tingey
-Email: j.tingey.16@ucl.ac.uk
+"""
+chips-cvn utilities module
 
 This module contains varous utility methods required throughout chipscvn.
 This includes helper, plotting and output functions.
@@ -15,7 +15,9 @@ import chipscvn.evaluators as evaluators
 
 
 def gpu_setup():
-    """Sets up the system GPU's, memory growth is turned on."""
+    """
+    Sets up the system GPU's, memory growth is turned on.
+    """
     gpus = tf.config.experimental.list_physical_devices('GPU')
     if gpus:
         try:
@@ -30,7 +32,14 @@ def gpu_setup():
 
 
 def get_model(config):
-    """Returns the correct model for the configuration."""
+    """
+    Returns the correct model for the configuration.
+
+    Args:
+        config (dotmap.DotMap): DotMap Configuration namespace
+    Returns:
+        chipscvn.models model: Model class
+    """
     if config.model.name == "parameter":
         return models.ParameterModel(config)
     elif config.model.name == "cosmic":
@@ -52,12 +61,28 @@ def get_model(config):
 
 
 def get_trainer(config, model, data):
-    """Returns the correct trainer for the configuration."""
+    """
+    Returns the correct trainer for the configuration.
+
+    Args:
+        config (dotmap.DotMap): DotMap Configuration namespace
+        model (chipscvn.models model): Model to use with trainer
+        data (chipscvn.data.DataLoader): Data loader
+    Returns:
+        chipscvn.trainers trainer: Training class
+    """
     return trainers.BasicTrainer(config, model, data)
 
 
 def get_study(config):
-    """Returns the correct study for the configuration."""
+    """
+    Returns the correct SHERPA study for the configuration.
+
+    Args:
+        config (dotmap.DotMap): DotMap Configuration namespace
+    Returns:
+        chipscvn.studies study: Study class
+    """
     if config.model.name == "parameter":
         return studies.ParameterStudy(config)
     elif config.model.name == "cosmic":
@@ -79,7 +104,14 @@ def get_study(config):
 
 
 def get_evaluator(config):
-    """Returns the correct evaluator for the configuration."""
+    """
+    Returns the correct evaluator for the configuration.
+
+    Args:
+        config (dotmap.DotMap): DotMap Configuration namespace
+    Returns:
+        chipscvn.evaluators evaluator: Evaluator class
+    """
     if config.eval.type == "combined":
         return evaluators.CombinedEvaluator(config)
     if config.eval.type == "energy":

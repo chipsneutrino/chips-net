@@ -1,0 +1,2054 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>chipscvn.data API documentation</title>
+<meta name="description" content="Data creation and loading module …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>chipscvn.data</code></h1>
+</header>
+<section id="section-intro">
+<p>Data creation and loading module</p>
+<p>This module contains both the DataCreator and DataLoader classes, these
+are used to firstly generate tfrecords files from ROOT hitmap files and
+then to read these on the fly using tf.datasets at model training or
+evaluation.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># -*- coding: utf-8 -*-
+
+&#34;&#34;&#34;
+Data creation and loading module
+
+This module contains both the DataCreator and DataLoader classes, these
+are used to firstly generate tfrecords files from ROOT hitmap files and
+then to read these on the fly using tf.datasets at model training or
+evaluation.
+&#34;&#34;&#34;
+
+import os
+from joblib import Parallel, delayed
+import multiprocessing
+import random
+
+import uproot
+import numpy as np
+import tensorflow as tf
+
+
+class DataLoader:
+
+    &#34;&#34;&#34;
+    Generates tf datasets for training/evaluation from the configuration.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the DataLoader.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        self.config = config
+        self.init()
+
+    def init(self):
+        &#34;&#34;&#34;
+        Initialise lookup tables and input directories.
+        &#34;&#34;&#34;
+        # Map nuel and numu (Total = 2)
+        # 0 = Nuel neutrino
+        # 1 = Numu neutrino (cosmic muons are included in this)
+        nu_keys = tf.constant([11, 12, 13, 14])
+        nu_vals = tf.constant([0,  0,  1,  1])
+        self.nu_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(nu_keys, nu_vals), -1
+        )
+
+        # Map interaction types (Total = 10)
+        # 0 = CC-QEL
+        # 1 = CC-RES
+        # 2 = CC-DIS
+        # 3 = CC-COH
+        # 4 = NC-QEL
+        # 5 = NC-RES
+        # 6 = NC-DIS
+        # 7 = NC-COH
+        # 8 = Cosmic
+        # 9 = Other
+        int_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 91, 92, 96, 97, 98, 99, 100])
+        int_vals = tf.constant([9, 0, 4, 1, 1, 1, 5, 5, 5, 5,  2,  6,  7,  3,  9,  9,   8])
+        self.int_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(int_keys, int_vals), -1
+        )
+
+        # Map to all categories (Total = 19)
+        # Category keys are a string of pdg+type, e.g an nuel ccqe event is &#39;0&#39;+&#39;0&#39; = &#39;00&#39;
+        # 0 = Nuel CC-QEL
+        # 1 = Nuel CC-RES
+        # 2 = Nuel CC-DIS
+        # 3 = Nuel CC-COH
+        # 4 = Numu CC-QEL
+        # 5 = Numu CC-RES
+        # 6 = Numu CC-DIS
+        # 7 = Numu CC-COH
+        # 8 = Nuel NC-QEL
+        # 9 = Nuel NC-RES
+        # 10 = Nuel NC-DIS
+        # 11 = Nuel NC-COH
+        # 12 = Numu NC-QEL
+        # 13 = Numu NC-RES
+        # 14 = Numu NC-DIS
+        # 15 = Numu NC-COH
+        # 16 = Cosmic
+        # 17 = Nuel Other
+        # 18 = Numu Other
+        cat_keys = tf.constant([&#39;00&#39;, &#39;01&#39;, &#39;02&#39;, &#39;03&#39;, &#39;10&#39;, &#39;11&#39;, &#39;12&#39;, &#39;13&#39;,
+                                &#39;04&#39;, &#39;05&#39;, &#39;06&#39;, &#39;07&#39;, &#39;14&#39;, &#39;15&#39;, &#39;16&#39;, &#39;17&#39;,
+                                &#39;18&#39;, &#39;09&#39;, &#39;19&#39;], dtype=tf.string)
+        cat_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                8, 9, 10, 11, 12, 13, 14, 15,
+                                16, 17, 18])
+        self.cat_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(cat_keys, cat_vals), -1
+        )
+
+        # The following mappings are used to generate the inputs to different model types
+
+        # Map a cosmic flag (Total = 2)
+        # 0 = Not a Cosmic
+        # 1 = A Cosmic
+        cosmic_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                   8, 9, 10, 11, 12, 13, 14, 15,
+                                   16, 17, 18])
+        cosmic_vals = tf.constant([0, 0, 0, 0, 0, 0, 0, 0,
+                                   0, 0, 0, 0, 0, 0, 0, 0,
+                                   1, 0, 0])
+        self.cosmic_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(cosmic_keys, cosmic_vals), -1
+        )
+
+        # Map to full_combined categories (Total = 5)
+        # 0 = Nuel CC
+        # 1 = Numu CC
+        # 2 = NC
+        # 3 = Cosmic
+        # 4 = Other
+        comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                 8, 9, 10, 11, 12, 13, 14, 15,
+                                 16, 17, 18])
+        comb_vals = tf.constant([0, 0, 0, 0, 1, 1, 1, 1,
+                                 2, 2, 2, 2, 2, 2, 2, 2,
+                                 3, 4, 4])
+        self.comb_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(comb_keys, comb_vals), -1
+        )
+
+        # Map to nc_nu_combined categories (Total = 14)
+        # 0 = Nuel CC-QEL
+        # 1 = Nuel CC-RES
+        # 2 = Nuel CC-DIS
+        # 3 = Nuel CC-COH
+        # 4 = Numu CC-QEL
+        # 5 = Numu CC-RES
+        # 6 = Numu CC-DIS
+        # 7 = Numu CC-COH
+        # 8 = NC-QEL
+        # 9 = NC-RES
+        # 10 = NC-DIS
+        # 11 = NC-COH
+        # 12 = Cosmic
+        # 13 = Other
+        nu_nc_comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                       8, 9, 10, 11, 12, 13, 14, 15,
+                                       16, 17, 18])
+        nu_nc_comb_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                       8, 9, 10, 11, 8, 9, 10, 11,
+                                       12, 13, 13])
+        self.nu_nc_comb_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(nu_nc_comb_keys, nu_nc_comb_vals), -1
+        )
+
+        # Map to nc_combined categories (Total = 11)
+        # 0 = Nuel CC-QEL
+        # 1 = Nuel CC-RES
+        # 2 = Nuel CC-DIS
+        # 3 = Nuel CC-COH
+        # 4 = Numu CC-QEL
+        # 5 = Numu CC-RES
+        # 6 = Numu CC-DIS
+        # 7 = Numu CC-COH
+        # 8 = NC
+        # 9 = Cosmic
+        # 10 = Other
+        nc_comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                    8, 9, 10, 11, 12, 13, 14, 15,
+                                    16, 17, 18])
+        nc_comb_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                    8, 8, 8, 8, 8, 8, 8, 8,
+                                    9, 10, 10])
+        self.nc_comb_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(nc_comb_keys, nc_comb_vals), -1
+        )
+
+        # Generate the lists of train, val and test file directories from the configuration
+        self.train_dirs = [os.path.join(in_dir, &#39;train&#39;) for in_dir in self.config.data.input_dirs]
+        self.val_dirs = [os.path.join(in_dir, &#39;val&#39;) for in_dir in self.config.data.input_dirs]
+        self.test_dirs = [os.path.join(in_dir, &#39;test&#39;) for in_dir in self.config.data.input_dirs]
+
+    def parse(self, serialised_example):
+        &#34;&#34;&#34;
+        Parses a single serialised example into both an input and labels dict.
+
+        Args:
+            serialised_example (tf.Example): A single example from .tfrecords file
+        Returns:
+            Tuple[dict, dict]: (Inputs dictionary, Labels dictionary)
+        &#34;&#34;&#34;
+        features = {
+            &#39;true_pars_i&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;true_pars_f&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;true_prim_i&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;true_prim_f&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;reco_pars_i&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;reco_pars_f&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;image&#39;: tf.io.FixedLenFeature([], tf.string),
+        }
+        example = tf.io.parse_single_example(serialised_example, features)
+
+        # Decode the parameter arrays using their types
+        true_pars_i = tf.io.decode_raw(example[&#39;true_pars_i&#39;], tf.int32)
+        true_pars_f = tf.io.decode_raw(example[&#39;true_pars_f&#39;], tf.float32)
+        true_prim_i = tf.io.decode_raw(example[&#39;true_prim_i&#39;], tf.int32)
+        true_prim_f = tf.io.decode_raw(example[&#39;true_prim_f&#39;], tf.float32)
+        reco_pars_i = tf.io.decode_raw(example[&#39;reco_pars_i&#39;], tf.int32)
+        reco_pars_f = tf.io.decode_raw(example[&#39;reco_pars_f&#39;], tf.float32)
+
+        # Do all the base mapping using the lookup tables
+        pdg = self.nu_table.lookup(true_pars_i[0])
+        type = self.int_table.lookup(true_pars_i[1])
+        category = self.cat_table.lookup(
+            tf.strings.join((tf.strings.as_string(pdg), tf.strings.as_string(type)))
+        )
+
+        # Do all the model specific mapping using the lookup tables
+        cosmic = self.cosmic_table.lookup(category)
+        full_comb = self.comb_table.lookup(category)
+        nu_nc_comb = self.nu_nc_comb_table.lookup(category)
+        nc_comb = self.nc_comb_table.lookup(category)
+
+        # Need to reshape the primary particle array
+        true_prim_f = tf.reshape(true_prim_f, [3, 10])
+
+        labels = {  # We generate a dictionary with all the true labels
+            &#39;t_nu&#39;: pdg,
+            &#39;t_code&#39;: type,
+            &#39;t_cat&#39;: category,
+            &#39;t_cosmic_cat&#39;: cosmic,
+            &#39;t_full_cat&#39;: full_comb,
+            &#39;t_nu_nc_cat&#39;: nu_nc_comb,
+            &#39;t_nc_cat&#39;: nc_comb,
+            &#39;t_vtxX&#39;: true_pars_f[0],
+            &#39;t_vtxY&#39;: true_pars_f[1],
+            &#39;t_vtxZ&#39;: true_pars_f[2],
+            &#39;t_vtxT&#39;: true_pars_f[3],
+            &#39;t_nuEnergy&#39;: true_pars_f[4],
+            &#39;t_p_pdgs&#39;: true_prim_i,
+            &#39;t_p_energies&#39;: true_prim_f[0],
+            &#39;t_p_dirTheta&#39;: true_prim_f[1],
+            &#39;t_p_dirPhi&#39;: true_prim_f[2]
+        }
+
+        inputs = {  # We generate a dictionary with the images and other input parameters
+            &#39;r_raw_num_hits&#39;: reco_pars_i[0],
+            &#39;r_filtered_num_hits&#39;: reco_pars_i[1],
+            &#39;r_num_hough_rings&#39;: reco_pars_i[2],
+            &#39;r_raw_total_digi_q&#39;: reco_pars_f[0],
+            &#39;r_filtered_total_digi_q&#39;: reco_pars_f[1],
+            &#39;r_first_ring_height&#39;: reco_pars_f[2],
+            &#39;r_last_ring_height&#39;: reco_pars_f[3],
+            &#39;r_vtxX&#39;: tf.math.divide(reco_pars_f[4], self.config.data.par_scale[0]),
+            &#39;r_vtxY&#39;: tf.math.divide(reco_pars_f[5], self.config.data.par_scale[1]),
+            &#39;r_vtxZ&#39;: tf.math.divide(reco_pars_f[6], self.config.data.par_scale[2]),
+            &#39;r_vtxT&#39;: reco_pars_f[7],
+            &#39;r_dirTheta&#39;: tf.math.divide(reco_pars_f[8], self.config.data.par_scale[3]),
+            &#39;r_dirPhi&#39;: tf.math.divide(reco_pars_f[9], self.config.data.par_scale[4])
+        }
+
+        # Decode and reshape the &#34;image&#34; into a tf tensor
+        full_image = tf.io.decode_raw(example[&#39;image&#39;], tf.uint8)
+        if self.config.data.all_chan:
+            full_image = tf.reshape(full_image, [64, 64, 13])
+        else:
+            full_image = tf.reshape(full_image, [64, 64, 3])
+
+        # &#39;unstack&#39; the image and manipulate each channel individually
+        unstacked = tf.unstack(full_image, axis=2)
+        channels = []
+        for i, enabled in enumerate(self.config.data.channels):
+            if enabled:
+                # Cast to float at tf does this anyway, and scale to [0,1]
+                unstacked[i] = tf.cast(unstacked[i], tf.float32)
+                unstacked[i] = unstacked[i] / 256.0
+
+                # Apply a random distribution to the channel
+                rand = tf.random.normal(shape=[64, 64], mean=1,
+                                        stddev=self.config.data.rand[i],
+                                        dtype=tf.float32)
+                unstacked[i] = tf.math.multiply(unstacked[i], rand)
+
+                # Apply a shift to the channel
+                shift = tf.fill([64, 64], (1.0 + self.config.data.shift[i]))
+                unstacked[i] = tf.math.multiply(unstacked[i], shift)
+
+                # TODO: Could take values below zero, change to prevent this
+                channels.append(unstacked[i])
+
+        # Choose to either stack the channels back into a single tensor or keep them seperate
+        if self.config.data.stack:
+            image = tf.stack(channels, axis=2)
+            inputs[&#39;image_0&#39;] = image
+        else:
+            for i, input_image in enumerate(channels):
+                input_image = tf.expand_dims(input_image, 2)
+                input_name = &#39;image_&#39; + str(i)
+                inputs[input_name] = input_image
+
+        return inputs, labels
+
+    @staticmethod
+    def filter_other(inputs, labels):
+        &#34;&#34;&#34;
+        Filters out &#39;other&#39; cateogory events from dataset.
+
+        Args:
+            inputs (dict): Inputs dictionary
+            labels (dict): Labels dictionary
+        Returns:
+            bool: Is this an &#39;other&#39; category event?
+        &#34;&#34;&#34;
+        if (labels[&#39;t_cat&#39;]) == 17 or (labels[&#39;t_cat&#39;] == 18):
+            return False
+        else:
+            return True
+
+    def dataset(self, dirs):
+        &#34;&#34;&#34;
+        Returns a dataset formed from all the files in the input directories.
+
+        Args:
+            dirs (list[str]): List of input directories
+        Returns:
+            tf.dataset: The generated dataset
+        &#34;&#34;&#34;
+        files = []  # Add all files in dirs to a list
+        for d in dirs:
+            for file in os.listdir(d):
+                files.append(os.path.join(d, file))
+
+        random.shuffle(files)  # Shuffle the list as an additionally randomisation to &#34;interleave&#34;
+        ds = tf.data.Dataset.from_tensor_slices(files)
+        ds = ds.interleave(
+            tf.data.TFRecordDataset,
+            cycle_length=len(files),
+            num_parallel_calls=tf.data.experimental.AUTOTUNE
+        )
+        ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+        ds = ds.map(lambda x: self.parse(x), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        ds = ds.filter(self.filter_other)
+        return ds
+
+    def train_data(self):
+        &#34;&#34;&#34;
+        Returns the training dataset.
+
+        Returns:
+            tf.dataset: The training dataset
+        &#34;&#34;&#34;
+        ds = self.dataset(self.train_dirs)
+        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+        ds = ds.take(self.config.data.train_examples)
+        return ds
+
+    def val_data(self):
+        &#34;&#34;&#34;
+        Returns the validation dataset.
+
+        Returns:
+            tf.dataset: The validation dataset
+        &#34;&#34;&#34;
+        ds = self.dataset(self.val_dirs)
+        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+        ds = ds.take(int(self.config.data.val_examples))
+        return ds
+
+    def test_data(self):
+        &#34;&#34;&#34;
+        Returns the testing dataset.
+
+        Returns:
+            tf.dataset: The testing dataset
+        &#34;&#34;&#34;
+        ds = self.dataset(self.test_dirs)
+        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+        ds = ds.take(self.config.data.test_examples)
+        return ds
+
+
+class DataCreator:
+
+    &#34;&#34;&#34;
+    Generates tfrecords files from ROOT map files.
+    &#34;&#34;&#34;
+
+    def __init__(self, directory, geom, split, join, single, all_maps):
+        &#34;&#34;&#34;
+        Initialise the DataCreator.
+
+        Args:
+            directory (str): Input production directory
+            geom (str): Geometry to use
+            split (float): Validation and testing fractional data split
+            join (int): Number of input files to combine together
+            single (bool): Should we run a single process and not parallelise?
+            all_maps (bool): Should we generate all the maps?
+        &#34;&#34;&#34;
+        self.split = split
+        self.join = join
+        self.single = single
+        self.all_maps = all_maps
+        self.init(directory, geom)
+
+    def init(self, directory, geom):
+        &#34;&#34;&#34;
+        Initialise the output directories.
+
+        Args:
+            directory (str): Production input/output directory path
+            geom (str): CHIPS geometry to use
+        &#34;&#34;&#34;
+        self.in_dir = os.path.join(directory, &#34;map/&#34;, geom)
+        self.out_dir = os.path.join(directory, &#34;tf/&#34;, geom)
+        os.makedirs(self.out_dir, exist_ok=True)
+        os.makedirs(os.path.join(self.out_dir, &#34;train/&#34;), exist_ok=True)
+        os.makedirs(os.path.join(self.out_dir, &#34;val/&#34;), exist_ok=True)
+        os.makedirs(os.path.join(self.out_dir, &#34;test/&#34;), exist_ok=True)
+
+    @staticmethod
+    def bytes_feature(self, value):
+        &#34;&#34;&#34;
+        Returns a BytesList feature from a string/byte.
+
+        Args:
+            value (str): Raw string format of an array
+        Returns:
+            tf.train.Feature: A BytesList feature
+        &#34;&#34;&#34;
+        return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+    def gen_examples(self, true, reco):
+        &#34;&#34;&#34;
+        Generates a list of examples from the input .root map file.
+
+        Args:
+            true (uproot TTree): True TTree from input file
+            reco (uproot TTree): Reco TTree from input file
+        Returns:
+            List[tf.train.Example]: List of examples
+        &#34;&#34;&#34;
+        # Get the numpy arrays from the .root map file, we need to seperate by type
+        # for the deserialisation during reading to work correctly.
+        true_pars_i = np.stack((  # True Parameters (integers)
+            true.array(&#39;t_nu&#39;),
+            true.array(&#39;t_code&#39;)),
+            axis=1)
+        true_pars_f = np.stack((  # True Parameters (floats)
+            true.array(&#39;t_vtxX&#39;),
+            true.array(&#39;t_vtxY&#39;),
+            true.array(&#39;t_vtxZ&#39;),
+            true.array(&#39;t_vtxT&#39;),
+            true.array(&#39;t_nuEnergy&#39;)),
+            axis=1)
+        true_prim_i = true.array(&#39;t_p_pdgs&#39;)  # True Primaries (integers)
+        true_prim_f = np.stack((  # True Primaries (floats)
+            true.array(&#39;t_p_energies&#39;),
+            true.array(&#39;t_p_dirTheta&#39;),
+            true.array(&#39;t_p_dirPhi&#39;)),
+            axis=1)
+        reco_pars_i = np.stack((  # Reco Parameters (integers)
+            reco.array(&#39;r_raw_num_hits&#39;),
+            reco.array(&#39;r_filtered_num_hits&#39;),
+            reco.array(&#39;r_num_hough_rings&#39;)),
+            axis=1)
+        reco_pars_f = np.stack((  # Reco Parameters (floats)
+            reco.array(&#39;r_raw_total_digi_q&#39;),
+            reco.array(&#39;r_filtered_total_digi_q&#39;),
+            reco.array(&#39;r_first_ring_height&#39;),
+            reco.array(&#39;r_last_ring_height&#39;),
+            reco.array(&#39;r_vtxX&#39;),
+            reco.array(&#39;r_vtxY&#39;),
+            reco.array(&#39;r_vtxZ&#39;),
+            reco.array(&#39;r_vtxT&#39;),
+            reco.array(&#39;r_dirTheta&#39;),
+            reco.array(&#39;r_dirPhi&#39;)),
+            axis=1)
+
+        channels = []
+        ranges = []
+
+        channels.append(&#39;r_raw_charge_map_vtx&#39;)
+        ranges.append((0.0, 15.0))
+        channels.append(&#39;r_raw_time_map_vtx&#39;)
+        ranges.append((0.0, 80.0))
+        channels.append(&#39;r_filtered_hit_hough_map_vtx&#39;)
+        ranges.append((0.0, 1500.0))
+
+        if self.all_maps:
+            channels.append(&#39;r_raw_hit_map_origin&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_raw_charge_map_origin&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_raw_time_map_origin&#39;)
+            ranges.append((0.0, 80.0))
+            channels.append(&#39;r_filtered_hit_map_origin&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_filtered_charge_map_origin&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_filtered_time_map_origin&#39;)
+            ranges.append((0.0, 80.0))
+            channels.append(&#39;r_raw_hit_map_vtx&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_filtered_hit_map_vtx&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_filtered_charge_map_vtx&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_filtered_time_map_vtx&#39;)
+            ranges.append((0.0, 80.0))
+
+        channel_images = []
+        for i, channel in enumerate(channels):
+            channel_images.append(reco.array(channel))
+
+        image = np.stack(channel_images, axis=3)
+
+        examples = []  # Generate examples using a feature dict
+        for i in range(len(true_pars_i)):
+            feature_dict = {
+                &#39;true_pars_i&#39;: self.bytes_feature(true_pars_i[i].tostring()),
+                &#39;true_pars_f&#39;: self.bytes_feature(true_pars_f[i].tostring()),
+                &#39;true_prim_i&#39;: self.bytes_feature(true_prim_i[i].tostring()),
+                &#39;true_prim_f&#39;: self.bytes_feature(true_prim_f[i].tostring()),
+                &#39;reco_pars_i&#39;: self.bytes_feature(reco_pars_i[i].tostring()),
+                &#39;reco_pars_f&#39;: self.bytes_feature(reco_pars_f[i].tostring()),
+                &#39;image&#39;: self.bytes_feature(image[i].tostring())
+            }
+            examples.append(tf.train.Example(features=tf.train.Features(feature=feature_dict)))
+
+        return examples
+
+    @staticmethod
+    def write_examples(name, examples):
+        &#34;&#34;&#34;
+        Write a list of examples to a tfrecords file.
+
+        Args:
+            name (str): Output .tfrecords file path
+            examples (List[tf.train.Example]): List of examples
+        &#34;&#34;&#34;
+        with tf.io.TFRecordWriter(name) as writer:
+            for example in examples:
+                writer.write(example.SerializeToString())
+
+    def preprocess_files(self, num, files):
+        &#34;&#34;&#34;
+        Preprocess joined .root map files into train, val and test tfrecords files.
+
+        Args:
+            num (int): Job number
+            files (list[str]): List of input files to use
+        &#34;&#34;&#34;
+        print(&#39;Processing job {}...&#39;.format(num))
+        examples = []
+        for file in files:
+            file_u = uproot.open(file)
+            try:
+                examples.extend(self.gen_examples(file_u[&#39;true&#39;], file_u[&#39;reco&#39;]))
+            except Exception as err:  # Catch when there is an uproot exception and skip
+                print(&#39;Error:&#39;, type(err), err)
+                pass
+
+        # Split into training, validation and testing samples
+        val_split = int((1.0-self.split-self.split) * len(examples))
+        test_split = int((1.0-self.split) * len(examples))
+        train_examples = examples[:val_split]
+        val_examples = examples[val_split:test_split]
+        test_examples = examples[test_split:]
+
+        self.write_examples(
+            os.path.join(self.out_dir, &#39;train/&#39;, str(num) + &#39;_train.tfrecords&#39;), train_examples)
+        self.write_examples(
+            os.path.join(self.out_dir, &#39;val/&#39;, str(num) + &#39;_val.tfrecords&#39;), val_examples)
+        self.write_examples(
+            os.path.join(self.out_dir, &#39;test/&#39;, str(num) + &#39;_test.tfrecords&#39;), test_examples)
+
+    def preprocess(self):
+        &#34;&#34;&#34;
+        Preprocess all the files from the input directory into tfrecords.
+        &#34;&#34;&#34;
+        files = [os.path.join(self.in_dir, file) for file in os.listdir(self.in_dir)]
+        file_lists = [files[n:n+self.join] for n in range(0, len(files), self.join)]
+        if not self.single:  # File independence allows for parallelisation
+            Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
+                self.preprocess_files)(counter, f_list) for counter, f_list in enumerate(
+                    file_lists))
+        else:  # For debugging we keep the option to use a single process
+            for counter, f_list in enumerate(file_lists):
+                self.preprocess_files(counter, f_list)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="chipscvn.data.DataCreator"><code class="flex name class">
+<span>class <span class="ident">DataCreator</span></span>
+<span>(</span><span>directory, geom, split, join, single, all_maps)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generates tfrecords files from ROOT map files.</p>
+<p>Initialise the DataCreator.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>directory</code></strong> :&ensp;<code>str</code></dt>
+<dd>Input production directory</dd>
+<dt><strong><code>geom</code></strong> :&ensp;<code>str</code></dt>
+<dd>Geometry to use</dd>
+<dt><strong><code>split</code></strong> :&ensp;<code>float</code></dt>
+<dd>Validation and testing fractional data split</dd>
+<dt><strong><code>join</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of input files to combine together</dd>
+<dt><strong><code>single</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Should we run a single process and not parallelise?</dd>
+<dt><strong><code>all_maps</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Should we generate all the maps?</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataCreator:
+
+    &#34;&#34;&#34;
+    Generates tfrecords files from ROOT map files.
+    &#34;&#34;&#34;
+
+    def __init__(self, directory, geom, split, join, single, all_maps):
+        &#34;&#34;&#34;
+        Initialise the DataCreator.
+
+        Args:
+            directory (str): Input production directory
+            geom (str): Geometry to use
+            split (float): Validation and testing fractional data split
+            join (int): Number of input files to combine together
+            single (bool): Should we run a single process and not parallelise?
+            all_maps (bool): Should we generate all the maps?
+        &#34;&#34;&#34;
+        self.split = split
+        self.join = join
+        self.single = single
+        self.all_maps = all_maps
+        self.init(directory, geom)
+
+    def init(self, directory, geom):
+        &#34;&#34;&#34;
+        Initialise the output directories.
+
+        Args:
+            directory (str): Production input/output directory path
+            geom (str): CHIPS geometry to use
+        &#34;&#34;&#34;
+        self.in_dir = os.path.join(directory, &#34;map/&#34;, geom)
+        self.out_dir = os.path.join(directory, &#34;tf/&#34;, geom)
+        os.makedirs(self.out_dir, exist_ok=True)
+        os.makedirs(os.path.join(self.out_dir, &#34;train/&#34;), exist_ok=True)
+        os.makedirs(os.path.join(self.out_dir, &#34;val/&#34;), exist_ok=True)
+        os.makedirs(os.path.join(self.out_dir, &#34;test/&#34;), exist_ok=True)
+
+    @staticmethod
+    def bytes_feature(self, value):
+        &#34;&#34;&#34;
+        Returns a BytesList feature from a string/byte.
+
+        Args:
+            value (str): Raw string format of an array
+        Returns:
+            tf.train.Feature: A BytesList feature
+        &#34;&#34;&#34;
+        return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+    def gen_examples(self, true, reco):
+        &#34;&#34;&#34;
+        Generates a list of examples from the input .root map file.
+
+        Args:
+            true (uproot TTree): True TTree from input file
+            reco (uproot TTree): Reco TTree from input file
+        Returns:
+            List[tf.train.Example]: List of examples
+        &#34;&#34;&#34;
+        # Get the numpy arrays from the .root map file, we need to seperate by type
+        # for the deserialisation during reading to work correctly.
+        true_pars_i = np.stack((  # True Parameters (integers)
+            true.array(&#39;t_nu&#39;),
+            true.array(&#39;t_code&#39;)),
+            axis=1)
+        true_pars_f = np.stack((  # True Parameters (floats)
+            true.array(&#39;t_vtxX&#39;),
+            true.array(&#39;t_vtxY&#39;),
+            true.array(&#39;t_vtxZ&#39;),
+            true.array(&#39;t_vtxT&#39;),
+            true.array(&#39;t_nuEnergy&#39;)),
+            axis=1)
+        true_prim_i = true.array(&#39;t_p_pdgs&#39;)  # True Primaries (integers)
+        true_prim_f = np.stack((  # True Primaries (floats)
+            true.array(&#39;t_p_energies&#39;),
+            true.array(&#39;t_p_dirTheta&#39;),
+            true.array(&#39;t_p_dirPhi&#39;)),
+            axis=1)
+        reco_pars_i = np.stack((  # Reco Parameters (integers)
+            reco.array(&#39;r_raw_num_hits&#39;),
+            reco.array(&#39;r_filtered_num_hits&#39;),
+            reco.array(&#39;r_num_hough_rings&#39;)),
+            axis=1)
+        reco_pars_f = np.stack((  # Reco Parameters (floats)
+            reco.array(&#39;r_raw_total_digi_q&#39;),
+            reco.array(&#39;r_filtered_total_digi_q&#39;),
+            reco.array(&#39;r_first_ring_height&#39;),
+            reco.array(&#39;r_last_ring_height&#39;),
+            reco.array(&#39;r_vtxX&#39;),
+            reco.array(&#39;r_vtxY&#39;),
+            reco.array(&#39;r_vtxZ&#39;),
+            reco.array(&#39;r_vtxT&#39;),
+            reco.array(&#39;r_dirTheta&#39;),
+            reco.array(&#39;r_dirPhi&#39;)),
+            axis=1)
+
+        channels = []
+        ranges = []
+
+        channels.append(&#39;r_raw_charge_map_vtx&#39;)
+        ranges.append((0.0, 15.0))
+        channels.append(&#39;r_raw_time_map_vtx&#39;)
+        ranges.append((0.0, 80.0))
+        channels.append(&#39;r_filtered_hit_hough_map_vtx&#39;)
+        ranges.append((0.0, 1500.0))
+
+        if self.all_maps:
+            channels.append(&#39;r_raw_hit_map_origin&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_raw_charge_map_origin&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_raw_time_map_origin&#39;)
+            ranges.append((0.0, 80.0))
+            channels.append(&#39;r_filtered_hit_map_origin&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_filtered_charge_map_origin&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_filtered_time_map_origin&#39;)
+            ranges.append((0.0, 80.0))
+            channels.append(&#39;r_raw_hit_map_vtx&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_filtered_hit_map_vtx&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_filtered_charge_map_vtx&#39;)
+            ranges.append((0.0, 15.0))
+            channels.append(&#39;r_filtered_time_map_vtx&#39;)
+            ranges.append((0.0, 80.0))
+
+        channel_images = []
+        for i, channel in enumerate(channels):
+            channel_images.append(reco.array(channel))
+
+        image = np.stack(channel_images, axis=3)
+
+        examples = []  # Generate examples using a feature dict
+        for i in range(len(true_pars_i)):
+            feature_dict = {
+                &#39;true_pars_i&#39;: self.bytes_feature(true_pars_i[i].tostring()),
+                &#39;true_pars_f&#39;: self.bytes_feature(true_pars_f[i].tostring()),
+                &#39;true_prim_i&#39;: self.bytes_feature(true_prim_i[i].tostring()),
+                &#39;true_prim_f&#39;: self.bytes_feature(true_prim_f[i].tostring()),
+                &#39;reco_pars_i&#39;: self.bytes_feature(reco_pars_i[i].tostring()),
+                &#39;reco_pars_f&#39;: self.bytes_feature(reco_pars_f[i].tostring()),
+                &#39;image&#39;: self.bytes_feature(image[i].tostring())
+            }
+            examples.append(tf.train.Example(features=tf.train.Features(feature=feature_dict)))
+
+        return examples
+
+    @staticmethod
+    def write_examples(name, examples):
+        &#34;&#34;&#34;
+        Write a list of examples to a tfrecords file.
+
+        Args:
+            name (str): Output .tfrecords file path
+            examples (List[tf.train.Example]): List of examples
+        &#34;&#34;&#34;
+        with tf.io.TFRecordWriter(name) as writer:
+            for example in examples:
+                writer.write(example.SerializeToString())
+
+    def preprocess_files(self, num, files):
+        &#34;&#34;&#34;
+        Preprocess joined .root map files into train, val and test tfrecords files.
+
+        Args:
+            num (int): Job number
+            files (list[str]): List of input files to use
+        &#34;&#34;&#34;
+        print(&#39;Processing job {}...&#39;.format(num))
+        examples = []
+        for file in files:
+            file_u = uproot.open(file)
+            try:
+                examples.extend(self.gen_examples(file_u[&#39;true&#39;], file_u[&#39;reco&#39;]))
+            except Exception as err:  # Catch when there is an uproot exception and skip
+                print(&#39;Error:&#39;, type(err), err)
+                pass
+
+        # Split into training, validation and testing samples
+        val_split = int((1.0-self.split-self.split) * len(examples))
+        test_split = int((1.0-self.split) * len(examples))
+        train_examples = examples[:val_split]
+        val_examples = examples[val_split:test_split]
+        test_examples = examples[test_split:]
+
+        self.write_examples(
+            os.path.join(self.out_dir, &#39;train/&#39;, str(num) + &#39;_train.tfrecords&#39;), train_examples)
+        self.write_examples(
+            os.path.join(self.out_dir, &#39;val/&#39;, str(num) + &#39;_val.tfrecords&#39;), val_examples)
+        self.write_examples(
+            os.path.join(self.out_dir, &#39;test/&#39;, str(num) + &#39;_test.tfrecords&#39;), test_examples)
+
+    def preprocess(self):
+        &#34;&#34;&#34;
+        Preprocess all the files from the input directory into tfrecords.
+        &#34;&#34;&#34;
+        files = [os.path.join(self.in_dir, file) for file in os.listdir(self.in_dir)]
+        file_lists = [files[n:n+self.join] for n in range(0, len(files), self.join)]
+        if not self.single:  # File independence allows for parallelisation
+            Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
+                self.preprocess_files)(counter, f_list) for counter, f_list in enumerate(
+                    file_lists))
+        else:  # For debugging we keep the option to use a single process
+            for counter, f_list in enumerate(file_lists):
+                self.preprocess_files(counter, f_list)</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="chipscvn.data.DataCreator.bytes_feature"><code class="name flex">
+<span>def <span class="ident">bytes_feature</span></span>(<span>self, value)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a BytesList feature from a string/byte.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>value</code></strong> :&ensp;<code>str</code></dt>
+<dd>Raw string format of an array</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tf.train.Feature</code></dt>
+<dd>A BytesList feature</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def bytes_feature(self, value):
+    &#34;&#34;&#34;
+    Returns a BytesList feature from a string/byte.
+
+    Args:
+        value (str): Raw string format of an array
+    Returns:
+        tf.train.Feature: A BytesList feature
+    &#34;&#34;&#34;
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.data.DataCreator.write_examples"><code class="name flex">
+<span>def <span class="ident">write_examples</span></span>(<span>name, examples)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Write a list of examples to a tfrecords file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Output .tfrecords file path</dd>
+<dt><strong><code>examples</code></strong> :&ensp;<code>List[tf.train.Example]</code></dt>
+<dd>List of examples</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def write_examples(name, examples):
+    &#34;&#34;&#34;
+    Write a list of examples to a tfrecords file.
+
+    Args:
+        name (str): Output .tfrecords file path
+        examples (List[tf.train.Example]): List of examples
+    &#34;&#34;&#34;
+    with tf.io.TFRecordWriter(name) as writer:
+        for example in examples:
+            writer.write(example.SerializeToString())</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="chipscvn.data.DataCreator.gen_examples"><code class="name flex">
+<span>def <span class="ident">gen_examples</span></span>(<span>self, true, reco)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generates a list of examples from the input .root map file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>true</code></strong> :&ensp;<code>uproot TTree</code></dt>
+<dd>True TTree from input file</dd>
+<dt><strong><code>reco</code></strong> :&ensp;<code>uproot TTree</code></dt>
+<dd>Reco TTree from input file</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[tf.train.Example]</code></dt>
+<dd>List of examples</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_examples(self, true, reco):
+    &#34;&#34;&#34;
+    Generates a list of examples from the input .root map file.
+
+    Args:
+        true (uproot TTree): True TTree from input file
+        reco (uproot TTree): Reco TTree from input file
+    Returns:
+        List[tf.train.Example]: List of examples
+    &#34;&#34;&#34;
+    # Get the numpy arrays from the .root map file, we need to seperate by type
+    # for the deserialisation during reading to work correctly.
+    true_pars_i = np.stack((  # True Parameters (integers)
+        true.array(&#39;t_nu&#39;),
+        true.array(&#39;t_code&#39;)),
+        axis=1)
+    true_pars_f = np.stack((  # True Parameters (floats)
+        true.array(&#39;t_vtxX&#39;),
+        true.array(&#39;t_vtxY&#39;),
+        true.array(&#39;t_vtxZ&#39;),
+        true.array(&#39;t_vtxT&#39;),
+        true.array(&#39;t_nuEnergy&#39;)),
+        axis=1)
+    true_prim_i = true.array(&#39;t_p_pdgs&#39;)  # True Primaries (integers)
+    true_prim_f = np.stack((  # True Primaries (floats)
+        true.array(&#39;t_p_energies&#39;),
+        true.array(&#39;t_p_dirTheta&#39;),
+        true.array(&#39;t_p_dirPhi&#39;)),
+        axis=1)
+    reco_pars_i = np.stack((  # Reco Parameters (integers)
+        reco.array(&#39;r_raw_num_hits&#39;),
+        reco.array(&#39;r_filtered_num_hits&#39;),
+        reco.array(&#39;r_num_hough_rings&#39;)),
+        axis=1)
+    reco_pars_f = np.stack((  # Reco Parameters (floats)
+        reco.array(&#39;r_raw_total_digi_q&#39;),
+        reco.array(&#39;r_filtered_total_digi_q&#39;),
+        reco.array(&#39;r_first_ring_height&#39;),
+        reco.array(&#39;r_last_ring_height&#39;),
+        reco.array(&#39;r_vtxX&#39;),
+        reco.array(&#39;r_vtxY&#39;),
+        reco.array(&#39;r_vtxZ&#39;),
+        reco.array(&#39;r_vtxT&#39;),
+        reco.array(&#39;r_dirTheta&#39;),
+        reco.array(&#39;r_dirPhi&#39;)),
+        axis=1)
+
+    channels = []
+    ranges = []
+
+    channels.append(&#39;r_raw_charge_map_vtx&#39;)
+    ranges.append((0.0, 15.0))
+    channels.append(&#39;r_raw_time_map_vtx&#39;)
+    ranges.append((0.0, 80.0))
+    channels.append(&#39;r_filtered_hit_hough_map_vtx&#39;)
+    ranges.append((0.0, 1500.0))
+
+    if self.all_maps:
+        channels.append(&#39;r_raw_hit_map_origin&#39;)
+        ranges.append((0.0, 15.0))
+        channels.append(&#39;r_raw_charge_map_origin&#39;)
+        ranges.append((0.0, 15.0))
+        channels.append(&#39;r_raw_time_map_origin&#39;)
+        ranges.append((0.0, 80.0))
+        channels.append(&#39;r_filtered_hit_map_origin&#39;)
+        ranges.append((0.0, 15.0))
+        channels.append(&#39;r_filtered_charge_map_origin&#39;)
+        ranges.append((0.0, 15.0))
+        channels.append(&#39;r_filtered_time_map_origin&#39;)
+        ranges.append((0.0, 80.0))
+        channels.append(&#39;r_raw_hit_map_vtx&#39;)
+        ranges.append((0.0, 15.0))
+        channels.append(&#39;r_filtered_hit_map_vtx&#39;)
+        ranges.append((0.0, 15.0))
+        channels.append(&#39;r_filtered_charge_map_vtx&#39;)
+        ranges.append((0.0, 15.0))
+        channels.append(&#39;r_filtered_time_map_vtx&#39;)
+        ranges.append((0.0, 80.0))
+
+    channel_images = []
+    for i, channel in enumerate(channels):
+        channel_images.append(reco.array(channel))
+
+    image = np.stack(channel_images, axis=3)
+
+    examples = []  # Generate examples using a feature dict
+    for i in range(len(true_pars_i)):
+        feature_dict = {
+            &#39;true_pars_i&#39;: self.bytes_feature(true_pars_i[i].tostring()),
+            &#39;true_pars_f&#39;: self.bytes_feature(true_pars_f[i].tostring()),
+            &#39;true_prim_i&#39;: self.bytes_feature(true_prim_i[i].tostring()),
+            &#39;true_prim_f&#39;: self.bytes_feature(true_prim_f[i].tostring()),
+            &#39;reco_pars_i&#39;: self.bytes_feature(reco_pars_i[i].tostring()),
+            &#39;reco_pars_f&#39;: self.bytes_feature(reco_pars_f[i].tostring()),
+            &#39;image&#39;: self.bytes_feature(image[i].tostring())
+        }
+        examples.append(tf.train.Example(features=tf.train.Features(feature=feature_dict)))
+
+    return examples</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.data.DataCreator.init"><code class="name flex">
+<span>def <span class="ident">init</span></span>(<span>self, directory, geom)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initialise the output directories.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>directory</code></strong> :&ensp;<code>str</code></dt>
+<dd>Production input/output directory path</dd>
+<dt><strong><code>geom</code></strong> :&ensp;<code>str</code></dt>
+<dd>CHIPS geometry to use</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def init(self, directory, geom):
+    &#34;&#34;&#34;
+    Initialise the output directories.
+
+    Args:
+        directory (str): Production input/output directory path
+        geom (str): CHIPS geometry to use
+    &#34;&#34;&#34;
+    self.in_dir = os.path.join(directory, &#34;map/&#34;, geom)
+    self.out_dir = os.path.join(directory, &#34;tf/&#34;, geom)
+    os.makedirs(self.out_dir, exist_ok=True)
+    os.makedirs(os.path.join(self.out_dir, &#34;train/&#34;), exist_ok=True)
+    os.makedirs(os.path.join(self.out_dir, &#34;val/&#34;), exist_ok=True)
+    os.makedirs(os.path.join(self.out_dir, &#34;test/&#34;), exist_ok=True)</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.data.DataCreator.preprocess"><code class="name flex">
+<span>def <span class="ident">preprocess</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Preprocess all the files from the input directory into tfrecords.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def preprocess(self):
+    &#34;&#34;&#34;
+    Preprocess all the files from the input directory into tfrecords.
+    &#34;&#34;&#34;
+    files = [os.path.join(self.in_dir, file) for file in os.listdir(self.in_dir)]
+    file_lists = [files[n:n+self.join] for n in range(0, len(files), self.join)]
+    if not self.single:  # File independence allows for parallelisation
+        Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
+            self.preprocess_files)(counter, f_list) for counter, f_list in enumerate(
+                file_lists))
+    else:  # For debugging we keep the option to use a single process
+        for counter, f_list in enumerate(file_lists):
+            self.preprocess_files(counter, f_list)</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.data.DataCreator.preprocess_files"><code class="name flex">
+<span>def <span class="ident">preprocess_files</span></span>(<span>self, num, files)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Preprocess joined .root map files into train, val and test tfrecords files.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>num</code></strong> :&ensp;<code>int</code></dt>
+<dd>Job number</dd>
+<dt><strong><code>files</code></strong> :&ensp;<code>list[str]</code></dt>
+<dd>List of input files to use</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def preprocess_files(self, num, files):
+    &#34;&#34;&#34;
+    Preprocess joined .root map files into train, val and test tfrecords files.
+
+    Args:
+        num (int): Job number
+        files (list[str]): List of input files to use
+    &#34;&#34;&#34;
+    print(&#39;Processing job {}...&#39;.format(num))
+    examples = []
+    for file in files:
+        file_u = uproot.open(file)
+        try:
+            examples.extend(self.gen_examples(file_u[&#39;true&#39;], file_u[&#39;reco&#39;]))
+        except Exception as err:  # Catch when there is an uproot exception and skip
+            print(&#39;Error:&#39;, type(err), err)
+            pass
+
+    # Split into training, validation and testing samples
+    val_split = int((1.0-self.split-self.split) * len(examples))
+    test_split = int((1.0-self.split) * len(examples))
+    train_examples = examples[:val_split]
+    val_examples = examples[val_split:test_split]
+    test_examples = examples[test_split:]
+
+    self.write_examples(
+        os.path.join(self.out_dir, &#39;train/&#39;, str(num) + &#39;_train.tfrecords&#39;), train_examples)
+    self.write_examples(
+        os.path.join(self.out_dir, &#39;val/&#39;, str(num) + &#39;_val.tfrecords&#39;), val_examples)
+    self.write_examples(
+        os.path.join(self.out_dir, &#39;test/&#39;, str(num) + &#39;_test.tfrecords&#39;), test_examples)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="chipscvn.data.DataLoader"><code class="flex name class">
+<span>class <span class="ident">DataLoader</span></span>
+<span>(</span><span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generates tf datasets for training/evaluation from the configuration.</p>
+<p>Initialise the DataLoader.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>str</code></dt>
+<dd>Dotmap configuration namespace</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataLoader:
+
+    &#34;&#34;&#34;
+    Generates tf datasets for training/evaluation from the configuration.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the DataLoader.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        self.config = config
+        self.init()
+
+    def init(self):
+        &#34;&#34;&#34;
+        Initialise lookup tables and input directories.
+        &#34;&#34;&#34;
+        # Map nuel and numu (Total = 2)
+        # 0 = Nuel neutrino
+        # 1 = Numu neutrino (cosmic muons are included in this)
+        nu_keys = tf.constant([11, 12, 13, 14])
+        nu_vals = tf.constant([0,  0,  1,  1])
+        self.nu_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(nu_keys, nu_vals), -1
+        )
+
+        # Map interaction types (Total = 10)
+        # 0 = CC-QEL
+        # 1 = CC-RES
+        # 2 = CC-DIS
+        # 3 = CC-COH
+        # 4 = NC-QEL
+        # 5 = NC-RES
+        # 6 = NC-DIS
+        # 7 = NC-COH
+        # 8 = Cosmic
+        # 9 = Other
+        int_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 91, 92, 96, 97, 98, 99, 100])
+        int_vals = tf.constant([9, 0, 4, 1, 1, 1, 5, 5, 5, 5,  2,  6,  7,  3,  9,  9,   8])
+        self.int_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(int_keys, int_vals), -1
+        )
+
+        # Map to all categories (Total = 19)
+        # Category keys are a string of pdg+type, e.g an nuel ccqe event is &#39;0&#39;+&#39;0&#39; = &#39;00&#39;
+        # 0 = Nuel CC-QEL
+        # 1 = Nuel CC-RES
+        # 2 = Nuel CC-DIS
+        # 3 = Nuel CC-COH
+        # 4 = Numu CC-QEL
+        # 5 = Numu CC-RES
+        # 6 = Numu CC-DIS
+        # 7 = Numu CC-COH
+        # 8 = Nuel NC-QEL
+        # 9 = Nuel NC-RES
+        # 10 = Nuel NC-DIS
+        # 11 = Nuel NC-COH
+        # 12 = Numu NC-QEL
+        # 13 = Numu NC-RES
+        # 14 = Numu NC-DIS
+        # 15 = Numu NC-COH
+        # 16 = Cosmic
+        # 17 = Nuel Other
+        # 18 = Numu Other
+        cat_keys = tf.constant([&#39;00&#39;, &#39;01&#39;, &#39;02&#39;, &#39;03&#39;, &#39;10&#39;, &#39;11&#39;, &#39;12&#39;, &#39;13&#39;,
+                                &#39;04&#39;, &#39;05&#39;, &#39;06&#39;, &#39;07&#39;, &#39;14&#39;, &#39;15&#39;, &#39;16&#39;, &#39;17&#39;,
+                                &#39;18&#39;, &#39;09&#39;, &#39;19&#39;], dtype=tf.string)
+        cat_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                8, 9, 10, 11, 12, 13, 14, 15,
+                                16, 17, 18])
+        self.cat_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(cat_keys, cat_vals), -1
+        )
+
+        # The following mappings are used to generate the inputs to different model types
+
+        # Map a cosmic flag (Total = 2)
+        # 0 = Not a Cosmic
+        # 1 = A Cosmic
+        cosmic_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                   8, 9, 10, 11, 12, 13, 14, 15,
+                                   16, 17, 18])
+        cosmic_vals = tf.constant([0, 0, 0, 0, 0, 0, 0, 0,
+                                   0, 0, 0, 0, 0, 0, 0, 0,
+                                   1, 0, 0])
+        self.cosmic_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(cosmic_keys, cosmic_vals), -1
+        )
+
+        # Map to full_combined categories (Total = 5)
+        # 0 = Nuel CC
+        # 1 = Numu CC
+        # 2 = NC
+        # 3 = Cosmic
+        # 4 = Other
+        comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                 8, 9, 10, 11, 12, 13, 14, 15,
+                                 16, 17, 18])
+        comb_vals = tf.constant([0, 0, 0, 0, 1, 1, 1, 1,
+                                 2, 2, 2, 2, 2, 2, 2, 2,
+                                 3, 4, 4])
+        self.comb_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(comb_keys, comb_vals), -1
+        )
+
+        # Map to nc_nu_combined categories (Total = 14)
+        # 0 = Nuel CC-QEL
+        # 1 = Nuel CC-RES
+        # 2 = Nuel CC-DIS
+        # 3 = Nuel CC-COH
+        # 4 = Numu CC-QEL
+        # 5 = Numu CC-RES
+        # 6 = Numu CC-DIS
+        # 7 = Numu CC-COH
+        # 8 = NC-QEL
+        # 9 = NC-RES
+        # 10 = NC-DIS
+        # 11 = NC-COH
+        # 12 = Cosmic
+        # 13 = Other
+        nu_nc_comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                       8, 9, 10, 11, 12, 13, 14, 15,
+                                       16, 17, 18])
+        nu_nc_comb_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                       8, 9, 10, 11, 8, 9, 10, 11,
+                                       12, 13, 13])
+        self.nu_nc_comb_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(nu_nc_comb_keys, nu_nc_comb_vals), -1
+        )
+
+        # Map to nc_combined categories (Total = 11)
+        # 0 = Nuel CC-QEL
+        # 1 = Nuel CC-RES
+        # 2 = Nuel CC-DIS
+        # 3 = Nuel CC-COH
+        # 4 = Numu CC-QEL
+        # 5 = Numu CC-RES
+        # 6 = Numu CC-DIS
+        # 7 = Numu CC-COH
+        # 8 = NC
+        # 9 = Cosmic
+        # 10 = Other
+        nc_comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                    8, 9, 10, 11, 12, 13, 14, 15,
+                                    16, 17, 18])
+        nc_comb_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                    8, 8, 8, 8, 8, 8, 8, 8,
+                                    9, 10, 10])
+        self.nc_comb_table = tf.lookup.StaticHashTable(
+            tf.lookup.KeyValueTensorInitializer(nc_comb_keys, nc_comb_vals), -1
+        )
+
+        # Generate the lists of train, val and test file directories from the configuration
+        self.train_dirs = [os.path.join(in_dir, &#39;train&#39;) for in_dir in self.config.data.input_dirs]
+        self.val_dirs = [os.path.join(in_dir, &#39;val&#39;) for in_dir in self.config.data.input_dirs]
+        self.test_dirs = [os.path.join(in_dir, &#39;test&#39;) for in_dir in self.config.data.input_dirs]
+
+    def parse(self, serialised_example):
+        &#34;&#34;&#34;
+        Parses a single serialised example into both an input and labels dict.
+
+        Args:
+            serialised_example (tf.Example): A single example from .tfrecords file
+        Returns:
+            Tuple[dict, dict]: (Inputs dictionary, Labels dictionary)
+        &#34;&#34;&#34;
+        features = {
+            &#39;true_pars_i&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;true_pars_f&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;true_prim_i&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;true_prim_f&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;reco_pars_i&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;reco_pars_f&#39;: tf.io.FixedLenFeature([], tf.string),
+            &#39;image&#39;: tf.io.FixedLenFeature([], tf.string),
+        }
+        example = tf.io.parse_single_example(serialised_example, features)
+
+        # Decode the parameter arrays using their types
+        true_pars_i = tf.io.decode_raw(example[&#39;true_pars_i&#39;], tf.int32)
+        true_pars_f = tf.io.decode_raw(example[&#39;true_pars_f&#39;], tf.float32)
+        true_prim_i = tf.io.decode_raw(example[&#39;true_prim_i&#39;], tf.int32)
+        true_prim_f = tf.io.decode_raw(example[&#39;true_prim_f&#39;], tf.float32)
+        reco_pars_i = tf.io.decode_raw(example[&#39;reco_pars_i&#39;], tf.int32)
+        reco_pars_f = tf.io.decode_raw(example[&#39;reco_pars_f&#39;], tf.float32)
+
+        # Do all the base mapping using the lookup tables
+        pdg = self.nu_table.lookup(true_pars_i[0])
+        type = self.int_table.lookup(true_pars_i[1])
+        category = self.cat_table.lookup(
+            tf.strings.join((tf.strings.as_string(pdg), tf.strings.as_string(type)))
+        )
+
+        # Do all the model specific mapping using the lookup tables
+        cosmic = self.cosmic_table.lookup(category)
+        full_comb = self.comb_table.lookup(category)
+        nu_nc_comb = self.nu_nc_comb_table.lookup(category)
+        nc_comb = self.nc_comb_table.lookup(category)
+
+        # Need to reshape the primary particle array
+        true_prim_f = tf.reshape(true_prim_f, [3, 10])
+
+        labels = {  # We generate a dictionary with all the true labels
+            &#39;t_nu&#39;: pdg,
+            &#39;t_code&#39;: type,
+            &#39;t_cat&#39;: category,
+            &#39;t_cosmic_cat&#39;: cosmic,
+            &#39;t_full_cat&#39;: full_comb,
+            &#39;t_nu_nc_cat&#39;: nu_nc_comb,
+            &#39;t_nc_cat&#39;: nc_comb,
+            &#39;t_vtxX&#39;: true_pars_f[0],
+            &#39;t_vtxY&#39;: true_pars_f[1],
+            &#39;t_vtxZ&#39;: true_pars_f[2],
+            &#39;t_vtxT&#39;: true_pars_f[3],
+            &#39;t_nuEnergy&#39;: true_pars_f[4],
+            &#39;t_p_pdgs&#39;: true_prim_i,
+            &#39;t_p_energies&#39;: true_prim_f[0],
+            &#39;t_p_dirTheta&#39;: true_prim_f[1],
+            &#39;t_p_dirPhi&#39;: true_prim_f[2]
+        }
+
+        inputs = {  # We generate a dictionary with the images and other input parameters
+            &#39;r_raw_num_hits&#39;: reco_pars_i[0],
+            &#39;r_filtered_num_hits&#39;: reco_pars_i[1],
+            &#39;r_num_hough_rings&#39;: reco_pars_i[2],
+            &#39;r_raw_total_digi_q&#39;: reco_pars_f[0],
+            &#39;r_filtered_total_digi_q&#39;: reco_pars_f[1],
+            &#39;r_first_ring_height&#39;: reco_pars_f[2],
+            &#39;r_last_ring_height&#39;: reco_pars_f[3],
+            &#39;r_vtxX&#39;: tf.math.divide(reco_pars_f[4], self.config.data.par_scale[0]),
+            &#39;r_vtxY&#39;: tf.math.divide(reco_pars_f[5], self.config.data.par_scale[1]),
+            &#39;r_vtxZ&#39;: tf.math.divide(reco_pars_f[6], self.config.data.par_scale[2]),
+            &#39;r_vtxT&#39;: reco_pars_f[7],
+            &#39;r_dirTheta&#39;: tf.math.divide(reco_pars_f[8], self.config.data.par_scale[3]),
+            &#39;r_dirPhi&#39;: tf.math.divide(reco_pars_f[9], self.config.data.par_scale[4])
+        }
+
+        # Decode and reshape the &#34;image&#34; into a tf tensor
+        full_image = tf.io.decode_raw(example[&#39;image&#39;], tf.uint8)
+        if self.config.data.all_chan:
+            full_image = tf.reshape(full_image, [64, 64, 13])
+        else:
+            full_image = tf.reshape(full_image, [64, 64, 3])
+
+        # &#39;unstack&#39; the image and manipulate each channel individually
+        unstacked = tf.unstack(full_image, axis=2)
+        channels = []
+        for i, enabled in enumerate(self.config.data.channels):
+            if enabled:
+                # Cast to float at tf does this anyway, and scale to [0,1]
+                unstacked[i] = tf.cast(unstacked[i], tf.float32)
+                unstacked[i] = unstacked[i] / 256.0
+
+                # Apply a random distribution to the channel
+                rand = tf.random.normal(shape=[64, 64], mean=1,
+                                        stddev=self.config.data.rand[i],
+                                        dtype=tf.float32)
+                unstacked[i] = tf.math.multiply(unstacked[i], rand)
+
+                # Apply a shift to the channel
+                shift = tf.fill([64, 64], (1.0 + self.config.data.shift[i]))
+                unstacked[i] = tf.math.multiply(unstacked[i], shift)
+
+                # TODO: Could take values below zero, change to prevent this
+                channels.append(unstacked[i])
+
+        # Choose to either stack the channels back into a single tensor or keep them seperate
+        if self.config.data.stack:
+            image = tf.stack(channels, axis=2)
+            inputs[&#39;image_0&#39;] = image
+        else:
+            for i, input_image in enumerate(channels):
+                input_image = tf.expand_dims(input_image, 2)
+                input_name = &#39;image_&#39; + str(i)
+                inputs[input_name] = input_image
+
+        return inputs, labels
+
+    @staticmethod
+    def filter_other(inputs, labels):
+        &#34;&#34;&#34;
+        Filters out &#39;other&#39; cateogory events from dataset.
+
+        Args:
+            inputs (dict): Inputs dictionary
+            labels (dict): Labels dictionary
+        Returns:
+            bool: Is this an &#39;other&#39; category event?
+        &#34;&#34;&#34;
+        if (labels[&#39;t_cat&#39;]) == 17 or (labels[&#39;t_cat&#39;] == 18):
+            return False
+        else:
+            return True
+
+    def dataset(self, dirs):
+        &#34;&#34;&#34;
+        Returns a dataset formed from all the files in the input directories.
+
+        Args:
+            dirs (list[str]): List of input directories
+        Returns:
+            tf.dataset: The generated dataset
+        &#34;&#34;&#34;
+        files = []  # Add all files in dirs to a list
+        for d in dirs:
+            for file in os.listdir(d):
+                files.append(os.path.join(d, file))
+
+        random.shuffle(files)  # Shuffle the list as an additionally randomisation to &#34;interleave&#34;
+        ds = tf.data.Dataset.from_tensor_slices(files)
+        ds = ds.interleave(
+            tf.data.TFRecordDataset,
+            cycle_length=len(files),
+            num_parallel_calls=tf.data.experimental.AUTOTUNE
+        )
+        ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+        ds = ds.map(lambda x: self.parse(x), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        ds = ds.filter(self.filter_other)
+        return ds
+
+    def train_data(self):
+        &#34;&#34;&#34;
+        Returns the training dataset.
+
+        Returns:
+            tf.dataset: The training dataset
+        &#34;&#34;&#34;
+        ds = self.dataset(self.train_dirs)
+        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+        ds = ds.take(self.config.data.train_examples)
+        return ds
+
+    def val_data(self):
+        &#34;&#34;&#34;
+        Returns the validation dataset.
+
+        Returns:
+            tf.dataset: The validation dataset
+        &#34;&#34;&#34;
+        ds = self.dataset(self.val_dirs)
+        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+        ds = ds.take(int(self.config.data.val_examples))
+        return ds
+
+    def test_data(self):
+        &#34;&#34;&#34;
+        Returns the testing dataset.
+
+        Returns:
+            tf.dataset: The testing dataset
+        &#34;&#34;&#34;
+        ds = self.dataset(self.test_dirs)
+        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+        ds = ds.take(self.config.data.test_examples)
+        return ds</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="chipscvn.data.DataLoader.filter_other"><code class="name flex">
+<span>def <span class="ident">filter_other</span></span>(<span>inputs, labels)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Filters out 'other' cateogory events from dataset.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>inputs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Inputs dictionary</dd>
+<dt><strong><code>labels</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Labels dictionary</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bool</code></dt>
+<dd>Is this an 'other' category event?</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def filter_other(inputs, labels):
+    &#34;&#34;&#34;
+    Filters out &#39;other&#39; cateogory events from dataset.
+
+    Args:
+        inputs (dict): Inputs dictionary
+        labels (dict): Labels dictionary
+    Returns:
+        bool: Is this an &#39;other&#39; category event?
+    &#34;&#34;&#34;
+    if (labels[&#39;t_cat&#39;]) == 17 or (labels[&#39;t_cat&#39;] == 18):
+        return False
+    else:
+        return True</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="chipscvn.data.DataLoader.dataset"><code class="name flex">
+<span>def <span class="ident">dataset</span></span>(<span>self, dirs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a dataset formed from all the files in the input directories.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>dirs</code></strong> :&ensp;<code>list[str]</code></dt>
+<dd>List of input directories</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tf.dataset</code></dt>
+<dd>The generated dataset</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dataset(self, dirs):
+    &#34;&#34;&#34;
+    Returns a dataset formed from all the files in the input directories.
+
+    Args:
+        dirs (list[str]): List of input directories
+    Returns:
+        tf.dataset: The generated dataset
+    &#34;&#34;&#34;
+    files = []  # Add all files in dirs to a list
+    for d in dirs:
+        for file in os.listdir(d):
+            files.append(os.path.join(d, file))
+
+    random.shuffle(files)  # Shuffle the list as an additionally randomisation to &#34;interleave&#34;
+    ds = tf.data.Dataset.from_tensor_slices(files)
+    ds = ds.interleave(
+        tf.data.TFRecordDataset,
+        cycle_length=len(files),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE
+    )
+    ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    ds = ds.map(lambda x: self.parse(x), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    ds = ds.filter(self.filter_other)
+    return ds</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.data.DataLoader.init"><code class="name flex">
+<span>def <span class="ident">init</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initialise lookup tables and input directories.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def init(self):
+    &#34;&#34;&#34;
+    Initialise lookup tables and input directories.
+    &#34;&#34;&#34;
+    # Map nuel and numu (Total = 2)
+    # 0 = Nuel neutrino
+    # 1 = Numu neutrino (cosmic muons are included in this)
+    nu_keys = tf.constant([11, 12, 13, 14])
+    nu_vals = tf.constant([0,  0,  1,  1])
+    self.nu_table = tf.lookup.StaticHashTable(
+        tf.lookup.KeyValueTensorInitializer(nu_keys, nu_vals), -1
+    )
+
+    # Map interaction types (Total = 10)
+    # 0 = CC-QEL
+    # 1 = CC-RES
+    # 2 = CC-DIS
+    # 3 = CC-COH
+    # 4 = NC-QEL
+    # 5 = NC-RES
+    # 6 = NC-DIS
+    # 7 = NC-COH
+    # 8 = Cosmic
+    # 9 = Other
+    int_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 91, 92, 96, 97, 98, 99, 100])
+    int_vals = tf.constant([9, 0, 4, 1, 1, 1, 5, 5, 5, 5,  2,  6,  7,  3,  9,  9,   8])
+    self.int_table = tf.lookup.StaticHashTable(
+        tf.lookup.KeyValueTensorInitializer(int_keys, int_vals), -1
+    )
+
+    # Map to all categories (Total = 19)
+    # Category keys are a string of pdg+type, e.g an nuel ccqe event is &#39;0&#39;+&#39;0&#39; = &#39;00&#39;
+    # 0 = Nuel CC-QEL
+    # 1 = Nuel CC-RES
+    # 2 = Nuel CC-DIS
+    # 3 = Nuel CC-COH
+    # 4 = Numu CC-QEL
+    # 5 = Numu CC-RES
+    # 6 = Numu CC-DIS
+    # 7 = Numu CC-COH
+    # 8 = Nuel NC-QEL
+    # 9 = Nuel NC-RES
+    # 10 = Nuel NC-DIS
+    # 11 = Nuel NC-COH
+    # 12 = Numu NC-QEL
+    # 13 = Numu NC-RES
+    # 14 = Numu NC-DIS
+    # 15 = Numu NC-COH
+    # 16 = Cosmic
+    # 17 = Nuel Other
+    # 18 = Numu Other
+    cat_keys = tf.constant([&#39;00&#39;, &#39;01&#39;, &#39;02&#39;, &#39;03&#39;, &#39;10&#39;, &#39;11&#39;, &#39;12&#39;, &#39;13&#39;,
+                            &#39;04&#39;, &#39;05&#39;, &#39;06&#39;, &#39;07&#39;, &#39;14&#39;, &#39;15&#39;, &#39;16&#39;, &#39;17&#39;,
+                            &#39;18&#39;, &#39;09&#39;, &#39;19&#39;], dtype=tf.string)
+    cat_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                            8, 9, 10, 11, 12, 13, 14, 15,
+                            16, 17, 18])
+    self.cat_table = tf.lookup.StaticHashTable(
+        tf.lookup.KeyValueTensorInitializer(cat_keys, cat_vals), -1
+    )
+
+    # The following mappings are used to generate the inputs to different model types
+
+    # Map a cosmic flag (Total = 2)
+    # 0 = Not a Cosmic
+    # 1 = A Cosmic
+    cosmic_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                               8, 9, 10, 11, 12, 13, 14, 15,
+                               16, 17, 18])
+    cosmic_vals = tf.constant([0, 0, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0,
+                               1, 0, 0])
+    self.cosmic_table = tf.lookup.StaticHashTable(
+        tf.lookup.KeyValueTensorInitializer(cosmic_keys, cosmic_vals), -1
+    )
+
+    # Map to full_combined categories (Total = 5)
+    # 0 = Nuel CC
+    # 1 = Numu CC
+    # 2 = NC
+    # 3 = Cosmic
+    # 4 = Other
+    comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                             8, 9, 10, 11, 12, 13, 14, 15,
+                             16, 17, 18])
+    comb_vals = tf.constant([0, 0, 0, 0, 1, 1, 1, 1,
+                             2, 2, 2, 2, 2, 2, 2, 2,
+                             3, 4, 4])
+    self.comb_table = tf.lookup.StaticHashTable(
+        tf.lookup.KeyValueTensorInitializer(comb_keys, comb_vals), -1
+    )
+
+    # Map to nc_nu_combined categories (Total = 14)
+    # 0 = Nuel CC-QEL
+    # 1 = Nuel CC-RES
+    # 2 = Nuel CC-DIS
+    # 3 = Nuel CC-COH
+    # 4 = Numu CC-QEL
+    # 5 = Numu CC-RES
+    # 6 = Numu CC-DIS
+    # 7 = Numu CC-COH
+    # 8 = NC-QEL
+    # 9 = NC-RES
+    # 10 = NC-DIS
+    # 11 = NC-COH
+    # 12 = Cosmic
+    # 13 = Other
+    nu_nc_comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                   8, 9, 10, 11, 12, 13, 14, 15,
+                                   16, 17, 18])
+    nu_nc_comb_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                   8, 9, 10, 11, 8, 9, 10, 11,
+                                   12, 13, 13])
+    self.nu_nc_comb_table = tf.lookup.StaticHashTable(
+        tf.lookup.KeyValueTensorInitializer(nu_nc_comb_keys, nu_nc_comb_vals), -1
+    )
+
+    # Map to nc_combined categories (Total = 11)
+    # 0 = Nuel CC-QEL
+    # 1 = Nuel CC-RES
+    # 2 = Nuel CC-DIS
+    # 3 = Nuel CC-COH
+    # 4 = Numu CC-QEL
+    # 5 = Numu CC-RES
+    # 6 = Numu CC-DIS
+    # 7 = Numu CC-COH
+    # 8 = NC
+    # 9 = Cosmic
+    # 10 = Other
+    nc_comb_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                8, 9, 10, 11, 12, 13, 14, 15,
+                                16, 17, 18])
+    nc_comb_vals = tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                8, 8, 8, 8, 8, 8, 8, 8,
+                                9, 10, 10])
+    self.nc_comb_table = tf.lookup.StaticHashTable(
+        tf.lookup.KeyValueTensorInitializer(nc_comb_keys, nc_comb_vals), -1
+    )
+
+    # Generate the lists of train, val and test file directories from the configuration
+    self.train_dirs = [os.path.join(in_dir, &#39;train&#39;) for in_dir in self.config.data.input_dirs]
+    self.val_dirs = [os.path.join(in_dir, &#39;val&#39;) for in_dir in self.config.data.input_dirs]
+    self.test_dirs = [os.path.join(in_dir, &#39;test&#39;) for in_dir in self.config.data.input_dirs]</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.data.DataLoader.parse"><code class="name flex">
+<span>def <span class="ident">parse</span></span>(<span>self, serialised_example)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parses a single serialised example into both an input and labels dict.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>serialised_example</code></strong> :&ensp;<code>tf.Example</code></dt>
+<dd>A single example from .tfrecords file</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[dict, dict]</code></dt>
+<dd>(Inputs dictionary, Labels dictionary)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parse(self, serialised_example):
+    &#34;&#34;&#34;
+    Parses a single serialised example into both an input and labels dict.
+
+    Args:
+        serialised_example (tf.Example): A single example from .tfrecords file
+    Returns:
+        Tuple[dict, dict]: (Inputs dictionary, Labels dictionary)
+    &#34;&#34;&#34;
+    features = {
+        &#39;true_pars_i&#39;: tf.io.FixedLenFeature([], tf.string),
+        &#39;true_pars_f&#39;: tf.io.FixedLenFeature([], tf.string),
+        &#39;true_prim_i&#39;: tf.io.FixedLenFeature([], tf.string),
+        &#39;true_prim_f&#39;: tf.io.FixedLenFeature([], tf.string),
+        &#39;reco_pars_i&#39;: tf.io.FixedLenFeature([], tf.string),
+        &#39;reco_pars_f&#39;: tf.io.FixedLenFeature([], tf.string),
+        &#39;image&#39;: tf.io.FixedLenFeature([], tf.string),
+    }
+    example = tf.io.parse_single_example(serialised_example, features)
+
+    # Decode the parameter arrays using their types
+    true_pars_i = tf.io.decode_raw(example[&#39;true_pars_i&#39;], tf.int32)
+    true_pars_f = tf.io.decode_raw(example[&#39;true_pars_f&#39;], tf.float32)
+    true_prim_i = tf.io.decode_raw(example[&#39;true_prim_i&#39;], tf.int32)
+    true_prim_f = tf.io.decode_raw(example[&#39;true_prim_f&#39;], tf.float32)
+    reco_pars_i = tf.io.decode_raw(example[&#39;reco_pars_i&#39;], tf.int32)
+    reco_pars_f = tf.io.decode_raw(example[&#39;reco_pars_f&#39;], tf.float32)
+
+    # Do all the base mapping using the lookup tables
+    pdg = self.nu_table.lookup(true_pars_i[0])
+    type = self.int_table.lookup(true_pars_i[1])
+    category = self.cat_table.lookup(
+        tf.strings.join((tf.strings.as_string(pdg), tf.strings.as_string(type)))
+    )
+
+    # Do all the model specific mapping using the lookup tables
+    cosmic = self.cosmic_table.lookup(category)
+    full_comb = self.comb_table.lookup(category)
+    nu_nc_comb = self.nu_nc_comb_table.lookup(category)
+    nc_comb = self.nc_comb_table.lookup(category)
+
+    # Need to reshape the primary particle array
+    true_prim_f = tf.reshape(true_prim_f, [3, 10])
+
+    labels = {  # We generate a dictionary with all the true labels
+        &#39;t_nu&#39;: pdg,
+        &#39;t_code&#39;: type,
+        &#39;t_cat&#39;: category,
+        &#39;t_cosmic_cat&#39;: cosmic,
+        &#39;t_full_cat&#39;: full_comb,
+        &#39;t_nu_nc_cat&#39;: nu_nc_comb,
+        &#39;t_nc_cat&#39;: nc_comb,
+        &#39;t_vtxX&#39;: true_pars_f[0],
+        &#39;t_vtxY&#39;: true_pars_f[1],
+        &#39;t_vtxZ&#39;: true_pars_f[2],
+        &#39;t_vtxT&#39;: true_pars_f[3],
+        &#39;t_nuEnergy&#39;: true_pars_f[4],
+        &#39;t_p_pdgs&#39;: true_prim_i,
+        &#39;t_p_energies&#39;: true_prim_f[0],
+        &#39;t_p_dirTheta&#39;: true_prim_f[1],
+        &#39;t_p_dirPhi&#39;: true_prim_f[2]
+    }
+
+    inputs = {  # We generate a dictionary with the images and other input parameters
+        &#39;r_raw_num_hits&#39;: reco_pars_i[0],
+        &#39;r_filtered_num_hits&#39;: reco_pars_i[1],
+        &#39;r_num_hough_rings&#39;: reco_pars_i[2],
+        &#39;r_raw_total_digi_q&#39;: reco_pars_f[0],
+        &#39;r_filtered_total_digi_q&#39;: reco_pars_f[1],
+        &#39;r_first_ring_height&#39;: reco_pars_f[2],
+        &#39;r_last_ring_height&#39;: reco_pars_f[3],
+        &#39;r_vtxX&#39;: tf.math.divide(reco_pars_f[4], self.config.data.par_scale[0]),
+        &#39;r_vtxY&#39;: tf.math.divide(reco_pars_f[5], self.config.data.par_scale[1]),
+        &#39;r_vtxZ&#39;: tf.math.divide(reco_pars_f[6], self.config.data.par_scale[2]),
+        &#39;r_vtxT&#39;: reco_pars_f[7],
+        &#39;r_dirTheta&#39;: tf.math.divide(reco_pars_f[8], self.config.data.par_scale[3]),
+        &#39;r_dirPhi&#39;: tf.math.divide(reco_pars_f[9], self.config.data.par_scale[4])
+    }
+
+    # Decode and reshape the &#34;image&#34; into a tf tensor
+    full_image = tf.io.decode_raw(example[&#39;image&#39;], tf.uint8)
+    if self.config.data.all_chan:
+        full_image = tf.reshape(full_image, [64, 64, 13])
+    else:
+        full_image = tf.reshape(full_image, [64, 64, 3])
+
+    # &#39;unstack&#39; the image and manipulate each channel individually
+    unstacked = tf.unstack(full_image, axis=2)
+    channels = []
+    for i, enabled in enumerate(self.config.data.channels):
+        if enabled:
+            # Cast to float at tf does this anyway, and scale to [0,1]
+            unstacked[i] = tf.cast(unstacked[i], tf.float32)
+            unstacked[i] = unstacked[i] / 256.0
+
+            # Apply a random distribution to the channel
+            rand = tf.random.normal(shape=[64, 64], mean=1,
+                                    stddev=self.config.data.rand[i],
+                                    dtype=tf.float32)
+            unstacked[i] = tf.math.multiply(unstacked[i], rand)
+
+            # Apply a shift to the channel
+            shift = tf.fill([64, 64], (1.0 + self.config.data.shift[i]))
+            unstacked[i] = tf.math.multiply(unstacked[i], shift)
+
+            # TODO: Could take values below zero, change to prevent this
+            channels.append(unstacked[i])
+
+    # Choose to either stack the channels back into a single tensor or keep them seperate
+    if self.config.data.stack:
+        image = tf.stack(channels, axis=2)
+        inputs[&#39;image_0&#39;] = image
+    else:
+        for i, input_image in enumerate(channels):
+            input_image = tf.expand_dims(input_image, 2)
+            input_name = &#39;image_&#39; + str(i)
+            inputs[input_name] = input_image
+
+    return inputs, labels</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.data.DataLoader.test_data"><code class="name flex">
+<span>def <span class="ident">test_data</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the testing dataset.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tf.dataset</code></dt>
+<dd>The testing dataset</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_data(self):
+    &#34;&#34;&#34;
+    Returns the testing dataset.
+
+    Returns:
+        tf.dataset: The testing dataset
+    &#34;&#34;&#34;
+    ds = self.dataset(self.test_dirs)
+    ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+    ds = ds.take(self.config.data.test_examples)
+    return ds</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.data.DataLoader.train_data"><code class="name flex">
+<span>def <span class="ident">train_data</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the training dataset.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tf.dataset</code></dt>
+<dd>The training dataset</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train_data(self):
+    &#34;&#34;&#34;
+    Returns the training dataset.
+
+    Returns:
+        tf.dataset: The training dataset
+    &#34;&#34;&#34;
+    ds = self.dataset(self.train_dirs)
+    ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+    ds = ds.take(self.config.data.train_examples)
+    return ds</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.data.DataLoader.val_data"><code class="name flex">
+<span>def <span class="ident">val_data</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the validation dataset.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tf.dataset</code></dt>
+<dd>The validation dataset</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def val_data(self):
+    &#34;&#34;&#34;
+    Returns the validation dataset.
+
+    Returns:
+        tf.dataset: The validation dataset
+    &#34;&#34;&#34;
+    ds = self.dataset(self.val_dirs)
+    ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
+    ds = ds.take(int(self.config.data.val_examples))
+    return ds</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="chipscvn" href="index.html">chipscvn</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="chipscvn.data.DataCreator" href="#chipscvn.data.DataCreator">DataCreator</a></code></h4>
+<ul class="two-column">
+<li><code><a title="chipscvn.data.DataCreator.bytes_feature" href="#chipscvn.data.DataCreator.bytes_feature">bytes_feature</a></code></li>
+<li><code><a title="chipscvn.data.DataCreator.gen_examples" href="#chipscvn.data.DataCreator.gen_examples">gen_examples</a></code></li>
+<li><code><a title="chipscvn.data.DataCreator.init" href="#chipscvn.data.DataCreator.init">init</a></code></li>
+<li><code><a title="chipscvn.data.DataCreator.preprocess" href="#chipscvn.data.DataCreator.preprocess">preprocess</a></code></li>
+<li><code><a title="chipscvn.data.DataCreator.preprocess_files" href="#chipscvn.data.DataCreator.preprocess_files">preprocess_files</a></code></li>
+<li><code><a title="chipscvn.data.DataCreator.write_examples" href="#chipscvn.data.DataCreator.write_examples">write_examples</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="chipscvn.data.DataLoader" href="#chipscvn.data.DataLoader">DataLoader</a></code></h4>
+<ul class="two-column">
+<li><code><a title="chipscvn.data.DataLoader.dataset" href="#chipscvn.data.DataLoader.dataset">dataset</a></code></li>
+<li><code><a title="chipscvn.data.DataLoader.filter_other" href="#chipscvn.data.DataLoader.filter_other">filter_other</a></code></li>
+<li><code><a title="chipscvn.data.DataLoader.init" href="#chipscvn.data.DataLoader.init">init</a></code></li>
+<li><code><a title="chipscvn.data.DataLoader.parse" href="#chipscvn.data.DataLoader.parse">parse</a></code></li>
+<li><code><a title="chipscvn.data.DataLoader.test_data" href="#chipscvn.data.DataLoader.test_data">test_data</a></code></li>
+<li><code><a title="chipscvn.data.DataLoader.train_data" href="#chipscvn.data.DataLoader.train_data">train_data</a></code></li>
+<li><code><a title="chipscvn.data.DataLoader.val_data" href="#chipscvn.data.DataLoader.val_data">val_data</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
-"""Keras Functional API Model Implementations
+# -*- coding: utf-8 -*-
 
-Author: Josh Tingey
-Email: j.tingey.16@ucl.ac.uk
+"""
+tf.keras Functional API Model Implementations
 
 This module contains the keras functional model definitions. All
 are derived from the BaseModel class for ease-of-use in other parts
@@ -17,13 +17,28 @@ import tensorflow as tf
 
 
 class BaseModel:
-    """Base model class which all model implementations derive from."""
+
+    """
+    Base model class which all model implementations derive from.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the BaseModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         self.config = config
         self.build()
 
     def load(self, checkpoint_num=None):
-        """Returns the correct model with its trained weights loaded."""
+        """
+        Returns the correct model with its trained weights loaded.
+
+        Args:
+            checkpoint_num (int): Checkpoint number to use
+        """
         if checkpoint_num is None:
             latest = tf.train.latest_checkpoint(self.config.exp.checkpoints_dir)
             self.model.load_weights(latest).expect_partial()
@@ -33,21 +48,39 @@ class BaseModel:
             self.model.load_weights(checkpoint_path).expect_partial()
 
     def summarise(self):
-        """Prints model to stdout and plots diagram of model to file."""
+        """
+        Prints model summary to stdout and plots diagram of model to file.
+        """
         self.model.summary()  # Print the model structure to stdout
 
         # Plot an image of the model to file
         file_name = os.path.join(self.config.exp.exp_dir, 'model_diagram.png')
-        tf.keras.utils.plot_model(self.model, to_file=file_name, show_shapes=True,
-                                  show_layer_names=True, rankdir='TB', expand_nested=False, dpi=96)
+        tf.keras.utils.plot_model(
+            self.model,
+            to_file=file_name,
+            show_shapes=True,
+            show_layer_names=True,
+            rankdir='TB',
+            expand_nested=False,
+            dpi=96
+        )
 
     def build(self):
-        """Build the model, overide in derived model class."""
+        """
+        Build the model, overide in derived model class.
+        """
         raise NotImplementedError
 
 
 def GetModelBase(config):
-    """Returns the base of the model that is shared"""
+    """
+    Returns the base model that is shared.
+
+    Args:
+        config (dotmap.DotMap): Configuration namespace
+    Returns:
+        tf.tensor: Keras functional tensor
+    """
     inputs = []
     paths = []
     if config.model.reco_pars:
@@ -122,14 +155,33 @@ def GetModelBase(config):
 
 
 def Conv2d_All(x, nb_filter, kernel_size, padding='same', strides=(1, 1)):
-    """Returns Conv2d with Batch Normalisation"""
+    """
+    Returns Conv2d with Batch Normalisation.
+
+    Args:
+        x (tf.tensor): Input tensor
+        nb_filter (int): Number of convolutional filters
+        kernel_size (int): Size of convolutional kernal
+        padding (str): Convolutional padding
+        strides (tuple(int, int)): Stride size when applying convolution
+    Returns:
+        tf.tensor: Keras functional tensor
+    """
     x = Conv2D(nb_filter, kernel_size, padding=padding, strides=strides, activation='relu')(x)
     x = BatchNormalization(axis=3)(x)
     return x
 
 
 def Inception(x, nb_filter):
-    """Returns a Keras functional API Inception Module"""
+    """
+    Returns a Keras functional API Inception Module.
+
+    Args:
+        x (tf.tensor): Input tensor
+        nb_filter (int): Number of convolutional filters
+    Returns:
+        tf.tensor: Keras functional inceptional module tensor
+    """
     b1x1 = Conv2d_All(x, nb_filter, (1, 1), padding='same', strides=(1, 1))
     b3x3 = Conv2d_All(x, nb_filter, (1, 1), padding='same', strides=(1, 1))
     b3x3 = Conv2d_All(b3x3, nb_filter, (3, 3), padding='same', strides=(1, 1))
@@ -142,8 +194,14 @@ def Inception(x, nb_filter):
 
 
 def InceptionBase(config):
-    """Returns the Inception base of the model that is shared"""
+    """
+    Returns the Inception base of the model that is shared.
 
+    Args:
+        config (dotmap.DotMap): Configuration namespace
+    Returns:
+        tuple(tf.tensor, List[tf.tensor]): (Keras functional tensor, List of input layers)
+    """
     inputs = []
     paths = []
     if config.model.reco_pars:
@@ -205,13 +263,24 @@ def InceptionBase(config):
 
 
 class ParameterModel(BaseModel):
-    """Single parameter estimation model class."""
+
+    """
+    Single parameter estimation model class.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the ParameterModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         super().__init__(config)
 
     def build(self):
-        """Builds the model using the keras functional API."""
-
+        """
+        Builds the model using the keras functional API.
+        """
         x, inputs = GetModelBase(self.config)
         outputs = Dense(1, activation='linear', name=self.config.model.parameter)(x)
         self.model = Model(inputs=inputs, outputs=outputs, name='parameter_model')
@@ -227,13 +296,24 @@ class ParameterModel(BaseModel):
 
 
 class CosmicModel(BaseModel):
-    """Cosmic vs beam classification model class."""
+
+    """
+    Cosmic vs beam classification model class.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the CosmicModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         super().__init__(config)
 
     def build(self):
-        """Builds the model using the keras functional API."""
-
+        """
+        Builds the model using the keras functional API.
+        """
         x, inputs = GetModelBase(self.config)
         outputs = Dense(1, activation='sigmoid', name='t_cosmic_cat')(x)
         self.model = Model(inputs=inputs, outputs=outputs, name='cosmic_model')
@@ -249,13 +329,24 @@ class CosmicModel(BaseModel):
 
 
 class BeamAllModel(BaseModel):
-    """Beam all category classification model class."""
+
+    """
+    Beam all category classification model class.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the BeamAllModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         super().__init__(config)
 
     def build(self):
-        """Builds the model using the keras functional API."""
-
+        """
+        Builds the model using the keras functional API.
+        """
         self.categories = 16
         self.cat = 't_cat'
         x, inputs = GetModelBase(self.config)
@@ -276,7 +367,14 @@ class BeamAllModel(BaseModel):
                        "MU-NC-QEL", "MU-NC-RES", "MU-NC-DIS", "MU-NC-COH"]
 
     def combine_outputs(self, ev):
-        """Combine outputs into fully combined categories."""
+        """
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        """
         nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
         numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
         nc = (ev['b_out'][8] + ev['b_out'][9] + ev['b_out'][10] + ev['b_out'][11] +
@@ -285,13 +383,24 @@ class BeamAllModel(BaseModel):
 
 
 class BeamFullCombModel(BaseModel):
-    """Beam full combined category classification model class."""
+
+    """
+    Beam full combined category classification model class.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the BeamFullCombModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         super().__init__(config)
 
     def build(self):
-        """Builds the model using the keras functional API."""
-
+        """
+        Builds the model using the keras functional API.
+        """
         self.categories = 3
         self.cat = 't_full_cat'
         x, inputs = GetModelBase(self.config)
@@ -309,7 +418,14 @@ class BeamFullCombModel(BaseModel):
         self.labels = ["EL-CC", "MU-CC", "NC"]
 
     def combine_outputs(self, ev):
-        """Combine outputs into fully combined categories."""
+        """
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        """
         nuel = ev['b_out'][0]
         numu = ev['b_out'][1]
         nc = ev['b_out'][2]
@@ -317,13 +433,24 @@ class BeamFullCombModel(BaseModel):
 
 
 class BeamNuNCCombModel(BaseModel):
-    """Beam Nu NC category combined classification model class."""
+
+    """
+    Beam Nu NC category combined classification model class.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the BeamNuNCCombModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         super().__init__(config)
 
     def build(self):
-        """Builds the model using the keras functional API."""
-
+        """
+        Builds the model using the keras functional API.
+        """
         self.categories = 12
         self.cat = 't_nu_nc_cat'
         x, inputs = GetModelBase(self.config)
@@ -343,7 +470,14 @@ class BeamNuNCCombModel(BaseModel):
                        "NC-QEL", "NC-RES", "NC-DIS", "NC-COH"]
 
     def combine_outputs(self, ev):
-        """Combine outputs into fully combined categories."""
+        """
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        """
         nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
         numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
         nc = (ev['b_out'][8] + ev['b_out'][9] + ev['b_out'][10] + ev['b_out'][11])
@@ -351,13 +485,24 @@ class BeamNuNCCombModel(BaseModel):
 
 
 class BeamNCCombModel(BaseModel):
-    """Beam NC category combined classification model class."""
+
+    """
+    Beam NC category combined classification model class.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the BeamNCCombModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         super().__init__(config)
 
     def build(self):
-        """Builds the model using the keras functional API."""
-
+        """
+        Builds the model using the keras functional API.
+        """
         self.categories = 9
         self.cat = 't_nc_cat'
         x, inputs = GetModelBase(self.config)
@@ -377,7 +522,14 @@ class BeamNCCombModel(BaseModel):
                        "NC"]
 
     def combine_outputs(self, ev):
-        """Combine outputs into fully combined categories."""
+        """
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        """
         nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
         numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
         nc = ev['b_out'][8]
@@ -385,13 +537,24 @@ class BeamNCCombModel(BaseModel):
 
 
 class BeamMultiModel(BaseModel):
-    """Beam Multi-task model class."""
+
+    """
+    Beam Multi-task model class.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the BeamMultiModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         super().__init__(config)
 
     def build(self):
-        """Builds the model using the keras functional API."""
-
+        """
+        Builds the model using the keras functional API.
+        """
         self.categories = 16
         self.cat = 't_cat'
         x, inputs = GetModelBase(self.config)
@@ -429,7 +592,14 @@ class BeamMultiModel(BaseModel):
                        "MU-NC-QEL", "MU-NC-RES", "MU-NC-DIS", "MU-NC-COH"]
 
     def combine_outputs(self, ev):
-        """Combine outputs into fully combined categories."""
+        """
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        """
         nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
         numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
         nc = (ev['b_out'][8] + ev['b_out'][9] + ev['b_out'][10] + ev['b_out'][11] +
@@ -438,13 +608,24 @@ class BeamMultiModel(BaseModel):
 
 
 class BeamAllInceptionModel(BaseModel):
-    """Beam all category classification inception model class."""
+
+    """
+    Beam all category classification inception model class.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the BeamAllInceptionModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         super().__init__(config)
 
     def build(self):
-        """Builds the model using the keras functional API."""
-
+        """
+        Builds the model using the keras functional API.
+        """
         self.categories = 16
         self.cat = 't_cat'
         x, inputs = InceptionBase(self.config)
@@ -465,7 +646,14 @@ class BeamAllInceptionModel(BaseModel):
                        "MU-NC-QEL", "MU-NC-RES", "MU-NC-DIS", "MU-NC-COH"]
 
     def combine_outputs(self, ev):
-        """Combine outputs into fully combined categories."""
+        """
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        """
         nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
         numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
         nc = (ev['b_out'][8] + ev['b_out'][9] + ev['b_out'][10] + ev['b_out'][11] +

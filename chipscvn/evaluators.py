@@ -1,7 +1,7 @@
-"""Evaluator classes for testing the trained models
+# -*- coding: utf-8 -*-
 
-Author: Josh Tingey
-Email: j.tingey.16@ucl.ac.uk
+"""
+Evaluator classes for testing the trained models
 
 This module contains all the evaluation classes used to test the
 trained models on test data to determine their performance. All are
@@ -21,28 +21,53 @@ import chipscvn.utils as utils
 
 
 class BaseEvaluator(object):
-    """Base evaluator class which all implementations derive from."""
+
+    """
+    Base evaluator class which all implementations derive from.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the BasicTrainer.
+
+        Args:
+            config (dotmap.DotMap): DotMap Configuration namespace
+        """
         self.config = config
         self.init_evaluator()
 
     def init_evaluator(self):
-        """Initialise the evaluator, overide in derived model class."""
+        """
+        Initialise the evaluator, overide in derived evaluator class.
+        """
         raise NotImplementedError
 
     def run(self):
-        """Run the evaluator, overide in derived model class."""
+        """
+        Run the evaluator, overide in derived evaluator class.
+        """
         raise NotImplementedError
 
 
 class CombinedEvaluator(BaseEvaluator):
-    """Combined Cosmic and Beam classification model evaluation."""
+
+    """
+    Combined Cosmic and Beam classification model evaluation.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the CombinedEvaluator.
+
+        Args:
+            config (dotmap.DotMap): DotMap Configuration namespace
+        """
         super().__init__(config)
 
     def init_evaluator(self):
-        """Initialise the evaluator, loading the evaluation data and model."""
-
+        """
+        Initialise the evaluator, setup models and evaluation data.
+        """
         # Get the cosmic classification model and load the most recent weights
         c_config = self.config
         c_config.model = self.config.models.cosmic
@@ -69,7 +94,9 @@ class CombinedEvaluator(BaseEvaluator):
         self.comb_cat_names = ['Nuel-CC', 'Numu-CC', 'NC', 'Cosmic']
 
     def run(self):
-        """Run the full evaluation."""
+        """
+        Run the full evaluation.
+        """
         print('--- Running Evaluation ---\n')
 
         start_time = time.time()  # Time how long it takes
@@ -82,7 +109,9 @@ class CombinedEvaluator(BaseEvaluator):
         print('--- Done (took %s seconds) ---\n' % (time.time() - start_time))
 
     def run_inference(self):
-        """Get model outputs for test data."""
+        """
+        Get model outputs for test data.
+        """
         print('--- running inference...\n')
 
         events = {  # Create empty dict to hold all the event data
@@ -132,7 +161,9 @@ class CombinedEvaluator(BaseEvaluator):
         self.events = self.events.sample(frac=1).reset_index(drop=True)  # Shuffle the dataframe
 
     def parse_outputs(self):
-        """Parse the outputs into other quantities."""
+        """
+        Parse the outputs into other quantities.
+        """
         print('--- parsing outputs...\n')
 
         # Parse outputs into easier to use pandas columns including combined outputs
@@ -148,7 +179,9 @@ class CombinedEvaluator(BaseEvaluator):
         self.events.drop('scores', axis=1, inplace=True)
 
     def calculate_weights(self):
-        """Calculate the weights to apply categorically."""
+        """
+        Calculate the weights to apply categorically.
+        """
         print('--- calculating weights...\n')
 
         tot_nuel = self.events[(self.events.t_nu == 0) &
@@ -172,7 +205,14 @@ class CombinedEvaluator(BaseEvaluator):
         self.events['weight'] = self.events.apply(self.add_weight, axis=1)
 
     def add_weight(self, event):
-        """Add the correct weight to each event."""
+        """
+        Add the correct weight to each event.
+
+        Args:
+            event (dict): Pandas event(row) dict
+        Returns:
+            float: Weight to use for event
+        """
         if event.t_nu == 0 and event.t_cosmic_cat == 0:
             return self.nuel_weight
         elif event.t_nu == 1 and event.t_cosmic_cat == 0:
@@ -183,14 +223,18 @@ class CombinedEvaluator(BaseEvaluator):
             raise NotImplementedError
 
     def calculate_cuts(self):
-        """Calculate different cuts to be applied."""
+        """
+        Calculate different cuts to be applied.
+        """
         print('--- calculating cuts...\n')
 
         self.events['base_cut'] = self.events.apply(self.base_cut, axis=1)
         self.events['cosmic_cut'] = self.events.apply(self.cosmic_cut, axis=1)
 
     def base_cut_summary(self):
-        """Print how each category is affected by the base_cut."""
+        """
+        Print how each category is affected by the base_cut.
+        """
         print("Base Cut Summary...\n")
         for i in range(4):
             cat_events = self.events[self.events.t_full_cat == i]
@@ -199,7 +243,9 @@ class CombinedEvaluator(BaseEvaluator):
                 cat_events[cat_events['base_cut'] == 0].shape[0]/cat_events.shape[0]))
 
     def combined_cut_summary(self):
-        """Print how each category is affected by the base_cut + cosmic_cut."""
+        """
+        Print how each category is affected by the base_cut + cosmic_cut.
+        """
         print("Base + Cosmic Cut Summary...\n")
         for i in range(4):
             cat_events = self.events[self.events.t_full_cat == i]
@@ -209,7 +255,14 @@ class CombinedEvaluator(BaseEvaluator):
                     (cat_events.cosmic_cut == 0)].shape[0]/cat_events.shape[0]))
 
     def base_cut(self, event):
-        """Calculate if the event should be cut due to activity."""
+        """
+        Calculate if the event should be cut due to activity.
+
+        Args:
+            event (dict): Pandas event(row) dict
+        Returns:
+            bool: cut or not?
+        """
         cut = ((event.r_raw_total_digi_q <= self.config.eval.cuts.q) or
                (event.r_first_ring_height <= self.config.eval.cuts.hough) or
                (event.r_dirTheta <= -self.config.eval.cuts.theta) or
@@ -219,31 +272,34 @@ class CombinedEvaluator(BaseEvaluator):
         return cut
 
     def cosmic_cut(self, event):
-        """Calculate if the event should be cut due to the cosmic network output."""
+        """
+        Calculate if the event should be cut due to the cosmic network output.
+
+        Args:
+            event (dict): Pandas event(row) dict
+        Returns:
+            bool: cut or not?
+        """
         return (event.c_out >= self.config.eval.cuts.cosmic)
 
     def cat_plot(self, parameter, bins, x_low, x_high, y_low, y_high, scale='norm',
                  base_cut=True, cosmic_cut=True):
-        """Make the histograms and legend for a parameter, split by true category."""
+        """
+        Make the histograms and legend for a parameter, split by true category.
 
-        # 0 = Nuel CC-QEL
-        # 1 = Nuel CC-RES
-        # 2 = Nuel CC-DIS
-        # 3 = Nuel CC-COH
-        # 4 = Numu CC-QEL
-        # 5 = Numu CC-RES
-        # 6 = Numu CC-DIS
-        # 7 = Numu CC-COH
-        # 8 = Nuel NC-QEL
-        # 9 = Nuel NC-RES
-        # 10 = Nuel NC-DIS
-        # 11 = Nuel NC-COH
-        # 12 = Numu NC-QEL
-        # 13 = Numu NC-RES
-        # 14 = Numu NC-DIS
-        # 15 = Numu NC-COH
-        # 16 = Cosmic
-
+        Args:
+            parameter (str): Paramter to plot
+            bins (int): How many x-bins to use
+            x_low (float): Low x-range
+            x_high (float): High x-range
+            y_low (float): Low y-range
+            y_high (float): High y-range
+            scale (str): How to scale the histograms
+            base_cut (bool): Apply to the base cut?
+            cosmic_cut (bool): Apply the cosmic cut?
+        Returns:
+            tuple(List[ROOT.TH1F], ROOT.TLegend): (List of histograms, Plot legend)
+        """
         hists = []
         colours = [ROOT.kGreen, ROOT.kGreen+1, ROOT.kGreen+2, ROOT.kGreen+3,
                    ROOT.kBlue, ROOT.kBlue+1, ROOT.kBlue+2, ROOT.kBlue+3,
@@ -293,8 +349,22 @@ class CombinedEvaluator(BaseEvaluator):
 
     def combined_cat_plot(self, parameter, bins, x_low, x_high, y_low, y_high, scale='norm',
                           base_cut=True, cosmic_cut=True):
-        """Make the histograms and legend for a parameter, split by combined category."""
+        """
+        Make the histograms and legend for a parameter, split by combined category.
 
+        Args:
+            parameter (str): Paramter to plot
+            bins (int): How many x-bins to use
+            x_low (float): Low x-range
+            x_high (float): High x-range
+            y_low (float): Low y-range
+            y_high (float): High y-range
+            scale (str): How to scale the histograms
+            base_cut (bool): Apply to the base cut?
+            cosmic_cut (bool): Apply the cosmic cut?
+        Returns:
+            tuple(List[ROOT.TH1F], ROOT.TLegend): (List of histograms, Plot legend)
+        """
         hists = []
         colours = [ROOT.kGreen, ROOT.kBlue, ROOT.kRed, ROOT.kBlack]
         leg = ROOT.TLegend(0.65, 0.65, 0.80, 0.89, "Event Type")
@@ -334,14 +404,23 @@ class CombinedEvaluator(BaseEvaluator):
 
         return hists, leg
 
+
 class EnergyEvaluator(BaseEvaluator):
     """Energy estimation model evaluation."""
+
     def __init__(self, config):
+        """
+        Initialise the CombinedEvaluator.
+
+        Args:
+            config (dotmap.DotMap): DotMap Configuration namespace
+        """
         super().__init__(config)
 
     def init_evaluator(self):
-        """Initialise the evaluator, loading the evaluation data and model."""
-
+        """
+        Initialise the evaluator, setup models and evaluation data.
+        """
         # Setup all the energy estimation models
         self.nuel_qel_cc_m = self.get_model("nuel_qel_cc")
         self.nuel_dis_cc_m = self.get_model("nuel_dis_cc")
@@ -361,7 +440,9 @@ class EnergyEvaluator(BaseEvaluator):
         self.data = data_loader.test_data()
 
     def run(self):
-        """Run the full evaluation."""
+        """
+        Run the full evaluation.
+        """
         print('--- Running Evaluation ---\n')
 
         start_time = time.time()  # Time how long it takes
@@ -371,7 +452,14 @@ class EnergyEvaluator(BaseEvaluator):
         print('--- Done (took %s seconds) ---\n' % (time.time() - start_time))
 
     def get_model(self, name):
-        """Get and loads the model from the configuration"""
+        """
+        Get and loads the model from the configuration.
+
+        Args:
+            name (str): Saved model name
+        Returns:
+            chipscnv.models model: Model to use in evaluation
+        """
         config = self.config
         config.model = self.config.models[name]
         config.exp.experiment_dir = self.config.models[name].dir
@@ -382,7 +470,9 @@ class EnergyEvaluator(BaseEvaluator):
         return model
 
     def run_inference(self):
-        """Get model outputs for test data."""
+        """
+        Get model outputs for test data.
+        """
         print('--- running inference...\n')
 
         events = {  # Create empty dict to hold all the event data
@@ -428,7 +518,6 @@ class EnergyEvaluator(BaseEvaluator):
             events['numu_nc_qel_e'].extend(self.numu_qel_nc_m.model.predict(x))
             events['numu_nc_dis_e'].extend(self.numu_dis_nc_m.model.predict(x))
             events['numu_nc_res_e'].extend(self.numu_res_nc_m.model.predict(x))
-
 
         self.events = pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
         self.events = self.events.sample(frac=1).reset_index(drop=True)  # Shuffle the dataframe

@@ -1,7 +1,7 @@
-"""Data creation and loading module
+# -*- coding: utf-8 -*-
 
-Author: Josh Tingey
-Email: j.tingey.16@ucl.ac.uk
+"""
+Data creation and loading module
 
 This module contains both the DataCreator and DataLoader classes, these
 are used to firstly generate tfrecords files from ROOT hitmap files and
@@ -20,21 +20,33 @@ import tensorflow as tf
 
 
 class DataLoader:
-    """Generates tf datasets from the configuration."""
+
+    """
+    Generates tf datasets for training/evaluation from the configuration.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the DataLoader.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         self.config = config
         self.init()
 
     def init(self):
-        """Initialise the PDG, type and category lookup tables and input directories."""
-
+        """
+        Initialise lookup tables and input directories.
+        """
         # Map nuel and numu (Total = 2)
         # 0 = Nuel neutrino
         # 1 = Numu neutrino (cosmic muons are included in this)
         nu_keys = tf.constant([11, 12, 13, 14])
         nu_vals = tf.constant([0,  0,  1,  1])
         self.nu_table = tf.lookup.StaticHashTable(
-            tf.lookup.KeyValueTensorInitializer(nu_keys, nu_vals), -1)
+            tf.lookup.KeyValueTensorInitializer(nu_keys, nu_vals), -1
+        )
 
         # Map interaction types (Total = 10)
         # 0 = CC-QEL
@@ -50,7 +62,8 @@ class DataLoader:
         int_keys = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 91, 92, 96, 97, 98, 99, 100])
         int_vals = tf.constant([9, 0, 4, 1, 1, 1, 5, 5, 5, 5,  2,  6,  7,  3,  9,  9,   8])
         self.int_table = tf.lookup.StaticHashTable(
-            tf.lookup.KeyValueTensorInitializer(int_keys, int_vals), -1)
+            tf.lookup.KeyValueTensorInitializer(int_keys, int_vals), -1
+        )
 
         # Map to all categories (Total = 19)
         # Category keys are a string of pdg+type, e.g an nuel ccqe event is '0'+'0' = '00'
@@ -80,7 +93,8 @@ class DataLoader:
                                 8, 9, 10, 11, 12, 13, 14, 15,
                                 16, 17, 18])
         self.cat_table = tf.lookup.StaticHashTable(
-            tf.lookup.KeyValueTensorInitializer(cat_keys, cat_vals), -1)
+            tf.lookup.KeyValueTensorInitializer(cat_keys, cat_vals), -1
+        )
 
         # The following mappings are used to generate the inputs to different model types
 
@@ -94,7 +108,8 @@ class DataLoader:
                                    0, 0, 0, 0, 0, 0, 0, 0,
                                    1, 0, 0])
         self.cosmic_table = tf.lookup.StaticHashTable(
-            tf.lookup.KeyValueTensorInitializer(cosmic_keys, cosmic_vals), -1)
+            tf.lookup.KeyValueTensorInitializer(cosmic_keys, cosmic_vals), -1
+        )
 
         # Map to full_combined categories (Total = 5)
         # 0 = Nuel CC
@@ -109,7 +124,8 @@ class DataLoader:
                                  2, 2, 2, 2, 2, 2, 2, 2,
                                  3, 4, 4])
         self.comb_table = tf.lookup.StaticHashTable(
-            tf.lookup.KeyValueTensorInitializer(comb_keys, comb_vals), -1)
+            tf.lookup.KeyValueTensorInitializer(comb_keys, comb_vals), -1
+        )
 
         # Map to nc_nu_combined categories (Total = 14)
         # 0 = Nuel CC-QEL
@@ -133,7 +149,8 @@ class DataLoader:
                                        8, 9, 10, 11, 8, 9, 10, 11,
                                        12, 13, 13])
         self.nu_nc_comb_table = tf.lookup.StaticHashTable(
-            tf.lookup.KeyValueTensorInitializer(nu_nc_comb_keys, nu_nc_comb_vals), -1)
+            tf.lookup.KeyValueTensorInitializer(nu_nc_comb_keys, nu_nc_comb_vals), -1
+        )
 
         # Map to nc_combined categories (Total = 11)
         # 0 = Nuel CC-QEL
@@ -154,7 +171,8 @@ class DataLoader:
                                     8, 8, 8, 8, 8, 8, 8, 8,
                                     9, 10, 10])
         self.nc_comb_table = tf.lookup.StaticHashTable(
-            tf.lookup.KeyValueTensorInitializer(nc_comb_keys, nc_comb_vals), -1)
+            tf.lookup.KeyValueTensorInitializer(nc_comb_keys, nc_comb_vals), -1
+        )
 
         # Generate the lists of train, val and test file directories from the configuration
         self.train_dirs = [os.path.join(in_dir, 'train') for in_dir in self.config.data.input_dirs]
@@ -162,7 +180,14 @@ class DataLoader:
         self.test_dirs = [os.path.join(in_dir, 'test') for in_dir in self.config.data.input_dirs]
 
     def parse(self, serialised_example):
-        """Parses a single serialised example into an input plus a labels dict."""
+        """
+        Parses a single serialised example into both an input and labels dict.
+
+        Args:
+            serialised_example (tf.Example): A single example from .tfrecords file
+        Returns:
+            Tuple[dict, dict]: (Inputs dictionary, Labels dictionary)
+        """
         features = {
             'true_pars_i': tf.io.FixedLenFeature([], tf.string),
             'true_pars_f': tf.io.FixedLenFeature([], tf.string),
@@ -186,7 +211,8 @@ class DataLoader:
         pdg = self.nu_table.lookup(true_pars_i[0])
         type = self.int_table.lookup(true_pars_i[1])
         category = self.cat_table.lookup(
-            tf.strings.join((tf.strings.as_string(pdg), tf.strings.as_string(type))))
+            tf.strings.join((tf.strings.as_string(pdg), tf.strings.as_string(type)))
+        )
 
         # Do all the model specific mapping using the lookup tables
         cosmic = self.cosmic_table.lookup(category)
@@ -273,15 +299,31 @@ class DataLoader:
 
         return inputs, labels
 
-    def filter_other(self, inputs, labels):
-        """Filters out 'other' cateogory events."""
+    @staticmethod
+    def filter_other(inputs, labels):
+        """
+        Filters out 'other' cateogory events from dataset.
+
+        Args:
+            inputs (dict): Inputs dictionary
+            labels (dict): Labels dictionary
+        Returns:
+            bool: Is this an 'other' category event?
+        """
         if (labels['t_cat']) == 17 or (labels['t_cat'] == 18):
             return False
         else:
             return True
 
     def dataset(self, dirs):
-        """Returns a dataset formed from all the files in the input directories."""
+        """
+        Returns a dataset formed from all the files in the input directories.
+
+        Args:
+            dirs (list[str]): List of input directories
+        Returns:
+            tf.dataset: The generated dataset
+        """
         files = []  # Add all files in dirs to a list
         for d in dirs:
             for file in os.listdir(d):
@@ -289,30 +331,47 @@ class DataLoader:
 
         random.shuffle(files)  # Shuffle the list as an additionally randomisation to "interleave"
         ds = tf.data.Dataset.from_tensor_slices(files)
-        ds = ds.interleave(tf.data.TFRecordDataset,
-                           cycle_length=len(files),
-                           num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        ds = ds.interleave(
+            tf.data.TFRecordDataset,
+            cycle_length=len(files),
+            num_parallel_calls=tf.data.experimental.AUTOTUNE
+        )
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
         ds = ds.map(lambda x: self.parse(x), num_parallel_calls=tf.data.experimental.AUTOTUNE)
         ds = ds.filter(self.filter_other)
         return ds
 
     def train_data(self):
-        """Returns the training dataset."""
+        """
+        Returns the training dataset.
+
+        Returns:
+            tf.dataset: The training dataset
+        """
         ds = self.dataset(self.train_dirs)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
         ds = ds.take(self.config.data.train_examples)
         return ds
 
     def val_data(self):
-        """Returns the validation dataset."""
+        """
+        Returns the validation dataset.
+
+        Returns:
+            tf.dataset: The validation dataset
+        """
         ds = self.dataset(self.val_dirs)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
         ds = ds.take(int(self.config.data.val_examples))
         return ds
 
     def test_data(self):
-        """Returns the testing dataset."""
+        """
+        Returns the testing dataset.
+
+        Returns:
+            tf.dataset: The testing dataset
+        """
         ds = self.dataset(self.test_dirs)
         ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
         ds = ds.take(self.config.data.test_examples)
@@ -320,8 +379,23 @@ class DataLoader:
 
 
 class DataCreator:
-    """Generates tfrecord files from ROOT map files."""
+
+    """
+    Generates tfrecords files from ROOT map files.
+    """
+
     def __init__(self, directory, geom, split, join, single, all_maps):
+        """
+        Initialise the DataCreator.
+
+        Args:
+            directory (str): Input production directory
+            geom (str): Geometry to use
+            split (float): Validation and testing fractional data split
+            join (int): Number of input files to combine together
+            single (bool): Should we run a single process and not parallelise?
+            all_maps (bool): Should we generate all the maps?
+        """
         self.split = split
         self.join = join
         self.single = single
@@ -329,7 +403,13 @@ class DataCreator:
         self.init(directory, geom)
 
     def init(self, directory, geom):
-        """Initialise the output directories."""
+        """
+        Initialise the output directories.
+
+        Args:
+            directory (str): Production input/output directory path
+            geom (str): CHIPS geometry to use
+        """
         self.in_dir = os.path.join(directory, "map/", geom)
         self.out_dir = os.path.join(directory, "tf/", geom)
         os.makedirs(self.out_dir, exist_ok=True)
@@ -337,13 +417,28 @@ class DataCreator:
         os.makedirs(os.path.join(self.out_dir, "val/"), exist_ok=True)
         os.makedirs(os.path.join(self.out_dir, "test/"), exist_ok=True)
 
+    @staticmethod
     def bytes_feature(self, value):
-        """Returns a bytes_list from a string / byte."""
+        """
+        Returns a BytesList feature from a string/byte.
+
+        Args:
+            value (str): Raw string format of an array
+        Returns:
+            tf.train.Feature: A BytesList feature
+        """
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
     def gen_examples(self, true, reco):
-        """Generates a list of examples from the input .root map file."""
+        """
+        Generates a list of examples from the input .root map file.
 
+        Args:
+            true (uproot TTree): True TTree from input file
+            reco (uproot TTree): Reco TTree from input file
+        Returns:
+            List[tf.train.Example]: List of examples
+        """
         # Get the numpy arrays from the .root map file, we need to seperate by type
         # for the deserialisation during reading to work correctly.
         true_pars_i = np.stack((  # True Parameters (integers)
@@ -434,14 +529,27 @@ class DataCreator:
 
         return examples
 
-    def write_examples(self, name, examples):
-        """Write a list of examples to a tfrecords file."""
+    @staticmethod
+    def write_examples(name, examples):
+        """
+        Write a list of examples to a tfrecords file.
+
+        Args:
+            name (str): Output .tfrecords file path
+            examples (List[tf.train.Example]): List of examples
+        """
         with tf.io.TFRecordWriter(name) as writer:
             for example in examples:
                 writer.write(example.SerializeToString())
 
-    def preprocess_file(self, num, files):
-        """Preprocess joined .root map files into train, val and test tfrecords files."""
+    def preprocess_files(self, num, files):
+        """
+        Preprocess joined .root map files into train, val and test tfrecords files.
+
+        Args:
+            num (int): Job number
+            files (list[str]): List of input files to use
+        """
         print('Processing job {}...'.format(num))
         examples = []
         for file in files:
@@ -467,12 +575,15 @@ class DataCreator:
             os.path.join(self.out_dir, 'test/', str(num) + '_test.tfrecords'), test_examples)
 
     def preprocess(self):
-        """Preprocess all the files from the input directory into tfrecords."""
+        """
+        Preprocess all the files from the input directory into tfrecords.
+        """
         files = [os.path.join(self.in_dir, file) for file in os.listdir(self.in_dir)]
         file_lists = [files[n:n+self.join] for n in range(0, len(files), self.join)]
         if not self.single:  # File independence allows for parallelisation
             Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
-                self.preprocess_file)(counter, f_list) for counter, f_list in enumerate(file_lists))
+                self.preprocess_files)(counter, f_list) for counter, f_list in enumerate(
+                    file_lists))
         else:  # For debugging we keep the option to use a single process
             for counter, f_list in enumerate(file_lists):
-                self.preprocess_file(counter, f_list)
+                self.preprocess_files(counter, f_list)

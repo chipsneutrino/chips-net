@@ -1,7 +1,7 @@
-"""Study classes for carrying out SHERPA studies
+# -*- coding: utf-8 -*-
 
-Author: Josh Tingey
-Email: j.tingey.16@ucl.ac.uk
+"""
+Study classes for carrying out SHERPA studies
 
 This module contains all the study classes used to conduct SHERPA studies
 on the different models. All are derived from the BaseStudy class and
@@ -15,17 +15,31 @@ import chipscvn.utils
 
 
 class BaseStudy(object):
-    """Base study class which all implementations derive from."""
+
+    """
+    Base study class which all implementations derive from.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the BaseStudy.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         self.config = config
         self.init_study()
 
     def init_study(self):
-        """Initialise the SHERPA study, overide in derived model class."""
+        """
+        Initialise the SHERPA study, overide in derived model class.
+        """
         raise NotImplementedError
 
     def run(self):
-        """Run the SHERPA study."""
+        """
+        Run the SHERPA study.
+        """
         for trial in self.study:
             print(" *** Trial: {} *** ".format(trial.id))
             print("*******************")
@@ -57,12 +71,24 @@ class BaseStudy(object):
 
 
 class ParameterStudy(BaseStudy):
-    """Single parameter model study class."""
+
+    """
+    Single parameter model study class.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the ParameterStudy.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         super().__init__(config)
 
     def init_study(self):
-        """Initialise the SHERPA study."""
+        """
+        Initialise the SHERPA study.
+        """
         pars = [
             sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
             sherpa.Choice(name='data.stack', range=self.config.study.data.stack),
@@ -81,12 +107,24 @@ class ParameterStudy(BaseStudy):
 
 
 class StandardStudy(BaseStudy):
-    """Cosmic vs beam classification model study class."""
+
+    """
+    Cosmic vs beam classification model study class.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the StandardStudy.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         super().__init__(config)
 
     def init_study(self):
-        """Initialise the SHERPA study."""
+        """
+        Initialise the SHERPA study.
+        """
         pars = [
             sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
             sherpa.Choice(name='data.stack', range=self.config.study.data.stack),
@@ -106,12 +144,24 @@ class StandardStudy(BaseStudy):
 
 
 class MultiStudy(BaseStudy):
-    """Multi-task model study class."""
+
+    """
+    Multi-task model study class.
+    """
+
     def __init__(self, config):
+        """
+        Initialise the MultiStudy.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        """
         super().__init__(config)
 
     def init_study(self):
-        """Initialise the SHERPA study."""
+        """
+        Initialise the SHERPA study.
+        """
         pars = [
             sherpa.Ordinal(name='data.batch_size', range=self.config.study.data.batch_size),
             sherpa.Choice(name='data.stack', range=self.config.study.data.stack),

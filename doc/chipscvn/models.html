@@ -1,0 +1,2364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>chipscvn.models API documentation</title>
+<meta name="description" content="tf.keras Functional API Model Implementations …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>chipscvn.models</code></h1>
+</header>
+<section id="section-intro">
+<p>tf.keras Functional API Model Implementations</p>
+<p>This module contains the keras functional model definitions. All
+are derived from the BaseModel class for ease-of-use in other parts
+of the chips-cvn code</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># -*- coding: utf-8 -*-
+
+&#34;&#34;&#34;
+tf.keras Functional API Model Implementations
+
+This module contains the keras functional model definitions. All
+are derived from the BaseModel class for ease-of-use in other parts
+of the chips-cvn code
+&#34;&#34;&#34;
+
+import os
+from tensorflow.keras import optimizers, Model, Input
+from tensorflow.keras.layers import (Dense, Dropout, Conv2D, MaxPooling2D, AveragePooling2D,
+                                     Flatten, concatenate, BatchNormalization)
+from tensorflow.keras.regularizers import l2
+import tensorflow as tf
+
+
+class BaseModel:
+
+    &#34;&#34;&#34;
+    Base model class which all model implementations derive from.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BaseModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        self.config = config
+        self.build()
+
+    def load(self, checkpoint_num=None):
+        &#34;&#34;&#34;
+        Returns the correct model with its trained weights loaded.
+
+        Args:
+            checkpoint_num (int): Checkpoint number to use
+        &#34;&#34;&#34;
+        if checkpoint_num is None:
+            latest = tf.train.latest_checkpoint(self.config.exp.checkpoints_dir)
+            self.model.load_weights(latest).expect_partial()
+        else:
+            checkpoint_path = (
+                self.config.exp.checkpoints_dir + &#39;cp-&#39; + str(checkpoint_num).zfill(4) + &#39;.ckpt&#39;)
+            self.model.load_weights(checkpoint_path).expect_partial()
+
+    def summarise(self):
+        &#34;&#34;&#34;
+        Prints model summary to stdout and plots diagram of model to file.
+        &#34;&#34;&#34;
+        self.model.summary()  # Print the model structure to stdout
+
+        # Plot an image of the model to file
+        file_name = os.path.join(self.config.exp.exp_dir, &#39;model_diagram.png&#39;)
+        tf.keras.utils.plot_model(
+            self.model,
+            to_file=file_name,
+            show_shapes=True,
+            show_layer_names=True,
+            rankdir=&#39;TB&#39;,
+            expand_nested=False,
+            dpi=96
+        )
+
+    def build(self):
+        &#34;&#34;&#34;
+        Build the model, overide in derived model class.
+        &#34;&#34;&#34;
+        raise NotImplementedError
+
+
+def GetModelBase(config):
+    &#34;&#34;&#34;
+    Returns the base model that is shared.
+
+    Args:
+        config (dotmap.DotMap): Configuration namespace
+    Returns:
+        tf.tensor: Keras functional tensor
+    &#34;&#34;&#34;
+    inputs = []
+    paths = []
+    if config.model.reco_pars:
+        vtxX_input = Input(shape=(1), name=&#39;r_vtxX&#39;)
+        inputs.append(vtxX_input)
+        paths.append(vtxX_input)
+
+        vtxY_input = Input(shape=(1), name=&#39;r_vtxY&#39;)
+        inputs.append(vtxY_input)
+        paths.append(vtxY_input)
+
+        vtxZ_input = Input(shape=(1), name=&#39;r_vtxZ&#39;)
+        inputs.append(vtxZ_input)
+        paths.append(vtxZ_input)
+
+        dirTheta_input = Input(shape=(1), name=&#39;r_dirTheta&#39;)
+        inputs.append(dirTheta_input)
+        paths.append(dirTheta_input)
+
+        dirPhi_input = Input(shape=(1), name=&#39;r_dirPhi&#39;)
+        inputs.append(dirPhi_input)
+        paths.append(dirPhi_input)
+
+    images = config.data.img_size[2]
+    shape = (config.data.img_size[0], config.data.img_size[1], 1)
+    if config.data.stack:
+        images = 1
+        shape = config.data.img_size
+
+    for channel in range(images):
+        image_name = &#39;image_&#39; + str(channel)
+        conv_name = &#39;conv_&#39; + str(channel) + &#34;_&#34;
+        image_input = Input(shape=shape, name=image_name)
+        image_path = Conv2D(config.model.filters, config.model.kernel_size,
+                            padding=&#39;same&#39;, activation=&#39;relu&#39;, name=(conv_name + &#34;1&#34;))(image_input)
+        image_path = Conv2D(config.model.filters, config.model.kernel_size,
+                            activation=&#39;relu&#39;, name=(conv_name + &#34;2&#34;))(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Conv2D((config.model.filters*2), config.model.kernel_size,
+                            padding=&#39;same&#39;, activation=&#39;relu&#39;, name=(conv_name + &#34;3&#34;))(image_path)
+        image_path = Conv2D((config.model.filters*2), config.model.kernel_size,
+                            activation=&#39;relu&#39;, name=(conv_name + &#34;4&#34;))(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Conv2D((config.model.filters*4), config.model.kernel_size,
+                            padding=&#39;same&#39;, activation=&#39;relu&#39;, name=(conv_name + &#34;5&#34;))(image_path)
+        image_path = Conv2D((config.model.filters*4), config.model.kernel_size,
+                            activation=&#39;relu&#39;, name=(conv_name + &#34;6&#34;))(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Conv2D((config.model.filters*8), config.model.kernel_size,
+                            padding=&#39;same&#39;, activation=&#39;relu&#39;, name=(conv_name + &#34;7&#34;))(image_path)
+        image_path = Conv2D((config.model.filters*8), config.model.kernel_size,
+                            activation=&#39;relu&#39;, name=(conv_name + &#34;8&#34;))(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Flatten()(image_path)
+        paths.append(image_path)
+        inputs.append(image_input)
+
+    if len(paths) == 1:
+        x = paths[0]
+    else:
+        x = concatenate(paths)
+
+    x = Dense(config.model.dense_units, activation=&#39;relu&#39;)(x)
+    x = Dense(config.model.dense_units, activation=&#39;relu&#39;)(x)
+    x = Dense(config.model.dense_units, activation=&#39;relu&#39;, name=&#39;dense_final&#39;)(x)
+    x = Dropout(config.model.dropout)(x)
+    return x, inputs
+
+
+def Conv2d_All(x, nb_filter, kernel_size, padding=&#39;same&#39;, strides=(1, 1)):
+    &#34;&#34;&#34;
+    Returns Conv2d with Batch Normalisation.
+
+    Args:
+        x (tf.tensor): Input tensor
+        nb_filter (int): Number of convolutional filters
+        kernel_size (int): Size of convolutional kernal
+        padding (str): Convolutional padding
+        strides (tuple(int, int)): Stride size when applying convolution
+    Returns:
+        tf.tensor: Keras functional tensor
+    &#34;&#34;&#34;
+    x = Conv2D(nb_filter, kernel_size, padding=padding, strides=strides, activation=&#39;relu&#39;)(x)
+    x = BatchNormalization(axis=3)(x)
+    return x
+
+
+def Inception(x, nb_filter):
+    &#34;&#34;&#34;
+    Returns a Keras functional API Inception Module.
+
+    Args:
+        x (tf.tensor): Input tensor
+        nb_filter (int): Number of convolutional filters
+    Returns:
+        tf.tensor: Keras functional inceptional module tensor
+    &#34;&#34;&#34;
+    b1x1 = Conv2d_All(x, nb_filter, (1, 1), padding=&#39;same&#39;, strides=(1, 1))
+    b3x3 = Conv2d_All(x, nb_filter, (1, 1), padding=&#39;same&#39;, strides=(1, 1))
+    b3x3 = Conv2d_All(b3x3, nb_filter, (3, 3), padding=&#39;same&#39;, strides=(1, 1))
+    b5x5 = Conv2d_All(x, nb_filter, (1, 1), padding=&#39;same&#39;, strides=(1, 1))
+    b5x5 = Conv2d_All(b5x5, nb_filter, (1, 1), padding=&#39;same&#39;, strides=(1, 1))
+    bpool = MaxPooling2D(pool_size=(3, 3), strides=(1, 1), padding=&#39;same&#39;)(x)
+    bpool = Conv2d_All(bpool, nb_filter, (1, 1), padding=&#39;same&#39;, strides=(1, 1))
+    x = concatenate([b1x1, b3x3, b5x5, bpool], axis=3)
+    return x
+
+
+def InceptionBase(config):
+    &#34;&#34;&#34;
+    Returns the Inception base of the model that is shared.
+
+    Args:
+        config (dotmap.DotMap): Configuration namespace
+    Returns:
+        tuple(tf.tensor, List[tf.tensor]): (Keras functional tensor, List of input layers)
+    &#34;&#34;&#34;
+    inputs = []
+    paths = []
+    if config.model.reco_pars:
+        vtxX_input = Input(shape=(1), name=&#39;r_vtxX&#39;)
+        inputs.append(vtxX_input)
+        paths.append(vtxX_input)
+
+        vtxY_input = Input(shape=(1), name=&#39;r_vtxY&#39;)
+        inputs.append(vtxY_input)
+        paths.append(vtxY_input)
+
+        vtxZ_input = Input(shape=(1), name=&#39;r_vtxZ&#39;)
+        inputs.append(vtxZ_input)
+        paths.append(vtxZ_input)
+
+        dirTheta_input = Input(shape=(1), name=&#39;r_dirTheta&#39;)
+        inputs.append(dirTheta_input)
+        paths.append(dirTheta_input)
+
+        dirPhi_input = Input(shape=(1), name=&#39;r_dirPhi&#39;)
+        inputs.append(dirPhi_input)
+        paths.append(dirPhi_input)
+
+    images = config.data.img_size[2]
+    shape = (config.data.img_size[0], config.data.img_size[1], 1)
+    if config.data.stack:
+        images = 1
+        shape = config.data.img_size
+
+    for channel in range(images):
+        image_name = &#39;image_&#39; + str(channel)
+        image_input = Input(shape=shape, name=image_name)
+        image_path = Conv2d_All(image_input, 64, (7, 7), strides=(2, 2), padding=&#39;same&#39;)
+        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding=&#39;same&#39;)(image_path)
+        image_path = Conv2d_All(image_path, 192, (3, 3), strides=(1, 1), padding=&#39;same&#39;)
+        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding=&#39;same&#39;)(image_path)
+        image_path = Inception(image_path, 64)
+        image_path = Inception(image_path, 120)
+        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding=&#39;same&#39;)(image_path)
+        image_path = Inception(image_path, 128)
+        image_path = Inception(image_path, 128)
+        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding=&#39;same&#39;)(image_path)
+        image_path = Inception(image_path, 256)
+        image_path = AveragePooling2D(pool_size=(7, 7), strides=(7, 7), padding=&#39;same&#39;)(image_path)
+        image_path = Flatten()(image_path)
+        image_path = Dense(1024, activation=&#39;relu&#39;, kernel_regularizer=l2(0.1))(image_path)
+        paths.append(image_path)
+        inputs.append(image_input)
+
+    if len(paths) == 1:
+        x = paths[0]
+    else:
+        x = concatenate(paths)
+
+    x = Dense(1024, activation=&#39;relu&#39;)(x)
+    x = Dense(config.model.dense_units, activation=&#39;relu&#39;)(x)
+    x = Dense(config.model.dense_units, activation=&#39;relu&#39;, name=&#39;dense_final&#39;)(x)
+    return x, inputs
+
+
+class ParameterModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Single parameter estimation model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the ParameterModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(1, activation=&#39;linear&#39;, name=self.config.model.parameter)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;parameter_model&#39;)
+
+        self.loss = &#39;mean_squared_error&#39;
+        self.metrics = [&#39;mae&#39;, &#39;mse&#39;]
+        self.es_monitor = &#39;val_mae&#39;
+        self.parameters = [self.config.model.parameter]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+
+class CosmicModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Cosmic vs beam classification model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the CosmicModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(1, activation=&#39;sigmoid&#39;, name=&#39;t_cosmic_cat&#39;)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;cosmic_model&#39;)
+
+        self.loss = &#39;binary_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_cosmic_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+
+class BeamAllModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam all category classification model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamAllModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 16
+        self.cat = &#39;t_cat&#39;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_all_model&#39;)
+        self.loss = &#39;sparse_categorical_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                       &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                       &#34;EL-NC-QEL&#34;, &#34;EL-NC-RES&#34;, &#34;EL-NC-DIS&#34;, &#34;EL-NC-COH&#34;,
+                       &#34;MU-NC-QEL&#34;, &#34;MU-NC-RES&#34;, &#34;MU-NC-DIS&#34;, &#34;MU-NC-COH&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+        numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+        nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11] +
+              ev[&#39;b_out&#39;][12] + ev[&#39;b_out&#39;][13] + ev[&#39;b_out&#39;][14] + ev[&#39;b_out&#39;][15])
+        return [nuel, numu, nc]
+
+
+class BeamFullCombModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam full combined category classification model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamFullCombModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 3
+        self.cat = &#39;t_full_cat&#39;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_full_comb_model&#39;)
+        self.loss = &#39;sparse_categorical_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_full_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC&#34;, &#34;MU-CC&#34;, &#34;NC&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = ev[&#39;b_out&#39;][0]
+        numu = ev[&#39;b_out&#39;][1]
+        nc = ev[&#39;b_out&#39;][2]
+        return [nuel, numu, nc]
+
+
+class BeamNuNCCombModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam Nu NC category combined classification model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamNuNCCombModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 12
+        self.cat = &#39;t_nu_nc_cat&#39;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_nu_nc_comb_model&#39;)
+        self.loss = &#39;sparse_categorical_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_nu_nc_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                       &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                       &#34;NC-QEL&#34;, &#34;NC-RES&#34;, &#34;NC-DIS&#34;, &#34;NC-COH&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+        numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+        nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11])
+        return [nuel, numu, nc]
+
+
+class BeamNCCombModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam NC category combined classification model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamNCCombModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 9
+        self.cat = &#39;t_nc_cat&#39;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_nc_comb_model&#39;)
+        self.loss = &#39;sparse_categorical_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_nc_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                       &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                       &#34;NC&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+        numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+        nc = ev[&#39;b_out&#39;][8]
+        return [nuel, numu, nc]
+
+
+class BeamMultiModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam Multi-task model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamMultiModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 16
+        self.cat = &#39;t_cat&#39;
+        x, inputs = GetModelBase(self.config)
+        category_path = Dense(self.config.model.dense_units, activation=&#39;relu&#39;)(x)
+        energy_path = Dense(self.config.model.dense_units, activation=&#39;relu&#39;)(x)
+        category_output = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(category_path)
+        energy_output = Dense(1, activation=&#39;linear&#39;, name=&#39;t_nuEnergy&#39;)(energy_path)
+        self.model = Model(inputs=inputs,
+                           outputs=[category_output, energy_output],
+                           name=&#39;beam_multi_model&#39;)
+
+        self.loss = {
+            &#39;t_cat&#39;: &#39;sparse_categorical_crossentropy&#39;,
+            &#39;t_nuEnergy&#39;: &#39;mean_squared_error&#39;,
+        }
+        self.loss_weights = {
+            &#39;t_cat&#39;: 1.0,
+            &#39;t_nuEnergy&#39;: 1.0
+        }
+        self.metrics = {
+            &#39;t_cat&#39;: &#39;accuracy&#39;,
+            &#39;t_nuEnergy&#39;: &#39;mae&#39;
+        }
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_cat&#39;, &#39;t_nuEnergy&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           loss_weights=self.loss_weights,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                       &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                       &#34;EL-NC-QEL&#34;, &#34;EL-NC-RES&#34;, &#34;EL-NC-DIS&#34;, &#34;EL-NC-COH&#34;,
+                       &#34;MU-NC-QEL&#34;, &#34;MU-NC-RES&#34;, &#34;MU-NC-DIS&#34;, &#34;MU-NC-COH&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+        numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+        nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11] +
+              ev[&#39;b_out&#39;][12] + ev[&#39;b_out&#39;][13] + ev[&#39;b_out&#39;][14] + ev[&#39;b_out&#39;][15])
+        return [nuel, numu, nc]
+
+
+class BeamAllInceptionModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam all category classification inception model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamAllInceptionModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 16
+        self.cat = &#39;t_cat&#39;
+        x, inputs = InceptionBase(self.config)
+        outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_all_inception_model&#39;)
+        self.loss = &#39;sparse_categorical_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                       &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                       &#34;EL-NC-QEL&#34;, &#34;EL-NC-RES&#34;, &#34;EL-NC-DIS&#34;, &#34;EL-NC-COH&#34;,
+                       &#34;MU-NC-QEL&#34;, &#34;MU-NC-RES&#34;, &#34;MU-NC-DIS&#34;, &#34;MU-NC-COH&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+        numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+        nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11] +
+              ev[&#39;b_out&#39;][12] + ev[&#39;b_out&#39;][13] + ev[&#39;b_out&#39;][14] + ev[&#39;b_out&#39;][15])
+        return [nuel, numu, nc]</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="chipscvn.models.Conv2d_All"><code class="name flex">
+<span>def <span class="ident">Conv2d_All</span></span>(<span>x, nb_filter, kernel_size, padding='same', strides=(1, 1))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns Conv2d with Batch Normalisation.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>tf.tensor</code></dt>
+<dd>Input tensor</dd>
+<dt><strong><code>nb_filter</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of convolutional filters</dd>
+<dt><strong><code>kernel_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Size of convolutional kernal</dd>
+<dt><strong><code>padding</code></strong> :&ensp;<code>str</code></dt>
+<dd>Convolutional padding</dd>
+</dl>
+<p>strides (tuple(int, int)): Stride size when applying convolution</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tf.tensor</code></dt>
+<dd>Keras functional tensor</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Conv2d_All(x, nb_filter, kernel_size, padding=&#39;same&#39;, strides=(1, 1)):
+    &#34;&#34;&#34;
+    Returns Conv2d with Batch Normalisation.
+
+    Args:
+        x (tf.tensor): Input tensor
+        nb_filter (int): Number of convolutional filters
+        kernel_size (int): Size of convolutional kernal
+        padding (str): Convolutional padding
+        strides (tuple(int, int)): Stride size when applying convolution
+    Returns:
+        tf.tensor: Keras functional tensor
+    &#34;&#34;&#34;
+    x = Conv2D(nb_filter, kernel_size, padding=padding, strides=strides, activation=&#39;relu&#39;)(x)
+    x = BatchNormalization(axis=3)(x)
+    return x</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.models.GetModelBase"><code class="name flex">
+<span>def <span class="ident">GetModelBase</span></span>(<span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the base model that is shared.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>dotmap.DotMap</code></dt>
+<dd>Configuration namespace</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tf.tensor</code></dt>
+<dd>Keras functional tensor</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def GetModelBase(config):
+    &#34;&#34;&#34;
+    Returns the base model that is shared.
+
+    Args:
+        config (dotmap.DotMap): Configuration namespace
+    Returns:
+        tf.tensor: Keras functional tensor
+    &#34;&#34;&#34;
+    inputs = []
+    paths = []
+    if config.model.reco_pars:
+        vtxX_input = Input(shape=(1), name=&#39;r_vtxX&#39;)
+        inputs.append(vtxX_input)
+        paths.append(vtxX_input)
+
+        vtxY_input = Input(shape=(1), name=&#39;r_vtxY&#39;)
+        inputs.append(vtxY_input)
+        paths.append(vtxY_input)
+
+        vtxZ_input = Input(shape=(1), name=&#39;r_vtxZ&#39;)
+        inputs.append(vtxZ_input)
+        paths.append(vtxZ_input)
+
+        dirTheta_input = Input(shape=(1), name=&#39;r_dirTheta&#39;)
+        inputs.append(dirTheta_input)
+        paths.append(dirTheta_input)
+
+        dirPhi_input = Input(shape=(1), name=&#39;r_dirPhi&#39;)
+        inputs.append(dirPhi_input)
+        paths.append(dirPhi_input)
+
+    images = config.data.img_size[2]
+    shape = (config.data.img_size[0], config.data.img_size[1], 1)
+    if config.data.stack:
+        images = 1
+        shape = config.data.img_size
+
+    for channel in range(images):
+        image_name = &#39;image_&#39; + str(channel)
+        conv_name = &#39;conv_&#39; + str(channel) + &#34;_&#34;
+        image_input = Input(shape=shape, name=image_name)
+        image_path = Conv2D(config.model.filters, config.model.kernel_size,
+                            padding=&#39;same&#39;, activation=&#39;relu&#39;, name=(conv_name + &#34;1&#34;))(image_input)
+        image_path = Conv2D(config.model.filters, config.model.kernel_size,
+                            activation=&#39;relu&#39;, name=(conv_name + &#34;2&#34;))(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Conv2D((config.model.filters*2), config.model.kernel_size,
+                            padding=&#39;same&#39;, activation=&#39;relu&#39;, name=(conv_name + &#34;3&#34;))(image_path)
+        image_path = Conv2D((config.model.filters*2), config.model.kernel_size,
+                            activation=&#39;relu&#39;, name=(conv_name + &#34;4&#34;))(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Conv2D((config.model.filters*4), config.model.kernel_size,
+                            padding=&#39;same&#39;, activation=&#39;relu&#39;, name=(conv_name + &#34;5&#34;))(image_path)
+        image_path = Conv2D((config.model.filters*4), config.model.kernel_size,
+                            activation=&#39;relu&#39;, name=(conv_name + &#34;6&#34;))(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Conv2D((config.model.filters*8), config.model.kernel_size,
+                            padding=&#39;same&#39;, activation=&#39;relu&#39;, name=(conv_name + &#34;7&#34;))(image_path)
+        image_path = Conv2D((config.model.filters*8), config.model.kernel_size,
+                            activation=&#39;relu&#39;, name=(conv_name + &#34;8&#34;))(image_path)
+        image_path = MaxPooling2D(pool_size=2)(image_path)
+        image_path = Dropout(config.model.dropout)(image_path)
+        image_path = Flatten()(image_path)
+        paths.append(image_path)
+        inputs.append(image_input)
+
+    if len(paths) == 1:
+        x = paths[0]
+    else:
+        x = concatenate(paths)
+
+    x = Dense(config.model.dense_units, activation=&#39;relu&#39;)(x)
+    x = Dense(config.model.dense_units, activation=&#39;relu&#39;)(x)
+    x = Dense(config.model.dense_units, activation=&#39;relu&#39;, name=&#39;dense_final&#39;)(x)
+    x = Dropout(config.model.dropout)(x)
+    return x, inputs</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.models.Inception"><code class="name flex">
+<span>def <span class="ident">Inception</span></span>(<span>x, nb_filter)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a Keras functional API Inception Module.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>tf.tensor</code></dt>
+<dd>Input tensor</dd>
+<dt><strong><code>nb_filter</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of convolutional filters</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tf.tensor</code></dt>
+<dd>Keras functional inceptional module tensor</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Inception(x, nb_filter):
+    &#34;&#34;&#34;
+    Returns a Keras functional API Inception Module.
+
+    Args:
+        x (tf.tensor): Input tensor
+        nb_filter (int): Number of convolutional filters
+    Returns:
+        tf.tensor: Keras functional inceptional module tensor
+    &#34;&#34;&#34;
+    b1x1 = Conv2d_All(x, nb_filter, (1, 1), padding=&#39;same&#39;, strides=(1, 1))
+    b3x3 = Conv2d_All(x, nb_filter, (1, 1), padding=&#39;same&#39;, strides=(1, 1))
+    b3x3 = Conv2d_All(b3x3, nb_filter, (3, 3), padding=&#39;same&#39;, strides=(1, 1))
+    b5x5 = Conv2d_All(x, nb_filter, (1, 1), padding=&#39;same&#39;, strides=(1, 1))
+    b5x5 = Conv2d_All(b5x5, nb_filter, (1, 1), padding=&#39;same&#39;, strides=(1, 1))
+    bpool = MaxPooling2D(pool_size=(3, 3), strides=(1, 1), padding=&#39;same&#39;)(x)
+    bpool = Conv2d_All(bpool, nb_filter, (1, 1), padding=&#39;same&#39;, strides=(1, 1))
+    x = concatenate([b1x1, b3x3, b5x5, bpool], axis=3)
+    return x</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.models.InceptionBase"><code class="name flex">
+<span>def <span class="ident">InceptionBase</span></span>(<span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the Inception base of the model that is shared.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>dotmap.DotMap</code></dt>
+<dd>Configuration namespace</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple(tf.tensor, List[tf.tensor]): (Keras functional tensor, List</code> of <code>input layers)</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def InceptionBase(config):
+    &#34;&#34;&#34;
+    Returns the Inception base of the model that is shared.
+
+    Args:
+        config (dotmap.DotMap): Configuration namespace
+    Returns:
+        tuple(tf.tensor, List[tf.tensor]): (Keras functional tensor, List of input layers)
+    &#34;&#34;&#34;
+    inputs = []
+    paths = []
+    if config.model.reco_pars:
+        vtxX_input = Input(shape=(1), name=&#39;r_vtxX&#39;)
+        inputs.append(vtxX_input)
+        paths.append(vtxX_input)
+
+        vtxY_input = Input(shape=(1), name=&#39;r_vtxY&#39;)
+        inputs.append(vtxY_input)
+        paths.append(vtxY_input)
+
+        vtxZ_input = Input(shape=(1), name=&#39;r_vtxZ&#39;)
+        inputs.append(vtxZ_input)
+        paths.append(vtxZ_input)
+
+        dirTheta_input = Input(shape=(1), name=&#39;r_dirTheta&#39;)
+        inputs.append(dirTheta_input)
+        paths.append(dirTheta_input)
+
+        dirPhi_input = Input(shape=(1), name=&#39;r_dirPhi&#39;)
+        inputs.append(dirPhi_input)
+        paths.append(dirPhi_input)
+
+    images = config.data.img_size[2]
+    shape = (config.data.img_size[0], config.data.img_size[1], 1)
+    if config.data.stack:
+        images = 1
+        shape = config.data.img_size
+
+    for channel in range(images):
+        image_name = &#39;image_&#39; + str(channel)
+        image_input = Input(shape=shape, name=image_name)
+        image_path = Conv2d_All(image_input, 64, (7, 7), strides=(2, 2), padding=&#39;same&#39;)
+        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding=&#39;same&#39;)(image_path)
+        image_path = Conv2d_All(image_path, 192, (3, 3), strides=(1, 1), padding=&#39;same&#39;)
+        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding=&#39;same&#39;)(image_path)
+        image_path = Inception(image_path, 64)
+        image_path = Inception(image_path, 120)
+        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding=&#39;same&#39;)(image_path)
+        image_path = Inception(image_path, 128)
+        image_path = Inception(image_path, 128)
+        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding=&#39;same&#39;)(image_path)
+        image_path = Inception(image_path, 256)
+        image_path = AveragePooling2D(pool_size=(7, 7), strides=(7, 7), padding=&#39;same&#39;)(image_path)
+        image_path = Flatten()(image_path)
+        image_path = Dense(1024, activation=&#39;relu&#39;, kernel_regularizer=l2(0.1))(image_path)
+        paths.append(image_path)
+        inputs.append(image_input)
+
+    if len(paths) == 1:
+        x = paths[0]
+    else:
+        x = concatenate(paths)
+
+    x = Dense(1024, activation=&#39;relu&#39;)(x)
+    x = Dense(config.model.dense_units, activation=&#39;relu&#39;)(x)
+    x = Dense(config.model.dense_units, activation=&#39;relu&#39;, name=&#39;dense_final&#39;)(x)
+    return x, inputs</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="chipscvn.models.BaseModel"><code class="flex name class">
+<span>class <span class="ident">BaseModel</span></span>
+<span>(</span><span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base model class which all model implementations derive from.</p>
+<p>Initialise the BaseModel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>str</code></dt>
+<dd>Dotmap configuration namespace</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BaseModel:
+
+    &#34;&#34;&#34;
+    Base model class which all model implementations derive from.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BaseModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        self.config = config
+        self.build()
+
+    def load(self, checkpoint_num=None):
+        &#34;&#34;&#34;
+        Returns the correct model with its trained weights loaded.
+
+        Args:
+            checkpoint_num (int): Checkpoint number to use
+        &#34;&#34;&#34;
+        if checkpoint_num is None:
+            latest = tf.train.latest_checkpoint(self.config.exp.checkpoints_dir)
+            self.model.load_weights(latest).expect_partial()
+        else:
+            checkpoint_path = (
+                self.config.exp.checkpoints_dir + &#39;cp-&#39; + str(checkpoint_num).zfill(4) + &#39;.ckpt&#39;)
+            self.model.load_weights(checkpoint_path).expect_partial()
+
+    def summarise(self):
+        &#34;&#34;&#34;
+        Prints model summary to stdout and plots diagram of model to file.
+        &#34;&#34;&#34;
+        self.model.summary()  # Print the model structure to stdout
+
+        # Plot an image of the model to file
+        file_name = os.path.join(self.config.exp.exp_dir, &#39;model_diagram.png&#39;)
+        tf.keras.utils.plot_model(
+            self.model,
+            to_file=file_name,
+            show_shapes=True,
+            show_layer_names=True,
+            rankdir=&#39;TB&#39;,
+            expand_nested=False,
+            dpi=96
+        )
+
+    def build(self):
+        &#34;&#34;&#34;
+        Build the model, overide in derived model class.
+        &#34;&#34;&#34;
+        raise NotImplementedError</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="chipscvn.models.BeamAllInceptionModel" href="#chipscvn.models.BeamAllInceptionModel">BeamAllInceptionModel</a></li>
+<li><a title="chipscvn.models.BeamAllModel" href="#chipscvn.models.BeamAllModel">BeamAllModel</a></li>
+<li><a title="chipscvn.models.BeamFullCombModel" href="#chipscvn.models.BeamFullCombModel">BeamFullCombModel</a></li>
+<li><a title="chipscvn.models.BeamMultiModel" href="#chipscvn.models.BeamMultiModel">BeamMultiModel</a></li>
+<li><a title="chipscvn.models.BeamNCCombModel" href="#chipscvn.models.BeamNCCombModel">BeamNCCombModel</a></li>
+<li><a title="chipscvn.models.BeamNuNCCombModel" href="#chipscvn.models.BeamNuNCCombModel">BeamNuNCCombModel</a></li>
+<li><a title="chipscvn.models.CosmicModel" href="#chipscvn.models.CosmicModel">CosmicModel</a></li>
+<li><a title="chipscvn.models.ParameterModel" href="#chipscvn.models.ParameterModel">ParameterModel</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="chipscvn.models.BaseModel.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Build the model, overide in derived model class.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(self):
+    &#34;&#34;&#34;
+    Build the model, overide in derived model class.
+    &#34;&#34;&#34;
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.models.BaseModel.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>self, checkpoint_num=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the correct model with its trained weights loaded.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>checkpoint_num</code></strong> :&ensp;<code>int</code></dt>
+<dd>Checkpoint number to use</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load(self, checkpoint_num=None):
+    &#34;&#34;&#34;
+    Returns the correct model with its trained weights loaded.
+
+    Args:
+        checkpoint_num (int): Checkpoint number to use
+    &#34;&#34;&#34;
+    if checkpoint_num is None:
+        latest = tf.train.latest_checkpoint(self.config.exp.checkpoints_dir)
+        self.model.load_weights(latest).expect_partial()
+    else:
+        checkpoint_path = (
+            self.config.exp.checkpoints_dir + &#39;cp-&#39; + str(checkpoint_num).zfill(4) + &#39;.ckpt&#39;)
+        self.model.load_weights(checkpoint_path).expect_partial()</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.models.BaseModel.summarise"><code class="name flex">
+<span>def <span class="ident">summarise</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Prints model summary to stdout and plots diagram of model to file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def summarise(self):
+    &#34;&#34;&#34;
+    Prints model summary to stdout and plots diagram of model to file.
+    &#34;&#34;&#34;
+    self.model.summary()  # Print the model structure to stdout
+
+    # Plot an image of the model to file
+    file_name = os.path.join(self.config.exp.exp_dir, &#39;model_diagram.png&#39;)
+    tf.keras.utils.plot_model(
+        self.model,
+        to_file=file_name,
+        show_shapes=True,
+        show_layer_names=True,
+        rankdir=&#39;TB&#39;,
+        expand_nested=False,
+        dpi=96
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="chipscvn.models.BeamAllInceptionModel"><code class="flex name class">
+<span>class <span class="ident">BeamAllInceptionModel</span></span>
+<span>(</span><span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Beam all category classification inception model class.</p>
+<p>Initialise the BeamAllInceptionModel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>str</code></dt>
+<dd>Dotmap configuration namespace</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BeamAllInceptionModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam all category classification inception model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamAllInceptionModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 16
+        self.cat = &#39;t_cat&#39;
+        x, inputs = InceptionBase(self.config)
+        outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_all_inception_model&#39;)
+        self.loss = &#39;sparse_categorical_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                       &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                       &#34;EL-NC-QEL&#34;, &#34;EL-NC-RES&#34;, &#34;EL-NC-DIS&#34;, &#34;EL-NC-COH&#34;,
+                       &#34;MU-NC-QEL&#34;, &#34;MU-NC-RES&#34;, &#34;MU-NC-DIS&#34;, &#34;MU-NC-COH&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+        numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+        nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11] +
+              ev[&#39;b_out&#39;][12] + ev[&#39;b_out&#39;][13] + ev[&#39;b_out&#39;][14] + ev[&#39;b_out&#39;][15])
+        return [nuel, numu, nc]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="chipscvn.models.BeamAllInceptionModel.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the model using the keras functional API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(self):
+    &#34;&#34;&#34;
+    Builds the model using the keras functional API.
+    &#34;&#34;&#34;
+    self.categories = 16
+    self.cat = &#39;t_cat&#39;
+    x, inputs = InceptionBase(self.config)
+    outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+    self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_all_inception_model&#39;)
+    self.loss = &#39;sparse_categorical_crossentropy&#39;
+    self.metrics = [&#39;accuracy&#39;]
+    self.es_monitor = &#39;val_accuracy&#39;
+    self.parameters = [&#39;t_cat&#39;]
+
+    self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                       loss=self.loss,
+                       metrics=self.metrics)
+
+    self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                   &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                   &#34;EL-NC-QEL&#34;, &#34;EL-NC-RES&#34;, &#34;EL-NC-DIS&#34;, &#34;EL-NC-COH&#34;,
+                   &#34;MU-NC-QEL&#34;, &#34;MU-NC-RES&#34;, &#34;MU-NC-DIS&#34;, &#34;MU-NC-COH&#34;]</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.models.BeamAllInceptionModel.combine_outputs"><code class="name flex">
+<span>def <span class="ident">combine_outputs</span></span>(<span>self, ev)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Combine outputs into fully combined categories.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ev</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Pandas single event(row) dict</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[float, float, float]</code></dt>
+<dd>List of combined category outputs</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def combine_outputs(self, ev):
+    &#34;&#34;&#34;
+    Combine outputs into fully combined categories.
+
+    Args:
+        ev (dict): Pandas single event(row) dict
+    Returns:
+        List[float, float, float]: List of combined category outputs
+    &#34;&#34;&#34;
+    nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+    numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+    nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11] +
+          ev[&#39;b_out&#39;][12] + ev[&#39;b_out&#39;][13] + ev[&#39;b_out&#39;][14] + ev[&#39;b_out&#39;][15])
+    return [nuel, numu, nc]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="chipscvn.models.BaseModel.load" href="#chipscvn.models.BaseModel.load">load</a></code></li>
+<li><code><a title="chipscvn.models.BaseModel.summarise" href="#chipscvn.models.BaseModel.summarise">summarise</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="chipscvn.models.BeamAllModel"><code class="flex name class">
+<span>class <span class="ident">BeamAllModel</span></span>
+<span>(</span><span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Beam all category classification model class.</p>
+<p>Initialise the BeamAllModel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>str</code></dt>
+<dd>Dotmap configuration namespace</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BeamAllModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam all category classification model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamAllModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 16
+        self.cat = &#39;t_cat&#39;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_all_model&#39;)
+        self.loss = &#39;sparse_categorical_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                       &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                       &#34;EL-NC-QEL&#34;, &#34;EL-NC-RES&#34;, &#34;EL-NC-DIS&#34;, &#34;EL-NC-COH&#34;,
+                       &#34;MU-NC-QEL&#34;, &#34;MU-NC-RES&#34;, &#34;MU-NC-DIS&#34;, &#34;MU-NC-COH&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+        numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+        nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11] +
+              ev[&#39;b_out&#39;][12] + ev[&#39;b_out&#39;][13] + ev[&#39;b_out&#39;][14] + ev[&#39;b_out&#39;][15])
+        return [nuel, numu, nc]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="chipscvn.models.BeamAllModel.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the model using the keras functional API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(self):
+    &#34;&#34;&#34;
+    Builds the model using the keras functional API.
+    &#34;&#34;&#34;
+    self.categories = 16
+    self.cat = &#39;t_cat&#39;
+    x, inputs = GetModelBase(self.config)
+    outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+    self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_all_model&#39;)
+    self.loss = &#39;sparse_categorical_crossentropy&#39;
+    self.metrics = [&#39;accuracy&#39;]
+    self.es_monitor = &#39;val_accuracy&#39;
+    self.parameters = [&#39;t_cat&#39;]
+
+    self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                       loss=self.loss,
+                       metrics=self.metrics)
+
+    self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                   &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                   &#34;EL-NC-QEL&#34;, &#34;EL-NC-RES&#34;, &#34;EL-NC-DIS&#34;, &#34;EL-NC-COH&#34;,
+                   &#34;MU-NC-QEL&#34;, &#34;MU-NC-RES&#34;, &#34;MU-NC-DIS&#34;, &#34;MU-NC-COH&#34;]</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.models.BeamAllModel.combine_outputs"><code class="name flex">
+<span>def <span class="ident">combine_outputs</span></span>(<span>self, ev)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Combine outputs into fully combined categories.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ev</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Pandas single event(row) dict</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[float, float, float]</code></dt>
+<dd>List of combined category outputs</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def combine_outputs(self, ev):
+    &#34;&#34;&#34;
+    Combine outputs into fully combined categories.
+
+    Args:
+        ev (dict): Pandas single event(row) dict
+    Returns:
+        List[float, float, float]: List of combined category outputs
+    &#34;&#34;&#34;
+    nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+    numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+    nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11] +
+          ev[&#39;b_out&#39;][12] + ev[&#39;b_out&#39;][13] + ev[&#39;b_out&#39;][14] + ev[&#39;b_out&#39;][15])
+    return [nuel, numu, nc]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="chipscvn.models.BaseModel.load" href="#chipscvn.models.BaseModel.load">load</a></code></li>
+<li><code><a title="chipscvn.models.BaseModel.summarise" href="#chipscvn.models.BaseModel.summarise">summarise</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="chipscvn.models.BeamFullCombModel"><code class="flex name class">
+<span>class <span class="ident">BeamFullCombModel</span></span>
+<span>(</span><span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Beam full combined category classification model class.</p>
+<p>Initialise the BeamFullCombModel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>str</code></dt>
+<dd>Dotmap configuration namespace</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BeamFullCombModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam full combined category classification model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamFullCombModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 3
+        self.cat = &#39;t_full_cat&#39;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_full_comb_model&#39;)
+        self.loss = &#39;sparse_categorical_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_full_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC&#34;, &#34;MU-CC&#34;, &#34;NC&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = ev[&#39;b_out&#39;][0]
+        numu = ev[&#39;b_out&#39;][1]
+        nc = ev[&#39;b_out&#39;][2]
+        return [nuel, numu, nc]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="chipscvn.models.BeamFullCombModel.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the model using the keras functional API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(self):
+    &#34;&#34;&#34;
+    Builds the model using the keras functional API.
+    &#34;&#34;&#34;
+    self.categories = 3
+    self.cat = &#39;t_full_cat&#39;
+    x, inputs = GetModelBase(self.config)
+    outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+    self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_full_comb_model&#39;)
+    self.loss = &#39;sparse_categorical_crossentropy&#39;
+    self.metrics = [&#39;accuracy&#39;]
+    self.es_monitor = &#39;val_accuracy&#39;
+    self.parameters = [&#39;t_full_cat&#39;]
+
+    self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                       loss=self.loss,
+                       metrics=self.metrics)
+
+    self.labels = [&#34;EL-CC&#34;, &#34;MU-CC&#34;, &#34;NC&#34;]</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.models.BeamFullCombModel.combine_outputs"><code class="name flex">
+<span>def <span class="ident">combine_outputs</span></span>(<span>self, ev)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Combine outputs into fully combined categories.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ev</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Pandas single event(row) dict</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[float, float, float]</code></dt>
+<dd>List of combined category outputs</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def combine_outputs(self, ev):
+    &#34;&#34;&#34;
+    Combine outputs into fully combined categories.
+
+    Args:
+        ev (dict): Pandas single event(row) dict
+    Returns:
+        List[float, float, float]: List of combined category outputs
+    &#34;&#34;&#34;
+    nuel = ev[&#39;b_out&#39;][0]
+    numu = ev[&#39;b_out&#39;][1]
+    nc = ev[&#39;b_out&#39;][2]
+    return [nuel, numu, nc]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="chipscvn.models.BaseModel.load" href="#chipscvn.models.BaseModel.load">load</a></code></li>
+<li><code><a title="chipscvn.models.BaseModel.summarise" href="#chipscvn.models.BaseModel.summarise">summarise</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="chipscvn.models.BeamMultiModel"><code class="flex name class">
+<span>class <span class="ident">BeamMultiModel</span></span>
+<span>(</span><span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Beam Multi-task model class.</p>
+<p>Initialise the BeamMultiModel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>str</code></dt>
+<dd>Dotmap configuration namespace</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BeamMultiModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam Multi-task model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamMultiModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 16
+        self.cat = &#39;t_cat&#39;
+        x, inputs = GetModelBase(self.config)
+        category_path = Dense(self.config.model.dense_units, activation=&#39;relu&#39;)(x)
+        energy_path = Dense(self.config.model.dense_units, activation=&#39;relu&#39;)(x)
+        category_output = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(category_path)
+        energy_output = Dense(1, activation=&#39;linear&#39;, name=&#39;t_nuEnergy&#39;)(energy_path)
+        self.model = Model(inputs=inputs,
+                           outputs=[category_output, energy_output],
+                           name=&#39;beam_multi_model&#39;)
+
+        self.loss = {
+            &#39;t_cat&#39;: &#39;sparse_categorical_crossentropy&#39;,
+            &#39;t_nuEnergy&#39;: &#39;mean_squared_error&#39;,
+        }
+        self.loss_weights = {
+            &#39;t_cat&#39;: 1.0,
+            &#39;t_nuEnergy&#39;: 1.0
+        }
+        self.metrics = {
+            &#39;t_cat&#39;: &#39;accuracy&#39;,
+            &#39;t_nuEnergy&#39;: &#39;mae&#39;
+        }
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_cat&#39;, &#39;t_nuEnergy&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           loss_weights=self.loss_weights,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                       &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                       &#34;EL-NC-QEL&#34;, &#34;EL-NC-RES&#34;, &#34;EL-NC-DIS&#34;, &#34;EL-NC-COH&#34;,
+                       &#34;MU-NC-QEL&#34;, &#34;MU-NC-RES&#34;, &#34;MU-NC-DIS&#34;, &#34;MU-NC-COH&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+        numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+        nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11] +
+              ev[&#39;b_out&#39;][12] + ev[&#39;b_out&#39;][13] + ev[&#39;b_out&#39;][14] + ev[&#39;b_out&#39;][15])
+        return [nuel, numu, nc]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="chipscvn.models.BeamMultiModel.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the model using the keras functional API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(self):
+    &#34;&#34;&#34;
+    Builds the model using the keras functional API.
+    &#34;&#34;&#34;
+    self.categories = 16
+    self.cat = &#39;t_cat&#39;
+    x, inputs = GetModelBase(self.config)
+    category_path = Dense(self.config.model.dense_units, activation=&#39;relu&#39;)(x)
+    energy_path = Dense(self.config.model.dense_units, activation=&#39;relu&#39;)(x)
+    category_output = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(category_path)
+    energy_output = Dense(1, activation=&#39;linear&#39;, name=&#39;t_nuEnergy&#39;)(energy_path)
+    self.model = Model(inputs=inputs,
+                       outputs=[category_output, energy_output],
+                       name=&#39;beam_multi_model&#39;)
+
+    self.loss = {
+        &#39;t_cat&#39;: &#39;sparse_categorical_crossentropy&#39;,
+        &#39;t_nuEnergy&#39;: &#39;mean_squared_error&#39;,
+    }
+    self.loss_weights = {
+        &#39;t_cat&#39;: 1.0,
+        &#39;t_nuEnergy&#39;: 1.0
+    }
+    self.metrics = {
+        &#39;t_cat&#39;: &#39;accuracy&#39;,
+        &#39;t_nuEnergy&#39;: &#39;mae&#39;
+    }
+    self.es_monitor = &#39;val_accuracy&#39;
+    self.parameters = [&#39;t_cat&#39;, &#39;t_nuEnergy&#39;]
+
+    self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                       loss=self.loss,
+                       loss_weights=self.loss_weights,
+                       metrics=self.metrics)
+
+    self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                   &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                   &#34;EL-NC-QEL&#34;, &#34;EL-NC-RES&#34;, &#34;EL-NC-DIS&#34;, &#34;EL-NC-COH&#34;,
+                   &#34;MU-NC-QEL&#34;, &#34;MU-NC-RES&#34;, &#34;MU-NC-DIS&#34;, &#34;MU-NC-COH&#34;]</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.models.BeamMultiModel.combine_outputs"><code class="name flex">
+<span>def <span class="ident">combine_outputs</span></span>(<span>self, ev)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Combine outputs into fully combined categories.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ev</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Pandas single event(row) dict</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[float, float, float]</code></dt>
+<dd>List of combined category outputs</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def combine_outputs(self, ev):
+    &#34;&#34;&#34;
+    Combine outputs into fully combined categories.
+
+    Args:
+        ev (dict): Pandas single event(row) dict
+    Returns:
+        List[float, float, float]: List of combined category outputs
+    &#34;&#34;&#34;
+    nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+    numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+    nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11] +
+          ev[&#39;b_out&#39;][12] + ev[&#39;b_out&#39;][13] + ev[&#39;b_out&#39;][14] + ev[&#39;b_out&#39;][15])
+    return [nuel, numu, nc]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="chipscvn.models.BaseModel.load" href="#chipscvn.models.BaseModel.load">load</a></code></li>
+<li><code><a title="chipscvn.models.BaseModel.summarise" href="#chipscvn.models.BaseModel.summarise">summarise</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="chipscvn.models.BeamNCCombModel"><code class="flex name class">
+<span>class <span class="ident">BeamNCCombModel</span></span>
+<span>(</span><span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Beam NC category combined classification model class.</p>
+<p>Initialise the BeamNCCombModel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>str</code></dt>
+<dd>Dotmap configuration namespace</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BeamNCCombModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam NC category combined classification model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamNCCombModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 9
+        self.cat = &#39;t_nc_cat&#39;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_nc_comb_model&#39;)
+        self.loss = &#39;sparse_categorical_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_nc_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                       &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                       &#34;NC&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+        numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+        nc = ev[&#39;b_out&#39;][8]
+        return [nuel, numu, nc]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="chipscvn.models.BeamNCCombModel.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the model using the keras functional API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(self):
+    &#34;&#34;&#34;
+    Builds the model using the keras functional API.
+    &#34;&#34;&#34;
+    self.categories = 9
+    self.cat = &#39;t_nc_cat&#39;
+    x, inputs = GetModelBase(self.config)
+    outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+    self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_nc_comb_model&#39;)
+    self.loss = &#39;sparse_categorical_crossentropy&#39;
+    self.metrics = [&#39;accuracy&#39;]
+    self.es_monitor = &#39;val_accuracy&#39;
+    self.parameters = [&#39;t_nc_cat&#39;]
+
+    self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                       loss=self.loss,
+                       metrics=self.metrics)
+
+    self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                   &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                   &#34;NC&#34;]</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.models.BeamNCCombModel.combine_outputs"><code class="name flex">
+<span>def <span class="ident">combine_outputs</span></span>(<span>self, ev)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Combine outputs into fully combined categories.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ev</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Pandas single event(row) dict</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[float, float, float]</code></dt>
+<dd>List of combined category outputs</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def combine_outputs(self, ev):
+    &#34;&#34;&#34;
+    Combine outputs into fully combined categories.
+
+    Args:
+        ev (dict): Pandas single event(row) dict
+    Returns:
+        List[float, float, float]: List of combined category outputs
+    &#34;&#34;&#34;
+    nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+    numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+    nc = ev[&#39;b_out&#39;][8]
+    return [nuel, numu, nc]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="chipscvn.models.BaseModel.load" href="#chipscvn.models.BaseModel.load">load</a></code></li>
+<li><code><a title="chipscvn.models.BaseModel.summarise" href="#chipscvn.models.BaseModel.summarise">summarise</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="chipscvn.models.BeamNuNCCombModel"><code class="flex name class">
+<span>class <span class="ident">BeamNuNCCombModel</span></span>
+<span>(</span><span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Beam Nu NC category combined classification model class.</p>
+<p>Initialise the BeamNuNCCombModel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>str</code></dt>
+<dd>Dotmap configuration namespace</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BeamNuNCCombModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Beam Nu NC category combined classification model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the BeamNuNCCombModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        self.categories = 12
+        self.cat = &#39;t_nu_nc_cat&#39;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_nu_nc_comb_model&#39;)
+        self.loss = &#39;sparse_categorical_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_nu_nc_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)
+
+        self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                       &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                       &#34;NC-QEL&#34;, &#34;NC-RES&#34;, &#34;NC-DIS&#34;, &#34;NC-COH&#34;]
+
+    def combine_outputs(self, ev):
+        &#34;&#34;&#34;
+        Combine outputs into fully combined categories.
+
+        Args:
+            ev (dict): Pandas single event(row) dict
+        Returns:
+            List[float, float, float]: List of combined category outputs
+        &#34;&#34;&#34;
+        nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+        numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+        nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11])
+        return [nuel, numu, nc]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="chipscvn.models.BeamNuNCCombModel.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the model using the keras functional API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(self):
+    &#34;&#34;&#34;
+    Builds the model using the keras functional API.
+    &#34;&#34;&#34;
+    self.categories = 12
+    self.cat = &#39;t_nu_nc_cat&#39;
+    x, inputs = GetModelBase(self.config)
+    outputs = Dense(self.categories, activation=&#39;softmax&#39;, name=self.cat)(x)
+    self.model = Model(inputs=inputs, outputs=outputs, name=&#39;beam_nu_nc_comb_model&#39;)
+    self.loss = &#39;sparse_categorical_crossentropy&#39;
+    self.metrics = [&#39;accuracy&#39;]
+    self.es_monitor = &#39;val_accuracy&#39;
+    self.parameters = [&#39;t_nu_nc_cat&#39;]
+
+    self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                       loss=self.loss,
+                       metrics=self.metrics)
+
+    self.labels = [&#34;EL-CC-QEL&#34;, &#34;EL-CC-RES&#34;, &#34;EL-CC-DIS&#34;, &#34;EL-CC-COH&#34;,
+                   &#34;MU-CC-QEL&#34;, &#34;MU-CC-RES&#34;, &#34;MU-CC-DIS&#34;, &#34;MU-CC-COH&#34;,
+                   &#34;NC-QEL&#34;, &#34;NC-RES&#34;, &#34;NC-DIS&#34;, &#34;NC-COH&#34;]</code></pre>
+</details>
+</dd>
+<dt id="chipscvn.models.BeamNuNCCombModel.combine_outputs"><code class="name flex">
+<span>def <span class="ident">combine_outputs</span></span>(<span>self, ev)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Combine outputs into fully combined categories.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ev</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Pandas single event(row) dict</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[float, float, float]</code></dt>
+<dd>List of combined category outputs</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def combine_outputs(self, ev):
+    &#34;&#34;&#34;
+    Combine outputs into fully combined categories.
+
+    Args:
+        ev (dict): Pandas single event(row) dict
+    Returns:
+        List[float, float, float]: List of combined category outputs
+    &#34;&#34;&#34;
+    nuel = (ev[&#39;b_out&#39;][0] + ev[&#39;b_out&#39;][1] + ev[&#39;b_out&#39;][2] + ev[&#39;b_out&#39;][3])
+    numu = (ev[&#39;b_out&#39;][4] + ev[&#39;b_out&#39;][5] + ev[&#39;b_out&#39;][6] + ev[&#39;b_out&#39;][7])
+    nc = (ev[&#39;b_out&#39;][8] + ev[&#39;b_out&#39;][9] + ev[&#39;b_out&#39;][10] + ev[&#39;b_out&#39;][11])
+    return [nuel, numu, nc]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="chipscvn.models.BaseModel.load" href="#chipscvn.models.BaseModel.load">load</a></code></li>
+<li><code><a title="chipscvn.models.BaseModel.summarise" href="#chipscvn.models.BaseModel.summarise">summarise</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="chipscvn.models.CosmicModel"><code class="flex name class">
+<span>class <span class="ident">CosmicModel</span></span>
+<span>(</span><span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Cosmic vs beam classification model class.</p>
+<p>Initialise the CosmicModel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>str</code></dt>
+<dd>Dotmap configuration namespace</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CosmicModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Cosmic vs beam classification model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the CosmicModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(1, activation=&#39;sigmoid&#39;, name=&#39;t_cosmic_cat&#39;)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;cosmic_model&#39;)
+
+        self.loss = &#39;binary_crossentropy&#39;
+        self.metrics = [&#39;accuracy&#39;]
+        self.es_monitor = &#39;val_accuracy&#39;
+        self.parameters = [&#39;t_cosmic_cat&#39;]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="chipscvn.models.CosmicModel.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the model using the keras functional API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(self):
+    &#34;&#34;&#34;
+    Builds the model using the keras functional API.
+    &#34;&#34;&#34;
+    x, inputs = GetModelBase(self.config)
+    outputs = Dense(1, activation=&#39;sigmoid&#39;, name=&#39;t_cosmic_cat&#39;)(x)
+    self.model = Model(inputs=inputs, outputs=outputs, name=&#39;cosmic_model&#39;)
+
+    self.loss = &#39;binary_crossentropy&#39;
+    self.metrics = [&#39;accuracy&#39;]
+    self.es_monitor = &#39;val_accuracy&#39;
+    self.parameters = [&#39;t_cosmic_cat&#39;]
+
+    self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                       loss=self.loss,
+                       metrics=self.metrics)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="chipscvn.models.BaseModel.load" href="#chipscvn.models.BaseModel.load">load</a></code></li>
+<li><code><a title="chipscvn.models.BaseModel.summarise" href="#chipscvn.models.BaseModel.summarise">summarise</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="chipscvn.models.ParameterModel"><code class="flex name class">
+<span>class <span class="ident">ParameterModel</span></span>
+<span>(</span><span>config)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Single parameter estimation model class.</p>
+<p>Initialise the ParameterModel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>str</code></dt>
+<dd>Dotmap configuration namespace</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ParameterModel(BaseModel):
+
+    &#34;&#34;&#34;
+    Single parameter estimation model class.
+    &#34;&#34;&#34;
+
+    def __init__(self, config):
+        &#34;&#34;&#34;
+        Initialise the ParameterModel.
+
+        Args:
+            config (str): Dotmap configuration namespace
+        &#34;&#34;&#34;
+        super().__init__(config)
+
+    def build(self):
+        &#34;&#34;&#34;
+        Builds the model using the keras functional API.
+        &#34;&#34;&#34;
+        x, inputs = GetModelBase(self.config)
+        outputs = Dense(1, activation=&#39;linear&#39;, name=self.config.model.parameter)(x)
+        self.model = Model(inputs=inputs, outputs=outputs, name=&#39;parameter_model&#39;)
+
+        self.loss = &#39;mean_squared_error&#39;
+        self.metrics = [&#39;mae&#39;, &#39;mse&#39;]
+        self.es_monitor = &#39;val_mae&#39;
+        self.parameters = [self.config.model.parameter]
+
+        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss=self.loss,
+                           metrics=self.metrics)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="chipscvn.models.ParameterModel.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the model using the keras functional API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(self):
+    &#34;&#34;&#34;
+    Builds the model using the keras functional API.
+    &#34;&#34;&#34;
+    x, inputs = GetModelBase(self.config)
+    outputs = Dense(1, activation=&#39;linear&#39;, name=self.config.model.parameter)(x)
+    self.model = Model(inputs=inputs, outputs=outputs, name=&#39;parameter_model&#39;)
+
+    self.loss = &#39;mean_squared_error&#39;
+    self.metrics = [&#39;mae&#39;, &#39;mse&#39;]
+    self.es_monitor = &#39;val_mae&#39;
+    self.parameters = [self.config.model.parameter]
+
+    self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+                       loss=self.loss,
+                       metrics=self.metrics)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="chipscvn.models.BaseModel.load" href="#chipscvn.models.BaseModel.load">load</a></code></li>
+<li><code><a title="chipscvn.models.BaseModel.summarise" href="#chipscvn.models.BaseModel.summarise">summarise</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="chipscvn" href="index.html">chipscvn</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="chipscvn.models.Conv2d_All" href="#chipscvn.models.Conv2d_All">Conv2d_All</a></code></li>
+<li><code><a title="chipscvn.models.GetModelBase" href="#chipscvn.models.GetModelBase">GetModelBase</a></code></li>
+<li><code><a title="chipscvn.models.Inception" href="#chipscvn.models.Inception">Inception</a></code></li>
+<li><code><a title="chipscvn.models.InceptionBase" href="#chipscvn.models.InceptionBase">InceptionBase</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="chipscvn.models.BaseModel" href="#chipscvn.models.BaseModel">BaseModel</a></code></h4>
+<ul class="">
+<li><code><a title="chipscvn.models.BaseModel.build" href="#chipscvn.models.BaseModel.build">build</a></code></li>
+<li><code><a title="chipscvn.models.BaseModel.load" href="#chipscvn.models.BaseModel.load">load</a></code></li>
+<li><code><a title="chipscvn.models.BaseModel.summarise" href="#chipscvn.models.BaseModel.summarise">summarise</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="chipscvn.models.BeamAllInceptionModel" href="#chipscvn.models.BeamAllInceptionModel">BeamAllInceptionModel</a></code></h4>
+<ul class="">
+<li><code><a title="chipscvn.models.BeamAllInceptionModel.build" href="#chipscvn.models.BeamAllInceptionModel.build">build</a></code></li>
+<li><code><a title="chipscvn.models.BeamAllInceptionModel.combine_outputs" href="#chipscvn.models.BeamAllInceptionModel.combine_outputs">combine_outputs</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="chipscvn.models.BeamAllModel" href="#chipscvn.models.BeamAllModel">BeamAllModel</a></code></h4>
+<ul class="">
+<li><code><a title="chipscvn.models.BeamAllModel.build" href="#chipscvn.models.BeamAllModel.build">build</a></code></li>
+<li><code><a title="chipscvn.models.BeamAllModel.combine_outputs" href="#chipscvn.models.BeamAllModel.combine_outputs">combine_outputs</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="chipscvn.models.BeamFullCombModel" href="#chipscvn.models.BeamFullCombModel">BeamFullCombModel</a></code></h4>
+<ul class="">
+<li><code><a title="chipscvn.models.BeamFullCombModel.build" href="#chipscvn.models.BeamFullCombModel.build">build</a></code></li>
+<li><code><a title="chipscvn.models.BeamFullCombModel.combine_outputs" href="#chipscvn.models.BeamFullCombModel.combine_outputs">combine_outputs</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="chipscvn.models.BeamMultiModel" href="#chipscvn.models.BeamMultiModel">BeamMultiModel</a></code></h4>
+<ul class="">
+<li><code><a title="chipscvn.models.BeamMultiModel.build" href="#chipscvn.models.BeamMultiModel.build">build</a></code></li>
+<li><code><a title="chipscvn.models.BeamMultiModel.combine_outputs" href="#chipscvn.models.BeamMultiModel.combine_outputs">combine_outputs</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="chipscvn.models.BeamNCCombModel" href="#chipscvn.models.BeamNCCombModel">BeamNCCombModel</a></code></h4>
+<ul class="">
+<li><code><a title="chipscvn.models.BeamNCCombModel.build" href="#chipscvn.models.BeamNCCombModel.build">build</a></code></li>
+<li><code><a title="chipscvn.models.BeamNCCombModel.combine_outputs" href="#chipscvn.models.BeamNCCombModel.combine_outputs">combine_outputs</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="chipscvn.models.BeamNuNCCombModel" href="#chipscvn.models.BeamNuNCCombModel">BeamNuNCCombModel</a></code></h4>
+<ul class="">
+<li><code><a title="chipscvn.models.BeamNuNCCombModel.build" href="#chipscvn.models.BeamNuNCCombModel.build">build</a></code></li>
+<li><code><a title="chipscvn.models.BeamNuNCCombModel.combine_outputs" href="#chipscvn.models.BeamNuNCCombModel.combine_outputs">combine_outputs</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="chipscvn.models.CosmicModel" href="#chipscvn.models.CosmicModel">CosmicModel</a></code></h4>
+<ul class="">
+<li><code><a title="chipscvn.models.CosmicModel.build" href="#chipscvn.models.CosmicModel.build">build</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="chipscvn.models.ParameterModel" href="#chipscvn.models.ParameterModel">ParameterModel</a></code></h4>
+<ul class="">
+<li><code><a title="chipscvn.models.ParameterModel.build" href="#chipscvn.models.ParameterModel.build">build</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

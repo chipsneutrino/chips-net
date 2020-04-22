@@ -1,12 +1,16 @@
-"""Main training script
+# -*- coding: utf-8 -*-
 
-Author: Josh Tingey
-Email: j.tingey.16@ucl.ac.uk
+"""
+Main running script
 
 This script is the main chips-cvn training script. Given the input
 configuration it trains the given model and then evaluates the test
 dataset. It can also carry out hyperparameter optimisation using
 SHERPA which requires a modified configuration file.
+
+Example:
+    The example below runs a cosmic model training
+    $ python run.py ./config/cosmic.yml
 """
 
 import argparse
@@ -25,7 +29,12 @@ import chipscvn.utils
 
 
 def train_model(config):
-    """Trains a model according to the configuration."""
+    """
+    Trains a model according to the configuration.
+
+    Args:
+        config (dotmap.DotMap): Configuration namespace
+    """
     try:
         Experiment()
     except Exception:
@@ -42,20 +51,32 @@ def train_model(config):
 
 
 def study_model(config):
-    """Conducts a SHERPA study on a model according to the configuration."""
+    """
+    Conducts a SHERPA study on a model according to the configuration.
+
+    Args:
+        config (dotmap.DotMap): Configuration namespace
+    """
     chipscvn.config.setup_dirs(config, True)
     study = chipscvn.utils.get_study(config)
     study.run()
 
 
 def evaluate_model(config):
-    """Evaluate the trained model according to the configuration."""
+    """
+    Evaluate the trained model according to the configuration.
+
+    Args:
+        config (dotmap.DotMap): Configuration namespace
+    """
     evaluator = chipscvn.utils.get_evaluator(config)
     evaluator.run()
 
 
 def parse_args():
-    """Parse the command line arguments."""
+    """
+    Parse the command line arguments.
+    """
     parser = argparse.ArgumentParser(description='CHIPS CVN')
     parser.add_argument('config', help='path to the configuration file')
     parser.add_argument('--verbose', action='store_true', help='Make tensorflow verbose')
@@ -63,7 +84,9 @@ def parse_args():
 
 
 def main():
-    """Main function called by training script."""
+    """
+    Main function called by the run script.
+    """
     args = parse_args()
     if not args.verbose:  # Turn off Tensorflow logging by default
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
