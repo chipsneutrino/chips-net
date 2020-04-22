@@ -1,10 +1,12 @@
 pages:
     script:
-        — mkdir .public
-        — cp -r doc/chipscvn/* .public
-        — mv .public public
+        - mkdir .public
+        - cp -r doc/chipscvn/* .public
+        - mv .public public
     artifacts:
         paths:
-        — public
+        - public
     only:
-        — master
+        - master
+
+          
