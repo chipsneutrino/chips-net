@@ -559,7 +559,9 @@ class BeamMultiModel(BaseModel):
         self.cat = 't_cat'
         x, inputs = GetModelBase(self.config)
         category_path = Dense(self.config.model.dense_units, activation='relu')(x)
+        category_path = Dense(self.config.model.dense_units, activation='relu')(category_path)
         energy_path = Dense(self.config.model.dense_units, activation='relu')(x)
+        energy_path = Dense(self.config.model.dense_units, activation='relu')(energy_path)
         category_output = Dense(self.categories, activation='softmax', name=self.cat)(category_path)
         energy_output = Dense(1, activation='linear', name='t_nuEnergy')(energy_path)
         self.model = Model(inputs=inputs,
@@ -572,7 +574,7 @@ class BeamMultiModel(BaseModel):
         }
         self.loss_weights = {
             't_cat': 1.0,
-            't_nuEnergy': 1.0
+            't_nuEnergy': 0.0000005
         }
         self.metrics = {
             't_cat': 'accuracy',

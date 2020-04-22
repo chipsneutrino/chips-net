@@ -28,6 +28,7 @@ dependencies:
   - pytest
   - root_numpy
   - dotmap
+  - tqdm
   - pip
   - pip:
     - keras-vis
@@ -36,3 +37,4 @@ dependencies:
     - comet_ml
     - tf-explain
     - pdoc3
+    - root-pandas

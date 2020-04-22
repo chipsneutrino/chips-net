@@ -2,22 +2,8 @@
 task: 'evaluate'
 data: # Variables used to load the data
     input_dirs: 
-        - "./data/beam_nuel_coh_cc/chips_1200_sk1pe/"
-        - "./data/beam_nuel_coh_nc/chips_1200_sk1pe/"
-        - "./data/beam_nuel_dis_cc/chips_1200_sk1pe/"
-        - "./data/beam_nuel_dis_nc/chips_1200_sk1pe/"
-        - "./data/beam_nuel_res_cc/chips_1200_sk1pe/"
-        - "./data/beam_nuel_res_nc/chips_1200_sk1pe/"
-        - "./data/beam_nuel_qel_cc/chips_1200_sk1pe/"
-        - "./data/beam_nuel_qel_nc/chips_1200_sk1pe/"
-        - "./data/beam_numu_coh_cc/chips_1200_sk1pe/"
-        - "./data/beam_numu_coh_nc/chips_1200_sk1pe/"
-        - "./data/beam_numu_dis_cc/chips_1200_sk1pe/"
-        - "./data/beam_numu_dis_nc/chips_1200_sk1pe/"
-        - "./data/beam_numu_res_cc/chips_1200_sk1pe/"
-        - "./data/beam_numu_res_nc/chips_1200_sk1pe/"
-        - "./data/beam_numu_qel_cc/chips_1200_sk1pe/"
-        - "./data/beam_numu_qel_nc/chips_1200_sk1pe/"
+        - "./data/beam_nuel_all/chips_1200_sk1pe/"
+        - "./data/beam_numu_all/chips_1200_sk1pe/"
         - "./data/cosmic_numu_all/chips_1200_sk1pe/"
     all_chan: False
     stack: True
@@ -28,8 +14,8 @@ data: # Variables used to load the data
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
     train_examples: 15000 # [5=5000, 15=15000, 30=30000]
-    val_examples: 500
-    test_examples: 500
+    val_examples: 2000
+    test_examples: 2000
 models: # Variables used to build the models
     cosmic_classification:
         dir: "./models/cosmic_classification/"
@@ -53,31 +39,7 @@ models: # Variables used to build the models
         dropout: 0.2
         kernel_size: 3
         filters: 64
-    nuel_coh_cc_energy:
-        dir: "./models/energy_estimation/"
-        path: "nuel_coh_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    nuel_dis_cc_energy:
-        dir: "./models/energy_estimation/"
-        path: "nuel_dis_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    nuel_qel_cc_energy:
+    cat_0_energy:
         dir: "./models/energy_estimation/"
         path: "nuel_qel_cc_nuEnergy" 
         name: "parameter"
@@ -89,7 +51,7 @@ models: # Variables used to build the models
         dropout: 0.2
         kernel_size: 3
         filters: 64
-    nuel_res_cc_energy:
+    cat_1_energy:
         dir: "./models/energy_estimation/"
         path: "nuel_res_cc_nuEnergy" 
         name: "parameter"
@@ -101,9 +63,9 @@ models: # Variables used to build the models
         dropout: 0.2
         kernel_size: 3
         filters: 64
-    nuel_coh_nc_energy:
+    cat_2_energy:
         dir: "./models/energy_estimation/"
-        path: "nuel_coh_nc_nuEnergy" 
+        path: "nuel_dis_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
         reco_pars: True
@@ -113,9 +75,9 @@ models: # Variables used to build the models
         dropout: 0.2
         kernel_size: 3
         filters: 64
-    nuel_dis_nc_energy:
+    cat_3_energy:
         dir: "./models/energy_estimation/"
-        path: "nuel_dis_nc_nuEnergy" 
+        path: "nuel_coh_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
         reco_pars: True
@@ -125,55 +87,7 @@ models: # Variables used to build the models
         dropout: 0.2
         kernel_size: 3
         filters: 64
-    nuel_qel_nc_energy:
-        dir: "./models/energy_estimation/"
-        path: "nuel_qel_nc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    nuel_res_nc_energy:
-        dir: "./models/energy_estimation/"
-        path: "nuel_res_nc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    numu_coh_cc_energy:
-        dir: "./models/energy_estimation/"
-        path: "numu_coh_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    numu_dis_cc_energy:
-        dir: "./models/energy_estimation/"
-        path: "numu_dis_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    numu_qel_cc_energy:
+    cat_4_energy:
         dir: "./models/energy_estimation/"
         path: "numu_qel_cc_nuEnergy" 
         name: "parameter"
@@ -185,7 +99,7 @@ models: # Variables used to build the models
         dropout: 0.2
         kernel_size: 3
         filters: 64
-    numu_res_cc_energy:
+    cat_5_energy:
         dir: "./models/energy_estimation/"
         path: "numu_res_cc_nuEnergy" 
         name: "parameter"
@@ -197,9 +111,9 @@ models: # Variables used to build the models
         dropout: 0.2
         kernel_size: 3
         filters: 64
-    numu_coh_nc_energy:
+    cat_6_energy:
         dir: "./models/energy_estimation/"
-        path: "numu_coh_nc_nuEnergy" 
+        path: "numu_dis_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
         reco_pars: True
@@ -209,9 +123,9 @@ models: # Variables used to build the models
         dropout: 0.2
         kernel_size: 3
         filters: 64
-    numu_dis_nc_energy:
+    cat_7_energy:
         dir: "./models/energy_estimation/"
-        path: "numu_dis_nc_nuEnergy" 
+        path: "numu_coh_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
         reco_pars: True
@@ -221,7 +135,55 @@ models: # Variables used to build the models
         dropout: 0.2
         kernel_size: 3
         filters: 64
-    numu_qel_nc_energy:
+    cat_8_energy:
+        dir: "./models/energy_estimation/"
+        path: "nuel_qel_nc_nuEnergy" 
+        name: "parameter"
+        parameter: "t_nuEnergy"
+        reco_pars: True
+        lr: 0.0001
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+    cat_9_energy:
+        dir: "./models/energy_estimation/"
+        path: "nuel_res_nc_nuEnergy" 
+        name: "parameter"
+        parameter: "t_nuEnergy"
+        reco_pars: True
+        lr: 0.0001
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+    cat_10_energy:
+        dir: "./models/energy_estimation/"
+        path: "nuel_dis_nc_nuEnergy" 
+        name: "parameter"
+        parameter: "t_nuEnergy"
+        reco_pars: True
+        lr: 0.0001
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+    cat_11_energy:
+        dir: "./models/energy_estimation/"
+        path: "nuel_coh_nc_nuEnergy" 
+        name: "parameter"
+        parameter: "t_nuEnergy"
+        reco_pars: True
+        lr: 0.0001
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+    cat_12_energy:
         dir: "./models/energy_estimation/"
         path: "numu_qel_nc_nuEnergy" 
         name: "parameter"
@@ -233,9 +195,33 @@ models: # Variables used to build the models
         dropout: 0.2
         kernel_size: 3
         filters: 64
-    numu_res_nc_energy:
+    cat_13_energy:
         dir: "./models/energy_estimation/"
         path: "numu_res_nc_nuEnergy" 
+        name: "parameter"
+        parameter: "t_nuEnergy"
+        reco_pars: True
+        lr: 0.0001
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+    cat_14_energy:
+        dir: "./models/energy_estimation/"
+        path: "numu_dis_nc_nuEnergy" 
+        name: "parameter"
+        parameter: "t_nuEnergy"
+        reco_pars: True
+        lr: 0.0001
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+    cat_15_energy:
+        dir: "./models/energy_estimation/"
+        path: "numu_coh_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
         reco_pars: True
@@ -272,3 +258,4 @@ eval: # Variables used by the evaluator
         nuel:   0.000065135681199
         numu:   0.002807858128483
         cosmic: 0.997127006190318
+    
