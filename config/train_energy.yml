@@ -2,7 +2,7 @@
 task: 'train'
 exp: # Variables used to save the experiment
     name: "cosmic_energy"
-    experiment_dir: "models/energy_estimation/"
+    experiment_dir: "./models/energy_estimation_models/"
 data: # Variables used to load thata
     input_dirs: 
         #- "./data/beam_nuel_coh_cc/chips_1200_sk1pe/"

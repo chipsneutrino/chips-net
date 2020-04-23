@@ -14,11 +14,11 @@ data: # Variables used to load the data
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
     train_examples: 15000 # [5=5000, 15=15000, 30=30000]
-    val_examples: 2000
+    val_examples: 1000
     test_examples: 2000
 models: # Variables used to build the models
     cosmic_classification:
-        dir: "./models/cosmic_classification/"
+        dir: "./output/cosmic_classification_models/"
         path: "cosmic"
         name: "cosmic"
         reco_pars: True
@@ -29,7 +29,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     beam_classification:
-        dir: "./models/beam_classification/"
+        dir: "./output/beam_classification_models/"
         path: "beam_all_long" 
         name: "beam_all"  # [beam_all, beam_full_comb, beam_nu_nc_comb, beam_nc_comb, beam_multi, beam_all_inception]
         reco_pars: True
@@ -40,7 +40,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_0_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "nuel_qel_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -52,7 +52,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_1_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "nuel_res_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -64,7 +64,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_2_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "nuel_dis_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -76,7 +76,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_3_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "nuel_coh_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -88,7 +88,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_4_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "numu_qel_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -100,7 +100,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_5_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "numu_res_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -112,7 +112,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_6_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "numu_dis_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -124,7 +124,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_7_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "numu_coh_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -136,7 +136,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_8_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "nuel_qel_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -148,7 +148,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_9_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "nuel_res_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -160,7 +160,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_10_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "nuel_dis_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -172,7 +172,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_11_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "nuel_coh_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -184,7 +184,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_12_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "numu_qel_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -196,7 +196,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_13_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "numu_res_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -208,7 +208,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_14_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "numu_dis_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -220,7 +220,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cat_15_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "numu_coh_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -232,7 +232,7 @@ models: # Variables used to build the models
         kernel_size: 3
         filters: 64
     cosmic_energy:
-        dir: "./models/energy_estimation/"
+        dir: "./output/energy_estimation_models/"
         path: "cosmic_energy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -245,7 +245,8 @@ models: # Variables used to build the models
         filters: 64
 eval: # Variables used by the evaluator
     type: "combined"
-    make_dense: false
+    output: "./output/cvn_flux_output.root"
+    make_dense: False
     steps_per_epoch: -1
     cuts:
         cosmic: 0.001

@@ -375,10 +375,10 @@ class BeamAllModel(BaseModel):
         Returns:
             List[float, float, float]: List of combined category outputs
         """
-        nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
-        numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
-        nc = (ev['b_out'][8] + ev['b_out'][9] + ev['b_out'][10] + ev['b_out'][11] +
-              ev['b_out'][12] + ev['b_out'][13] + ev['b_out'][14] + ev['b_out'][15])
+        nuel = (ev['b_out_0'] + ev['b_out_1'] + ev['b_out_2'] + ev['b_out_3'])
+        numu = (ev['b_out_4'] + ev['b_out_5'] + ev['b_out_6'] + ev['b_out_7'])
+        nc = (ev['b_out_8'] + ev['b_out_9'] + ev['b_out_10'] + ev['b_out_11'] +
+              ev['b_out_12'] + ev['b_out_13'] + ev['b_out_14'] + ev['b_out_15'])
         return [nuel, numu, nc]
 
 
@@ -426,9 +426,9 @@ class BeamFullCombModel(BaseModel):
         Returns:
             List[float, float, float]: List of combined category outputs
         """
-        nuel = ev['b_out'][0]
-        numu = ev['b_out'][1]
-        nc = ev['b_out'][2]
+        nuel = ev['b_out_0']
+        numu = ev['b_out_1']
+        nc = ev['b_out_2']
         return [nuel, numu, nc]
 
 
@@ -478,9 +478,9 @@ class BeamNuNCCombModel(BaseModel):
         Returns:
             List[float, float, float]: List of combined category outputs
         """
-        nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
-        numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
-        nc = (ev['b_out'][8] + ev['b_out'][9] + ev['b_out'][10] + ev['b_out'][11])
+        nuel = (ev['b_out_0'] + ev['b_out_1'] + ev['b_out_2'] + ev['b_out_3'])
+        numu = (ev['b_out_4'] + ev['b_out_5'] + ev['b_out_6'] + ev['b_out_7'])
+        nc = (ev['b_out_8'] + ev['b_out_9'] + ev['b_out_10'] + ev['b_out_11'])
         return [nuel, numu, nc]
 
 
@@ -530,9 +530,9 @@ class BeamNCCombModel(BaseModel):
         Returns:
             List[float, float, float]: List of combined category outputs
         """
-        nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
-        numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
-        nc = ev['b_out'][8]
+        nuel = (ev['b_out_0'] + ev['b_out_1'] + ev['b_out_2'] + ev['b_out_3'])
+        numu = (ev['b_out_4'] + ev['b_out_5'] + ev['b_out_6'] + ev['b_out_7'])
+        nc = ev['b_out_8']
         return [nuel, numu, nc]
 
 
@@ -602,10 +602,10 @@ class BeamMultiModel(BaseModel):
         Returns:
             List[float, float, float]: List of combined category outputs
         """
-        nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
-        numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
-        nc = (ev['b_out'][8] + ev['b_out'][9] + ev['b_out'][10] + ev['b_out'][11] +
-              ev['b_out'][12] + ev['b_out'][13] + ev['b_out'][14] + ev['b_out'][15])
+        nuel = (ev['b_out_0'] + ev['b_out_1'] + ev['b_out_2'] + ev['b_out_3'])
+        numu = (ev['b_out_4'] + ev['b_out_5'] + ev['b_out_6'] + ev['b_out_7'])
+        nc = (ev['b_out_8'] + ev['b_out_9'] + ev['b_out_10'] + ev['b_out_11'] +
+              ev['b_out_12'] + ev['b_out_13'] + ev['b_out_14'] + ev['b_out_15'])
         return [nuel, numu, nc]
 
 
@@ -656,8 +656,8 @@ class BeamAllInceptionModel(BaseModel):
         Returns:
             List[float, float, float]: List of combined category outputs
         """
-        nuel = (ev['b_out'][0] + ev['b_out'][1] + ev['b_out'][2] + ev['b_out'][3])
-        numu = (ev['b_out'][4] + ev['b_out'][5] + ev['b_out'][6] + ev['b_out'][7])
-        nc = (ev['b_out'][8] + ev['b_out'][9] + ev['b_out'][10] + ev['b_out'][11] +
-              ev['b_out'][12] + ev['b_out'][13] + ev['b_out'][14] + ev['b_out'][15])
+        nuel = (ev['b_out_0'] + ev['b_out_1'] + ev['b_out_2'] + ev['b_out_3'])
+        numu = (ev['b_out_4'] + ev['b_out_5'] + ev['b_out_6'] + ev['b_out_7'])
+        nc = (ev['b_out_8'] + ev['b_out_9'] + ev['b_out_10'] + ev['b_out_11'] +
+              ev['b_out_12'] + ev['b_out_13'] + ev['b_out_14'] + ev['b_out_15'])
         return [nuel, numu, nc]

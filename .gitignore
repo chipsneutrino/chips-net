@@ -1,6 +1,6 @@
 __pycache__/
 tmp/
-models/
+output/
 env/miniconda/
 *.ipynb_checkpoints
 *.root

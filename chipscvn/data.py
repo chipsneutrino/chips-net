@@ -315,7 +315,7 @@ class DataLoader:
         else:
             return True
 
-    def dataset(self, dirs):
+    def dataset(self, dirs, parallel=True):
         """
         Returns a dataset formed from all the files in the input directories.
 
@@ -329,15 +329,28 @@ class DataLoader:
             for file in os.listdir(d):
                 files.append(os.path.join(d, file))
 
-        random.shuffle(files)  # Shuffle the list as an additionally randomisation to "interleave"
+        random.seed(8)
+        random.shuffle(files)  # Shuffle the list to randomise the 'interleave'
         ds = tf.data.Dataset.from_tensor_slices(files)
-        ds = ds.interleave(
-            tf.data.TFRecordDataset,
-            cycle_length=len(files),
-            num_parallel_calls=tf.data.experimental.AUTOTUNE
-        )
-        ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-        ds = ds.map(lambda x: self.parse(x), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+        if parallel:
+            ds = ds.interleave(
+                tf.data.TFRecordDataset,
+                cycle_length=len(files),
+                block_length=1,
+                num_parallel_calls=tf.data.experimental.AUTOTUNE
+            )
+            ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+            ds = ds.map(lambda x: self.parse(x), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        else:
+            ds = ds.interleave(
+                tf.data.TFRecordDataset,
+                cycle_length=1,
+                block_length=1
+            )
+            ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+            ds = ds.map(lambda x: self.parse(x))
+
         ds = ds.filter(self.filter_other)
         return ds
 
@@ -365,7 +378,7 @@ class DataLoader:
         ds = ds.take(int(self.config.data.val_examples))
         return ds
 
-    def test_data(self):
+    def test_data(self, parallel=False):
         """
         Returns the testing dataset.
 

@@ -70,7 +70,7 @@ def evaluate_model(config):
         config (dotmap.DotMap): Configuration namespace
     """
     evaluator = chipscvn.utils.get_evaluator(config)
-    evaluator.run()
+    evaluator.run_all()
 
 
 def parse_args():

@@ -45,7 +45,7 @@ class BaseEvaluator(object):
         """
         raise NotImplementedError
 
-    def run(self):
+    def run_all(self):
         """
         Run the evaluator, overide in derived evaluator class.
         """
@@ -78,8 +78,6 @@ class CombinedEvaluator(BaseEvaluator):
         # Fully combined category names
         self.comb_cat_names = ['Nuel-CC', 'Numu-CC', 'NC', 'Cosmic']
 
-        tqdm.pandas()
-
     def get_loaded_model(self, name):
         """
         Get and loads the model from the configuration.
@@ -98,24 +96,23 @@ class CombinedEvaluator(BaseEvaluator):
         model.load()
         return model
 
-    def run(self):
+    def run_all(self):
         """
         Run the full evaluation.
         """
-        print('--- Running Evaluation ---\n')
+        print('\n--- Running Evaluation ---')
 
         start_time = time.time()  # Time how long it takes
 
         self.load_models()  # Load all the required models
-        self.run_inference()  # Get model outputs for test data
-        self.parse_outputs()  # Parse the outputs into other quantities
+        self.load_dataset()  # Load the dataset into the pandas df
         self.calculate_weights()  # Calculate the weights to apply categorically
+        self.run_inference()  # Get model outputs for test data
         self.calculate_cuts()  # Calculate different cuts to be applied
-        print('--- classify events...\n')
-        self.events['classification'] = self.events.progress_apply(self.classify, axis=1)
-        print('--- predicting energies...\n')
-        self.events['pred_e_true_cat'] = self.events.progress_apply(self.predict_energy_true, axis=1)
-        self.events['pred_e_pred_cat'] = self.events.progress_apply(self.predict_energy_pred, axis=1)
+        print('--- classifying events... ', end='', flush=True)
+        self.events['classification'] = self.events.apply(self.classify, axis=1)
+        print('done')
+        self.predict_energies()
         self.save_to_file()  # Save everything to a ROOT file
 
         print('--- Done (took %s seconds) ---\n' % (time.time() - start_time))
@@ -124,23 +121,25 @@ class CombinedEvaluator(BaseEvaluator):
         """
         Load all the required models.
         """
-        print('--- load models...\n')
-        # Setup the cosmic and beam classification models
-        self.cosmic_model = self.get_loaded_model("cosmic_classification")
         self.beam_model = self.get_loaded_model("beam_classification")
+        with tqdm(total=(self.beam_model.categories+3), desc='--- loading models') as pbar:
+            pbar.update()
+            self.cosmic_model = self.get_loaded_model("cosmic_classification")
+            pbar.update()
+            # Setup all the energy estimation models
+            self.energy_models = []
+            for i in range(self.beam_model.categories):
+                name = "cat_" + str(i) + "_energy"
+                self.energy_models.append(self.get_loaded_model(name))
+                pbar.update()
+            self.energy_models.append(self.get_loaded_model("cosmic_energy"))
+            pbar.update()
 
-        # Setup all the energy estimation models
-        self.energy_models = []
-        for i in tqdm(range(self.beam_model.categories)):
-            name = "cat_" + str(i) + "_energy"
-            self.energy_models.append(self.get_loaded_model(name))
-        self.energy_models.append(self.get_loaded_model("cosmic_energy"))
-
-    def run_inference(self):
+    def load_dataset(self):
         """
-        Get model outputs for test data.
+        Load the dataset into the pandas df.
         """
-        print('--- running inference...\n')
+        print('--- loading dataset... ', end='', flush=True)
 
         events = {  # Create empty dict to hold all the event data
             't_nu': [], 't_code': [], 't_cat': [], 't_cosmic_cat': [],
@@ -151,23 +150,8 @@ class CombinedEvaluator(BaseEvaluator):
             'r_raw_total_digi_q': [], 'r_filtered_total_digi_q': [],
             'r_first_ring_height': [], 'r_last_ring_height': [],
             'r_vtxX': [], 'r_vtxY': [], 'r_vtxZ': [], 'r_vtxT': [],
-            'r_dirTheta': [], 'r_dirPhi': [],
-            'c_out': [], 'b_out': []
+            'r_dirTheta': [], 'r_dirPhi': []
         }
-
-        c_dense_model = None
-        b_dense_model = None
-        if self.config.eval.make_dense:
-            events['c_dense'] = []
-            events['b_dense'] = []
-            c_dense_model = Model(  # Model to ouput cosmic model dense layer
-                inputs=self.cosmic_model.model.input,
-                outputs=self.cosmic_model.model.get_layer('dense_final').output
-            )
-            b_dense_model = Model(  # Model to ouput beam model dense layer
-                inputs=self.beam_model.model.input,
-                outputs=self.beam_model.model.get_layer('dense_final').output
-            )
 
         images = self.config.data.img_size[2]
         if self.config.data.stack:
@@ -175,7 +159,7 @@ class CombinedEvaluator(BaseEvaluator):
         for i in range(images):
             events[('image_' + str(i))] = []
 
-        for x, y in tqdm(self.data):
+        for x, y in self.data:
             for name, array in list(x.items()):  # Fill events dict with 'inputs'
                 if name in events.keys():
                     events[name].extend(array.numpy())
@@ -184,46 +168,21 @@ class CombinedEvaluator(BaseEvaluator):
                 if name in events.keys():
                     events[name].extend(array.numpy())
 
-            events['c_out'].extend(self.cosmic_model.model.predict(x))
-            events['b_out'].extend(self.beam_model.model.predict(x))
-            if self.config.eval.make_dense:
-                events['c_dense'].extend(c_dense_model.predict(x))
-                events['b_dense'].extend(b_dense_model.predict(x))
-
         self.events = pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
-        self.events = self.events.sample(frac=1).reset_index(drop=True)  # Shuffle the dataframe
-
-    def parse_outputs(self):
-        """
-        Parse the outputs into other quantities.
-        """
-        print('--- parsing outputs...\n')
-
-        # Parse outputs into easier to use pandas columns including combined outputs
-        self.events.c_out = self.events.c_out.map(lambda x: x[0])
-        for i in range(self.beam_model.categories):
-            self.events[('b_out_' + str(i))] = self.events.b_out.map(lambda x: x[i])
-
-        self.events['scores'] = self.events.apply(self.beam_model.combine_outputs, axis=1)
-        self.events['nuel_score'] = self.events.scores.map(lambda x: x[0])
-        self.events['numu_score'] = self.events.scores.map(lambda x: x[1])
-        self.events['nc_score'] = self.events.scores.map(lambda x: x[2])
-        self.events.drop('b_out', axis=1, inplace=True)
-        self.events.drop('scores', axis=1, inplace=True)
+        print('done')
 
     def calculate_weights(self):
         """
         Calculate the weights to apply categorically.
         """
-        print('--- calculating weights...\n')
+        print('--- calculating weights... ', end='', flush=True)
 
         tot_nuel = self.events[(self.events.t_nu == 0) &
                                (self.events.t_cosmic_cat == 0)].shape[0]
         tot_numu = self.events[(self.events.t_nu == 1) &
                                (self.events.t_cosmic_cat == 0)].shape[0]
         tot_cosmic = self.events[self.events.t_cosmic_cat == 1].shape[0]
-        print("Total-> Nuel: {}, Numu: {}, Cosmic: {}\n".format(tot_nuel, tot_numu, tot_cosmic))
-
+        
         self.nuel_weight = (1.0/tot_nuel)*(self.config.eval.weights.nuel *
                                            self.config.eval.weights.total)
         self.numu_weight = (1.0/tot_numu)*(self.config.eval.weights.numu *
@@ -231,11 +190,12 @@ class CombinedEvaluator(BaseEvaluator):
         self.cosmic_weight = (1.0/tot_cosmic)*(self.config.eval.weights.cosmic *
                                                self.config.eval.weights.total)
 
-        print('Weights-> Nuel:{0:.4f}, Numu:{1:.4f}, Cosmic:{2:.4f}\n'.format(
-            self.nuel_weight, self.numu_weight, self.cosmic_weight)
-        )
-
         self.events['weight'] = self.events.apply(self.add_weight, axis=1)
+
+        print("Nuel: {0:.4f}({1}), Numu: {2:.4f}({3}), Cosmic: {4:.4f}({5})".format(
+            self.nuel_weight, tot_nuel,
+            self.numu_weight, tot_numu,
+            self.cosmic_weight, tot_cosmic))
 
     def add_weight(self, event):
         """
@@ -255,11 +215,44 @@ class CombinedEvaluator(BaseEvaluator):
         else:
             raise NotImplementedError
 
+    def run_inference(self):
+        """
+        Get model outputs for test data.
+        """
+        print('--- running inference... ', end='', flush=True)
+        c_dense_model = None
+        b_dense_model = None
+        if self.config.eval.make_dense:
+            c_dense_model = Model(  # Model to ouput cosmic model dense layer
+                inputs=self.cosmic_model.model.input,
+                outputs=self.cosmic_model.model.get_layer('dense_final').output
+            )
+            b_dense_model = Model(  # Model to ouput beam model dense layer
+                inputs=self.beam_model.model.input,
+                outputs=self.beam_model.model.get_layer('dense_final').output
+            )
+
+        self.events['c_out'] = self.cosmic_model.model.predict(self.data)
+        beam_predictions = self.beam_model.model.predict(self.data)
+        for i in range(self.beam_model.categories):
+            self.events[('b_out_' + str(i))] = beam_predictions[:, i]
+        if self.config.eval.make_dense:
+            self.c_dense = c_dense_model.predict(self.data)
+            self.b_dense = b_dense_model.predict(self.data)
+
+        # self.events.c_out = self.events.c_out.map(lambda x: print(x.shape))
+        self.events['scores'] = self.events.apply(self.beam_model.combine_outputs, axis=1)
+        self.events['nuel_score'] = self.events.scores.map(lambda x: x[0])
+        self.events['numu_score'] = self.events.scores.map(lambda x: x[1])
+        self.events['nc_score'] = self.events.scores.map(lambda x: x[2])
+        self.events.drop('scores', axis=1, inplace=True)
+        print('done')
+
     def calculate_cuts(self):
         """
         Calculate different cuts to be applied.
         """
-        print('--- calculating cuts...\n')
+        print('--- calculating cuts... ', end='', flush=True)
 
         self.events['base_cut'] = self.events.apply(self.base_cut, axis=1)
         self.events['cosmic_cut'] = self.events.apply(self.cosmic_cut, axis=1)
@@ -364,6 +357,11 @@ class CombinedEvaluator(BaseEvaluator):
                 self.nc_max_fom = nc_fom[bin]
                 self.nc_max_fom_cut = cut[bin]
 
+        print("Nuel: {0:.4f}({1:.4f}), Numu: {2:.4f}({3:.4f}), NC: {4:.4f}({5:.4f})".format(
+            self.nuel_max_fom, self.nuel_max_fom_cut,
+            self.numu_max_fom, self.numu_max_fom_cut,
+            self.nc_max_fom, self.nc_max_fom_cut))
+
     def base_cut_summary(self):
         """
         Print how each category is affected by the base_cut.
@@ -427,43 +425,33 @@ class CombinedEvaluator(BaseEvaluator):
         if event['cosmic_cut']:
             return self.beam_model.categories
         else:
-            x = [self.events[('b_out_' + str(i))] for i in range(self.beam_model.categories)]
+            x = [event[('b_out_' + str(i))] for i in range(self.beam_model.categories)]
             return np.asarray(x).argmax()
 
-    def predict_energy_true(self, event):
+    def predict_energies(self):
         """
         Estimate the event energy using the true category model
         """
-        input_dict = {
-            "r_vtxX": np.expand_dims(np.asarray(event["r_vtxX"]), axis=0),
-            "r_vtxY": np.expand_dims(np.asarray(event["r_vtxY"]), axis=0),
-            "r_vtxZ": np.expand_dims(np.asarray(event["r_vtxZ"]), axis=0),
-            "r_dirTheta": np.expand_dims(np.asarray(event["r_dirTheta"]), axis=0),
-            "r_dirPhi": np.expand_dims(np.asarray(event["r_dirPhi"]), axis=0),
-            "image_0": np.expand_dims(event["image_0"], axis=0)
-        }
-        return self.energy_models[event["t_cat"]].model.predict(input_dict)
+        estimations = []
+        for i in tqdm(range(self.beam_model.categories+1), desc='--- predicting energies'):
+            estimations.append(self.energy_models[i].model.predict(self.data))
 
-    def predict_energy_pred(self, event):
-        """
-        Estimate the event energy using the predicted category model
-        """
-        input_dict = {
-            "r_vtxX": np.expand_dims(np.asarray(event["r_vtxX"]), axis=0),
-            "r_vtxY": np.expand_dims(np.asarray(event["r_vtxY"]), axis=0),
-            "r_vtxZ": np.expand_dims(np.asarray(event["r_vtxZ"]), axis=0),
-            "r_dirTheta": np.expand_dims(np.asarray(event["r_dirTheta"]), axis=0),
-            "r_dirPhi": np.expand_dims(np.asarray(event["r_dirPhi"]), axis=0),
-            "image_0": np.expand_dims(event["image_0"], axis=0)
-        }
-        return self.energy_models[event["classification"]].model.predict(input_dict)
+        true_cat_energies = []
+        pred_cat_energies = []
+        for i in range(self.events.shape[0]):
+            true_cat_energies.append(estimations[self.events['t_cat'][i]][i])
+            pred_cat_energies.append(estimations[self.events['classification'][i]][i])
+
+        self.events['true_cat_pred_e'] = np.array(true_cat_energies)
+        self.events['pred_cat_pred_e'] = np.array(pred_cat_energies)
 
     def save_to_file(self):
         """
         Save everything to a ROOT file.
         """
-        print('--- saving to file...\n')
-        to_root(self.events, 'output.root', key='events')
+        print('--- saving to file... ', end='', flush=True)
+        to_root(self.events, self.config.eval.output, key='events')
+        print('done')
 
     def cat_plot(self, parameter, bins, x_low, x_high, y_low, y_high, scale='norm',
                  base_cut=True, cosmic_cut=True):
