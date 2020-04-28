@@ -14,6 +14,7 @@ from joblib import Parallel, delayed
 import multiprocessing
 import random
 
+import pandas as pd
 import uproot
 import numpy as np
 import tensorflow as tf
@@ -179,6 +180,9 @@ class DataLoader:
         self.val_dirs = [os.path.join(in_dir, 'val') for in_dir in self.config.data.input_dirs]
         self.test_dirs = [os.path.join(in_dir, 'test') for in_dir in self.config.data.input_dirs]
 
+        if self.config.data.describe:
+            self.describe()
+
     def parse(self, serialised_example):
         """
         Parses a single serialised example into both an input and labels dict.
@@ -290,6 +294,7 @@ class DataLoader:
         # Choose to either stack the channels back into a single tensor or keep them seperate
         if self.config.data.stack:
             image = tf.stack(channels, axis=2)
+            # image = tf.image.resize(image, [254, 254])
             inputs['image_0'] = image
         else:
             for i, input_image in enumerate(channels):
@@ -299,8 +304,7 @@ class DataLoader:
 
         return inputs, labels
 
-    @staticmethod
-    def filter_other(inputs, labels):
+    def filter_other(self, inputs, labels):
         """
         Filters out 'other' cateogory events from dataset.
 
@@ -352,6 +356,7 @@ class DataLoader:
             ds = ds.map(lambda x: self.parse(x))
 
         ds = ds.filter(self.filter_other)
+        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
         return ds
 
     def train_data(self):
@@ -362,7 +367,6 @@ class DataLoader:
             tf.dataset: The training dataset
         """
         ds = self.dataset(self.train_dirs)
-        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
         ds = ds.take(self.config.data.train_examples)
         return ds
 
@@ -374,7 +378,6 @@ class DataLoader:
             tf.dataset: The validation dataset
         """
         ds = self.dataset(self.val_dirs)
-        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
         ds = ds.take(int(self.config.data.val_examples))
         return ds
 
@@ -386,9 +389,52 @@ class DataLoader:
             tf.dataset: The testing dataset
         """
         ds = self.dataset(self.test_dirs)
-        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
         ds = ds.take(self.config.data.test_examples)
         return ds
+
+    def events_dataframe(self, df):
+        """
+        Create a pandas dataframe from the tf dataset
+        """
+        events = {  # Create empty dict to hold all the event data
+            't_nu': [], 't_code': [], 't_cat': [], 't_cosmic_cat': [],
+            't_full_cat': [], 't_nu_nc_cat': [], 't_nc_cat': [],
+            't_vtxX': [], 't_vtxY': [], 't_vtxZ': [], 't_vtxT': [], 't_nuEnergy': [],
+            'r_raw_num_hits': [], 'r_filtered_num_hits': [], 'r_num_hough_rings': [],
+            'r_raw_total_digi_q': [], 'r_filtered_total_digi_q': [],
+            'r_first_ring_height': [], 'r_last_ring_height': [],
+            'r_vtxX': [], 'r_vtxY': [], 'r_vtxZ': [], 'r_vtxT': [],
+            'r_dirTheta': [], 'r_dirPhi': []
+        }
+
+        for x, y in df:
+            for name, array in list(x.items()):  # Fill events dict with 'inputs'
+                if name in events.keys():
+                    events[name].extend(array.numpy())
+
+            for name, array in list(y.items()):  # Fill events dict with 'labels'
+                if name in events.keys():
+                    events[name].extend(array.numpy())
+
+        return pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
+
+    def describe(self):
+        """
+        Load the dataset into the pandas df and print a summary.
+        """
+        print('--- loading training data... ')
+        train_events = self.events_dataframe(self.train_data())
+        print('--- loading validation data... ')
+        val_events = self.events_dataframe(self.val_data())
+        print('--- loading testing data... ')
+        test_events = self.events_dataframe(self.test_data())
+
+        print('--- Describing training data... ')
+        print(train_events.mean())
+        print('--- Describing validation data... ')
+        print(val_events.mean())
+        print('--- Describing testing data... ')
+        print(test_events.mean())
 
 
 class DataCreator:
@@ -397,7 +443,7 @@ class DataCreator:
     Generates tfrecords files from ROOT map files.
     """
 
-    def __init__(self, directory, geom, split, join, single, all_maps):
+    def __init__(self, directory, geom, split, join, parallel, all_maps):
         """
         Initialise the DataCreator.
 
@@ -406,12 +452,12 @@ class DataCreator:
             geom (str): Geometry to use
             split (float): Validation and testing fractional data split
             join (int): Number of input files to combine together
-            single (bool): Should we run a single process and not parallelise?
+            parallel (bool): Should we run parallel processes?
             all_maps (bool): Should we generate all the maps?
         """
         self.split = split
         self.join = join
-        self.single = single
+        self.parallel = parallel
         self.all_maps = all_maps
         self.init(directory, geom)
 
@@ -430,7 +476,6 @@ class DataCreator:
         os.makedirs(os.path.join(self.out_dir, "val/"), exist_ok=True)
         os.makedirs(os.path.join(self.out_dir, "test/"), exist_ok=True)
 
-    @staticmethod
     def bytes_feature(self, value):
         """
         Returns a BytesList feature from a string/byte.
@@ -542,8 +587,7 @@ class DataCreator:
 
         return examples
 
-    @staticmethod
-    def write_examples(name, examples):
+    def write_examples(self, name, examples):
         """
         Write a list of examples to a tfrecords file.
 
@@ -574,6 +618,7 @@ class DataCreator:
                 pass
 
         # Split into training, validation and testing samples
+        random.shuffle(examples)  # Shuffle the examples list
         val_split = int((1.0-self.split-self.split) * len(examples))
         test_split = int((1.0-self.split) * len(examples))
         train_examples = examples[:val_split]
@@ -593,10 +638,10 @@ class DataCreator:
         """
         files = [os.path.join(self.in_dir, file) for file in os.listdir(self.in_dir)]
         file_lists = [files[n:n+self.join] for n in range(0, len(files), self.join)]
-        if not self.single:  # File independence allows for parallelisation
+        if self.parallel:  # File independence allows for parallelisation
             Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
                 self.preprocess_files)(counter, f_list) for counter, f_list in enumerate(
                     file_lists))
-        else:  # For debugging we keep the option to use a single process
+        else:
             for counter, f_list in enumerate(file_lists):
                 self.preprocess_files(counter, f_list)

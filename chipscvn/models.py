@@ -9,11 +9,11 @@ of the chips-cvn code
 """
 
 import os
-from tensorflow.keras import optimizers, Model, Input
-from tensorflow.keras.layers import (Dense, Dropout, Conv2D, MaxPooling2D, AveragePooling2D,
-                                     Flatten, concatenate, BatchNormalization)
-from tensorflow.keras.regularizers import l2
+import tensorflow.keras.layers as layers
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
 import tensorflow as tf
+
+import chipscvn.blocks as blocks
 
 
 class BaseModel:
@@ -72,196 +72,6 @@ class BaseModel:
         raise NotImplementedError
 
 
-def GetModelBase(config):
-    """
-    Returns the base model that is shared.
-
-    Args:
-        config (dotmap.DotMap): Configuration namespace
-    Returns:
-        tf.tensor: Keras functional tensor
-    """
-    inputs = []
-    paths = []
-    if config.model.reco_pars:
-        vtxX_input = Input(shape=(1), name='r_vtxX')
-        inputs.append(vtxX_input)
-        paths.append(vtxX_input)
-
-        vtxY_input = Input(shape=(1), name='r_vtxY')
-        inputs.append(vtxY_input)
-        paths.append(vtxY_input)
-
-        vtxZ_input = Input(shape=(1), name='r_vtxZ')
-        inputs.append(vtxZ_input)
-        paths.append(vtxZ_input)
-
-        dirTheta_input = Input(shape=(1), name='r_dirTheta')
-        inputs.append(dirTheta_input)
-        paths.append(dirTheta_input)
-
-        dirPhi_input = Input(shape=(1), name='r_dirPhi')
-        inputs.append(dirPhi_input)
-        paths.append(dirPhi_input)
-
-    images = config.data.img_size[2]
-    shape = (config.data.img_size[0], config.data.img_size[1], 1)
-    if config.data.stack:
-        images = 1
-        shape = config.data.img_size
-
-    for channel in range(images):
-        image_name = 'image_' + str(channel)
-        conv_name = 'conv_' + str(channel) + "_"
-        image_input = Input(shape=shape, name=image_name)
-        image_path = Conv2D(config.model.filters, config.model.kernel_size,
-                            padding='same', activation='relu', name=(conv_name + "1"))(image_input)
-        image_path = Conv2D(config.model.filters, config.model.kernel_size,
-                            activation='relu', name=(conv_name + "2"))(image_path)
-        image_path = MaxPooling2D(pool_size=2)(image_path)
-        image_path = Dropout(config.model.dropout)(image_path)
-        image_path = Conv2D((config.model.filters*2), config.model.kernel_size,
-                            padding='same', activation='relu', name=(conv_name + "3"))(image_path)
-        image_path = Conv2D((config.model.filters*2), config.model.kernel_size,
-                            activation='relu', name=(conv_name + "4"))(image_path)
-        image_path = MaxPooling2D(pool_size=2)(image_path)
-        image_path = Dropout(config.model.dropout)(image_path)
-        image_path = Conv2D((config.model.filters*4), config.model.kernel_size,
-                            padding='same', activation='relu', name=(conv_name + "5"))(image_path)
-        image_path = Conv2D((config.model.filters*4), config.model.kernel_size,
-                            activation='relu', name=(conv_name + "6"))(image_path)
-        image_path = MaxPooling2D(pool_size=2)(image_path)
-        image_path = Dropout(config.model.dropout)(image_path)
-        image_path = Conv2D((config.model.filters*8), config.model.kernel_size,
-                            padding='same', activation='relu', name=(conv_name + "7"))(image_path)
-        image_path = Conv2D((config.model.filters*8), config.model.kernel_size,
-                            activation='relu', name=(conv_name + "8"))(image_path)
-        image_path = MaxPooling2D(pool_size=2)(image_path)
-        image_path = Dropout(config.model.dropout)(image_path)
-        image_path = Flatten()(image_path)
-        paths.append(image_path)
-        inputs.append(image_input)
-
-    if len(paths) == 1:
-        x = paths[0]
-    else:
-        x = concatenate(paths)
-
-    x = Dense(config.model.dense_units, activation='relu')(x)
-    x = Dense(config.model.dense_units, activation='relu')(x)
-    x = Dense(config.model.dense_units, activation='relu', name='dense_final')(x)
-    x = Dropout(config.model.dropout)(x)
-    return x, inputs
-
-
-def Conv2d_All(x, nb_filter, kernel_size, padding='same', strides=(1, 1)):
-    """
-    Returns Conv2d with Batch Normalisation.
-
-    Args:
-        x (tf.tensor): Input tensor
-        nb_filter (int): Number of convolutional filters
-        kernel_size (int): Size of convolutional kernal
-        padding (str): Convolutional padding
-        strides (tuple(int, int)): Stride size when applying convolution
-    Returns:
-        tf.tensor: Keras functional tensor
-    """
-    x = Conv2D(nb_filter, kernel_size, padding=padding, strides=strides, activation='relu')(x)
-    x = BatchNormalization(axis=3)(x)
-    return x
-
-
-def Inception(x, nb_filter):
-    """
-    Returns a Keras functional API Inception Module.
-
-    Args:
-        x (tf.tensor): Input tensor
-        nb_filter (int): Number of convolutional filters
-    Returns:
-        tf.tensor: Keras functional inceptional module tensor
-    """
-    b1x1 = Conv2d_All(x, nb_filter, (1, 1), padding='same', strides=(1, 1))
-    b3x3 = Conv2d_All(x, nb_filter, (1, 1), padding='same', strides=(1, 1))
-    b3x3 = Conv2d_All(b3x3, nb_filter, (3, 3), padding='same', strides=(1, 1))
-    b5x5 = Conv2d_All(x, nb_filter, (1, 1), padding='same', strides=(1, 1))
-    b5x5 = Conv2d_All(b5x5, nb_filter, (1, 1), padding='same', strides=(1, 1))
-    bpool = MaxPooling2D(pool_size=(3, 3), strides=(1, 1), padding='same')(x)
-    bpool = Conv2d_All(bpool, nb_filter, (1, 1), padding='same', strides=(1, 1))
-    x = concatenate([b1x1, b3x3, b5x5, bpool], axis=3)
-    return x
-
-
-def InceptionBase(config):
-    """
-    Returns the Inception base of the model that is shared.
-
-    Args:
-        config (dotmap.DotMap): Configuration namespace
-    Returns:
-        tuple(tf.tensor, List[tf.tensor]): (Keras functional tensor, List of input layers)
-    """
-    inputs = []
-    paths = []
-    if config.model.reco_pars:
-        vtxX_input = Input(shape=(1), name='r_vtxX')
-        inputs.append(vtxX_input)
-        paths.append(vtxX_input)
-
-        vtxY_input = Input(shape=(1), name='r_vtxY')
-        inputs.append(vtxY_input)
-        paths.append(vtxY_input)
-
-        vtxZ_input = Input(shape=(1), name='r_vtxZ')
-        inputs.append(vtxZ_input)
-        paths.append(vtxZ_input)
-
-        dirTheta_input = Input(shape=(1), name='r_dirTheta')
-        inputs.append(dirTheta_input)
-        paths.append(dirTheta_input)
-
-        dirPhi_input = Input(shape=(1), name='r_dirPhi')
-        inputs.append(dirPhi_input)
-        paths.append(dirPhi_input)
-
-    images = config.data.img_size[2]
-    shape = (config.data.img_size[0], config.data.img_size[1], 1)
-    if config.data.stack:
-        images = 1
-        shape = config.data.img_size
-
-    for channel in range(images):
-        image_name = 'image_' + str(channel)
-        image_input = Input(shape=shape, name=image_name)
-        image_path = Conv2d_All(image_input, 64, (7, 7), strides=(2, 2), padding='same')
-        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same')(image_path)
-        image_path = Conv2d_All(image_path, 192, (3, 3), strides=(1, 1), padding='same')
-        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same')(image_path)
-        image_path = Inception(image_path, 64)
-        image_path = Inception(image_path, 120)
-        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same')(image_path)
-        image_path = Inception(image_path, 128)
-        image_path = Inception(image_path, 128)
-        image_path = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same')(image_path)
-        image_path = Inception(image_path, 256)
-        image_path = AveragePooling2D(pool_size=(7, 7), strides=(7, 7), padding='same')(image_path)
-        image_path = Flatten()(image_path)
-        image_path = Dense(1024, activation='relu', kernel_regularizer=l2(0.1))(image_path)
-        paths.append(image_path)
-        inputs.append(image_input)
-
-    if len(paths) == 1:
-        x = paths[0]
-    else:
-        x = concatenate(paths)
-
-    x = Dense(1024, activation='relu')(x)
-    x = Dense(config.model.dense_units, activation='relu')(x)
-    x = Dense(config.model.dense_units, activation='relu', name='dense_final')(x)
-    return x, inputs
-
-
 class ParameterModel(BaseModel):
 
     """
@@ -281,16 +91,19 @@ class ParameterModel(BaseModel):
         """
         Builds the model using the keras functional API.
         """
-        x, inputs = GetModelBase(self.config)
-        outputs = Dense(1, activation='linear', name=self.config.model.parameter)(x)
-        self.model = Model(inputs=inputs, outputs=outputs, name='parameter_model')
+        policy = mixed_precision.Policy(self.config.model.policy)
+        mixed_precision.set_policy(policy)
+        inputs, x = blocks.get_vgg16_base(self.config)
+        x = layers.Dense(1, name='dense_logits')(x)
+        outputs = layers.Activation('linear', dtype='float32', name=self.config.model.parameter)(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='parameter_model')
 
         self.loss = 'mean_squared_error'
         self.metrics = ['mae', 'mse']
         self.es_monitor = 'val_mae'
         self.parameters = [self.config.model.parameter]
 
-        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
                            metrics=self.metrics)
 
@@ -314,16 +127,19 @@ class CosmicModel(BaseModel):
         """
         Builds the model using the keras functional API.
         """
-        x, inputs = GetModelBase(self.config)
-        outputs = Dense(1, activation='sigmoid', name='t_cosmic_cat')(x)
-        self.model = Model(inputs=inputs, outputs=outputs, name='cosmic_model')
+        policy = mixed_precision.Policy(self.config.model.policy)
+        mixed_precision.set_policy(policy)
+        inputs, x = blocks.get_vgg16_base(self.config)
+        x = layers.Dense(1, name='dense_logits')(x)
+        outputs = layers.Activation('sigmoid', dtype='float32', name='t_cosmic_cat')(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='cosmic_model')
 
         self.loss = 'binary_crossentropy'
         self.metrics = ['accuracy']
         self.es_monitor = 'val_accuracy'
         self.parameters = ['t_cosmic_cat']
 
-        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
                            metrics=self.metrics)
 
@@ -349,15 +165,19 @@ class BeamAllModel(BaseModel):
         """
         self.categories = 16
         self.cat = 't_cat'
-        x, inputs = GetModelBase(self.config)
-        outputs = Dense(self.categories, activation='softmax', name=self.cat)(x)
-        self.model = Model(inputs=inputs, outputs=outputs, name='beam_all_model')
+        policy = mixed_precision.Policy(self.config.model.policy)
+        mixed_precision.set_policy(policy)
+
+        inputs, x = blocks.get_vgg16_base(self.config)
+        x = layers.Dense(self.categories, name='dense_logits')(x)
+        outputs = layers.Activation('softmax', dtype='float32', name=self.cat)(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_all_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
         self.es_monitor = 'val_accuracy'
         self.parameters = ['t_cat']
 
-        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
                            metrics=self.metrics)
 
@@ -403,15 +223,19 @@ class BeamFullCombModel(BaseModel):
         """
         self.categories = 3
         self.cat = 't_full_cat'
-        x, inputs = GetModelBase(self.config)
-        outputs = Dense(self.categories, activation='softmax', name=self.cat)(x)
-        self.model = Model(inputs=inputs, outputs=outputs, name='beam_full_comb_model')
+        policy = mixed_precision.Policy(self.config.model.policy)
+        mixed_precision.set_policy(policy)
+
+        inputs, x = blocks.get_vgg16_base(self.config)
+        x = layers.Dense(self.categories, name='dense_logits')(x)
+        outputs = layers.Activation('softmax', dtype='float32', name=self.cat)(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_full_comb_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
         self.es_monitor = 'val_accuracy'
         self.parameters = ['t_full_cat']
 
-        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
                            metrics=self.metrics)
 
@@ -453,15 +277,19 @@ class BeamNuNCCombModel(BaseModel):
         """
         self.categories = 12
         self.cat = 't_nu_nc_cat'
-        x, inputs = GetModelBase(self.config)
-        outputs = Dense(self.categories, activation='softmax', name=self.cat)(x)
-        self.model = Model(inputs=inputs, outputs=outputs, name='beam_nu_nc_comb_model')
+        policy = mixed_precision.Policy(self.config.model.policy)
+        mixed_precision.set_policy(policy)
+
+        inputs, x = blocks.get_vgg16_base(self.config)
+        x = layers.Dense(self.categories, name='dense_logits')(x)
+        outputs = layers.Activation('softmax', dtype='float32', name=self.cat)(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_nu_nc_comb_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
         self.es_monitor = 'val_accuracy'
         self.parameters = ['t_nu_nc_cat']
 
-        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
                            metrics=self.metrics)
 
@@ -505,15 +333,19 @@ class BeamNCCombModel(BaseModel):
         """
         self.categories = 9
         self.cat = 't_nc_cat'
-        x, inputs = GetModelBase(self.config)
-        outputs = Dense(self.categories, activation='softmax', name=self.cat)(x)
-        self.model = Model(inputs=inputs, outputs=outputs, name='beam_nc_comb_model')
+        policy = mixed_precision.Policy(self.config.model.policy)
+        mixed_precision.set_policy(policy)
+
+        inputs, x = blocks.get_vgg16_base(self.config)
+        x = layers.Dense(self.categories, name='dense_logits')(x)
+        outputs = layers.Activation('softmax', dtype='float32', name=self.cat)(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_nc_comb_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
         self.es_monitor = 'val_accuracy'
         self.parameters = ['t_nc_cat']
 
-        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
                            metrics=self.metrics)
 
@@ -557,16 +389,19 @@ class BeamMultiModel(BaseModel):
         """
         self.categories = 16
         self.cat = 't_cat'
-        x, inputs = GetModelBase(self.config)
-        category_path = Dense(self.config.model.dense_units, activation='relu')(x)
-        category_path = Dense(self.config.model.dense_units, activation='relu')(category_path)
-        energy_path = Dense(self.config.model.dense_units, activation='relu')(x)
-        energy_path = Dense(self.config.model.dense_units, activation='relu')(energy_path)
-        category_output = Dense(self.categories, activation='softmax', name=self.cat)(category_path)
-        energy_output = Dense(1, activation='linear', name='t_nuEnergy')(energy_path)
-        self.model = Model(inputs=inputs,
-                           outputs=[category_output, energy_output],
-                           name='beam_multi_model')
+        policy = mixed_precision.Policy(self.config.model.policy)
+        mixed_precision.set_policy(policy)
+
+        inputs, x = blocks.get_vgg16_base(self.config)
+        c_path = layers.Dense(self.config.model.dense_units, activation='relu')(x)
+        c_path = layers.Dense(self.config.model.dense_units, activation='relu')(c_path)
+        e_path = layers.Dense(self.config.model.dense_units, activation='relu')(x)
+        e_path = layers.Dense(self.config.model.dense_units, activation='relu')(e_path)
+        c_path = layers.Dense(self.categories, name='dense_logits')(c_path)
+        c_out = layers.Activation('softmax', dtype='float32', name=self.cat)(c_path)
+        e_path = layers.Dense(1, name='dense_logits')(e_path)
+        e_out = layers.Activation('linear', dtype='float32', name='t_nuEnergy')(e_path)
+        self.model = tf.keras.Model(inputs=inputs, outputs=[c_out, e_out], name='beam_multi_model')
 
         self.loss = {
             't_cat': 'sparse_categorical_crossentropy',
@@ -583,7 +418,7 @@ class BeamMultiModel(BaseModel):
         self.es_monitor = 'val_accuracy'
         self.parameters = ['t_cat', 't_nuEnergy']
 
-        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
                            loss_weights=self.loss_weights,
                            metrics=self.metrics)
@@ -630,15 +465,19 @@ class BeamAllInceptionModel(BaseModel):
         """
         self.categories = 16
         self.cat = 't_cat'
-        x, inputs = InceptionBase(self.config)
-        outputs = Dense(self.categories, activation='softmax', name=self.cat)(x)
-        self.model = Model(inputs=inputs, outputs=outputs, name='beam_all_inception_model')
+        policy = mixed_precision.Policy(self.config.model.policy)
+        mixed_precision.set_policy(policy)
+
+        inputs, x = blocks.get_inceptionv1_base(self.config)
+        outputs = layers.Activation('softmax', dtype='float32', name=self.cat)(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_nc_comb_model')
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_all_inception_model')
         self.loss = 'sparse_categorical_crossentropy'
         self.metrics = ['accuracy']
         self.es_monitor = 'val_accuracy'
         self.parameters = ['t_cat']
 
-        self.model.compile(optimizer=optimizers.Adam(learning_rate=self.config.model.lr),
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
                            loss=self.loss,
                            metrics=self.metrics)
 

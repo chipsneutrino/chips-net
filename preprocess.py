@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument('-j', '--join', help='how many input files to join together', default=10)
     parser.add_argument('--all', action='store_true',
                         help='pass through all maps to tfrecords file')
-    parser.add_argument('--single', action='store_true', help='Use a single process')
+    parser.add_argument('--parallel', action='store_true', help='Use parallel processes')
     return parser.parse_args()
 
 
@@ -38,7 +38,7 @@ def main():
     """
     args = parse_args()
     creator = data.DataCreator(
-        args.directory, args.geom, args.split, args.join, args.single, args.all)
+        args.directory, args.geom, args.split, args.join, args.parallel, args.all)
     creator.preprocess()
 
 

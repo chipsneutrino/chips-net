@@ -113,6 +113,8 @@ class BasicTrainer(BaseTrainer):
         Train the model using the tf.keras fit api call.
         """
         self.callbacks.extend(additional_callbacks)
+        training_dataset = self.data.train_data()
+        validation_dataset = self.data.val_data()
 
         if self.config.trainer.steps_per_epoch == -1:
             steps = None
@@ -120,13 +122,16 @@ class BasicTrainer(BaseTrainer):
             steps = self.config.trainer.steps_per_epoch
 
         self.history = self.model.model.fit(
-            self.data.train_data(),
+            training_dataset,
             epochs=self.config.trainer.num_epochs,
             verbose=1,
-            validation_data=self.data.val_data(),
+            validation_data=validation_dataset,
             callbacks=self.callbacks,
             steps_per_epoch=steps
         )
+
+        test_data = self.data.test_data()
+        self.model.model.evaluate(test_data)
 
     def save(self):
         """
