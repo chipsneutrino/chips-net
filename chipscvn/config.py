@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""
-Provides a CVN configuration namespace from a yaml file
+"""Provides a CVN configuration namespace from a yaml file
 
 This module produces a configuration namespace from an input yaml config
 file that can be used in the rest of the chips-cvn code. It also formats
@@ -15,9 +14,7 @@ from dotmap import DotMap
 
 
 def get(config_path):
-    """
-    Returns a configuration namespace generated from the config file.
-
+    """Returns a configuration namespace generated from the config file.
     Args:
         config_path (str): Input configuration file path
     Returns:
@@ -33,9 +30,7 @@ def get(config_path):
 
 
 def setup_dirs(config, remove_old):
-    """
-    Sets up the experiment output directories.
-
+    """Sets up the experiment output directories.
     Args:
         config (dotmap.DotMap): Configuration namespace
         remove_old (bool): Should we remove old directories at the same path

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""
-Main running script
+"""Main running script
 
 This script is the main chips-cvn training script. Given the input
 configuration it trains the given model and then evaluates the test
@@ -20,18 +19,30 @@ import logging
 from comet_ml import Experiment
 import tensorflow as tf
 
-import chipscvn.config
-import chipscvn.data
-import chipscvn.models
-import chipscvn.trainers
-import chipscvn.studies
-import chipscvn.utils
+# Need to setup the logging level before we use tensorflow
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+logging.disable(logging.CRITICAL)
+
+# Need to setup the GPU's before we import anything else that uses tensorflow
+gpus = tf.config.list_physical_devices('GPU')
+if tf.config.list_physical_devices('GPU'):
+    try:  # Currently, memory growth needs to be the same across GPUs
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        logical_gpus = tf.config.list_logical_devices('GPU')
+    except RuntimeError as e:  # Memory growth must be set before GPUs have been initialized
+        print(e)
+
+import chipscvn.config  # noqa: E402
+import chipscvn.data  # noqa: E402
+import chipscvn.models  # noqa: E402
+import chipscvn.trainers  # noqa: E402
+import chipscvn.studies  # noqa: E402
+import chipscvn.evaluator  # noqa: E402
 
 
-def train_model(config):
-    """
-    Trains a model according to the configuration.
-
+def train_model(config, strategy):
+    """Trains a model according to the configuration.
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
@@ -43,67 +54,53 @@ def train_model(config):
 
     chipscvn.config.setup_dirs(config, True)
     data = chipscvn.data.DataLoader(config)
-    model = chipscvn.utils.get_model(config)
-    model.summarise()
-    trainer = chipscvn.utils.get_trainer(config, model, data)
+    model = chipscvn.models.get_model(config)
+    trainer = chipscvn.trainers.get_trainer(config, model, data, strategy)
     trainer.train()
     trainer.save()
 
 
-def study_model(config):
-    """
-    Conducts a SHERPA study on a model according to the configuration.
-
+def study_model(config, strategy):
+    """Conducts a SHERPA study on a model according to the configuration.
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
     chipscvn.config.setup_dirs(config, True)
-    study = chipscvn.utils.get_study(config)
+    study = chipscvn.studies.get_study(config)
     study.run()
 
 
-def evaluate_model(config):
-    """
-    Evaluate the trained model according to the configuration.
-
+def evaluate_model(config, strategy):
+    """Evaluate the trained model according to the configuration.
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
-    evaluator = chipscvn.utils.get_evaluator(config)
+    evaluator = chipscvn.evaluator.Evaluator(config)
     evaluator.run_all()
 
 
 def parse_args():
-    """
-    Parse the command line arguments.
+    """Parse the command line arguments.
     """
     parser = argparse.ArgumentParser(description='CHIPS CVN')
     parser.add_argument('config', help='path to the configuration file')
-    parser.add_argument('--verbose', action='store_true', help='Make tensorflow verbose')
     return parser.parse_args()
 
 
 def main():
+    """Main function called by the run script.
     """
-    Main function called by the run script.
-    """
-    args = parse_args()
-    if not args.verbose:  # Turn off Tensorflow logging by default
-        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-        logging.disable(logging.CRITICAL)
-
     print('\n--- Its Magic, it must be the CHIPS CVN ---')
-    chipscvn.utils.gpu_setup()  # Setup the GPU's so they work on all machines
-    config = chipscvn.config.get(args.config)
+    config = chipscvn.config.get(parse_args().config)
 
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
         if config.task == 'train':
-            train_model(config)
+            train_model(config, strategy)
         elif config.task == 'study':
-            study_model(config)
+            study_model(config, strategy)
         elif config.task == 'evaluate':
-            evaluate_model(config)
+            evaluate_model(config, strategy)
         else:
             print('\nError: must define a task in configuration [train, study, evaluate]')
             raise SystemExit

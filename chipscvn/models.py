@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""
-tf.keras Functional API Model Implementations
+"""tf.keras Functional API Model Implementations
 
 This module contains the keras functional model definitions. All
 are derived from the BaseModel class for ease-of-use in other parts
@@ -9,23 +8,40 @@ of the chips-cvn code
 """
 
 import os
-import tensorflow.keras.layers as layers
-from tensorflow.keras.mixed_precision import experimental as mixed_precision
-import tensorflow as tf
 
-import chipscvn.blocks as blocks
+import tensorflow as tf
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
+
+import chipscvn.data
+import chipscvn.layers
+
+
+def get_model(config):
+    """Returns the correct model for the configuration.
+    Args:
+        config (dotmap.DotMap): DotMap Configuration namespace
+    Returns:
+        chipscvn.models model: Model class
+    """
+    if config.model.name == "parameter":
+        return ParameterModel(config)
+    elif config.model.name == "cosmic":
+        return CosmicModel(config)
+    elif config.model.name == "beam":
+        return BeamModel(config)
+    elif config.model.name == "multi_simple":
+        return BeamMultiSimpleModel(config)
+    elif config.model.name == "multi":
+        return BeamMultiModel(config)
+    else:
+        raise NotImplementedError
 
 
 class BaseModel:
-
+    """Base model class which all model implementations derive from.
     """
-    Base model class which all model implementations derive from.
-    """
-
     def __init__(self, config):
-        """
-        Initialise the BaseModel.
-
+        """Initialise the BaseModel.
         Args:
             config (str): Dotmap configuration namespace
         """
@@ -33,9 +49,7 @@ class BaseModel:
         self.build()
 
     def load(self, checkpoint_num=None):
-        """
-        Returns the correct model with its trained weights loaded.
-
+        """Returns the correct model with its trained weights loaded.
         Args:
             checkpoint_num (int): Checkpoint number to use
         """
@@ -47,16 +61,17 @@ class BaseModel:
                 self.config.exp.checkpoints_dir + 'cp-' + str(checkpoint_num).zfill(4) + '.ckpt')
             self.model.load_weights(checkpoint_path).expect_partial()
 
-    def summarise(self):
+    def summarise(self, model):
+        """Prints model summary to stdout and plots diagram of model to file.
+        Args:
+            model (tf model): Model to summarise
         """
-        Prints model summary to stdout and plots diagram of model to file.
-        """
-        self.model.summary()  # Print the model structure to stdout
+        model.summary()  # Print the model structure to stdout
 
         # Plot an image of the model to file
         file_name = os.path.join(self.config.exp.exp_dir, 'model_diagram.png')
         tf.keras.utils.plot_model(
-            self.model,
+            model,
             to_file=file_name,
             show_shapes=True,
             show_layer_names=True,
@@ -66,437 +81,157 @@ class BaseModel:
         )
 
     def build(self):
-        """
-        Build the model, overide in derived model class.
+        """Build the model, overide in derived model class.
         """
         raise NotImplementedError
 
 
 class ParameterModel(BaseModel):
-
+    """Single parameter estimation model class.
     """
-    Single parameter estimation model class.
-    """
-
     def __init__(self, config):
-        """
-        Initialise the ParameterModel.
-
+        """Initialise the ParameterModel.
         Args:
             config (str): Dotmap configuration namespace
         """
         super().__init__(config)
 
     def build(self):
+        """Builds the model using the keras functional API.
         """
-        Builds the model using the keras functional API.
-        """
-        policy = mixed_precision.Policy(self.config.model.policy)
+        policy = mixed_precision.Policy(self.config.model.precision_policy)
         mixed_precision.set_policy(policy)
-        inputs, x = blocks.get_vgg16_base(self.config)
-        x = layers.Dense(1, name='dense_logits')(x)
-        outputs = layers.Activation('linear', dtype='float32', name=self.config.model.parameter)(x)
-        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='parameter_model')
+        inputs, x = chipscvn.layers.get_vgg16_base(self.config)
+        x = tf.keras.layers.Dense(1, name='dense_logits')(x)
+        outputs = tf.keras.layers.Activation('linear', dtype='float32',
+                                             name=self.config.model.labels[0])(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name=self.config.model.name)
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss='mean_squared_error', metrics=['mae', 'mse'])
 
-        self.loss = 'mean_squared_error'
-        self.metrics = ['mae', 'mse']
         self.es_monitor = 'val_mae'
         self.parameters = [self.config.model.parameter]
-
-        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
-                           loss=self.loss,
-                           metrics=self.metrics)
+        self.summarise(self.model)
 
 
 class CosmicModel(BaseModel):
-
+    """Cosmic vs beam classification model class.
     """
-    Cosmic vs beam classification model class.
-    """
-
     def __init__(self, config):
-        """
-        Initialise the CosmicModel.
-
+        """Initialise the CosmicModel.
         Args:
             config (str): Dotmap configuration namespace
         """
         super().__init__(config)
 
     def build(self):
+        """Builds the model using the keras functional API.
         """
-        Builds the model using the keras functional API.
-        """
-        policy = mixed_precision.Policy(self.config.model.policy)
+        policy = mixed_precision.Policy(self.config.model.precision_policy)
         mixed_precision.set_policy(policy)
-        inputs, x = blocks.get_vgg16_base(self.config)
-        x = layers.Dense(1, name='dense_logits')(x)
-        outputs = layers.Activation('sigmoid', dtype='float32', name='t_cosmic_cat')(x)
-        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='cosmic_model')
+        inputs, x = chipscvn.layers.get_vgg16_base(self.config)
+        x = tf.keras.layers.Dense(1, name='dense_logits')(x)
+        outputs = tf.keras.layers.Activation('sigmoid', dtype='float32',
+                                             name=self.config.model.labels[0])(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name=self.config.model.name)
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
+                           loss='binary_crossentropy', metrics=['accuracy'])
 
-        self.loss = 'binary_crossentropy'
-        self.metrics = ['accuracy']
         self.es_monitor = 'val_accuracy'
         self.parameters = ['t_cosmic_cat']
-
-        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
-                           loss=self.loss,
-                           metrics=self.metrics)
+        self.summarise(self.model)
 
 
-class BeamAllModel(BaseModel):
-
+class BeamModel(BaseModel):
+    """Beam category classification model class.
     """
-    Beam all category classification model class.
-    """
-
     def __init__(self, config):
-        """
-        Initialise the BeamAllModel.
-
+        """Initialise the BeamModel.
         Args:
             config (str): Dotmap configuration namespace
         """
         super().__init__(config)
 
     def build(self):
+        """Builds the model using the keras functional API.
         """
-        Builds the model using the keras functional API.
-        """
-        self.categories = 16
-        self.cat = 't_cat'
-        policy = mixed_precision.Policy(self.config.model.policy)
+        policy = mixed_precision.Policy(self.config.model.precision_policy)
         mixed_precision.set_policy(policy)
-
-        inputs, x = blocks.get_vgg16_base(self.config)
-        x = layers.Dense(self.categories, name='dense_logits')(x)
-        outputs = layers.Activation('softmax', dtype='float32', name=self.cat)(x)
-        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_all_model')
-        self.loss = 'sparse_categorical_crossentropy'
-        self.metrics = ['accuracy']
-        self.es_monitor = 'val_accuracy'
-        self.parameters = ['t_cat']
-
+        inputs, x = chipscvn.layers.get_vgg16_base(self.config)
+        x = tf.keras.layers.Dense(chipscvn.data.get_map(self.config.model.labels[0]).train_num,
+                                  name='dense_logits')(x)
+        outputs = tf.keras.layers.Activation('softmax', dtype='float32',
+                                             name=self.config.model.labels[0])(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name=self.config.model.name)
         self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
-                           loss=self.loss,
-                           metrics=self.metrics)
+                           loss='sparse_categorical_crossentropy',
+                           metrics=['accuracy'])
 
-        self.labels = ["EL-CC-QEL", "EL-CC-RES", "EL-CC-DIS", "EL-CC-COH",
-                       "MU-CC-QEL", "MU-CC-RES", "MU-CC-DIS", "MU-CC-COH",
-                       "EL-NC-QEL", "EL-NC-RES", "EL-NC-DIS", "EL-NC-COH",
-                       "MU-NC-QEL", "MU-NC-RES", "MU-NC-DIS", "MU-NC-COH"]
-
-    def combine_outputs(self, ev):
-        """
-        Combine outputs into fully combined categories.
-
-        Args:
-            ev (dict): Pandas single event(row) dict
-        Returns:
-            List[float, float, float]: List of combined category outputs
-        """
-        nuel = (ev['b_out_0'] + ev['b_out_1'] + ev['b_out_2'] + ev['b_out_3'])
-        numu = (ev['b_out_4'] + ev['b_out_5'] + ev['b_out_6'] + ev['b_out_7'])
-        nc = (ev['b_out_8'] + ev['b_out_9'] + ev['b_out_10'] + ev['b_out_11'] +
-              ev['b_out_12'] + ev['b_out_13'] + ev['b_out_14'] + ev['b_out_15'])
-        return [nuel, numu, nc]
+        self.es_monitor = 'val_accuracy'
+        self.parameters = [self.config.model.category]
+        self.summarise(self.model)
 
 
-class BeamFullCombModel(BaseModel):
-
+class BeamMultiSimpleModel(BaseModel):
+    """Simple Beam Multi-task model class.
     """
-    Beam full combined category classification model class.
-    """
-
     def __init__(self, config):
-        """
-        Initialise the BeamFullCombModel.
-
+        """Initialise the BeamMultiSimpleModel.
         Args:
             config (str): Dotmap configuration namespace
         """
         super().__init__(config)
 
     def build(self):
+        """Builds the model using the keras functional API.
         """
-        Builds the model using the keras functional API.
-        """
-        self.categories = 3
-        self.cat = 't_full_cat'
-        policy = mixed_precision.Policy(self.config.model.policy)
+        policy = mixed_precision.Policy(self.config.model.precision_policy)
         mixed_precision.set_policy(policy)
 
-        inputs, x = blocks.get_vgg16_base(self.config)
-        x = layers.Dense(self.categories, name='dense_logits')(x)
-        outputs = layers.Activation('softmax', dtype='float32', name=self.cat)(x)
-        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_full_comb_model')
-        self.loss = 'sparse_categorical_crossentropy'
-        self.metrics = ['accuracy']
+        inputs, x = chipscvn.layers.get_vgg16_base(self.config)
+        out_c = tf.keras.layers.Dense(self.config.model.dense_units, activation='relu')(x)
+        out_c = tf.keras.layers.Dense(chipscvn.data.get_map(self.config.model.labels[0]).train_num,
+                                      name='c_logits')(out_c)
+        out_c = tf.keras.layers.Activation('softmax', dtype='float32',
+                                           name=self.config.model.labels[0])(out_c)
+        out_e = tf.keras.layers.Dense(self.config.model.dense_units, activation='relu')(x)
+        out_e = tf.keras.layers.Dense(1, name='e_logits')(out_e)
+        out_e = tf.keras.layers.Activation('linear', dtype='float32',
+                                           name=self.config.model.labels[1])(out_e)
+
+        self.model = tf.keras.Model(inputs=inputs, outputs=[out_c, out_e],
+                                    name=self.config.model.name)
+        self.model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
+            loss={self.config.model.category: 'sparse_categorical_crossentropy',
+                  't_nuEnergy': 'mean_squared_error'},
+            loss_weights={self.config.model.category: 1.0, 't_nuEnergy': 0.0000005},
+            metrics={self.config.model.category: 'accuracy', 't_nuEnergy': 'mae'}
+        )
         self.es_monitor = 'val_accuracy'
-        self.parameters = ['t_full_cat']
-
-        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
-                           loss=self.loss,
-                           metrics=self.metrics)
-
-        self.labels = ["EL-CC", "MU-CC", "NC"]
-
-    def combine_outputs(self, ev):
-        """
-        Combine outputs into fully combined categories.
-
-        Args:
-            ev (dict): Pandas single event(row) dict
-        Returns:
-            List[float, float, float]: List of combined category outputs
-        """
-        nuel = ev['b_out_0']
-        numu = ev['b_out_1']
-        nc = ev['b_out_2']
-        return [nuel, numu, nc]
-
-
-class BeamNuNCCombModel(BaseModel):
-
-    """
-    Beam Nu NC category combined classification model class.
-    """
-
-    def __init__(self, config):
-        """
-        Initialise the BeamNuNCCombModel.
-
-        Args:
-            config (str): Dotmap configuration namespace
-        """
-        super().__init__(config)
-
-    def build(self):
-        """
-        Builds the model using the keras functional API.
-        """
-        self.categories = 12
-        self.cat = 't_nu_nc_cat'
-        policy = mixed_precision.Policy(self.config.model.policy)
-        mixed_precision.set_policy(policy)
-
-        inputs, x = blocks.get_vgg16_base(self.config)
-        x = layers.Dense(self.categories, name='dense_logits')(x)
-        outputs = layers.Activation('softmax', dtype='float32', name=self.cat)(x)
-        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_nu_nc_comb_model')
-        self.loss = 'sparse_categorical_crossentropy'
-        self.metrics = ['accuracy']
-        self.es_monitor = 'val_accuracy'
-        self.parameters = ['t_nu_nc_cat']
-
-        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
-                           loss=self.loss,
-                           metrics=self.metrics)
-
-        self.labels = ["EL-CC-QEL", "EL-CC-RES", "EL-CC-DIS", "EL-CC-COH",
-                       "MU-CC-QEL", "MU-CC-RES", "MU-CC-DIS", "MU-CC-COH",
-                       "NC-QEL", "NC-RES", "NC-DIS", "NC-COH"]
-
-    def combine_outputs(self, ev):
-        """
-        Combine outputs into fully combined categories.
-
-        Args:
-            ev (dict): Pandas single event(row) dict
-        Returns:
-            List[float, float, float]: List of combined category outputs
-        """
-        nuel = (ev['b_out_0'] + ev['b_out_1'] + ev['b_out_2'] + ev['b_out_3'])
-        numu = (ev['b_out_4'] + ev['b_out_5'] + ev['b_out_6'] + ev['b_out_7'])
-        nc = (ev['b_out_8'] + ev['b_out_9'] + ev['b_out_10'] + ev['b_out_11'])
-        return [nuel, numu, nc]
-
-
-class BeamNCCombModel(BaseModel):
-
-    """
-    Beam NC category combined classification model class.
-    """
-
-    def __init__(self, config):
-        """
-        Initialise the BeamNCCombModel.
-
-        Args:
-            config (str): Dotmap configuration namespace
-        """
-        super().__init__(config)
-
-    def build(self):
-        """
-        Builds the model using the keras functional API.
-        """
-        self.categories = 9
-        self.cat = 't_nc_cat'
-        policy = mixed_precision.Policy(self.config.model.policy)
-        mixed_precision.set_policy(policy)
-
-        inputs, x = blocks.get_vgg16_base(self.config)
-        x = layers.Dense(self.categories, name='dense_logits')(x)
-        outputs = layers.Activation('softmax', dtype='float32', name=self.cat)(x)
-        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_nc_comb_model')
-        self.loss = 'sparse_categorical_crossentropy'
-        self.metrics = ['accuracy']
-        self.es_monitor = 'val_accuracy'
-        self.parameters = ['t_nc_cat']
-
-        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
-                           loss=self.loss,
-                           metrics=self.metrics)
-
-        self.labels = ["EL-CC-QEL", "EL-CC-RES", "EL-CC-DIS", "EL-CC-COH",
-                       "MU-CC-QEL", "MU-CC-RES", "MU-CC-DIS", "MU-CC-COH",
-                       "NC"]
-
-    def combine_outputs(self, ev):
-        """
-        Combine outputs into fully combined categories.
-
-        Args:
-            ev (dict): Pandas single event(row) dict
-        Returns:
-            List[float, float, float]: List of combined category outputs
-        """
-        nuel = (ev['b_out_0'] + ev['b_out_1'] + ev['b_out_2'] + ev['b_out_3'])
-        numu = (ev['b_out_4'] + ev['b_out_5'] + ev['b_out_6'] + ev['b_out_7'])
-        nc = ev['b_out_8']
-        return [nuel, numu, nc]
+        self.parameters = [self.config.model.category, 't_nuEnergy']
+        self.summarise(self.model)
 
 
 class BeamMultiModel(BaseModel):
-
+    """Beam Multi-task model class.
     """
-    Beam Multi-task model class.
-    """
-
     def __init__(self, config):
-        """
-        Initialise the BeamMultiModel.
-
+        """Initialise the BeamMultiModel.
         Args:
             config (str): Dotmap configuration namespace
         """
         super().__init__(config)
 
     def build(self):
+        """Builds the model using the subclassing API
         """
-        Builds the model using the keras functional API.
-        """
-        self.categories = 16
-        self.cat = 't_cat'
-        policy = mixed_precision.Policy(self.config.model.policy)
-        mixed_precision.set_policy(policy)
-
-        inputs, x = blocks.get_vgg16_base(self.config)
-        c_path = layers.Dense(self.config.model.dense_units, activation='relu')(x)
-        c_path = layers.Dense(self.config.model.dense_units, activation='relu')(c_path)
-        e_path = layers.Dense(self.config.model.dense_units, activation='relu')(x)
-        e_path = layers.Dense(self.config.model.dense_units, activation='relu')(e_path)
-        c_path = layers.Dense(self.categories, name='dense_logits')(c_path)
-        c_out = layers.Activation('softmax', dtype='float32', name=self.cat)(c_path)
-        e_path = layers.Dense(1, name='dense_logits')(e_path)
-        e_out = layers.Activation('linear', dtype='float32', name='t_nuEnergy')(e_path)
-        self.model = tf.keras.Model(inputs=inputs, outputs=[c_out, e_out], name='beam_multi_model')
-
-        self.loss = {
-            't_cat': 'sparse_categorical_crossentropy',
-            't_nuEnergy': 'mean_squared_error',
-        }
-        self.loss_weights = {
-            't_cat': 1.0,
-            't_nuEnergy': 0.0000005
-        }
-        self.metrics = {
-            't_cat': 'accuracy',
-            't_nuEnergy': 'mae'
-        }
-        self.es_monitor = 'val_accuracy'
-        self.parameters = ['t_cat', 't_nuEnergy']
-
-        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
-                           loss=self.loss,
-                           loss_weights=self.loss_weights,
-                           metrics=self.metrics)
-
-        self.labels = ["EL-CC-QEL", "EL-CC-RES", "EL-CC-DIS", "EL-CC-COH",
-                       "MU-CC-QEL", "MU-CC-RES", "MU-CC-DIS", "MU-CC-COH",
-                       "EL-NC-QEL", "EL-NC-RES", "EL-NC-DIS", "EL-NC-COH",
-                       "MU-NC-QEL", "MU-NC-RES", "MU-NC-DIS", "MU-NC-COH"]
-
-    def combine_outputs(self, ev):
-        """
-        Combine outputs into fully combined categories.
-
-        Args:
-            ev (dict): Pandas single event(row) dict
-        Returns:
-            List[float, float, float]: List of combined category outputs
-        """
-        nuel = (ev['b_out_0'] + ev['b_out_1'] + ev['b_out_2'] + ev['b_out_3'])
-        numu = (ev['b_out_4'] + ev['b_out_5'] + ev['b_out_6'] + ev['b_out_7'])
-        nc = (ev['b_out_8'] + ev['b_out_9'] + ev['b_out_10'] + ev['b_out_11'] +
-              ev['b_out_12'] + ev['b_out_13'] + ev['b_out_14'] + ev['b_out_15'])
-        return [nuel, numu, nc]
-
-
-class BeamAllInceptionModel(BaseModel):
-
-    """
-    Beam all category classification inception model class.
-    """
-
-    def __init__(self, config):
-        """
-        Initialise the BeamAllInceptionModel.
-
-        Args:
-            config (str): Dotmap configuration namespace
-        """
-        super().__init__(config)
-
-    def build(self):
-        """
-        Builds the model using the keras functional API.
-        """
-        self.categories = 16
-        self.cat = 't_cat'
-        policy = mixed_precision.Policy(self.config.model.policy)
-        mixed_precision.set_policy(policy)
-
-        inputs, x = blocks.get_inceptionv1_base(self.config)
-        outputs = layers.Activation('softmax', dtype='float32', name=self.cat)(x)
-        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_nc_comb_model')
-        self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='beam_all_inception_model')
-        self.loss = 'sparse_categorical_crossentropy'
-        self.metrics = ['accuracy']
-        self.es_monitor = 'val_accuracy'
-        self.parameters = ['t_cat']
-
-        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
-                           loss=self.loss,
-                           metrics=self.metrics)
-
-        self.labels = ["EL-CC-QEL", "EL-CC-RES", "EL-CC-DIS", "EL-CC-COH",
-                       "MU-CC-QEL", "MU-CC-RES", "MU-CC-DIS", "MU-CC-COH",
-                       "EL-NC-QEL", "EL-NC-RES", "EL-NC-DIS", "EL-NC-COH",
-                       "MU-NC-QEL", "MU-NC-RES", "MU-NC-DIS", "MU-NC-COH"]
-
-    def combine_outputs(self, ev):
-        """
-        Combine outputs into fully combined categories.
-
-        Args:
-            ev (dict): Pandas single event(row) dict
-        Returns:
-            List[float, float, float]: List of combined category outputs
-        """
-        nuel = (ev['b_out_0'] + ev['b_out_1'] + ev['b_out_2'] + ev['b_out_3'])
-        numu = (ev['b_out_4'] + ev['b_out_5'] + ev['b_out_6'] + ev['b_out_7'])
-        nc = (ev['b_out_8'] + ev['b_out_9'] + ev['b_out_10'] + ev['b_out_11'] +
-              ev['b_out_12'] + ev['b_out_13'] + ev['b_out_14'] + ev['b_out_15'])
-        return [nuel, numu, nc]
+        self.model = chipscvn.layers.CHIPSMultitask(
+            self.config,
+            chipscvn.data.get_map(self.config.model.labels[0]).train_num,
+            self.config.model.labels[0]
+        )
+        input_shape = [[self.config.data.batch_size] + self.config.data.img_size, 1, 1]
+        print(input_shape)
+        self.model.build(input_shape)
+        self.summarise(self.model.model())

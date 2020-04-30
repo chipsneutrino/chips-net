@@ -1,40 +1,37 @@
-name: chips-cvn
+name: chips
 channels:
   - defaults
   - conda-forge
+  - comet_ml
 dependencies:
   - python=3.7
-  - numpy
-  - pandas
-  - matplotlib
-  - scikit-learn
-  - scipy
-  - pydot
-  - flask
-  - graphviz
-  - jupyterlab
-  - root 
-  - root-binaries 
-  - root-dependencies 
-  - root_base
-  - uproot
-  - bunch
-  - seaborn
-  - cudatoolkit=10.1.243
-  - cudnn=7.6.4=cuda10.1_0
-  - flake8
-  - pep8
-  - autopep8
-  - pytest
-  - root_numpy
-  - dotmap
-  - tqdm
-  - pip
+  - numpy=1.18.1
+  - pandas=1.0.3
+  - matplotlib=3.2.1
+  - scikit-learn=0.22.2
+  - scipy=1.4.1
+  - pydotplus=2.0.2
+  - flask=1.1.2
+  - python-graphviz=0.14
+  - jupyterlab=2.1.1
+  - seaborn=0.10.1
+  - comet_ml=3.1.6
+  - tensorflow-gpu=2.1.0
+  - uproot=3.11.3
+  - root=6.20.4
+  - root_numpy=4.8.0
+  - root_pandas=0.7.0
+  - flake8=3.7.9
+  - autopep8=1.5.2
+  - pytest=5.4.1
+  - dotmap=1.2.20
+  - tqdm=4.45.0
+  - pdoc3=0.7.2
+  - pyyaml=5.3.1
+  - geant4=10.5.1
+  - cmake=3.14.0
+  - gsl=2.6
+  - pip=20.0.2
   - pip:
-    - keras-vis
-    - tensorflow
-    - parameter-sherpa
-    - comet_ml
-    - tf-explain
-    - pdoc3
-    - root-pandas
+    - parameter-sherpa==1.0.6
+    - tf-explain==0.2.1

@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""
-Common CNN image classification layers and blocks
-
-This module contains many useful layers and blocks for use in image
-classification networks.
+"""Module containing the multitask chips-cvn model
 
 An illustrated guide to many of the blocks is at...
 https://towardsdatascience.com/illustrated-10-cnn-architectures-95d78ace614d
@@ -12,13 +8,12 @@ https://towardsdatascience.com/illustrated-10-cnn-architectures-95d78ace614d
 
 import tensorflow.keras.layers as layers
 import tensorflow.keras.regularizers as regularizers
+import tensorflow.keras.initializers as initializers
 import tensorflow as tf
 
 
 def add_inputs(config, core):
-    """
-    Add reco inputs and apply multi-channel path input logic to a core model block
-
+    """Add reco inputs and apply multi-channel path input logic to a core model block
     Args:
         config (str): Dotmap configuration namespace
         core (func): Core model building function
@@ -53,10 +48,8 @@ def add_inputs(config, core):
 
 
 def relu6(x):
-    """
-    Relu6 activation function
+    """Relu6 activation function
     http://www.cs.utoronto.ca/%7Ekriz/conv-cifar10-aug2010.pdf
-
     Returns:
         tf.keras.activation: Relu6 activation function
     """
@@ -64,10 +57,8 @@ def relu6(x):
 
 
 def swish(x):
-    """
-    Swish activation function
+    """Swish activation function
     https://arxiv.org/pdf/1710.05941.pdf
-
     Returns:
         tf.keras.activation: Swish activation function
     """
@@ -76,9 +67,7 @@ def swish(x):
 
 def conv2d_bn(x, filters, kernel_size=(3, 3), strides=(1, 1), activation='relu',
               padding='same', name=None):
-    """
-    Utility function to apply conv2d + BatchNormalization.
-
+    """Utility function to apply conv2d + BatchNormalization.
     Args:
         x (tf.tensor): Input tensor
         filters (int): Number of filters in convolutions
@@ -102,9 +91,7 @@ def conv2d_bn(x, filters, kernel_size=(3, 3), strides=(1, 1), activation='relu',
 
 def depthwise_conv2d_bn(x, kernel_size=(3, 3), strides=(1, 1), activation='relu',
                         padding='same', name=None):
-    """
-    Utility function to apply depthwise_conv2d + BatchNormalization.
-
+    """Utility function to apply depthwise_conv2d + BatchNormalization.
     Args:
         x (tf.tensor): Input tensor
         kernel_size (int): Kernel size in depthwise convolution
@@ -128,10 +115,8 @@ def depthwise_conv2d_bn(x, kernel_size=(3, 3), strides=(1, 1), activation='relu'
 def vgg_block(x, num_conv=2, filters=64, kernel_size=(3, 3), strides=(1, 1),
               activation='relu', padding='same', drop_rate=None, bn=True,
               name=None):
-    """
-    VGG block with added dropout
+    """VGG block with added dropout
     https://arxiv.org/pdf/1409.1556.pdf
-
     Args:
         x (tf.tensor): Input tensor
         num_conv (int): Number of convolutional layers
@@ -160,9 +145,7 @@ def vgg_block(x, num_conv=2, filters=64, kernel_size=(3, 3), strides=(1, 1),
 
 
 def vgg16_core(x, config, name):
-    """
-    Core of vgg16 model
-
+    """Core of vgg16 model
     Args:
         x (tf.tensor): Input tensor
         config (dotmap.DotMap): Configuration namespace
@@ -185,9 +168,7 @@ def vgg16_core(x, config, name):
 
 
 def vgg19_core(x, config, name):
-    """
-    Core of vgg19 model
-
+    """Core of vgg19 model
     Args:
         x (tf.tensor): Input tensor
         config (dotmap.DotMap): Configuration namespace
@@ -211,10 +192,8 @@ def vgg19_core(x, config, name):
 
 def inception_block(x, filters, strides=(1, 1), activation='relu',
                     padding='same', name=None):
-    """
-    Returns a Keras functional API Inception Module.
+    """Returns a Keras functional API Inception Module.
     https://arxiv.org/pdf/1409.4842.pdf
-
     Args:
         x (tf.tensor): Input tensor
         filters (int): Number of filters in convolutions
@@ -244,9 +223,7 @@ def inception_block(x, filters, strides=(1, 1), activation='relu',
 
 
 def inceptionv1_core(x, config, name):
-    """
-    Core of Inception-v1 model
-
+    """Core of Inception-v1 model
     Args:
         x (tf.tensor): Input tensor
         config (dotmap.DotMap): Configuration namespace
@@ -276,9 +253,7 @@ def inceptionv1_core(x, config, name):
 def mb_conv_block(inputs, kernel_size, in_filters, out_filters, expand_ratio,
                   strides=(1, 1), se_ratio=None, activation='relu', drop_rate=None,
                   name=''):
-    """
-    Mobile Inverted Residual Bottleneck block with squeeze-and-excitation optimization.
-
+    """Mobile Inverted Residual Bottleneck block with squeeze-and-excitation optimization.
     Args:
         inputs (tf.tensor): Input tensor of conv layer
         kernel_size (int): DepthwiseConv kernel_size
@@ -328,9 +303,7 @@ def mb_conv_block(inputs, kernel_size, in_filters, out_filters, expand_ratio,
 
 
 def effnet_core(x, config, name):
-    """
-    Core of EfficientNetB0 model
-
+    """Core of EfficientNetB0 model
     Args:
         x (tf.tensor): Input tensor
         config (dotmap.DotMap): Configuration namespace
@@ -348,9 +321,7 @@ def effnet_core(x, config, name):
 
 
 def get_vgg16_base(config):
-    """
-    Returns the vgg model base.
-
+    """Returns the vgg model base.
     Args:
         config (dotmap.DotMap): Configuration namespace
     Returns:
@@ -364,9 +335,7 @@ def get_vgg16_base(config):
 
 
 def get_vgg19_base(config):
-    """
-    Returns the vgg model base.
-
+    """Returns the vgg model base.
     Args:
         config (dotmap.DotMap): Configuration namespace
     Returns:
@@ -380,9 +349,7 @@ def get_vgg19_base(config):
 
 
 def get_inceptionv1_base(config):
-    """
-    Returns the inception model base.
-
+    """Returns the inception model base.
     Args:
         config (dotmap.DotMap): Configuration namespace
     Returns:
@@ -395,9 +362,7 @@ def get_inceptionv1_base(config):
 
 
 def get_effnet_base(config):
-    """
-    Returns the inception model base.
-
+    """Returns the inception model base.
     Args:
         config (dotmap.DotMap): Configuration namespace
     Returns:
@@ -407,3 +372,198 @@ def get_effnet_base(config):
     x = layers.Dense(1024, activation='relu', name='dense2')(x)
     x = layers.Dense(config.model.dense_units, activation='relu', name='dense_final')(x)
     return inputs, x
+
+
+class ConvBN(layers.Layer):
+    """Convolution + Batch Normalisation layer
+    """
+    def __init__(self, filters, kernel_size=(3, 3), strides=(1, 1),
+                 activation='relu', padding='same', name='conv_bn',
+                 **kwargs):
+        super(ConvBN, self).__init__(name=name, **kwargs)
+        self.conv = layers.Conv2D(
+            filters,
+            kernel_size,
+            strides=strides,
+            padding=padding,
+            use_bias=False,
+            name=name+'_cv'
+        )
+        self.bn = layers.BatchNormalization(
+            axis=3,
+            scale=False,
+            name=name+'_bn'
+        )
+        self.activation = layers.Activation(
+            activation,
+            name=name+'_ac'
+        )
+
+    def call(self, inputs):
+        x = self.conv(inputs)
+        x = self.bn(x)
+        return self.activation(x)
+
+
+class VGGBlock(layers.Layer):
+    """VGG Block layer
+    """
+    def __init__(self, num_conv=2, filters=64, kernel_size=(3, 3), strides=(1, 1),
+                 activation='relu', padding='same', drop_rate=0.0, bn=True,
+                 name='vgg_block', **kwargs):
+        super(VGGBlock, self).__init__(name=name, **kwargs)
+        self.num_conv = num_conv
+        self.drop_rate = drop_rate
+        self.convs = []
+        for i in range(self.num_conv):
+            if bn:
+                self.convs.append(ConvBN(filters, kernel_size, strides, activation,
+                                         padding, name=self.name+'_conv'+str(i)))
+            else:
+                self.convs.append(layers.Conv2D(filters, kernel_size, activation=activation,
+                                  padding=padding, name=self.name+'_conv'+str(i)))
+        self.pool = layers.MaxPooling2D((2, 2), strides=(2, 2), name=name+'_pool')
+        self.dropout = layers.Dropout(drop_rate, name=name+'_drop')
+
+    def call(self, inputs):
+        print("IN({}): {}".format(self.name, inputs.shape))
+        x = self.convs[0](inputs)
+        for i in range(1, self.num_conv):
+            x = self.convs[i](inputs)
+        x = self.pool(x)
+        if self.drop_rate > 0.0:
+            x = self.dropout(x)
+        print("OUT({}): {}".format(self.name, x.shape))
+        return x
+
+
+class MultiLossLayer(layers.Layer):
+    """Weighted multi-loss layer for multitask network
+    https://arxiv.org/pdf/1705.07115.pdf
+    https://github.com/yaringal/multi-task-learning-example/blob/master/multi-task-learning-example.ipynb
+    """
+    def __init__(self, **kwargs):
+        """Initialise the MultiLossLayer.
+        Args:
+            config (str): Dotmap configuration namespace
+        """
+        self.is_placeholder = True
+        super(MultiLossLayer, self).__init__(**kwargs)
+
+    def build(self, input_shape=None):
+        """Initialise the log_vars.
+        Args:
+            config (str): Dotmap configuration namespace
+        """
+        self.log_var_c = self.add_weight(
+            name='log_var_c', shape=(1,),
+            dtype=tf.float32,
+            initializer=initializers.Constant(0.),
+            trainable=True
+        )
+        self.log_var_e = self.add_weight(
+            name='log_var_e', shape=(1,),
+            dtype=tf.float32,
+            initializer=initializers.Constant(0.),
+            trainable=True
+        )
+
+        # tf.initializers.random_uniform(minval=0.2, maxval=1)
+
+        super(MultiLossLayer, self).build(input_shape)
+
+    def multi_loss(self, c_true, e_true, c_pred, e_pred):
+        """Calculate the multi-loss.
+        Args:
+            ys_true (list[tf.tensor]): True tensors
+            ys_pred (list[tf.tensor]): Predicted tensors
+        """
+        # Calculate the categorical loss
+        factor_c = tf.math.divide(1.0, tf.multiply(2.0, self.log_var_c[0]))
+        # factor_c = tf.math.exp(-self.log_var_c[0])
+
+        cross_entropy = tf.nn.softmax_cross_entropy_with_logits(c_true, c_pred)
+        # cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(c_true, c_pred)
+        loss_c = tf.reduce_mean(cross_entropy, name='loss_c')
+
+        loss = tf.math.add_n([tf.multiply(factor_c, loss_c), tf.math.log(self.log_var_c[0])])
+        # loss = tf.math.add_n([tf.multiply(factor_c, loss_c), self.log_var_c[0]])
+
+        # Calculate the energy loss
+        factor_e = tf.math.divide(1.0, tf.multiply(2.0, self.log_var_e[0]))
+        # factor_e = tf.math.exp(-self.log_var_e[0])
+
+        # mse = tf.keras.losses.MeanSquaredError(e_true, e_pred)
+        loss_e = (e_true - e_pred)**2.
+        loss_e = tf.reduce_mean(loss_e, name='loss_e')
+
+        loss = tf.math.add_n([loss, tf.multiply(factor_e, loss_e), tf.math.log(self.log_var_e[0])])
+        # loss = tf.math.add_n([loss, tf.multiply(factor_e, loss_e), self.log_var_e[0]])
+
+        loss = tf.keras.backend.mean(loss)  # Test this on/off aswell
+
+        return loss
+
+    def call(self, inputs):
+        """Layer call method.
+        Args:
+            inputs (list[tf.tensor]): List of layer inputs
+        """
+        c_true, e_true = inputs[0], inputs[1]
+        c_pred, e_pred = inputs[2], inputs[3]
+        loss = self.multi_loss(c_true, e_true, c_pred, e_pred)
+        self.add_loss(loss, inputs=inputs)
+        return tf.keras.backend.concatenate([c_pred, e_pred], -1)  # Dummy output
+
+
+class CHIPSMultitask(tf.keras.Model):
+    """Weighted multi-loss layer for multitask network
+    https://arxiv.org/pdf/1705.07115.pdf
+    https://github.com/yaringal/multi-task-learning-example/blob/master/multi-task-learning-example.ipynb
+    """
+    def __init__(self, config, num_cats=16, cat='t_cat', name='chips_multitask', **kwargs):
+        super(CHIPSMultitask, self).__init__(name=name, **kwargs)
+        self.block1 = VGGBlock(2, config.model.filters, config.model.kernel_size,
+                               drop_rate=config.model.dropout, name=name+'_block1')
+        self.block2 = VGGBlock(2, config.model.filters*2, config.model.kernel_size,
+                               drop_rate=config.model.dropout, name=name+'_block2')
+        self.block3 = VGGBlock(3, config.model.filters*4, config.model.kernel_size,
+                               drop_rate=config.model.dropout, name=name+'_block3')
+        self.block4 = VGGBlock(3, config.model.filters*8, config.model.kernel_size,
+                               drop_rate=config.model.dropout, name=name+'_block4')
+        self.block5 = VGGBlock(3, config.model.filters*8, config.model.kernel_size,
+                               drop_rate=config.model.dropout, name=name+'_block5')
+        self.flatten = layers.Flatten(name='flatten')
+        self.dense1 = layers.Dense(config.model.dense_units, activation='relu', name='dense1')
+        self.dense2 = layers.Dense(config.model.dense_units, activation='relu', name='dense_final')
+        self.dropout = layers.Dropout(config.model.dropout, name='dropout_final')
+        self.dense_c = layers.Dense(config.model.dense_units, activation='relu', name='dense_c')
+        self.dense_e = layers.Dense(config.model.dense_units, activation='relu', name='dense_e')
+        self.out_c = layers.Dense(num_cats, name='logits_c')
+        self.out_e = layers.Dense(1, name='logits_e')
+        self.out = MultiLossLayer()
+
+    def call(self, inputs):
+        x = self.block1(inputs[0])
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+        x = self.block5(x)
+        x = self.flatten(x)
+        x = self.dense1(x)
+        x = self.dense2(x)
+        x = self.dropout(x)
+        pred_c = self.dense_c(x)
+        pred_e = self.dense_e(x)
+        pred_c = self.out_c(pred_c)
+        pred_e = self.out_e(pred_e)
+        return self.out([inputs[1], inputs[2], pred_c, pred_e])
+
+    def model(self):
+        image = layers.Input(shape=(64, 64, 3), name='image_0')
+        true_c = tf.keras.Input(shape=(1), name='true_c')
+        true_e = layers.Input(shape=(1), name='true_e')
+        return tf.keras.Model(
+            inputs=[image, true_c, true_e],
+            outputs=self.call([image, true_c, true_e])
+        )

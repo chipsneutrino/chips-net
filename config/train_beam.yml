@@ -23,31 +23,32 @@ data: # Variables used to define the input data
         - "./data/beam_numu_res_nc/chips_1200_sk1pe/"
         - "./data/beam_numu_qel_cc/chips_1200_sk1pe/"
         - "./data/beam_numu_qel_nc/chips_1200_sk1pe/"
+    extra_vars: False
     all_chan: False
     stack: True
     channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    rand: [0.05, 0.05, 0.05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    rand: [0.1, 0.1, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     shift: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
-    batch_size: 128
-    train_examples: 30000 # [5=5000, 15=15000, 30=30000]
-    val_examples: 1000
-    test_examples: 1000
-    describe: False
+    batch_size: 64
+    train_examples: 5000 # [5=5000, 15=15000, 30=30000]
+    val_examples: 2500
+    test_examples: 2500
 model: # Variables used to build the model
-    name: "beam_all" # [beam_all, beam_full_comb, beam_nu_nc_comb, beam_nc_comb, beam_multi, beam_all_inception]
-    reco_pars: True
+    name: 'beam'  # 'cosmic', 'beam', 'multi_simple', 'multi'
+    labels: ['t_all_cat']  # ['t_cosmic_cat'], ['t_all_cat'], ['t_all_cat', 't_nuEnergy'], ['t_all_cat', 't_nuEnergy']
+    reco_pars: False
     lr: 0.0001
     lr_decay: 0.0
     dense_units: 512
-    dropout: 0.2
+    dropout: 0.3
     kernel_size: 3
     filters: 64
-    policy: 'float32'
+    precision_policy: 'float32'
 trainer: # Variables used by the trainer
-    num_epochs: 10
-    steps_per_epoch: 3000
+    epochs: 5
+    steps_per_epoch: -1
     es_delta: 0.01
     es_epochs: 3
 study: # We list the number of trials and then all the variables we want to tune

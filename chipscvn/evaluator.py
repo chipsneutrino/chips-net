@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""
-Evaluator classes for testing the trained models
+"""Evaluator classes for testing the trained models
 
 This module contains all the evaluation classes used to test the
 trained models on test data to determine their performance. All are
@@ -19,69 +18,33 @@ from root_pandas import to_root
 from tqdm import tqdm
 
 import chipscvn.config
-import chipscvn.data as data
-import chipscvn.utils as utils
+import chipscvn.data
+import chipscvn.models
 
 
-class BaseEvaluator(object):
-
+class Evaluator(object):
+    """Combined Cosmic and Beam classification model evaluation.
     """
-    Base evaluator class which all implementations derive from.
-    """
-
     def __init__(self, config):
-        """
-        Initialise the BasicTrainer.
-
-        Args:
-            config (dotmap.DotMap): DotMap Configuration namespace
-        """
-        self.config = config
-        self.init_evaluator()
-
-    def init_evaluator(self):
-        """
-        Initialise the evaluator, overide in derived evaluator class.
-        """
-        raise NotImplementedError
-
-    def run_all(self):
-        """
-        Run the evaluator, overide in derived evaluator class.
-        """
-        raise NotImplementedError
-
-
-class CombinedEvaluator(BaseEvaluator):
-
-    """
-    Combined Cosmic and Beam classification model evaluation.
-    """
-
-    def __init__(self, config):
-        """
-        Initialise the CombinedEvaluator.
-
+        """Initialise the Evaluator.
         Args:
             config (dotmap.DotMap): DotMap Configuration namespace
         """
         super().__init__(config)
+        self.init_evaluator()
 
     def init_evaluator(self):
-        """
-        Initialise the evaluator.
+        """Initialise the evaluator.
         """
         # Get the test dataset
-        data_loader = data.DataLoader(self.config)
+        data_loader = chipscvn.data.DataLoader(self.config)
         self.data = data_loader.test_data()
 
         # Fully combined category names
         self.comb_cat_names = ['Nuel-CC', 'Numu-CC', 'NC', 'Cosmic']
 
     def get_loaded_model(self, name):
-        """
-        Get and loads the model from the configuration.
-
+        """Get and loads the model from the configuration.
         Args:
             name (str): Saved model name
         Returns:
@@ -92,13 +55,12 @@ class CombinedEvaluator(BaseEvaluator):
         config.exp.experiment_dir = self.config.models[name].dir
         config.exp.name = self.config.models[name].path
         chipscvn.config.setup_dirs(config, False)
-        model = utils.get_model(config)
+        model = chipscvn.models.get_model(config)
         model.load()
         return model
 
     def run_all(self):
-        """
-        Run the full evaluation.
+        """Run the full evaluation.
         """
         print('\n--- Running Evaluation ---')
 
@@ -118,8 +80,7 @@ class CombinedEvaluator(BaseEvaluator):
         print('--- Done (took %s seconds) ---\n' % (time.time() - start_time))
 
     def load_models(self):
-        """
-        Load all the required models.
+        """Load all the required models.
         """
         self.beam_model = self.get_loaded_model("beam_classification")
         with tqdm(total=(self.beam_model.categories+3), desc='--- loading models') as pbar:
@@ -136,8 +97,7 @@ class CombinedEvaluator(BaseEvaluator):
             pbar.update()
 
     def load_dataset(self):
-        """
-        Load the dataset into the pandas df.
+        """Load the dataset into the pandas df.
         """
         print('--- loading dataset... ', end='', flush=True)
 
@@ -172,8 +132,7 @@ class CombinedEvaluator(BaseEvaluator):
         print('done')
 
     def calculate_weights(self):
-        """
-        Calculate the weights to apply categorically.
+        """Calculate the weights to apply categorically.
         """
         print('--- calculating weights... ', end='', flush=True)
 
@@ -182,7 +141,7 @@ class CombinedEvaluator(BaseEvaluator):
         tot_numu = self.events[(self.events.t_nu == 1) &
                                (self.events.t_cosmic_cat == 0)].shape[0]
         tot_cosmic = self.events[self.events.t_cosmic_cat == 1].shape[0]
-        
+
         self.nuel_weight = (1.0/tot_nuel)*(self.config.eval.weights.nuel *
                                            self.config.eval.weights.total)
         self.numu_weight = (1.0/tot_numu)*(self.config.eval.weights.numu *
@@ -198,9 +157,7 @@ class CombinedEvaluator(BaseEvaluator):
             self.cosmic_weight, tot_cosmic))
 
     def add_weight(self, event):
-        """
-        Add the correct weight to each event.
-
+        """Add the correct weight to each event.
         Args:
             event (dict): Pandas event(row) dict
         Returns:
@@ -216,8 +173,7 @@ class CombinedEvaluator(BaseEvaluator):
             raise NotImplementedError
 
     def run_inference(self):
-        """
-        Get model outputs for test data.
+        """Get model outputs for test data.
         """
         print('--- running inference... ', end='', flush=True)
         c_dense_model = None
@@ -249,8 +205,7 @@ class CombinedEvaluator(BaseEvaluator):
         print('done')
 
     def calculate_cuts(self):
-        """
-        Calculate different cuts to be applied.
+        """Calculate different cuts to be applied.
         """
         print('--- calculating cuts... ', end='', flush=True)
 
@@ -363,8 +318,7 @@ class CombinedEvaluator(BaseEvaluator):
             self.nc_max_fom, self.nc_max_fom_cut))
 
     def base_cut_summary(self):
-        """
-        Print how each category is affected by the base_cut.
+        """Print how each category is affected by the base_cut.
         """
         print("Base Cut Summary...\n")
         for i in range(4):
@@ -374,8 +328,7 @@ class CombinedEvaluator(BaseEvaluator):
                 cat_events[cat_events['base_cut'] == 0].shape[0]/cat_events.shape[0]))
 
     def combined_cut_summary(self):
-        """
-        Print how each category is affected by the base_cut + cosmic_cut.
+        """Print how each category is affected by the base_cut + cosmic_cut.
         """
         print("Base + Cosmic Cut Summary...\n")
         for i in range(4):
@@ -386,9 +339,7 @@ class CombinedEvaluator(BaseEvaluator):
                     (cat_events.cosmic_cut == 0)].shape[0]/cat_events.shape[0]))
 
     def base_cut(self, event):
-        """
-        Calculate if the event should be cut due to activity.
-
+        """Calculate if the event should be cut due to activity.
         Args:
             event (dict): Pandas event(row) dict
         Returns:
@@ -403,9 +354,7 @@ class CombinedEvaluator(BaseEvaluator):
         return cut
 
     def cosmic_cut(self, event):
-        """
-        Calculate if the event should be cut due to the cosmic network output.
-
+        """Calculate if the event should be cut due to the cosmic network output.
         Args:
             event (dict): Pandas event(row) dict
         Returns:
@@ -414,9 +363,7 @@ class CombinedEvaluator(BaseEvaluator):
         return (event.c_out >= self.config.eval.cuts.cosmic)
 
     def classify(self, event):
-        """
-        Add the correct weight to each event.
-
+        """Add the correct weight to each event.
         Args:
             event (dict): Pandas event(row) dict
         Returns:
@@ -429,8 +376,7 @@ class CombinedEvaluator(BaseEvaluator):
             return np.asarray(x).argmax()
 
     def predict_energies(self):
-        """
-        Estimate the event energy using the true category model
+        """Estimate the event energy using the true category model
         """
         estimations = []
         for i in tqdm(range(self.beam_model.categories+1), desc='--- predicting energies'):
@@ -446,8 +392,7 @@ class CombinedEvaluator(BaseEvaluator):
         self.events['pred_cat_pred_e'] = np.array(pred_cat_energies)
 
     def save_to_file(self):
-        """
-        Save everything to a ROOT file.
+        """Save everything to a ROOT file.
         """
         print('--- saving to file... ', end='', flush=True)
         to_root(self.events, self.config.eval.output, key='events')
@@ -455,9 +400,7 @@ class CombinedEvaluator(BaseEvaluator):
 
     def cat_plot(self, parameter, bins, x_low, x_high, y_low, y_high, scale='norm',
                  base_cut=True, cosmic_cut=True):
-        """
-        Make the histograms and legend for a parameter, split by true category.
-
+        """Make the histograms and legend for a parameter, split by true category.
         Args:
             parameter (str): Paramter to plot
             bins (int): How many x-bins to use
@@ -520,9 +463,7 @@ class CombinedEvaluator(BaseEvaluator):
 
     def combined_cat_plot(self, parameter, bins, x_low, x_high, y_low, y_high, scale='norm',
                           base_cut=True, cosmic_cut=True):
-        """
-        Make the histograms and legend for a parameter, split by combined category.
-
+        """Make the histograms and legend for a parameter, split by combined category.
         Args:
             parameter (str): Paramter to plot
             bins (int): How many x-bins to use

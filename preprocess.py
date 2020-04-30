@@ -39,7 +39,7 @@ def main():
     args = parse_args()
     creator = data.DataCreator(
         args.directory, args.geom, args.split, args.join, args.parallel, args.all)
-    creator.preprocess()
+    creator.run()
 
 
 if __name__ == '__main__':

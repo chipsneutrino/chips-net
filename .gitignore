@@ -1,11 +1,11 @@
 __pycache__/
 tmp/
 output/
-env/miniconda/
+env/conda/
 *.ipynb_checkpoints
 *.root
 example_data/
 data/
 .vscode
 smearing/
-.comet.sh
+.comet
