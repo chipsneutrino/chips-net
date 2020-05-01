@@ -22,13 +22,10 @@ pytest:
 pdoc:
   stage: Docs
   script:
+    - pdoc --html chipscvn -o ./doc --force
     - mkdir .public
-    - cp -r * .public
+    - cp -r ./doc/chipscvn/* .public
     - mv .public public
-  - pdoc --html chipscvn -o ./doc --force
-  - mkdir .public
-  - cp -r ./doc/chipscvn/* .public
-  - mv .public public
   artifacts:
     paths:
     - public
