@@ -47,7 +47,7 @@ def train_model(config):
         config (dotmap.DotMap): Configuration namespace
     """
     try:
-        Experiment()
+        experiment = Experiment()
     except Exception:
         print('Error: Need to set comet_ml env variables')
         pass
@@ -64,10 +64,15 @@ def train_model(config):
         trainer.train()
         print('\n--- Running quick evaluation ---\n')
         trainer.eval()
-        print('--- Saving model ---\n')
+        print('\n--- Saving model ---\n')
         trainer.save()
     else:
         print('\n--- Skipping training ---\n')
+
+    try:
+        experiment.end()
+    except Exception:
+        pass
 
 
 def study_model(config):

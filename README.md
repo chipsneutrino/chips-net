@@ -1,51 +1,56 @@
 # chips-cvn
-chips-cvn (CHIPS Convolutional Visual Network) provides the code to train Convolutional Neural Networks (CNNs) for CHIPS event analysis using the tensorflow framework.
 
-The generated docs can be found [here](https://gitlab.com/chipsneutrino.gitlab.io/chipscvn)
+[![Pipeline](https://gitlab.com/chipsneutrino/chips-cvn/badges/master/pipeline.svg)](https://gitlab.com/chipsneutrino/chips-cvn/pipelines)        
+[![Docs chipsneutrino.gitlab.io/chips-cvn](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://chipsneutrino.gitlab.io/chips-cvn/)
+
+chips-cvn (CHIPS Convolutional Visual Network) provides the code to train Convolutional Neural Networks (CNNs) for CHIPS event analysis using the [Tensorflow](https://www.tensorflow.org/) framework.
+
+The docs can be found at [https://chipsneutrino.gitlab.io/chips-cvn/](https://chipsneutrino.gitlab.io/chips-cvn/)
 
 ## Setup
-To install the conda environment with all the required dependencies run...
+To setup the correct version of CUDA and install the conda environment, run... 
 
 ```
 $ source setup.sh
 ```
 
-Once this is done you can run setup.sh again in the future to activate the environment.
+Once this is done you can source 'setup.sh' again in the future to activate the environment.
+
+This also sets up two aliases (run and preprocess) used to execute run.py and preprocess.py.
 
 ## Preprocessing
 To preprocess .root map files into tfrecords run...
 
 ```
-$ python preprocess.py [input_prod_directory]
+$ preprocess [input_prod_directory]
 ```
 
 ## To Run
-To run train, study, or evaluate, modify config file and call...
+To run train, study, or evaluate, modify or create a new config file, exampes of which are in ./data/config/ and call...
 
 ```
-$ python run.py [yaml_configuration]
+$ run [yaml_configuration]
 ```
+
+## Tips
+You can use ./scripts/preprocess_maps.sh to preprocess a whole production set
+
+It's important to first copy data to the local GPU machine or the training rate is reduced significantly due to the network bottleneck. The script ./scripts/copy_to_local.sh shows how to do this.
 
 ## Notebooks
-To use evaluate and explain notebooks...
+To use the notebooks in ./scripts/ run the following and navigate to the url given.
+
+You will need to forward the port to your local machine if working remotely.
 
 ```
 $ jupyter-notebook
 ```
 
-and navigate to the link, you will need to make sure you are forwarding the port
-
 ## Jupyter Slideshow
-To serve the slideshow...
+To serve a jupyter notebook as a slideshow run...
+
+Again you will need to forward the port to your local machine if working remotely.
 
 ```
 $ jupyter nbconvert [notebook] --to slides --post serve
-```
-
-## Documentation
-
-To produce the docs run...
-
-```
-pdoc --html chipscvn -o ./data/doc --force
 ```
