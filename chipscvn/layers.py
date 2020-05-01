@@ -377,6 +377,7 @@ def get_effnet_base(config):
 class ConvBN(layers.Layer):
     """Convolution + Batch Normalisation layer
     """
+
     def __init__(self, filters, kernel_size=(3, 3), strides=(1, 1),
                  activation='relu', padding='same', name='conv_bn',
                  **kwargs):
@@ -408,6 +409,7 @@ class ConvBN(layers.Layer):
 class VGGBlock(layers.Layer):
     """VGG Block layer
     """
+
     def __init__(self, num_conv=2, filters=64, kernel_size=(3, 3), strides=(1, 1),
                  activation='relu', padding='same', drop_rate=0.0, bn=True,
                  name='vgg_block', **kwargs):
@@ -421,7 +423,7 @@ class VGGBlock(layers.Layer):
                                          padding, name=self.name+'_conv'+str(i)))
             else:
                 self.convs.append(layers.Conv2D(filters, kernel_size, activation=activation,
-                                  padding=padding, name=self.name+'_conv'+str(i)))
+                                                padding=padding, name=self.name+'_conv'+str(i)))
         self.pool = layers.MaxPooling2D((2, 2), strides=(2, 2), name=name+'_pool')
         self.dropout = layers.Dropout(drop_rate, name=name+'_drop')
 
@@ -442,6 +444,7 @@ class MultiLossLayer(layers.Layer):
     https://arxiv.org/pdf/1705.07115.pdf
     https://github.com/yaringal/multi-task-learning-example/blob/master/multi-task-learning-example.ipynb
     """
+
     def __init__(self, **kwargs):
         """Initialise the MultiLossLayer.
         Args:
@@ -521,6 +524,7 @@ class CHIPSMultitask(tf.keras.Model):
     https://arxiv.org/pdf/1705.07115.pdf
     https://github.com/yaringal/multi-task-learning-example/blob/master/multi-task-learning-example.ipynb
     """
+
     def __init__(self, config, num_cats=16, cat='t_cat', name='chips_multitask', **kwargs):
         super(CHIPSMultitask, self).__init__(name=name, **kwargs)
         self.block1 = VGGBlock(2, config.model.filters, config.model.kernel_size,

@@ -40,6 +40,7 @@ def get_model(config):
 class BaseModel:
     """Base model class which all model implementations derive from.
     """
+
     def __init__(self, config):
         """Initialise the BaseModel.
         Args:
@@ -89,6 +90,7 @@ class BaseModel:
 class ParameterModel(BaseModel):
     """Single parameter estimation model class.
     """
+
     def __init__(self, config):
         """Initialise the ParameterModel.
         Args:
@@ -117,6 +119,7 @@ class ParameterModel(BaseModel):
 class CosmicModel(BaseModel):
     """Cosmic vs beam classification model class.
     """
+
     def __init__(self, config):
         """Initialise the CosmicModel.
         Args:
@@ -145,6 +148,7 @@ class CosmicModel(BaseModel):
 class BeamModel(BaseModel):
     """Beam category classification model class.
     """
+
     def __init__(self, config):
         """Initialise the BeamModel.
         Args:
@@ -175,6 +179,7 @@ class BeamModel(BaseModel):
 class BeamMultiSimpleModel(BaseModel):
     """Simple Beam Multi-task model class.
     """
+
     def __init__(self, config):
         """Initialise the BeamMultiSimpleModel.
         Args:
@@ -216,6 +221,7 @@ class BeamMultiSimpleModel(BaseModel):
 class BeamMultiModel(BaseModel):
     """Beam Multi-task model class.
     """
+
     def __init__(self, config):
         """Initialise the BeamMultiModel.
         Args:

@@ -37,6 +37,7 @@ def get_study(config):
 class BaseStudy(object):
     """Base study class which all implementations derive from.
     """
+
     def __init__(self, config):
         """Initialise the BaseStudy.
         Args:
@@ -86,6 +87,7 @@ class BaseStudy(object):
 class ParameterStudy(BaseStudy):
     """Single parameter model study class.
     """
+
     def __init__(self, config):
         """Initialise the ParameterStudy.
         Args:
@@ -116,6 +118,7 @@ class ParameterStudy(BaseStudy):
 class StandardStudy(BaseStudy):
     """Cosmic vs beam classification model study class.
     """
+
     def __init__(self, config):
         """Initialise the StandardStudy.
         Args:
@@ -147,6 +150,7 @@ class StandardStudy(BaseStudy):
 class MultiStudy(BaseStudy):
     """Multi-task model study class.
     """
+
     def __init__(self, config):
         """Initialise the MultiStudy.
         Args:

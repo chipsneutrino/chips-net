@@ -25,6 +25,7 @@ import chipscvn.models
 class Evaluator(object):
     """Combined Cosmic and Beam classification model evaluation.
     """
+
     def __init__(self, config):
         """Initialise the Evaluator.
         Args:
