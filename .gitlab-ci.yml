@@ -1,9 +1,5 @@
 image: "registry.gitlab.com/chipsneutrino/chips-cvn/chips-cvn:latest"
 
-before_script:
-  - python --version
-  - export PYTHONPATH=$PYTHONPATH:$(pwd)
-
 stages:
   - build
   - test
@@ -26,12 +22,13 @@ build:
 flake8:
   stage: test
   script:
-  - flake8 --max-line-length=120 chipscvn/*.py
+    - flake8 --max-line-length=120 chipscvn/*.py
 
 pytest:
   stage: test
   script:
-  - pytest
+    - export PYTHONPATH=$PYTHONPATH:$(pwd)
+    - pytest
 
 pdoc:
   stage: docs
@@ -42,4 +39,4 @@ pdoc:
     - mv .public public
   artifacts:
     paths:
-    - public
+      - public
