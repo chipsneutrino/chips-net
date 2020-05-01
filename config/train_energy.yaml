@@ -1,27 +1,12 @@
 ---
 task: 'train'
 exp: # Variables used to save the experiment
-    name: "cosmic_energy"
-    experiment_dir: "./models/energy_estimation_models/"
+    name: "beam_nuel_qel_cc_energy"
+    experiment_dir: "./data/output/energy_estimation_models/"
 data: # Variables used to load thata
     input_dirs: 
-        #- "./data/beam_nuel_coh_cc/chips_1200_sk1pe/"
-        #- "./data/beam_nuel_coh_nc/chips_1200_sk1pe/"
-        #- "./data/beam_nuel_dis_cc/chips_1200_sk1pe/"
-        #- "./data/beam_nuel_dis_nc/chips_1200_sk1pe/"
-        #- "./data/beam_nuel_res_cc/chips_1200_sk1pe/"
-        #- "./data/beam_nuel_res_nc/chips_1200_sk1pe/"
-        - "./data/beam_nuel_qel_cc/chips_1200_sk1pe/"
-        #- "./data/beam_nuel_qel_nc/chips_1200_sk1pe/"
-        #- "./data/beam_numu_coh_cc/chips_1200_sk1pe/"
-        #- "./data/beam_numu_coh_nc/chips_1200_sk1pe/"
-        #- "./data/beam_numu_dis_cc/chips_1200_sk1pe/"
-        #- "./data/beam_numu_dis_nc/chips_1200_sk1pe/"
-        #- "./data/beam_numu_res_cc/chips_1200_sk1pe/"
-        #- "./data/beam_numu_res_nc/chips_1200_sk1pe/"
-        #- "./data/beam_numu_qel_cc/chips_1200_sk1pe/"
-        #- "./data/beam_numu_qel_nc/chips_1200_sk1pe/"
-        #- "./data/cosmic_numu_all/chips_1200_sk1pe/"
+        - "./data/input/beam_nuel_qel_cc/chips_1200_sk1pe/"
+    extra_vars: False
     all_chan: False
     stack: True
     channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -30,12 +15,12 @@ data: # Variables used to load thata
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    train_examples: 2500 # [25=2500]
+    train_examples: 2500
     val_examples: 250
     test_examples: 250
 model: # Variables used in building the model
     name: "parameter"
-    parameter: "t_nuEnergy"
+    labels: ['t_nuEnergy']
     reco_pars: True
     lr: 0.0001
     lr_decay: 0.0
@@ -43,6 +28,7 @@ model: # Variables used in building the model
     dropout: 0.2
     kernel_size: 3
     filters: 64
+    precision_policy: 'float32'
 trainer: # Variables used by the trainer
     num_epochs: 20
     steps_per_epoch: -1

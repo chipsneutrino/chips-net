@@ -47,5 +47,5 @@ $ jupyter nbconvert [notebook] --to slides --post serve
 To produce the docs run...
 
 ```
-pdoc --html chipscvn -o doc
+pdoc --html chipscvn -o ./data/doc
 ```

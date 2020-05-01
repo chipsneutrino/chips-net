@@ -1,11 +1,11 @@
 __pycache__/
 tmp/
-output/
 env/conda/
+data/output/*models*
 *.ipynb_checkpoints
 *.root
 example_data/
-data/
+data/input/*nu*
 .vscode
 smearing/
 .comet
