@@ -198,6 +198,7 @@ class DataLoader:
                 shape=[64, 64], mean=1, stddev=config.data.rand[i], dtype=tf.float32))
             self.shift.append(tf.fill([64, 64], (1.0 + config.data.shift[i])))
 
+    @tf.function
     def parse(self, serialised_example):
         """Parses a single serialised example into both an input and labels dict.
         Args:
@@ -273,6 +274,10 @@ class DataLoader:
         inputs['r_vtxZ'] = tf.math.divide(reco_pars_f[6], self.config.data.par_scale[2]),
         inputs['r_dirTheta'] = tf.math.divide(reco_pars_f[8], self.config.data.par_scale[3]),
         inputs['r_dirPhi'] = tf.math.divide(reco_pars_f[9], self.config.data.par_scale[4])
+
+        if len(self.config.model.labels) > 1:
+            inputs[all_cat_map.name] = labels[all_cat_map.name]
+            inputs['t_nuEnergy'] = labels['t_nuEnergy']
 
         if self.config.data.extra_vars:
             true_prim_i = tf.io.decode_raw(example['true_prim_i'], tf.int32)

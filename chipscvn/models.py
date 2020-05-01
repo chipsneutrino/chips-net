@@ -208,13 +208,21 @@ class BeamMultiSimpleModel(BaseModel):
                                     name=self.config.model.name)
         self.model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
-            loss={self.config.model.category: 'sparse_categorical_crossentropy',
-                  't_nuEnergy': 'mean_squared_error'},
-            loss_weights={self.config.model.category: 1.0, 't_nuEnergy': 0.0000005},
-            metrics={self.config.model.category: 'accuracy', 't_nuEnergy': 'mae'}
+            loss={
+                self.config.model.labels[0]: 'sparse_categorical_crossentropy',
+                self.config.model.labels[1]: 'mean_squared_error'
+            },
+            loss_weights={
+                self.config.model.labels[0]: 1.0,
+                self.config.model.labels[1]: 0.0000005
+            },
+            metrics={
+                self.config.model.labels[0]: 'accuracy',
+                self.config.model.labels[1]: 'mae'
+            }
         )
         self.es_monitor = 'val_accuracy'
-        self.parameters = [self.config.model.category, 't_nuEnergy']
+        self.parameters = [self.config.model.labels[0], self.config.model.labels[1]]
         self.summarise(self.model)
 
 
@@ -237,7 +245,4 @@ class BeamMultiModel(BaseModel):
             chipscvn.data.get_map(self.config.model.labels[0]).train_num,
             self.config.model.labels[0]
         )
-        input_shape = [[self.config.data.batch_size] + self.config.data.img_size, 1, 1]
-        print(input_shape)
-        self.model.build(input_shape)
         self.summarise(self.model.model())

@@ -379,8 +379,8 @@ class ConvBN(layers.Layer):
     """
 
     def __init__(self, filters, kernel_size=(3, 3), strides=(1, 1),
-                 activation='relu', padding='same', name='conv_bn',
-                 **kwargs):
+                 activation='relu', padding='same', bn=True,
+                 name='conv_bn', **kwargs):
         super(ConvBN, self).__init__(name=name, **kwargs)
         self.conv = layers.Conv2D(
             filters,
@@ -390,11 +390,13 @@ class ConvBN(layers.Layer):
             use_bias=False,
             name=name+'_cv'
         )
-        self.bn = layers.BatchNormalization(
-            axis=3,
-            scale=False,
-            name=name+'_bn'
-        )
+        self.bn = bn
+        if self.bn:
+            self.bn = layers.BatchNormalization(
+                axis=3,
+                scale=False,
+                name=name+'_bn'
+            )
         self.activation = layers.Activation(
             activation,
             name=name+'_ac'
@@ -402,7 +404,8 @@ class ConvBN(layers.Layer):
 
     def call(self, inputs):
         x = self.conv(inputs)
-        x = self.bn(x)
+        if self.bn:
+            x = self.bn(x)
         return self.activation(x)
 
 
@@ -416,26 +419,23 @@ class VGGBlock(layers.Layer):
         super(VGGBlock, self).__init__(name=name, **kwargs)
         self.num_conv = num_conv
         self.drop_rate = drop_rate
+
+        names = [('_conv' + str(i)) for i in range(num_conv)]
         self.convs = []
         for i in range(self.num_conv):
-            if bn:
-                self.convs.append(ConvBN(filters, kernel_size, strides, activation,
-                                         padding, name=self.name+'_conv'+str(i)))
-            else:
-                self.convs.append(layers.Conv2D(filters, kernel_size, activation=activation,
-                                                padding=padding, name=self.name+'_conv'+str(i)))
+            self.convs.append(
+                ConvBN(filters, kernel_size, strides, activation, padding, bn, name=names[i]))
+
         self.pool = layers.MaxPooling2D((2, 2), strides=(2, 2), name=name+'_pool')
         self.dropout = layers.Dropout(drop_rate, name=name+'_drop')
 
     def call(self, inputs):
-        print("IN({}): {}".format(self.name, inputs.shape))
         x = self.convs[0](inputs)
         for i in range(1, self.num_conv):
-            x = self.convs[i](inputs)
+            x = self.convs[i](x)
         x = self.pool(x)
         if self.drop_rate > 0.0:
             x = self.dropout(x)
-        print("OUT({}): {}".format(self.name, x.shape))
         return x
 
 
@@ -462,16 +462,19 @@ class MultiLossLayer(layers.Layer):
             name='log_var_c', shape=(1,),
             dtype=tf.float32,
             initializer=initializers.Constant(0.),
+            # initializer=initializers.RandomUniform(minval=0.2, maxval=1),
             trainable=True
         )
         self.log_var_e = self.add_weight(
             name='log_var_e', shape=(1,),
             dtype=tf.float32,
             initializer=initializers.Constant(0.),
+            # initializer=initializers.RandomUniform(minval=0.2, maxval=1),
             trainable=True
         )
-
-        # tf.initializers.random_uniform(minval=0.2, maxval=1)
+        self.loss_func_c = tf.keras.losses.SparseCategoricalCrossentropy()
+        # self.loss_func_c = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        self.loss_func_e = tf.keras.losses.MeanSquaredError()
 
         super(MultiLossLayer, self).build(input_shape)
 
@@ -482,28 +485,20 @@ class MultiLossLayer(layers.Layer):
             ys_pred (list[tf.tensor]): Predicted tensors
         """
         # Calculate the categorical loss
-        factor_c = tf.math.divide(1.0, tf.multiply(2.0, self.log_var_c[0]))
-        # factor_c = tf.math.exp(-self.log_var_c[0])
-
-        cross_entropy = tf.nn.softmax_cross_entropy_with_logits(c_true, c_pred)
-        # cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(c_true, c_pred)
-        loss_c = tf.reduce_mean(cross_entropy, name='loss_c')
-
-        loss = tf.math.add_n([tf.multiply(factor_c, loss_c), tf.math.log(self.log_var_c[0])])
-        # loss = tf.math.add_n([tf.multiply(factor_c, loss_c), self.log_var_c[0]])
+        # factor_c = tf.math.divide(1.0, tf.multiply(2.0, self.log_var_c[0]))
+        factor_c = tf.math.exp(-self.log_var_c[0])
+        loss_c = self.loss_func_c(c_true, c_pred)
+        # loss = tf.math.add_n([tf.multiply(factor_c, loss_c), tf.math.log(self.log_var_c[0])])
+        loss = tf.math.add_n([tf.multiply(factor_c, loss_c), self.log_var_c[0]])
 
         # Calculate the energy loss
-        factor_e = tf.math.divide(1.0, tf.multiply(2.0, self.log_var_e[0]))
-        # factor_e = tf.math.exp(-self.log_var_e[0])
+        # factor_e = tf.math.divide(1.0, tf.multiply(2.0, self.log_var_e[0]))
+        factor_e = tf.math.exp(-self.log_var_e[0])
+        loss_e = self.loss_func_e(e_true, e_pred)
+        # loss = tf.math.add_n([loss, tf.multiply(factor_e, loss_e), tf.math.log(self.log_var_e[0])])
+        loss = tf.math.add_n([loss, tf.multiply(factor_e, loss_e), self.log_var_e[0]])
 
-        # mse = tf.keras.losses.MeanSquaredError(e_true, e_pred)
-        loss_e = (e_true - e_pred)**2.
-        loss_e = tf.reduce_mean(loss_e, name='loss_e')
-
-        loss = tf.math.add_n([loss, tf.multiply(factor_e, loss_e), tf.math.log(self.log_var_e[0])])
-        # loss = tf.math.add_n([loss, tf.multiply(factor_e, loss_e), self.log_var_e[0]])
-
-        loss = tf.keras.backend.mean(loss)  # Test this on/off aswell
+        # Do I need a mean in here?
 
         return loss
 
@@ -516,7 +511,7 @@ class MultiLossLayer(layers.Layer):
         c_pred, e_pred = inputs[2], inputs[3]
         loss = self.multi_loss(c_true, e_true, c_pred, e_pred)
         self.add_loss(loss, inputs=inputs)
-        return tf.keras.backend.concatenate([c_pred, e_pred], -1)  # Dummy output
+        return [c_pred, e_pred]
 
 
 class CHIPSMultitask(tf.keras.Model):
@@ -548,7 +543,7 @@ class CHIPSMultitask(tf.keras.Model):
         self.out = MultiLossLayer()
 
     def call(self, inputs):
-        x = self.block1(inputs[0])
+        x = self.block1(inputs['image_0'])
         x = self.block2(x)
         x = self.block3(x)
         x = self.block4(x)
@@ -561,7 +556,7 @@ class CHIPSMultitask(tf.keras.Model):
         pred_e = self.dense_e(x)
         pred_c = self.out_c(pred_c)
         pred_e = self.out_e(pred_e)
-        return self.out([inputs[1], inputs[2], pred_c, pred_e])
+        return self.out([inputs['t_all_cat'], inputs['t_nuEnergy'], pred_c, pred_e])
 
     def model(self):
         image = layers.Input(shape=(64, 64, 3), name='image_0')
@@ -569,5 +564,9 @@ class CHIPSMultitask(tf.keras.Model):
         true_e = layers.Input(shape=(1), name='true_e')
         return tf.keras.Model(
             inputs=[image, true_c, true_e],
-            outputs=self.call([image, true_c, true_e])
+            outputs=self.call({
+                'image_0': image,
+                't_all_cat': true_c,
+                't_nuEnergy': true_e
+            })
         )

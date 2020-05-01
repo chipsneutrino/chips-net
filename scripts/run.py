@@ -41,7 +41,7 @@ import chipscvn.studies  # noqa: E402
 import chipscvn.evaluator  # noqa: E402
 
 
-def train_model(config, strategy):
+def train_model(config):
     """Trains a model according to the configuration.
     Args:
         config (dotmap.DotMap): Configuration namespace
@@ -60,7 +60,7 @@ def train_model(config, strategy):
     model = chipscvn.models.get_model(config)
     if config.trainer.epochs > 0:
         print('\n--- Training model ---')
-        trainer = chipscvn.trainers.get_trainer(config, model, data, strategy)
+        trainer = chipscvn.trainers.get_trainer(config, model, data)
         trainer.train()
         print('\n--- Running quick evaluation ---\n')
         trainer.eval()
@@ -70,7 +70,7 @@ def train_model(config, strategy):
         print('\n--- Skipping training ---\n')
 
 
-def study_model(config, strategy):
+def study_model(config):
     """Conducts a SHERPA study on a model according to the configuration.
     Args:
         config (dotmap.DotMap): Configuration namespace
@@ -83,7 +83,7 @@ def study_model(config, strategy):
     study.run()
 
 
-def evaluate_model(config, strategy):
+def evaluate_model(config):
     """Evaluate the trained model according to the configuration.
     Args:
         config (dotmap.DotMap): Configuration namespace
@@ -107,17 +107,17 @@ def main():
     print('\n--- Its Magic, it must be the CHIPS CVN ---\n')
     config = chipscvn.config.get(parse_args().config)
 
-    strategy = tf.distribute.MirroredStrategy()
-    with strategy.scope():
-        if config.task == 'train':
-            train_model(config, strategy)
-        elif config.task == 'study':
-            study_model(config, strategy)
-        elif config.task == 'evaluate':
-            evaluate_model(config, strategy)
-        else:
-            print('\nError: must define a task in configuration [train, study, evaluate]')
-            raise SystemExit
+    # strategy = tf.distribute.MirroredStrategy()
+    # with strategy.scope():
+    if config.task == 'train':
+        train_model(config)
+    elif config.task == 'study':
+        study_model(config)
+    elif config.task == 'evaluate':
+        evaluate_model(config)
+    else:
+        print('\nError: must define a task in configuration [train, study, evaluate]')
+        raise SystemExit
     print('--- Magic complete ---\n')
 
 
