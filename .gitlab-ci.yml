@@ -16,8 +16,8 @@ build:
   script:
     - cd ./env/
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t chips-cvn .
-    - docker push chips-cvn
+    - docker build -t $CI_REGISTRY/chipsneutrino/chips-cvn/chips-cvn:latest .
+    - docker push $CI_REGISTRY/chipsneutrino/chips-cvn/chips-cvn:latest
 
 flake8:
   stage: test
