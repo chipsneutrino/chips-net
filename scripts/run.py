@@ -83,7 +83,8 @@ def parse_args():
     """Parse the command line arguments.
     """
     parser = argparse.ArgumentParser(description='CHIPS CVN')
-    parser.add_argument('config', help='path to the configuration file')
+    parser.add_argument('config', help='path to the configuration file',
+                        default='./config/train_beam.yaml')
     return parser.parse_args()
 
 

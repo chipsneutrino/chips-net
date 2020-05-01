@@ -68,7 +68,7 @@ else
     conda update -n base -c defaults conda -y
     conda config --add envs_dirs $DIR/env/conda/envs
     conda config --add envs_dirs $DIR/env/conda/envs
-    conda env create -f $DIR/env/environment.yml
+    conda env create -f $DIR/env/environment.yaml
 
     # Clean the miniconda install
     conda clean --all -y
