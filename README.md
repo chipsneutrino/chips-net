@@ -1,7 +1,6 @@
 # chips-cvn
 
-[![Pipeline](https://gitlab.com/chipsneutrino/chips-cvn/badges/master/pipeline.svg)](https://gitlab.com/chipsneutrino/chips-cvn/pipelines)        
-[![Docs chipsneutrino.gitlab.io/chips-cvn](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://chipsneutrino.gitlab.io/chips-cvn/)
+[![Pipeline](https://gitlab.com/chipsneutrino/chips-cvn/badges/master/pipeline.svg)](https://gitlab.com/chipsneutrino/chips-cvn/pipelines)        [![Docs chipsneutrino.gitlab.io/chips-cvn](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://chipsneutrino.gitlab.io/chips-cvn/)
 
 chips-cvn (CHIPS Convolutional Visual Network) provides the code to train Convolutional Neural Networks (CNNs) for CHIPS event analysis using the [Tensorflow](https://www.tensorflow.org/) framework.
 
@@ -45,6 +44,15 @@ You will need to forward the port to your local machine if working remotely.
 ```
 $ jupyter-notebook
 ```
+
+## Tensorboard
+To run tensorboard on the outputs from a model use...
+
+```
+tensorboard --logdir [model_dir]/tensorboard
+```
+
+Again you will need to forward the port to your local machine if working remotely.
 
 ## Jupyter Slideshow
 To serve a jupyter notebook as a slideshow run...
