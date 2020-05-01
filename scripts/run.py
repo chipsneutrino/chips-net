@@ -52,12 +52,22 @@ def train_model(config, strategy):
         print('Error: Need to set comet_ml env variables')
         pass
 
+    print('--- Setting up directories ---\n')
     chipscvn.config.setup_dirs(config, True)
+    print('--- Setting up data loader ---\n')
     data = chipscvn.data.DataLoader(config)
+    print('--- Building model ---\n')
     model = chipscvn.models.get_model(config)
-    trainer = chipscvn.trainers.get_trainer(config, model, data, strategy)
-    trainer.train()
-    trainer.save()
+    if config.trainer.epochs > 0:
+        print('\n--- Training model ---')
+        trainer = chipscvn.trainers.get_trainer(config, model, data, strategy)
+        trainer.train()
+        print('\n--- Running quick evaluation ---\n')
+        trainer.eval()
+        print('--- Saving model ---\n')
+        trainer.save()
+    else:
+        print('\n--- Skipping training ---\n')
 
 
 def study_model(config, strategy):
@@ -65,8 +75,11 @@ def study_model(config, strategy):
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
+    print('--- Setting up directories ---\n')
     chipscvn.config.setup_dirs(config, True)
+    print('--- Setting up data loader ---\n')
     study = chipscvn.studies.get_study(config)
+    print('--- Running study ---\n')
     study.run()
 
 
@@ -75,6 +88,7 @@ def evaluate_model(config, strategy):
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
+    print('--- Setting up evaluator ---\n')
     evaluator = chipscvn.evaluator.Evaluator(config)
     evaluator.run_all()
 
@@ -83,15 +97,14 @@ def parse_args():
     """Parse the command line arguments.
     """
     parser = argparse.ArgumentParser(description='CHIPS CVN')
-    parser.add_argument('config', help='path to the configuration file',
-                        default='./config/train_beam.yaml')
+    parser.add_argument('config', help='path to the configuration file')
     return parser.parse_args()
 
 
 def main():
     """Main function called by the run script.
     """
-    print('\n--- Its Magic, it must be the CHIPS CVN ---')
+    print('\n--- Its Magic, it must be the CHIPS CVN ---\n')
     config = chipscvn.config.get(parse_args().config)
 
     strategy = tf.distribute.MirroredStrategy()
@@ -105,6 +118,7 @@ def main():
         else:
             print('\nError: must define a task in configuration [train, study, evaluate]')
             raise SystemExit
+    print('--- Magic complete ---\n')
 
 
 if __name__ == '__main__':

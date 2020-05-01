@@ -43,7 +43,7 @@ class BaseTrainer(object):
         self.data = data
         self.strategy = strategy
         self.callbacks = []
-        self.history = []
+        self.history = None
 
     def train(self):
         """Train the model, overide in derived model class.
@@ -125,17 +125,20 @@ class BasicTrainer(BaseTrainer):
             steps_per_epoch=steps
         )
 
+    def eval(self):
+        """Runs quick evaluation of the model.
+        """
         self.model.model.evaluate(self.data.testing_ds)
-        self.save()
 
     def save(self):
         """Saves the training history to file.
         """
-        history_name = os.path.join(self.config.exp.exp_dir, 'history.csv')
-        with open(history_name, mode='w') as history_file:
-            writer = csv.DictWriter(history_file, self.history.history.keys())
-            writer.writeheader()
-            writer.writerow(self.history.history)
+        if self.history is not None:
+            history_name = os.path.join(self.config.exp.exp_dir, 'history.csv')
+            with open(history_name, mode='w') as history_file:
+                writer = csv.DictWriter(history_file, self.history.history.keys())
+                writer.writeheader()
+                writer.writerow(self.history.history)
 
 '''
 class MultiTrainer(BaseTrainer):
