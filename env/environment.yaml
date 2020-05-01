@@ -28,9 +28,6 @@ dependencies:
   - tqdm=4.45.0
   - pdoc3=0.7.2
   - pyyaml=5.3.1
-  - geant4=10.5.1
-  - cmake=3.14.0
-  - gsl=2.6
   - pip=20.0.2
   - pip:
     - parameter-sherpa==1.0.6

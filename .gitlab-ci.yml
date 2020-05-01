@@ -1,26 +1,40 @@
-image: "python:3.7"
+image: "registry.gitlab.com/chipsneutrino/chips-cvn/chips-cvn:latest"
 
 before_script:
   - python --version
   - export PYTHONPATH=$PYTHONPATH:$(pwd)
-  - pip install -r ./tests/requirements.txt
 
 stages:
-  - Test
-  - Docs
+  - build
+  - test
+  - docs
+
+build:
+  stage: build
+  image: docker:19.03.1
+  services:
+    - docker:19.03.1-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    - cd ./env/
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t chips-cvn .
+    - docker push chips-cvn
 
 flake8:
-  stage: Test
+  stage: test
   script:
   - flake8 --max-line-length=120 chipscvn/*.py
 
 pytest:
-  stage: Test
+  stage: test
   script:
   - pytest
 
 pdoc:
-  stage: Docs
+  stage: docs
   script:
     - pdoc --html chipscvn -o ./doc --force
     - mkdir .public
