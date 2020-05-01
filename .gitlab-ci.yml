@@ -1,10 +1,34 @@
-pages:
+image: "python:3.7"
+
+before_script:
+  - python --version
+  - export PYTHONPATH=$PYTHONPATH:$(pwd)
+  - pip install -r ./tests/requirements.txt
+
+stages:
+  - Test
+  - Docs
+
+flake8:
+  stage: Test
   script:
+  - flake8 --max-line-length=120 chipscvn/*.py
+
+pytest:
+  stage: Test
+  script:
+  - pytest
+
+pdoc:
+  stage: Docs
+  script:
+    - mkdir .public
+    - cp -r * .public
+    - mv .public public
+  - pdoc --html chipscvn -o ./doc --force
   - mkdir .public
-  - cp -r doc/chipscvn/* .public
+  - cp -r ./doc/chipscvn/* .public
   - mv .public public
   artifacts:
     paths:
     - public
-  only:
-  - master

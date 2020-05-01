@@ -2,7 +2,7 @@
 task: 'train'
 exp: # Variables used to define the output directory
     name: "beam"
-    experiment_dir: "./data/output/beam_classification_models/"
+    output_dir: "./data/output/beam_models/"
 data: # Variables used to define the input data
     input_dirs:
         #- "./data/input/beam_nuel_all/chips_1200_sk1pe/"
@@ -23,6 +23,7 @@ data: # Variables used to define the input data
         - "./data/input/beam_numu_res_nc/chips_1200_sk1pe/"
         - "./data/input/beam_numu_qel_cc/chips_1200_sk1pe/"
         - "./data/input/beam_numu_qel_nc/chips_1200_sk1pe/"
+        #- "./data/input/cosmic_numu_all/chips_1200_sk1pe/"
     extra_vars: False
     all_chan: False
     stack: True
@@ -32,12 +33,12 @@ data: # Variables used to define the input data
     img_size: [64, 64, 3]
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
     batch_size: 64
-    train_examples: 10000 # [5=5000, 15=15000, 30=30000]
+    train_examples: 10000
     val_examples: 2500
     test_examples: 2500
 model: # Variables used to build the model
-    name: 'beam'  # 'beam', 'multi_simple', 'multi'
-    labels: ['t_all_cat']  # ['t_all_cat'], ['t_all_cat', 't_nuEnergy'], ['t_all_cat', 't_nuEnergy']
+    name: 'beam'  # 'parameter', 'cosmic', 'beam', 'multi_simple', 'multi'
+    labels: ['t_all_cat']  # ['t_nuEnergy'], ['t_cosmic_cat'], ['t_all_cat'], ['t_all_cat', 't_nuEnergy'], ['t_all_cat', 't_nuEnergy']
     reco_pars: False
     lr: 0.0001
     lr_decay: 0.0

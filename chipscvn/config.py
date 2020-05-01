@@ -35,12 +35,12 @@ def setup_dirs(config, remove_old):
         config (dotmap.DotMap): Configuration namespace
         remove_old (bool): Should we remove old directories at the same path
     """
-    config.exp.exp_dir = os.path.join(config.exp.experiment_dir, config.exp.name)
+    config.exp.exp_dir = os.path.join(config.exp.output_dir, config.exp.name)
     if remove_old:
         shutil.rmtree(config.exp.exp_dir, ignore_errors=True)
 
     # Set the experiment directories
-    os.makedirs(config.exp.experiment_dir, exist_ok=True)
+    os.makedirs(config.exp.output_dir, exist_ok=True)
     os.makedirs(config.exp.exp_dir, exist_ok=True)
     config.exp.tensorboard_dir = os.path.join(config.exp.exp_dir, 'tensorboard')
     os.makedirs(config.exp.tensorboard_dir, exist_ok=True)

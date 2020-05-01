@@ -53,7 +53,7 @@ class Evaluator(object):
         """
         config = self.config
         config.model = self.config.models[name]
-        config.exp.experiment_dir = self.config.models[name].dir
+        config.exp.output_dir = self.config.models[name].dir
         config.exp.name = self.config.models[name].path
         chipscvn.config.setup_dirs(config, False)
         model = chipscvn.models.get_model(config)

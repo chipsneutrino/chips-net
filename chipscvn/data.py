@@ -20,156 +20,164 @@ import tensorflow as tf
 from dotmap import DotMap
 
 
-"""Map nuel and numu (Total = 2)
-0=Nuel, 1=Numu (cosmic muons are included in this)"""
-nu_type_map = DotMap({
-    'name': 't_nu_type',
-    'total_num': 2,
-    'train_num': 2,
-    'labels': ['Nuel', 'Numu'],
-    'table': tf.lookup.StaticHashTable(
-        tf.lookup.KeyValueTensorInitializer(
-            tf.constant([11, 12, 13, 14]),
-            tf.constant([0,  0,  1,  1])
-        ), -1)
-})
-
-"""Map interaction types (Total = 10)
-0=CC-QEL, 1=CC-RES, 2=CC-DIS, 3=CC-COH
-4=NC-QEL, 5=NC-RES, 6=NC-DIS, 7=NC-COH, 8=Cosmic, 9=Other"""
-int_type_map = DotMap({
-    'name': 't_int_type',
-    'total_num': 10,
-    'train_num': 8,
-    'labels': ['CC-QEL', 'CC-RES', 'CC-DIS', 'CC-COH',
-               'NC-QEL', 'NC-RES', 'NC-DIS', 'NC-COH', 'Cosmic', 'Other'],
-    'table': tf.lookup.StaticHashTable(
-        tf.lookup.KeyValueTensorInitializer(
-            tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 91, 92, 96, 97, 98, 99, 100]),
-            tf.constant([9, 0, 4, 1, 1, 1, 5, 5, 5, 5,  2,  6,  7,  3,  9,  9,   8])
-        ), -1)
-})
-
-"""Map to all categories (Total = 19)
-Category keys are a string of pdg+type, e.g an nuel ccqe event is '0'+'0' = '00'
-0=Nuel-CC-QEL, 1=Nuel-CC-RES, 2=Nuel-CC-DIS, 3=Nuel-CC-COH
-4=Numu-CC-QEL, 5=Numu-CC-RES, 6=Numu-CC-DIS, 7=Numu-CC-COH
-8=Nuel-NC-QEL, 9=Nuel-NC-RES, 10=Nuel-NC-DIS, 11=Nuel-NC-COH
-12=Numu-NC-QEL, 13=Numu-NC-RES, 14=Numu-NC-DIS, 15=Numu-NC-COH
-16=Cosmic, 17=Nuel-Other, 18=Numu-Other"""
-all_cat_map = DotMap({
-    'name': 't_all_cat',
-    'total_num': 19,
-    'train_num': 16,
-    'labels': ['Nuel-CC-QEL', 'Nuel-CC-RES', 'Nuel-CC-DIS', 'Nuel-CC-COH'
-               'Numu-CC-QEL', 'Numu-CC-RES', 'Numu-CC-DIS', 'Numu-CC-COH'
-               'Nuel-NC-QEL', 'Nuel-NC-RES', 'Nuel-NC-DIS', 'Nuel-NC-COH'
-               'Numu-NC-QEL', 'Numu-NC-RES', 'Numu-NC-DIS', 'Numu-NC-COH'
-               'Cosmic', 'Nuel-Other', 'Numu-Other'],
-    'table': tf.lookup.StaticHashTable(
-        tf.lookup.KeyValueTensorInitializer(
-            tf.constant(['00', '01', '02', '03', '10', '11', '12', '13',
-                         '04', '05', '06', '07', '14', '15', '16', '17',
-                         '18', '09', '19'], dtype=tf.string),
-            tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                         8, 9, 10, 11, 12, 13, 14, 15,
-                         16, 17, 18])
-        ), -1)
-})
-
-"""Map a cosmic flag (Total = 2)
-0=Cosmic, 1=Not-Cosmic"""
-cosmic_cat_map = DotMap({
-    'name': 't_cosmic_cat',
-    'total_num': 2,
-    'train_num': 2,
-    'labels': ['Cosmic', 'Not-Cosmic'],
-    'table': tf.lookup.StaticHashTable(
-        tf.lookup.KeyValueTensorInitializer(
-            tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                         8, 9, 10, 11, 12, 13, 14, 15,
-                         16, 17, 18]),
-            tf.constant([0, 0, 0, 0, 0, 0, 0, 0,
-                         0, 0, 0, 0, 0, 0, 0, 0,
-                         1, 0, 0])
-        ), -1)
-})
-
-"""Map to full_combined categories (Total = 5)
-0=Nuel-CC, 1=Numu-CC, 2=NC, 3=Cosmic, 4=Other"""
-comb_cat_map = DotMap({
-    'name': 't_comb_cat',
-    'total_num': 5,
-    'train_num': 3,
-    'labels': ['Nuel-CC', 'Numu-CC', 'NC', 'Cosmic', 'Other'],
-    'table': tf.lookup.StaticHashTable(
-        tf.lookup.KeyValueTensorInitializer(
-            tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                         8, 9, 10, 11, 12, 13, 14, 15,
-                         16, 17, 18]),
-            tf.constant([0, 0, 0, 0, 1, 1, 1, 1,
-                         2, 2, 2, 2, 2, 2, 2, 2,
-                         3, 4, 4])
-        ), -1)
-})
-
-"""Map to nc_nu_combined categories (Total = 14)
-0=Nuel CC-QEL, 1=Nuel CC-RES, 2=Nuel CC-DIS, 3=Nuel CC-COH
-4=Numu CC-QEL, 5=Numu CC-RES, 6=Numu CC-DIS, 7=Numu CC-COH
-8=NC-QEL, 9=NC-RES, 10=NC-DIS, 11=NC-COH, 12=Cosmic, 13=Other"""
-nu_nc_comb_map = DotMap({
-    'name': 't_nu_nc_cat',
-    'total_num': 14,
-    'train_num': 12,
-    'labels': ['Nuel CC-QEL', 'Nuel CC-RES', 'Nuel CC-DIS', 'Nuel CC-COH',
-               'Numu CC-QEL', 'Numu CC-RES', 'Numu CC-DIS', 'Numu CC-COH',
-               'NC-QEL', 'NC-RES', 'NC-DIS', 'NC-COH', 'Cosmic', 'Other'],
-    'table': tf.lookup.StaticHashTable(
-        tf.lookup.KeyValueTensorInitializer(
-            tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                         8, 9, 10, 11, 12, 13, 14, 15,
-                         16, 17, 18]),
-            tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                         8, 9, 10, 11, 8, 9, 10, 11,
-                         12, 13, 13])
-        ), -1)
-})
-
-"""Map to nc_combined categories (Total = 11)
-0=Nuel-CC-QEL, 1=Nuel-CC-RES, 2=Nuel-CC-DIS, 3=Nuel-CC-COH
-4=Numu-CC-QEL, 5=Numu-CC-RES, 6=Numu-CC-DIS, 7=Numu-CC-COH
-8=NC, 9=Cosmic, 10=Other"""
-nc_comb_map = DotMap({
-    'name': 't_nc_cat',
-    'total_num': 11,
-    'train_num': 9,
-    'labels': ['Nuel-CC-QEL', 'Nuel-CC-RES', 'Nuel-CC-DIS', 'Nuel-CC-COH',
-               'Numu-CC-QEL', 'Numu-CC-RES', 'Numu-CC-DIS', 'Numu-CC-COH',
-               'NC', 'Cosmic', 'Other'],
-    'table': tf.lookup.StaticHashTable(
-        tf.lookup.KeyValueTensorInitializer(
-            tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                         8, 9, 10, 11, 12, 13, 14, 15,
-                         16, 17, 18]),
-            tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                         8, 8, 8, 8, 8, 8, 8, 8,
-                         9, 10, 10])
-        ), -1)
-})
-
-
-def get_map(name):
-    """Getting category mapping dict from name.
-    Args:
-        name (str): Name of mapping
-    Returns:
-        dict: Mapping dictionary
+class DataMapper:
+    """Holds all the category mappers.
     """
-    for map in [nu_type_map, int_type_map, all_cat_map, cosmic_cat_map,
-                comb_cat_map, nu_nc_comb_map, nc_comb_map]:
-        if map.name == name:
-            return map
-    return None
+
+    def __init__(self):
+        """Initialise the DataMapper.
+        """
+
+        """Map nuel and numu (Total = 2)
+        0=Nuel, 1=Numu (cosmic muons are included in this)"""
+        self.nu_type = DotMap({
+            'name': 't_nu_type',
+            'total_num': 2,
+            'train_num': 2,
+            'labels': ['Nuel', 'Numu'],
+            'table': tf.lookup.StaticHashTable(
+                tf.lookup.KeyValueTensorInitializer(
+                    tf.constant([11, 12, 13, 14]),
+                    tf.constant([0,  0,  1,  1])
+                ), -1)
+        })
+
+        """Map interaction types (Total = 10)
+        0=CC-QEL, 1=CC-RES, 2=CC-DIS, 3=CC-COH
+        4=NC-QEL, 5=NC-RES, 6=NC-DIS, 7=NC-COH, 8=Cosmic, 9=Other"""
+        self.int_type = DotMap({
+            'name': 't_int_type',
+            'total_num': 10,
+            'train_num': 8,
+            'labels': ['CC-QEL', 'CC-RES', 'CC-DIS', 'CC-COH',
+                       'NC-QEL', 'NC-RES', 'NC-DIS', 'NC-COH', 'Cosmic', 'Other'],
+            'table': tf.lookup.StaticHashTable(
+                tf.lookup.KeyValueTensorInitializer(
+                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 91, 92, 96, 97, 98, 99, 100]),
+                    tf.constant([9, 0, 4, 1, 1, 1, 5, 5, 5, 5,  2,  6,  7,  3,  9,  9,   8])
+                ), -1)
+        })
+
+        """Map to all categories (Total = 19)
+        Category keys are a string of pdg+type, e.g an nuel ccqe event is '0'+'0' = '00'
+        0=Nuel-CC-QEL, 1=Nuel-CC-RES, 2=Nuel-CC-DIS, 3=Nuel-CC-COH
+        4=Numu-CC-QEL, 5=Numu-CC-RES, 6=Numu-CC-DIS, 7=Numu-CC-COH
+        8=Nuel-NC-QEL, 9=Nuel-NC-RES, 10=Nuel-NC-DIS, 11=Nuel-NC-COH
+        12=Numu-NC-QEL, 13=Numu-NC-RES, 14=Numu-NC-DIS, 15=Numu-NC-COH
+        16=Cosmic, 17=Nuel-Other, 18=Numu-Other"""
+        self.all_cat = DotMap({
+            'name': 't_all_cat',
+            'total_num': 19,
+            'train_num': 16,
+            'labels': ['Nuel-CC-QEL', 'Nuel-CC-RES', 'Nuel-CC-DIS', 'Nuel-CC-COH'
+                       'Numu-CC-QEL', 'Numu-CC-RES', 'Numu-CC-DIS', 'Numu-CC-COH'
+                       'Nuel-NC-QEL', 'Nuel-NC-RES', 'Nuel-NC-DIS', 'Nuel-NC-COH'
+                       'Numu-NC-QEL', 'Numu-NC-RES', 'Numu-NC-DIS', 'Numu-NC-COH'
+                       'Cosmic', 'Nuel-Other', 'Numu-Other'],
+            'table': tf.lookup.StaticHashTable(
+                tf.lookup.KeyValueTensorInitializer(
+                    tf.constant(['00', '01', '02', '03', '10', '11', '12', '13',
+                                 '04', '05', '06', '07', '14', '15', '16', '17',
+                                 '18', '09', '19'], dtype=tf.string),
+                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                 8, 9, 10, 11, 12, 13, 14, 15,
+                                 16, 17, 18])
+                ), -1)
+        })
+
+        """Map a cosmic flag (Total = 2)
+        0=Cosmic, 1=Not-Cosmic"""
+        self.cosmic_cat = DotMap({
+            'name': 't_cosmic_cat',
+            'total_num': 2,
+            'train_num': 2,
+            'labels': ['Cosmic', 'Not-Cosmic'],
+            'table': tf.lookup.StaticHashTable(
+                tf.lookup.KeyValueTensorInitializer(
+                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                 8, 9, 10, 11, 12, 13, 14, 15,
+                                 16, 17, 18]),
+                    tf.constant([0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                 1, 0, 0])
+                ), -1)
+        })
+
+        """Map to full_combined categories (Total = 5)
+        0=Nuel-CC, 1=Numu-CC, 2=NC, 3=Cosmic, 4=Other"""
+        self.comb_cat = DotMap({
+            'name': 't_comb_cat',
+            'total_num': 5,
+            'train_num': 3,
+            'labels': ['Nuel-CC', 'Numu-CC', 'NC', 'Cosmic', 'Other'],
+            'table': tf.lookup.StaticHashTable(
+                tf.lookup.KeyValueTensorInitializer(
+                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                 8, 9, 10, 11, 12, 13, 14, 15,
+                                 16, 17, 18]),
+                    tf.constant([0, 0, 0, 0, 1, 1, 1, 1,
+                                 2, 2, 2, 2, 2, 2, 2, 2,
+                                 3, 4, 4])
+                ), -1)
+        })
+
+        """Map to nc_nu_combined categories (Total = 14)
+        0=Nuel CC-QEL, 1=Nuel CC-RES, 2=Nuel CC-DIS, 3=Nuel CC-COH
+        4=Numu CC-QEL, 5=Numu CC-RES, 6=Numu CC-DIS, 7=Numu CC-COH
+        8=NC-QEL, 9=NC-RES, 10=NC-DIS, 11=NC-COH, 12=Cosmic, 13=Other"""
+        self.nu_nc_comb = DotMap({
+            'name': 't_nu_nc_cat',
+            'total_num': 14,
+            'train_num': 12,
+            'labels': ['Nuel CC-QEL', 'Nuel CC-RES', 'Nuel CC-DIS', 'Nuel CC-COH',
+                       'Numu CC-QEL', 'Numu CC-RES', 'Numu CC-DIS', 'Numu CC-COH',
+                       'NC-QEL', 'NC-RES', 'NC-DIS', 'NC-COH', 'Cosmic', 'Other'],
+            'table': tf.lookup.StaticHashTable(
+                tf.lookup.KeyValueTensorInitializer(
+                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                 8, 9, 10, 11, 12, 13, 14, 15,
+                                 16, 17, 18]),
+                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                 8, 9, 10, 11, 8, 9, 10, 11,
+                                 12, 13, 13])
+                ), -1)
+        })
+
+        """Map to nc_combined categories (Total = 11)
+        0=Nuel-CC-QEL, 1=Nuel-CC-RES, 2=Nuel-CC-DIS, 3=Nuel-CC-COH
+        4=Numu-CC-QEL, 5=Numu-CC-RES, 6=Numu-CC-DIS, 7=Numu-CC-COH
+        8=NC, 9=Cosmic, 10=Other"""
+        self.nc_comb = DotMap({
+            'name': 't_nc_cat',
+            'total_num': 11,
+            'train_num': 9,
+            'labels': ['Nuel-CC-QEL', 'Nuel-CC-RES', 'Nuel-CC-DIS', 'Nuel-CC-COH',
+                       'Numu-CC-QEL', 'Numu-CC-RES', 'Numu-CC-DIS', 'Numu-CC-COH',
+                       'NC', 'Cosmic', 'Other'],
+            'table': tf.lookup.StaticHashTable(
+                tf.lookup.KeyValueTensorInitializer(
+                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                 8, 9, 10, 11, 12, 13, 14, 15,
+                                 16, 17, 18]),
+                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
+                                 8, 8, 8, 8, 8, 8, 8, 8,
+                                 9, 10, 10])
+                ), -1)
+        })
+
+    def get_map(self, name):
+        """Getting category mapping dict from name.
+        Args:
+            name (str): Name of mapping
+        Returns:
+            dict: Mapping dictionary
+        """
+        for map in [self.nu_type, self.int_type, self.all_cat,
+                    self.cosmic_cat, self.comb_cat, self.nu_nc_comb,
+                    self.nc_comb]:
+            if map.name == name:
+                return map
+        return None
 
 
 class DataLoader:
@@ -197,6 +205,8 @@ class DataLoader:
             self.rand.append(tf.random.normal(
                 shape=[64, 64], mean=1, stddev=config.data.rand[i], dtype=tf.float32))
             self.shift.append(tf.fill([64, 64], (1.0 + config.data.shift[i])))
+
+        self.map = DataMapper()
 
     @tf.function
     def parse(self, serialised_example):
@@ -245,21 +255,21 @@ class DataLoader:
 
         # Generate all the category mappings
         true_pars_i = tf.io.decode_raw(example['true_pars_i'], tf.int32)
-        nu_type = nu_type_map.table.lookup(true_pars_i[0])
-        labels[nu_type_map.name] = nu_type
-        int_type = int_type_map.table.lookup(true_pars_i[1])
-        labels[int_type_map.name] = int_type
-        category = all_cat_map.table.lookup(
+        nu_type = self.map.nu_type.table.lookup(true_pars_i[0])
+        labels[self.map.nu_type.name] = nu_type
+        int_type = self.map.int_type.table.lookup(true_pars_i[1])
+        labels[self.map.int_type.name] = int_type
+        category = self.map.all_cat.table.lookup(
             tf.strings.join((
                 tf.strings.as_string(nu_type),
                 tf.strings.as_string(int_type)
             ))
         )
-        labels[all_cat_map.name] = category
-        labels[cosmic_cat_map.name] = cosmic_cat_map.table.lookup(category)
-        labels[comb_cat_map.name] = comb_cat_map.table.lookup(category)
-        labels[nu_nc_comb_map.name] = nu_nc_comb_map.table.lookup(category)
-        labels[nc_comb_map.name] = nc_comb_map.table.lookup(category)
+        labels[self.map.all_cat.name] = category
+        labels[self.map.cosmic_cat.name] = self.map.cosmic_cat.table.lookup(category)
+        labels[self.map.comb_cat.name] = self.map.comb_cat.table.lookup(category)
+        labels[self.map.nu_nc_comb.name] = self.map.nu_nc_comb.table.lookup(category)
+        labels[self.map.nc_comb.name] = self.map.nc_comb.table.lookup(category)
 
         true_pars_f = tf.io.decode_raw(example['true_pars_f'], tf.float32)
         labels['t_vtxX'] = true_pars_f[0]
@@ -276,7 +286,7 @@ class DataLoader:
         inputs['r_dirPhi'] = tf.math.divide(reco_pars_f[9], self.config.data.par_scale[4])
 
         if len(self.config.model.labels) > 1:
-            inputs[all_cat_map.name] = labels[all_cat_map.name]
+            inputs[self.map.all_cat.name] = labels[self.map.all_cat.name]
             inputs['t_nuEnergy'] = labels['t_nuEnergy']
 
         if self.config.data.extra_vars:
@@ -311,7 +321,7 @@ class DataLoader:
         Returns:
             bool: Is this an 'other' category event?
         """
-        if (labels[all_cat_map.name]) == 17 or (labels[all_cat_map.name] == 18):
+        if (labels[self.map.all_cat.name]) == 17 or (labels[self.map.all_cat.name] == 18):
             return False
         else:
             return True

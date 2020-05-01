@@ -1,18 +1,15 @@
 Bootstrap: docker
-From: continuumio/miniconda3:4.7.12-alpine
-
-%labels
-    name chips-cvn
+From: continuumio/miniconda3:latest
 
 %files
-    environment.yml /opt
+    environment.yaml /opt
 
 %environment
-    PATH=/opt/conda/envs/$(head -1 /opt/environment.yml | cut -d' ' -f2)/bin:$PATH
+    PATH=/opt/conda/envs/$(head -1 /opt/environment.yaml | cut -d' ' -f2)/bin:$PATH
 
 %post
     # Setup the conda environment
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
-    echo "source activate $(head -1 /opt/environment.yml | cut -d' ' -f2)" > ~/.bashrc
-    /opt/conda/bin/conda env create -f /opt/environment.yml
+    echo "source activate $(head -1 /opt/environment.yaml | cut -d' ' -f2)" > ~/.bashrc
+    /opt/conda/bin/conda env create -f /opt/environment.yaml
     /opt/conda/bin/conda clean -afy
