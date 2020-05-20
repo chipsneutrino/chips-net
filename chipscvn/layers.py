@@ -47,100 +47,265 @@ def add_inputs(config, core):
     return inputs, x
 
 
-def relu6(x):
-    """Relu6 activation function
-    http://www.cs.utoronto.ca/%7Ekriz/conv-cifar10-aug2010.pdf
-    Returns:
-        tf.keras.activation: Relu6 activation function
+class ConvBN(layers.Layer):
+    """Convolution + Batch Normalisation layer
     """
-    return tf.keras.activations.relu(x, max_value=6.0)
+
+    def __init__(self, filters, kernel_size=(3, 3), strides=(1, 1),
+                 activation='relu', padding='same', bn=True,
+                 prefix='conv_bn', **kwargs):
+        """Initialise the ConvBN layer.
+        Args:
+            filters (int): Number of filters in convolutions
+            kernel_size (int): Kernel size in convolutions
+            strides (tuple(int, int)): Stride size in convolutions
+            activation (str): Activation to use
+            padding (str): Padding mode in convolutions
+            bn (bool): Shall we apply the batch normalisation?
+            prefix (str): Block name prefix
+        """
+        super(ConvBN, self).__init__(name=prefix, **kwargs)
+        self.conv = layers.Conv2D(filters, kernel_size, strides, padding,
+                                  use_bias=False, name=prefix+'_conv')
+        self.bn = layers.BatchNormalization(axis=3, scale=False, name=prefix+'_bn') if bn else None
+        self.activation = layers.Activation(activation, name=prefix+'_ac')
+
+    def call(self, inputs):
+        """Run forward pass on ConvBN layer.
+        Args:
+            inputs (tf.tensor): Input tensor
+        Returns:
+            tf.tensor: Output tensor from `Conv2D` and `BatchNormalization`
+        """
+        x = self.conv(inputs)
+        x = self.bn(x) if self.bn is not None else x
+        x = self.activation(x)
+        return x
 
 
-def swish(x):
-    """Swish activation function
-    https://arxiv.org/pdf/1710.05941.pdf
-    Returns:
-        tf.keras.activation: Swish activation function
+class DepthwiseConvBN(layers.Layer):
+    """Depthwise Convolution + Batch Normalisation layer
     """
-    return tf.keras.activations.swish(x)
+
+    def __init__(self, kernel_size=(3, 3), strides=(1, 1),
+                 activation='relu', padding='same', bn=True,
+                 prefix='dconv_bn', **kwargs):
+        """Initialise the DepthwiseConvBN layer.
+        Args:
+            kernel_size (int): Kernel size in convolutions
+            strides (tuple(int, int)): Stride size in convolutions
+            activation (str): Activation to use
+            padding (str): Padding mode in convolutions
+            bn (bool): Shall we apply the batch normalisation?
+            prefix (str): Block name prefix
+        """
+        super(ConvBN, self).__init__(name=prefix, **kwargs)
+        self.dconv = layers.DepthwiseConv2D(kernel_size, strides, padding,
+                                            use_bias=False, name=prefix+'_dconv')
+        self.bn = layers.BatchNormalization(axis=3, scale=False, name=prefix+'_bn') if bn else None
+        self.activation = layers.Activation(activation, name=prefix+'_ac')
+
+    def call(self, inputs):
+        """Run forward pass on DepthwiseConvBN layer.
+        Args:
+            inputs (tf.tensor): Input tensor
+        Returns:
+            tf.tensor: Output tensor from `DepthwiseConv2D` and `BatchNormalization`
+        """
+        x = self.dconv(inputs)
+        x = self.bn(x) if self.bn is not None else x
+        x = self.activation(x)
+        return x
 
 
-def conv2d_bn(x, filters, kernel_size=(3, 3), strides=(1, 1), activation='relu',
-              padding='same', name=None):
-    """Utility function to apply conv2d + BatchNormalization.
-    Args:
-        x (tf.tensor): Input tensor
-        filters (int): Number of filters in convolutions
-        kernel_size (int): Kernel size in convolutions
-        strides (tuple(int, int)): Stride size in convolutions
-        activation (str): Activation to use
-        padding (str): Padding mode in convolutions
-        name (str): Block name prefix
-    Returns:
-        tf.tensor: Output tensor from `Conv2D` and `BatchNormalization`
-    """
-    conv_name = None if name is None else name + '_conv'
-    x = layers.Conv2D(filters, kernel_size, strides=strides,
-                      padding=padding, use_bias=False, name=conv_name)(x)
-    bn_name = None if name is None else name + '_bn'
-    x = layers.BatchNormalization(axis=3, scale=False, name=bn_name)(x)
-    ac_name = None if name is None else name + '_ac'
-    x = layers.Activation(activation, name=ac_name)(x)
-    return x
-
-
-def depthwise_conv2d_bn(x, kernel_size=(3, 3), strides=(1, 1), activation='relu',
-                        padding='same', name=None):
-    """Utility function to apply depthwise_conv2d + BatchNormalization.
-    Args:
-        x (tf.tensor): Input tensor
-        kernel_size (int): Kernel size in depthwise convolution
-        strides (tuple(int, int)): Stride size in depthwise convolution
-        activation (str): Activation to use
-        padding (str): Padding mode in depthwise convolution
-        name (str): Block name prefix
-    Returns:
-        tf.tensor: Output tensor from `DepthwiseConv2D` and `BatchNormalization`
-    """
-    dwconv_name = None if name is None else name + '_dwconv'
-    x = layers.DepthwiseConv2D(kernel_size, strides=strides, use_bias=False,
-                               padding='same', name=dwconv_name)(x)
-    bn_name = None if name is None else name + '_bn'
-    x = layers.BatchNormalization(axis=3, scale=False, name=bn_name)(x)
-    ac_name = None if name is None else name + '_ac'
-    x = layers.Activation(activation, name=ac_name)(x)
-    return x
-
-
-def vgg_block(x, num_conv=2, filters=64, kernel_size=(3, 3), strides=(1, 1),
-              activation='relu', padding='same', drop_rate=None, bn=True,
-              name=None):
-    """VGG block with added dropout
+class VGGBlock(layers.Layer):
+    """VGG Block layer
     https://arxiv.org/pdf/1409.1556.pdf
-    Args:
-        x (tf.tensor): Input tensor
-        num_conv (int): Number of convolutional layers
-        filters (int): Number of filters in convolutions
-        kernel_size (int): Kernel size in convolutions
-        strides (tuple(int, int)): Stride size in convolutions
-        activation (str): Activation to use
-        padding (str): Padding mode in convolutions
-        drop_rate (float): Dropout rate
-        bn (bool): Should we use Conv+BN layers
-        name (str): Block name prefix
-    Returns:
-        tf.tensor: Output VGG block tensor
     """
-    for i in range(num_conv):
-        if bn:
-            x = conv2d_bn(x, filters, kernel_size, strides, activation,
-                          padding, name=name+'_conv'+str(i))
-        else:
-            x = layers.Conv2D(filters, kernel_size, activation=activation,
-                              padding=padding, name=name+'_conv'+str(i))(x)
-    x = layers.MaxPooling2D((2, 2), strides=(2, 2), name=name+'_pool')(x)
+
+    def __init__(self, num_conv=2, filters=64, kernel_size=(3, 3), strides=(1, 1),
+                 activation='relu', padding='same', drop_rate=0.0, bn=True,
+                 prefix='vgg_block', **kwargs):
+        """Initialise the VGGBlock.
+        Args:
+            num_conv (int): Number of convolutional layers in block
+            filters (int): Number of filters in convolutions
+            kernel_size (int): Kernel size in convolutions
+            strides (tuple(int, int)): Stride size in convolutions
+            activation (str): Activation to use
+            padding (str): Padding mode in convolutions
+            drop_rate (float): Dropout rate to use
+            bn (bool): Shall we apply the batch normalisation?
+            prefix (str): Block name prefix
+        """
+        super(VGGBlock, self).__init__(name=prefix, **kwargs)
+        self.convs = []
+        for i in range(num_conv):
+            self.convs.append(ConvBN(filters, kernel_size, strides, activation, padding,
+                                     bn, name=prefix+'_conv'+str(i)))
+        self.pool = layers.MaxPooling2D((2, 2), strides=(2, 2), name=prefix+'_pool')
+        self.dropout = layers.Dropout(drop_rate, name=prefix+'_drop') if drop_rate > 0.0 else None
+
+    def call(self, inputs):
+        """Run forward pass on the VGGBlock.
+        Args:
+            inputs (tf.tensor): Input tensor
+        Returns:
+            tf.tensor: Output tensor from VGGBlock
+        """
+        x = inputs
+        for conv in self.convs:
+            x = conv(x)
+        x = self.pool(x)
+        x = self.dropout(x) if self.dropout is not None else x
+        return x
+
+
+class InceptionModule(layers.Layer):
+    """Inception Module class
+    https://arxiv.org/pdf/1409.4842.pdf
+    """
+
+    def __init__(self, filters, strides=(1, 1), activation='relu',
+                 padding='same', prefix='conv_bn', **kwargs):
+        """Initialise the InceptionModule.
+        Args:
+            filters (int): Number of filters in convolutions
+            strides (tuple(int, int)): Stride size in convolutions
+            activation (str): Activation to use
+            padding (str): Padding mode in convolutions
+            prefix (str): Block name prefix
+        """
+        super(ConvBN, self).__init__(name=prefix, **kwargs)
+        self.path1_1 = layers.Conv2D(filters, (1, 1), activation=activation,
+                                     padding=padding, name=prefix+'_1x1')
+        self.path2_1 = layers.Conv2D(filters, (1, 1), activation=activation,
+                                     padding=padding, name=prefix+'_3x3_1')
+        self.path2_2 = layers.Conv2D(filters, (3, 3), activation=activation,
+                                     padding=padding, name=prefix+'_3x3_2')
+        self.path3_1 = layers.Conv2D(filters, (1, 1), activation=activation,
+                                     padding=padding, name=prefix+'_5x5_1')
+        self.path3_2 = layers.Conv2D(filters, (5, 5), activation=activation,
+                                     padding=padding, name=prefix+'_5x5_2')
+        self.path4_1 = layers.MaxPooling2D((3, 3), strides=(1, 1), padding='same',
+                                           name=prefix+'_pool')
+        self.path4_2 = layers.Conv2D(filters, (1, 1), activation=activation,
+                                     padding=padding, name=prefix+'_pool_conv')
+
+    def call(self, inputs):
+        """Run forward pass on the InceptionModule.
+        Args:
+            inputs (tf.tensor): Input tensor
+        Returns:
+            tf.tensor: Output tensor from InceptionModule
+        """
+        path1 = self.path1_1(inputs)
+        path2 = self.path2_1(inputs)
+        path2 = self.path2_2(path2)
+        path3 = self.path3_1(inputs)
+        path3 = self.path3_2(path3)
+        path4 = self.path4_1(inputs)
+        path4 = self.path4_2(path4)
+        x = tf.concat([path1, path2, path3, path4], axis=3)
+        return x
+
+
+class MBConvBlock(layers.Layer):
+    """Mobile Inverted Residual Bottleneck block with squeeze-and-excitation optimization.
+    """
+
+    def __init__(self, kernel_size, in_filters, out_filters, expand_ratio,
+                 strides=(1, 1), se_ratio=None, activation='relu', drop_rate=0.0,
+                 prefix='mbconv_block', **kwargs):
+        """Initialise the MBConvBlock.
+        Args:
+            kernel_size (int): DepthwiseConv kernel_size
+            in_filters (int): Number of input filters
+            out_filters (int): Number of output filters
+            expand_ratio (int): Filter expansion ratio
+            strides (tuple(int, int)): Strides for the convolutions
+            se_ratio (float): Squeeze and Excitation ratio
+            activation (activation): Which activation to use
+            drop_rate (float): Dropout rate
+            prefix (str): Block name prefix
+        """
+        super(ConvBN, self).__init__(name=prefix, **kwargs)
+        filters = in_filters * expand_ratio
+        self.expansion = ConvBN(filters, (1, 1), (1, 1), activation, name=prefix+'_expand')
+        self.depthwise = DepthwiseConvBN(kernel_size, strides, activation, name=prefix+'_depthwise')
+        self.se_ratio = se_ratio
+        if (se_ratio is not None) and (0 < se_ratio <= 1):
+            reduced_filters = max(1, int(in_filters * se_ratio))
+            self.se_pool = layers.GlobalAveragePooling2D(name=prefix+'_se_squeeze')
+            self.se_reshape = layers.Reshape((1, 1, filters), name=prefix+'_se_reshape')
+            self.se_conv1 = layers.Conv2D(reduced_filters, 1, activation=activation, padding='same',
+                                          use_bias=True, name=prefix+'_se_reduce')
+            self.se_conv2 = layers.Conv2D(filters, 1, activation='sigmoid', padding='same',
+                                          use_bias=True, name=prefix+'_se_expand')
+        self.proj_conv = layers.Conv2D(out_filters, 1, padding='same', use_bias=False,
+                                       name=prefix+'_proj_conv')
+        self.proj_bn = layers.BatchNormalization(axis=3, name=prefix+'_proj_bn')
+        self.dropout = layers.Dropout(drop_rate, name=prefix+'_drop') if drop_rate > 0.0 else None
+        self.residual = all(s == 1 for s in strides) and in_filters == out_filters
+
+    def call(self, inputs):
+        """Run forward pass on the MBConvBlock.
+        Args:
+            inputs (tf.tensor): Input tensor
+        Returns:
+            tf.tensor: Output tensor from MBConvBlock
+        """
+        x = self.expansion(inputs)
+        x = self.depthwise(x)
+        if (self.se_ratio is not None) and (0 < self.se_ratio <= 1):
+            se = self.se_pool(x)
+            se = self.se_reshape(se)
+            se = self.se_conv1(se)
+            se = self.se_conv2(se)
+            x = tf.math.multiply(x, se)
+        x = self.proj_conv(x)
+        x = self.proj_bn(x)
+        x = self.dropout(x) if self.dropout is not None else x
+        x = tf.add(x, inputs) if self.residual else x
+        return x
+
+
+def mb_conv_block(inputs, kernel_size, in_filters, out_filters, expand_ratio,
+                  strides=(1, 1), se_ratio=None, activation='relu', drop_rate=None,
+                  prefix='mbconv_block'):
+    """Mobile Inverted Residual Bottleneck block with squeeze-and-excitation optimization.
+    Args:
+        inputs (tf.tensor): Input tensor of conv layer
+        kernel_size (int): DepthwiseConv kernel_size
+        in_filters (int): Number of input filters
+        out_filters (int): Number of output filters
+        expand_ratio (int): Filter expansion ratio
+        strides (tuple(int, int)): Strides for the convolutions
+        se_ratio (float): Squeeze and Excitation ratio
+        activation (activation): Which activation to use
+        drop_rate (float): Dropout rate
+        prefix (str): Block name prefix
+    Returns:
+        tf.tensor: Output tensor
+    """
+    filters = in_filters * expand_ratio
+    x = ConvBN(filters, (1, 1), (1, 1), activation, prefix=prefix+'_expand')(inputs)
+    x = DepthwiseConvBN(kernel_size, strides, activation, name=prefix)(x)
+    if (se_ratio is not None) and (0 < se_ratio <= 1):
+        reduced_filters = max(1, int(in_filters * se_ratio))
+        se = layers.GlobalAveragePooling2D(name=prefix + '_se_squeeze')(x)
+        se = layers.Reshape((1, 1, filters), name=prefix + '_se_reshape')(se)
+        se = layers.Conv2D(reduced_filters, 1, activation=activation, padding='same',
+                           use_bias=True, name=prefix + '_se_reduce')(se)
+        se = layers.Conv2D(filters, 1, activation='sigmoid', padding='same',
+                           use_bias=True, name=prefix + '_se_expand')(se)
+        x = layers.multiply([x, se], name=prefix + '_se_excite')
+    x = layers.Conv2D(out_filters, 1, padding='same', use_bias=False, name=prefix+'_proj_conv')(x)
+    x = layers.BatchNormalization(axis=3, name=prefix + '_proj_bn')(x)
     if drop_rate and (drop_rate > 0):  # Dropout if required
-        x = layers.Dropout(drop_rate, name=name+'_drop')(x)
+        x = layers.Dropout(drop_rate, name=prefix + '_drop')(x)
+    if all(s == 1 for s in strides) and in_filters == out_filters:  # Add residual if we can
+        x = layers.add([x, inputs], name=prefix + '_add')
     return x
 
 
@@ -153,16 +318,16 @@ def vgg16_core(x, config, name):
     Returns:
         tf.tensor: Output vgg16 core tensor
     """
-    x = vgg_block(x, 2, config.model.filters, config.model.kernel_size,
-                  drop_rate=config.model.dropout, name=name+'_block1')
-    x = vgg_block(x, 2, config.model.filters*2, config.model.kernel_size,
-                  drop_rate=config.model.dropout, name=name+'_block2')
-    x = vgg_block(x, 3, config.model.filters*4, config.model.kernel_size,
-                  drop_rate=config.model.dropout, name=name+'_block3')
-    x = vgg_block(x, 3, config.model.filters*8, config.model.kernel_size,
-                  drop_rate=config.model.dropout, name=name+'_block4')
-    x = vgg_block(x, 3, config.model.filters*8, config.model.kernel_size,
-                  drop_rate=config.model.dropout, name=name+'_block5')
+    x = VGGBlock(2, config.model.filters, config.model.kernel_size,
+                 drop_rate=config.model.dropout, name=name+'_block1')(x)
+    x = VGGBlock(2, config.model.filters*2, config.model.kernel_size,
+                 drop_rate=config.model.dropout, name=name+'_block2')(x)
+    x = VGGBlock(3, config.model.filters*4, config.model.kernel_size,
+                 drop_rate=config.model.dropout, name=name+'_block3')(x)
+    x = VGGBlock(3, config.model.filters*8, config.model.kernel_size,
+                 drop_rate=config.model.dropout, name=name+'_block4')(x)
+    x = VGGBlock(3, config.model.filters*8, config.model.kernel_size,
+                 drop_rate=config.model.dropout, name=name+'_block5')(x)
     x = layers.Flatten(name='flatten')(x)
     return x
 
@@ -176,49 +341,17 @@ def vgg19_core(x, config, name):
     Returns:
         tf.tensor: Output vgg19 core tensor
     """
-    x = vgg_block(x, 2, config.model.filters, config.model.kernel_size,
-                  drop_rate=config.model.dropout, name=name+'_block1')
-    x = vgg_block(x, 2, config.model.filters*2, config.model.kernel_size,
-                  drop_rate=config.model.dropout, name=name+'_block2')
-    x = vgg_block(x, 4, config.model.filters*4, config.model.kernel_size,
-                  drop_rate=config.model.dropout, name=name+'_block3')
-    x = vgg_block(x, 4, config.model.filters*8, config.model.kernel_size,
-                  drop_rate=config.model.dropout, name=name+'_block4')
-    x = vgg_block(x, 4, config.model.filters*8, config.model.kernel_size,
-                  drop_rate=config.model.dropout, name=name+'_block5')
+    x = VGGBlock(2, config.model.filters, config.model.kernel_size,
+                 drop_rate=config.model.dropout, name=name+'_block1')(x)
+    x = VGGBlock(2, config.model.filters*2, config.model.kernel_size,
+                 drop_rate=config.model.dropout, name=name+'_block2')(x)
+    x = VGGBlock(4, config.model.filters*4, config.model.kernel_size,
+                 drop_rate=config.model.dropout, name=name+'_block3')(x)
+    x = VGGBlock(4, config.model.filters*8, config.model.kernel_size,
+                 drop_rate=config.model.dropout, name=name+'_block4')(x)
+    x = VGGBlock(4, config.model.filters*8, config.model.kernel_size,
+                 drop_rate=config.model.dropout, name=name+'_block5')(x)
     x = layers.Flatten(name='flatten')(x)
-    return x
-
-
-def inception_block(x, filters, strides=(1, 1), activation='relu',
-                    padding='same', name=None):
-    """Returns a Keras functional API Inception Module.
-    https://arxiv.org/pdf/1409.4842.pdf
-    Args:
-        x (tf.tensor): Input tensor
-        filters (int): Number of filters in convolutions
-        strides (tuple(int, int)): Stride size in convolutions
-        activation (str): Activation to use
-        padding (str): Padding mode in convolutions
-        name (str): Block name prefix
-    Returns:
-        tf.tensor: Keras functional inceptional module tensor
-    """
-    b1x1 = layers.Conv2D(filters, (1, 1), activation=activation,
-                         padding=padding, name=name+'_1x1')(x)
-    b3x3 = layers.Conv2D(filters, (1, 1), activation=activation,
-                         padding=padding, name=name+'_3x3_1')(x)
-    b3x3 = layers.Conv2D(filters, (3, 3), activation=activation,
-                         padding=padding, name=name+'_3x3_2')(b3x3)
-    b5x5 = layers.Conv2D(filters, (1, 1), activation=activation,
-                         padding=padding, name=name+'_5x5_1')(x)
-    b5x5 = layers.Conv2D(filters, (5, 5), activation=activation,
-                         padding=padding, name=name+'_5x5_2')(b5x5)
-    bpool = layers.MaxPooling2D((3, 3), strides=(1, 1),
-                                padding='same', name=name+'_pool')(x)
-    bpool = layers.Conv2D(filters, (1, 1), activation=activation,
-                          padding=padding, name=name+'_pool_conv')(bpool)
-    x = layers.concatenate([b1x1, b3x3, b5x5, bpool], axis=3)
     return x
 
 
@@ -231,74 +364,22 @@ def inceptionv1_core(x, config, name):
     Returns:
         tf.tensor: Output Inception-v1 core tensor
     """
-    x = conv2d_bn(x, 64, (7, 7), strides=(2, 2), padding='same', name=name+'_conv1')
+    x = ConvBN(64, (7, 7), strides=(2, 2), padding='same', name=name+'_conv1')(x)
     x = layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same', name=name+'_pool1')(x)
-    x = conv2d_bn(x, 192, (3, 3), strides=(1, 1), padding='same', name=name+'_conv2')
+    x = ConvBN(192, (3, 3), strides=(1, 1), padding='same', name=name+'_conv2')(x)
     x = layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same', name=name+'_pool2')(x)
-    x = inception_block(x, 64, name=name+'_inception1')
-    x = inception_block(x, 120, name=name+'_inception2')
+    x = InceptionModule(64, name=name+'_inception1')(x)
+    x = InceptionModule(120, name=name+'_inception2')(x)
     x = layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same', name=name+'pool3')(x)
-    x = inception_block(x, 128, name=name+'_inception3')
-    x = inception_block(x, 128, name=name+'_inception4')
+    x = InceptionModule(128, name=name+'_inception3')(x)
+    x = InceptionModule(128, name=name+'_inception4')(x)
     x = layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same', name=name+'_pool4')(x)
-    x = inception_block(x, 256, name=name+'_inception5')
+    x = InceptionModule(256, name=name+'_inception5')(x)
     x = layers.AveragePooling2D(pool_size=(7, 7), strides=(7, 7), padding='same',
                                 name=name+'_pool5')(x)
     x = layers.Flatten(name=name+'_flatten')(x)
     x = layers.Dense(1024, activation='relu', kernel_regularizer=regularizers.l2(0.1),
                      name=name+'_dense1')(x)
-    return x
-
-
-def mb_conv_block(inputs, kernel_size, in_filters, out_filters, expand_ratio,
-                  strides=(1, 1), se_ratio=None, activation='relu', drop_rate=None,
-                  name=''):
-    """Mobile Inverted Residual Bottleneck block with squeeze-and-excitation optimization.
-    Args:
-        inputs (tf.tensor): Input tensor of conv layer
-        kernel_size (int): DepthwiseConv kernel_size
-        in_filters (int): Number of input filters
-        out_filters (int): Number of output filters
-        expand_ratio (int): Filter expansion ratio
-        strides (tuple(int, int)): Strides for the convolutions
-        se_ratio (float): Squeeze and Excitation ratio
-        activation (activation): Which activation to use
-        drop_rate (float): Dropout rate
-        name (str): Block name prefix
-    Returns:
-        tf.tensor: Output tensor
-    """
-    # May want to be using the swish activation, but use relu6 for now, or a leaky relu
-    channel_axis = 3
-    filters = in_filters * expand_ratio
-
-    # Expansion phase
-    x = conv2d_bn(inputs, filters, 1, 1, activation, name=name+'_expand')
-
-    # Depthwise Convolution
-    x = depthwise_conv2d_bn(x, kernel_size, strides, activation, name=name)
-
-    # Squeeze and Excitation phase
-    if (se_ratio is not None) and (0 < se_ratio <= 1):
-        reduced_filters = max(1, int(in_filters * se_ratio))
-        se = layers.GlobalAveragePooling2D(name=name + '_se_squeeze')(x)
-        se = layers.Reshape((1, 1, filters), name=name + '_se_reshape')(se)
-        se = layers.Conv2D(reduced_filters, 1, activation=activation, padding='same',
-                           use_bias=True, name=name + '_se_reduce')(se)
-        se = layers.Conv2D(filters, 1, activation='sigmoid', padding='same',
-                           use_bias=True, name=name + '_se_expand')(se)
-        x = layers.multiply([x, se], name=name + '_se_excite')
-
-    # Output phase
-    x = layers.Conv2D(out_filters, 1, padding='same', use_bias=False, name=name+'_proj_conv')(x)
-    x = layers.BatchNormalization(axis=channel_axis, name=name + '_proj_bn')(x)
-
-    if drop_rate and (drop_rate > 0):  # Dropout if required
-        x = layers.Dropout(drop_rate, name=name + '_drop')(x)
-
-    if all(s == 1 for s in strides) and in_filters == out_filters:  # Add residual if we can
-        x = layers.add([x, inputs], name=name + '_add')
-
     return x
 
 
@@ -372,71 +453,6 @@ def get_effnet_base(config):
     x = layers.Dense(1024, activation='relu', name='dense2')(x)
     x = layers.Dense(config.model.dense_units, activation='relu', name='dense_final')(x)
     return inputs, x
-
-
-class ConvBN(layers.Layer):
-    """Convolution + Batch Normalisation layer
-    """
-
-    def __init__(self, filters, kernel_size=(3, 3), strides=(1, 1),
-                 activation='relu', padding='same', bn=True,
-                 name='conv_bn', **kwargs):
-        super(ConvBN, self).__init__(name=name, **kwargs)
-        self.conv = layers.Conv2D(
-            filters,
-            kernel_size,
-            strides=strides,
-            padding=padding,
-            use_bias=False,
-            name=name+'_cv'
-        )
-        self.bn = bn
-        if self.bn:
-            self.bn = layers.BatchNormalization(
-                axis=3,
-                scale=False,
-                name=name+'_bn'
-            )
-        self.activation = layers.Activation(
-            activation,
-            name=name+'_ac'
-        )
-
-    def call(self, inputs):
-        x = self.conv(inputs)
-        if self.bn:
-            x = self.bn(x)
-        return self.activation(x)
-
-
-class VGGBlock(layers.Layer):
-    """VGG Block layer
-    """
-
-    def __init__(self, num_conv=2, filters=64, kernel_size=(3, 3), strides=(1, 1),
-                 activation='relu', padding='same', drop_rate=0.0, bn=True,
-                 name='vgg_block', **kwargs):
-        super(VGGBlock, self).__init__(name=name, **kwargs)
-        self.num_conv = num_conv
-        self.drop_rate = drop_rate
-
-        names = [('_conv' + str(i)) for i in range(num_conv)]
-        self.convs = []
-        for i in range(self.num_conv):
-            self.convs.append(
-                ConvBN(filters, kernel_size, strides, activation, padding, bn, name=names[i]))
-
-        self.pool = layers.MaxPooling2D((2, 2), strides=(2, 2), name=name+'_pool')
-        self.dropout = layers.Dropout(drop_rate, name=name+'_drop')
-
-    def call(self, inputs):
-        x = self.convs[0](inputs)
-        for i in range(1, self.num_conv):
-            x = self.convs[i](x)
-        x = self.pool(x)
-        if self.drop_rate > 0.0:
-            x = self.dropout(x)
-        return x
 
 
 class MultiLossLayer(layers.Layer):

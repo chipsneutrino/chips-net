@@ -18,7 +18,7 @@ def get_trainer(config, model, data):
     Args:
         config (dotmap.DotMap): DotMap Configuration namespace
         model (chipscvn.models model): Model to use with trainer
-        data (chipscvn.data.DataLoader): Data loader
+        data (chipscvn.data.Loader): Data loader
     Returns:
         chipscvn.trainers trainer: Training class
     """
@@ -36,7 +36,7 @@ class BaseTrainer(object):
         Args:
             config (dotmap.DotMap): DotMap Configuration namespace
             model (chipscvn.models model): Model to use with trainer
-            data (chipscvn.data.DataLoader): Data loader
+            data (chipscvn.data.Loader): Data loader
         """
         self.config = config
         self.model = model
@@ -68,7 +68,7 @@ class BasicTrainer(BaseTrainer):
         Args:
             config (dotmap.DotMap): DotMap Configuration namespace
             model (chipscvn.models model): Model to use with trainer
-            data (chipscvn.data.DataLoader): Data loader
+            data (chipscvn.data.Loader): Data loader
         """
         super().__init__(config, model, data)
         self.init_callbacks()
@@ -158,7 +158,7 @@ class MultiTrainer(BaseTrainer):
         Args:
             config (dotmap.DotMap): DotMap Configuration namespace
             model (chipscvn.models model): Model to use with trainer
-            data (chipscvn.data.DataLoader): Data loader
+            data (chipscvn.data.Loader): Data loader
         """
         super().__init__(config, model, data)
 

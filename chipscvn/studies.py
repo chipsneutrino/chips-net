@@ -72,7 +72,7 @@ class BaseStudy(object):
                     print('Error: invalid study parameter key!')
                     raise SystemExit
 
-            data = chipscvn.data.DataLoader(self.config)
+            data = chipscvn.data.Loader(self.config)
             model = chipscvn.models.get_model(self.config)
             model.summarise()
             trainer = chipscvn.trainers.get_trainer(self.config, model, data)

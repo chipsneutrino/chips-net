@@ -37,7 +37,7 @@ def main():
     Main function called by the preprocess script.
     """
     args = parse_args()
-    creator = data.DataCreator(
+    creator = data.Creator(
         args.directory, args.geom, args.split, args.join, args.parallel, args.all)
     creator.run()
 

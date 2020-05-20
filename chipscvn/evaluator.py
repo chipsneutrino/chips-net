@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 from tensorflow.keras import Model
 import ROOT
+ROOT.PyConfig.IgnoreCommandLineOptions = True
 from root_numpy import fill_hist
 from root_pandas import to_root
 from tqdm import tqdm
@@ -38,7 +39,7 @@ class Evaluator(object):
         """Initialise the evaluator.
         """
         # Get the test dataset
-        data_loader = chipscvn.data.DataLoader(self.config)
+        data_loader = chipscvn.data.Loader(self.config)
         self.data = data_loader.test_data()
 
         # Fully combined category names

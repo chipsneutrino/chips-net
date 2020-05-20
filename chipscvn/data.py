@@ -2,7 +2,7 @@
 
 """Data creation and loading module
 
-This module contains both the DataCreator and DataLoader classes, these
+This module contains both the Creator and Loader classes, these
 are used to firstly generate tfrecords files from ROOT hitmap files and
 then to read these on the fly using tf.datasets at model training or
 evaluation.
@@ -20,12 +20,12 @@ import tensorflow as tf
 from dotmap import DotMap
 
 
-class DataMapper:
+class Mapper:
     """Holds all the category mappers.
     """
 
     def __init__(self):
-        """Initialise the DataMapper.
+        """Initialise the Mapper.
         """
 
         """Map nuel and numu (Total = 2)
@@ -180,12 +180,12 @@ class DataMapper:
         return None
 
 
-class DataLoader:
+class Loader:
     """Generates tf datasets for training/evaluation from the configuration.
     """
 
     def __init__(self, config):
-        """Initialise the DataLoader.
+        """Initialise the Loader.
         Args:
             config (str): Dotmap configuration namespace
         """
@@ -206,7 +206,7 @@ class DataLoader:
                 shape=[64, 64], mean=1, stddev=config.data.rand[i], dtype=tf.float32))
             self.shift.append(tf.fill([64, 64], (1.0 + config.data.shift[i])))
 
-        self.map = DataMapper()
+        self.map = Mapper()
 
     @tf.function
     def parse(self, serialised_example):
@@ -445,12 +445,12 @@ class DataLoader:
         return self.df_from_ds(self.testing_ds)
 
 
-class DataCreator:
+class Creator:
     """Generates tfrecords files from ROOT map files.
     """
 
     def __init__(self, directory, geom, split, join, parallel, all_maps):
-        """Initialise the DataCreator.
+        """Initialise the Creator.
         Args:
             directory (str): Input production directory
             geom (str): Geometry to use

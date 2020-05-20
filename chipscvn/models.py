@@ -162,7 +162,7 @@ class BeamModel(BaseModel):
         policy = mixed_precision.Policy(self.config.model.precision_policy)
         mixed_precision.set_policy(policy)
         inputs, x = chipscvn.layers.get_vgg16_base(self.config)
-        x = tf.keras.layers.Dense(chipscvn.data.DataMapper().get_map(self.config.model.labels[0]).train_num,
+        x = tf.keras.layers.Dense(chipscvn.data.Mapper().get_map(self.config.model.labels[0]).train_num,
                                   name='dense_logits')(x)
         outputs = tf.keras.layers.Activation('softmax', dtype='float32',
                                              name=self.config.model.labels[0])(x)
@@ -195,7 +195,7 @@ class BeamMultiSimpleModel(BaseModel):
 
         inputs, x = chipscvn.layers.get_vgg16_base(self.config)
         out_c = tf.keras.layers.Dense(self.config.model.dense_units, activation='relu')(x)
-        out_c = tf.keras.layers.Dense(chipscvn.data.DataMapper().get_map(self.config.model.labels[0]).train_num,
+        out_c = tf.keras.layers.Dense(chipscvn.data.Mapper().get_map(self.config.model.labels[0]).train_num,
                                       name='c_logits')(out_c)
         out_c = tf.keras.layers.Activation('softmax', dtype='float32',
                                            name=self.config.model.labels[0])(out_c)
@@ -242,7 +242,7 @@ class BeamMultiModel(BaseModel):
         """
         self.model = chipscvn.layers.CHIPSMultitask(
             self.config,
-            chipscvn.data.DataMapper().get_map(self.config.model.labels[0]).train_num,
+            chipscvn.data.Mapper().get_map(self.config.model.labels[0]).train_num,
             self.config.model.labels[0]
         )
         self.summarise(self.model.model())

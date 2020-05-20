@@ -55,7 +55,7 @@ def train_model(config):
     print('--- Setting up directories ---\n')
     chipscvn.config.setup_dirs(config, True)
     print('--- Setting up data loader ---\n')
-    data = chipscvn.data.DataLoader(config)
+    data = chipscvn.data.Loader(config)
     print('--- Building model ---\n')
     model = chipscvn.models.get_model(config)
     if config.trainer.epochs > 0:
