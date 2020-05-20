@@ -1,4 +1,4 @@
-image: "registry.gitlab.com/chipsneutrino/chips-cvn/chips-cvn:latest"
+image: "registry.gitlab.com/chipsneutrino/chips-net/chips-net:latest"
 
 stages:
   - build
@@ -16,8 +16,8 @@ build:
   script:
     - cd ./env/
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY/chipsneutrino/chips-cvn/chips-cvn:latest .
-    - docker push $CI_REGISTRY/chipsneutrino/chips-cvn/chips-cvn:latest
+    - docker build -t $CI_REGISTRY/chipsneutrino/chips-net/chips-net:latest .
+    - docker push $CI_REGISTRY/chipsneutrino/chips-net/chips-net:latest
   only:
     changes:
       - ./env/*
@@ -27,7 +27,7 @@ flake8:
   script:
     - source /opt/conda/bin/activate
     - source activate chips
-    - flake8 --max-line-length=120 chipscvn/*.py
+    - flake8 --max-line-length=120 chipsnet/*.py
 
 pytest:
   stage: test
@@ -42,9 +42,9 @@ pdoc:
   script:
     - source /opt/conda/bin/activate
     - source activate chips
-    - pdoc --html chipscvn -o ./doc --force
+    - pdoc --html chipsnet -o ./doc --force
     - mkdir .public
-    - cp -r ./doc/chipscvn/* .public
+    - cp -r ./doc/chipsnet/* .public
     - mv .public public
   artifacts:
     paths:

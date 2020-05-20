@@ -50,9 +50,9 @@ export PATH="${new_path}"
 
 echo "Switched to CUDA ${TARGET_VERSION}."
 
-if [[ -d "./env/conda/envs/chips/" ]]; then
+if [[ -d "./env/conda/envs/chipsnet/" ]]; then
     source env/conda/bin/activate
-    conda activate chips
+    conda activate chipsnet
 else
     cd env/  # Go to the env directory
 
@@ -63,7 +63,7 @@ else
     bash miniconda.sh -b -p $DIR/env/conda
     rm miniconda.sh
 
-    # Activate miniconda and create the chips environment
+    # Activate miniconda and create the chipsnet environment
     source conda/bin/activate
     conda update -n base -c defaults conda -y
     conda config --add envs_dirs $DIR/env/conda/envs
@@ -76,7 +76,7 @@ else
     # Make sure the base environement is not enabled by default
     conda config --set auto_activate_base false
 
-    conda activate chips
+    conda activate chipsnet
 fi
 
 # Go back to the user directory

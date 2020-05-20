@@ -17,10 +17,10 @@ def get_trainer(config, model, data):
     """Returns the correct trainer for the configuration.
     Args:
         config (dotmap.DotMap): DotMap Configuration namespace
-        model (chipscvn.models model): Model to use with trainer
-        data (chipscvn.data.Loader): Data loader
+        model (chipsnet.models model): Model to use with trainer
+        data (chipsnet.data.Loader): Data loader
     Returns:
-        chipscvn.trainers trainer: Training class
+        chipsnet.trainers trainer: Training class
     """
     if config.model.name == "multi":
         return MultiTrainer(config, model, data)
@@ -35,8 +35,8 @@ class BaseTrainer(object):
         """Initialise the BaseTrainer.
         Args:
             config (dotmap.DotMap): DotMap Configuration namespace
-            model (chipscvn.models model): Model to use with trainer
-            data (chipscvn.data.Loader): Data loader
+            model (chipsnet.models model): Model to use with trainer
+            data (chipsnet.data.Loader): Data loader
         """
         self.config = config
         self.model = model
@@ -67,8 +67,8 @@ class BasicTrainer(BaseTrainer):
         """Initialise the BasicTrainer.
         Args:
             config (dotmap.DotMap): DotMap Configuration namespace
-            model (chipscvn.models model): Model to use with trainer
-            data (chipscvn.data.Loader): Data loader
+            model (chipsnet.models model): Model to use with trainer
+            data (chipsnet.data.Loader): Data loader
         """
         super().__init__(config, model, data)
         self.init_callbacks()
@@ -157,8 +157,8 @@ class MultiTrainer(BaseTrainer):
         """Initialise the MultiTrainer.
         Args:
             config (dotmap.DotMap): DotMap Configuration namespace
-            model (chipscvn.models model): Model to use with trainer
-            data (chipscvn.data.Loader): Data loader
+            model (chipsnet.models model): Model to use with trainer
+            data (chipsnet.data.Loader): Data loader
         """
         super().__init__(config, model, data)
 

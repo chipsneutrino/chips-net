@@ -4,7 +4,7 @@
 
 This module contains the keras functional model definitions. All
 are derived from the BaseModel class for ease-of-use in other parts
-of the chips-cvn code
+of the chipsnet code
 """
 
 import os
@@ -12,8 +12,8 @@ import os
 import tensorflow as tf
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 
-import chipscvn.data
-import chipscvn.layers
+import chipsnet.data
+import chipsnet.layers
 
 
 def get_model(config):
@@ -21,7 +21,7 @@ def get_model(config):
     Args:
         config (dotmap.DotMap): DotMap Configuration namespace
     Returns:
-        chipscvn.models model: Model class
+        chipsnet.models model: Model class
     """
     if config.model.name == "parameter":
         return ParameterModel(config)
@@ -103,7 +103,7 @@ class ParameterModel(BaseModel):
         """
         policy = mixed_precision.Policy(self.config.model.precision_policy)
         mixed_precision.set_policy(policy)
-        inputs, x = chipscvn.layers.get_vgg16_base(self.config)
+        inputs, x = chipsnet.layers.get_vgg16_base(self.config)
         x = tf.keras.layers.Dense(1, name='dense_logits')(x)
         outputs = tf.keras.layers.Activation('linear', dtype='float32',
                                              name=self.config.model.labels[0])(x)
@@ -132,7 +132,7 @@ class CosmicModel(BaseModel):
         """
         policy = mixed_precision.Policy(self.config.model.precision_policy)
         mixed_precision.set_policy(policy)
-        inputs, x = chipscvn.layers.get_vgg16_base(self.config)
+        inputs, x = chipsnet.layers.get_vgg16_base(self.config)
         x = tf.keras.layers.Dense(1, name='dense_logits')(x)
         outputs = tf.keras.layers.Activation('sigmoid', dtype='float32',
                                              name=self.config.model.labels[0])(x)
@@ -161,8 +161,8 @@ class BeamModel(BaseModel):
         """
         policy = mixed_precision.Policy(self.config.model.precision_policy)
         mixed_precision.set_policy(policy)
-        inputs, x = chipscvn.layers.get_vgg16_base(self.config)
-        x = tf.keras.layers.Dense(chipscvn.data.Mapper().get_map(self.config.model.labels[0]).train_num,
+        inputs, x = chipsnet.layers.get_vgg16_base(self.config)
+        x = tf.keras.layers.Dense(chipsnet.data.Mapper().get_map(self.config.model.labels[0]).train_num,
                                   name='dense_logits')(x)
         outputs = tf.keras.layers.Activation('softmax', dtype='float32',
                                              name=self.config.model.labels[0])(x)
@@ -193,9 +193,9 @@ class BeamMultiSimpleModel(BaseModel):
         policy = mixed_precision.Policy(self.config.model.precision_policy)
         mixed_precision.set_policy(policy)
 
-        inputs, x = chipscvn.layers.get_vgg16_base(self.config)
+        inputs, x = chipsnet.layers.get_vgg16_base(self.config)
         out_c = tf.keras.layers.Dense(self.config.model.dense_units, activation='relu')(x)
-        out_c = tf.keras.layers.Dense(chipscvn.data.Mapper().get_map(self.config.model.labels[0]).train_num,
+        out_c = tf.keras.layers.Dense(chipsnet.data.Mapper().get_map(self.config.model.labels[0]).train_num,
                                       name='c_logits')(out_c)
         out_c = tf.keras.layers.Activation('softmax', dtype='float32',
                                            name=self.config.model.labels[0])(out_c)
@@ -240,9 +240,9 @@ class BeamMultiModel(BaseModel):
     def build(self):
         """Builds the model using the subclassing API
         """
-        self.model = chipscvn.layers.CHIPSMultitask(
+        self.model = chipsnet.layers.CHIPSMultitask(
             self.config,
-            chipscvn.data.Mapper().get_map(self.config.model.labels[0]).train_num,
+            chipsnet.data.Mapper().get_map(self.config.model.labels[0]).train_num,
             self.config.model.labels[0]
         )
         self.summarise(self.model.model())

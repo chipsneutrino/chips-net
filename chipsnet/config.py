@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-"""Provides a CVN configuration namespace from a yaml file
+"""Provides a configuration namespace from a yaml file
 
 This module produces a configuration namespace from an input yaml config
-file that can be used in the rest of the chips-cvn code. It also formats
+file that can be used in the rest of the chipsnet code. It also formats
 the output directories for experiments.
 """
 

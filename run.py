@@ -2,7 +2,7 @@
 
 """Main running script
 
-This script is the main chips-cvn training script. Given the input
+This script is the main chipsnet training script. Given the input
 configuration it trains the given model and then evaluates the test
 dataset. It can also carry out hyperparameter optimisation using
 SHERPA which requires a modified configuration file.
@@ -33,12 +33,12 @@ if tf.config.list_physical_devices('GPU'):
     except RuntimeError as e:  # Memory growth must be set before GPUs have been initialized
         print(e)
 
-import chipscvn.config  # noqa: E402
-import chipscvn.data  # noqa: E402
-import chipscvn.models  # noqa: E402
-import chipscvn.trainers  # noqa: E402
-import chipscvn.studies  # noqa: E402
-import chipscvn.evaluator  # noqa: E402
+import chipsnet.config  # noqa: E402
+import chipsnet.data  # noqa: E402
+import chipsnet.models  # noqa: E402
+import chipsnet.trainers  # noqa: E402
+import chipsnet.studies  # noqa: E402
+import chipsnet.evaluator  # noqa: E402
 
 
 def create_data(config):
@@ -46,7 +46,7 @@ def create_data(config):
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
-    creator = chipscvn.data.Creator(config)
+    creator = chipsnet.data.Creator(config)
     creator.run()
 
 
@@ -62,14 +62,14 @@ def train_model(config):
         pass
 
     print('--- Setting up directories ---\n')
-    chipscvn.config.setup_dirs(config, True)
+    chipsnet.config.setup_dirs(config, True)
     print('--- Setting up data loader ---\n')
-    data = chipscvn.data.Loader(config)
+    data = chipsnet.data.Loader(config)
     print('--- Building model ---\n')
-    model = chipscvn.models.get_model(config)
+    model = chipsnet.models.get_model(config)
     if config.trainer.epochs > 0:
         print('\n--- Training model ---')
-        trainer = chipscvn.trainers.get_trainer(config, model, data)
+        trainer = chipsnet.trainers.get_trainer(config, model, data)
         trainer.train()
         print('\n--- Running quick evaluation ---\n')
         trainer.eval()
@@ -90,9 +90,9 @@ def study_model(config):
         config (dotmap.DotMap): Configuration namespace
     """
     print('--- Setting up directories ---\n')
-    chipscvn.config.setup_dirs(config, True)
+    chipsnet.config.setup_dirs(config, True)
     print('--- Setting up data loader ---\n')
-    study = chipscvn.studies.get_study(config)
+    study = chipsnet.studies.get_study(config)
     print('--- Running study ---\n')
     study.run()
 
@@ -103,14 +103,14 @@ def evaluate_model(config):
         config (dotmap.DotMap): Configuration namespace
     """
     print('--- Setting up evaluator ---\n')
-    evaluator = chipscvn.evaluator.Evaluator(config)
+    evaluator = chipsnet.evaluator.Evaluator(config)
     evaluator.run_all()
 
 
 def parse_args():
     """Parse the command line arguments.
     """
-    parser = argparse.ArgumentParser(description='CHIPS CVN')
+    parser = argparse.ArgumentParser(description='chipsnet')
     parser.add_argument('config', help='path to the configuration file')
     return parser.parse_args()
 
@@ -118,8 +118,8 @@ def parse_args():
 def main():
     """Main function called by the run script.
     """
-    print('\n--- Its Magic, it must be the CHIPS CVN ---\n')
-    config = chipscvn.config.get(parse_args().config)
+    print('\n--- Its Magic, it must be chipsnet ---\n')
+    config = chipsnet.config.get(parse_args().config)
 
     # strategy = tf.distribute.MirroredStrategy()
     # with strategy.scope():

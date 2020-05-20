@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-chips-cvn package
+chipsnet package
 
 This packaged provides the core functionality to train and evaluate
 classification and estimation models for CHIPS data. See the individual

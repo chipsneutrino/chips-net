@@ -1,6 +1,6 @@
 from os import path
 import pytest  # noqa: F401
-import chipscvn.config as config
+import chipsnet.config as config
 
 
 def test_get():

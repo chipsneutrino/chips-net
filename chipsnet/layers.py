@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Module containing the multitask chips-cvn model
+"""Module containing the multitask chipsnet model
 
 An illustrated guide to many of the blocks is at...
 https://towardsdatascience.com/illustrated-10-cnn-architectures-95d78ace614d

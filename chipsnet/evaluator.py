@@ -18,9 +18,9 @@ from root_numpy import fill_hist
 from root_pandas import to_root
 from tqdm import tqdm
 
-import chipscvn.config
-import chipscvn.data
-import chipscvn.models
+import chipsnet.config
+import chipsnet.data
+import chipsnet.models
 
 
 class Evaluator(object):
@@ -39,7 +39,7 @@ class Evaluator(object):
         """Initialise the evaluator.
         """
         # Get the test dataset
-        data_loader = chipscvn.data.Loader(self.config)
+        data_loader = chipsnet.data.Loader(self.config)
         self.data = data_loader.test_data()
 
         # Fully combined category names
@@ -56,8 +56,8 @@ class Evaluator(object):
         config.model = self.config.models[name]
         config.exp.output_dir = self.config.models[name].dir
         config.exp.name = self.config.models[name].path
-        chipscvn.config.setup_dirs(config, False)
-        model = chipscvn.models.get_model(config)
+        chipsnet.config.setup_dirs(config, False)
+        model = chipsnet.models.get_model(config)
         model.load()
         return model
 

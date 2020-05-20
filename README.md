@@ -1,10 +1,10 @@
-# chips-cvn
+# chips-net
 
-[![Pipeline](https://gitlab.com/chipsneutrino/chips-cvn/badges/master/pipeline.svg)](https://gitlab.com/chipsneutrino/chips-cvn/pipelines)        [![Docs chipsneutrino.gitlab.io/chips-cvn](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://chipsneutrino.gitlab.io/chips-cvn/)
+[![Pipeline](https://gitlab.com/chipsneutrino/chips-net/badges/master/pipeline.svg)](https://gitlab.com/chipsneutrino/chips-net/pipelines)        [![Docs chipsneutrino.gitlab.io/chips-net](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://chipsneutrino.gitlab.io/chips-net/)
 
-chips-cvn (CHIPS Convolutional Visual Network) provides the code to train Convolutional Neural Networks (CNNs) for CHIPS event analysis using the [Tensorflow](https://www.tensorflow.org/) framework.
+chips-net (CHIPS Convolutional Visual Network) provides the code to train Convolutional Neural Networks (CNNs) for CHIPS event analysis using the [Tensorflow](https://www.tensorflow.org/) framework.
 
-The docs can be found at [https://chipsneutrino.gitlab.io/chips-cvn/](https://chipsneutrino.gitlab.io/chips-cvn/)
+The docs can be found at [https://chipsneutrino.gitlab.io/chips-net/](https://chipsneutrino.gitlab.io/chips-net/)
 
 ## Setup
 To setup the correct version of CUDA and install the conda environment, run... 

@@ -8,9 +8,9 @@ allow for the customisation of the study depending on the model.
 """
 
 import sherpa
-import chipscvn.data
-import chipscvn.models
-import chipscvn.trainers
+import chipsnet.data
+import chipsnet.models
+import chipsnet.trainers
 
 
 def get_study(config):
@@ -18,7 +18,7 @@ def get_study(config):
     Args:
         config (dotmap.DotMap): DotMap Configuration namespace
     Returns:
-        chipscvn.studies study: Study class
+        chipsnet.studies study: Study class
     """
     if config.model.name == "parameter":
         return ParameterStudy(config)
@@ -72,10 +72,10 @@ class BaseStudy(object):
                     print('Error: invalid study parameter key!')
                     raise SystemExit
 
-            data = chipscvn.data.Loader(self.config)
-            model = chipscvn.models.get_model(self.config)
+            data = chipsnet.data.Loader(self.config)
+            model = chipsnet.models.get_model(self.config)
             model.summarise()
-            trainer = chipscvn.trainers.get_trainer(self.config, model, data)
+            trainer = chipsnet.trainers.get_trainer(self.config, model, data)
             cb = [self.study.keras_callback(trial,
                                             objective_name=self.objective,
                                             context_names=self.context)]

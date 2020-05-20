@@ -1,4 +1,4 @@
-name: chips
+name: chipsnet
 channels:
   - defaults
   - conda-forge
