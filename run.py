@@ -46,7 +46,9 @@ def create_data(config):
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
+    print('--- Setting up data creator ---\n')
     creator = chipsnet.data.Creator(config)
+    print('--- Running creation ---\n')
     creator.run()
 
 
@@ -63,8 +65,8 @@ def train_model(config):
 
     print('--- Setting up directories ---\n')
     chipsnet.config.setup_dirs(config, True)
-    print('--- Setting up data loader ---\n')
-    data = chipsnet.data.Loader(config)
+    print('--- Setting up data reader ---\n')
+    data = chipsnet.data.Reader(config)
     print('--- Building model ---\n')
     model = chipsnet.models.get_model(config)
     if config.trainer.epochs > 0:
@@ -91,7 +93,7 @@ def study_model(config):
     """
     print('--- Setting up directories ---\n')
     chipsnet.config.setup_dirs(config, True)
-    print('--- Setting up data loader ---\n')
+    print('--- Setting up the study---\n')
     study = chipsnet.studies.get_study(config)
     print('--- Running study ---\n')
     study.run()

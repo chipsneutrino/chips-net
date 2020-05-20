@@ -1,0 +1,71 @@
+---
+# Standard model study configuration file
+
+# Define the run task to be 'study' 
+task: 'study'
+
+# The 'study' task requires 3 types of variables used to define the configuration
+# - exp: the training experiment output directory
+# - data: the input data and how it should be used
+# - model: the model to train
+# - trainer: how the trainer should run
+# - study: how variables should be modified during the SHERPA study
+
+exp:
+    name: "study_test"
+    output_dir: "./data/output/"
+
+data:
+    # The directories from which to take input data
+    input_dirs:
+        - "./data/input/beam_nuel_all/chips_1200_sk1pe/"
+        - "./data/input/beam_numu_all/chips_1200_sk1pe/"
+        - "./data/input/cosmic_numu_all/chips_1200_sk1pe/"
+    # Should the data reader, create the full set of parameters from file?
+    extra_vars: False
+    # Does the input data contain all possible input channels?
+    all_chan: False
+    # Should the images be stacked into a single tensor?
+    stack: True
+    # Which channels should be active?
+    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # How much should each channel be randomly scaled?
+    rand: [0.05, 0.05, 0.05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # How much should each channel be randomly shifted?
+    shift: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # The input image size
+    img_size: [64, 64, 3]
+    # How to scale each of the reco parameters [vtxX, vtxY, vtxZ, dirTheta, dirPhi]
+    par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
+
+model: 
+    name: 'beam'  # 'parameter', 'cosmic', 'beam', 'multi_simple', 'multi'
+    labels: ['t_all_cat']  # ['t_nuEnergy'], ['t_cosmic_cat'], ['t_all_cat'], ['t_all_cat', 't_nuEnergy'], ['t_all_cat', 't_nuEnergy']
+    reco_pars: False
+    lr: 0.0001
+    lr_decay: 0.0
+    dense_units: 512
+    dropout: 0.3
+    kernel_size: 3
+    filters: 64
+    precision_policy: 'float32'
+
+trainer: 
+    epochs: 0
+    steps_per_epoch: -1
+    es_delta: 0.01
+    es_epochs: 3
+
+study: # We list the number of trials and then all the variables we want to tune
+    trials: 50
+    data:
+        batch_size: [64]
+        stack: [true]
+    model:
+        reco_pars: [true, False]
+        lr: [0.00005, 0.001]
+        lr_decay: [0.0, 0.0]
+        dense_units: [512, 1028]
+        dropout: [0.0, 0.5]
+        kernel_size: [3]
+        filters: [64, 128]

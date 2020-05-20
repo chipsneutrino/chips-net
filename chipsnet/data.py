@@ -361,8 +361,6 @@ class Reader:
             ds = ds.map(lambda x: self.parse(x))
 
         ds = ds.filter(self.filter_other)
-        ds = ds.batch(self.config.data.batch_size, drop_remainder=True)
-
         return ds
 
     def df_from_ds(self, df):
@@ -391,24 +389,20 @@ class Reader:
         return pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
 
     @property
-    def training_ds(self):
+    def training_ds(self, parallel=True):
         """Returns the training dataset.
         Returns:
             tf.dataset: The training dataset
         """
-        ds = self.dataset(self.train_dirs)
-        ds = ds.take(self.config.data.train_examples)
-        return ds
+        return self.dataset(self.train_dirs, parallel)
 
     @property
-    def validation_ds(self):
+    def validation_ds(self, parallel=True):
         """Returns the validation dataset.
         Returns:
             tf.dataset: The validation dataset
         """
-        ds = self.dataset(self.val_dirs)
-        ds = ds.take(int(self.config.data.val_examples))
-        return ds
+        return self.dataset(self.val_dirs, parallel)
 
     @property
     def testing_ds(self, parallel=False):
@@ -416,9 +410,7 @@ class Reader:
         Returns:
             tf.dataset: The testing dataset
         """
-        ds = self.dataset(self.test_dirs)
-        ds = ds.take(self.config.data.test_examples)
-        return ds
+        return self.dataset(self.test_dirs, parallel)
 
     @property
     def training_df(self):

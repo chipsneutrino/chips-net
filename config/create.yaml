@@ -1,0 +1,22 @@
+---
+# Standard data creation configuration file
+
+# Define the run task to be 'create' 
+task: 'create'
+
+# The 'study' task requires 1 types of variable used to define the configuration
+# - create: data creator input parameters
+
+create:
+    # The input 'production' directory
+    directory: "/unix/chips/production/beam_nuel_all/"
+    # The chips geometry type to use
+    geometry: "chips_1200"
+    # Fraction of data to set aside for both validation and testing
+    split: 0.1
+    # How many input .root map files to join together
+    join: 10
+    # Should all hit maps be passed through to the .tfrecords file?
+    all_maps: False
+    # Should the creation process be done in parallel, using multiple threads?
+    parallel: False
