@@ -50,25 +50,23 @@ export PATH="${new_path}"
 
 echo "Switched to CUDA ${TARGET_VERSION}."
 
-if [[ -d "./env/conda/envs/chipsnet/" ]]; then
-    source env/conda/bin/activate
+if [[ -d ".conda/envs/chipsnet/" ]]; then
+    source .conda/bin/activate
     conda activate chipsnet
 else
-    cd env/  # Go to the env directory
-
     # Download the latest version of miniconda3
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh --no-check-certificate
 
     # Install miniconda3 in the current directory
-    bash miniconda.sh -b -p $DIR/env/conda
+    bash miniconda.sh -b -p $DIR/.conda
     rm miniconda.sh
 
     # Activate miniconda and create the chipsnet environment
-    source conda/bin/activate
+    source .conda/bin/activate
     conda update -n base -c defaults conda -y
-    conda config --add envs_dirs $DIR/env/conda/envs
-    conda config --add envs_dirs $DIR/env/conda/envs
-    conda env create -f $DIR/env/environment.yaml
+    conda config --add envs_dirs $DIR/.conda/envs
+    conda config --add envs_dirs $DIR/.conda/envs
+    conda env create -f $DIR/environment.yaml
 
     # Clean the miniconda install
     conda clean --all -y

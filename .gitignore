@@ -1,6 +1,6 @@
 __pycache__/
 tmp/
-env/conda/
+.conda/
 data/output/*models*
 *.ipynb_checkpoints
 *.root
