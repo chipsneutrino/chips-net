@@ -449,21 +449,16 @@ class Creator:
     """Generates tfrecords files from ROOT map files.
     """
 
-    def __init__(self, directory, geom, split, join, parallel, all_maps):
+    def __init__(self, config):
         """Initialise the Creator.
         Args:
-            directory (str): Input production directory
-            geom (str): Geometry to use
-            split (float): Validation and testing fractional data split
-            join (int): Number of input files to combine together
-            parallel (bool): Should we run parallel processes?
-            all_maps (bool): Should we generate all the maps?
+            config (str): Dotmap configuration namespace
         """
-        self.split = split
-        self.join = join
-        self.parallel = parallel
-        self.all_maps = all_maps
-        self.init(directory, geom)
+        self.split = config.create.split
+        self.join = config.create.join
+        self.parallel = config.create.parallel
+        self.all_maps = config.create.all_maps
+        self.init(config.create.directory, config.create.geometry)
 
     def init(self, directory, geom):
         """Initialise the output directories.

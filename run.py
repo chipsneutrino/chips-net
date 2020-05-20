@@ -41,6 +41,15 @@ import chipscvn.studies  # noqa: E402
 import chipscvn.evaluator  # noqa: E402
 
 
+def create_data(config):
+    """Preprocesses input .root files into .tfrecords ready for use in training.
+    Args:
+        config (dotmap.DotMap): Configuration namespace
+    """
+    creator = chipscvn.data.Creator(config)
+    creator.run()
+
+
 def train_model(config):
     """Trains a model according to the configuration.
     Args:
@@ -114,14 +123,16 @@ def main():
 
     # strategy = tf.distribute.MirroredStrategy()
     # with strategy.scope():
-    if config.task == 'train':
+    if config.task == 'create':
+        create_data(config)
+    elif config.task == 'train':
         train_model(config)
     elif config.task == 'study':
         study_model(config)
     elif config.task == 'evaluate':
         evaluate_model(config)
     else:
-        print('\nError: must define a task in configuration [train, study, evaluate]')
+        print('\nError: must define a task in configuration [create, train, study, evaluate]')
         raise SystemExit
     print('--- Magic complete ---\n')
 
