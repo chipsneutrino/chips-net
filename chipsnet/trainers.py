@@ -18,7 +18,7 @@ def get_trainer(config, model, data):
     Args:
         config (dotmap.DotMap): DotMap Configuration namespace
         model (chipsnet.models model): Model to use with trainer
-        data (chipsnet.data.Loader): Data loader
+        data (chipsnet.data.Reader): Data reader
     Returns:
         chipsnet.trainers trainer: Training class
     """
@@ -36,7 +36,7 @@ class BaseTrainer(object):
         Args:
             config (dotmap.DotMap): DotMap Configuration namespace
             model (chipsnet.models model): Model to use with trainer
-            data (chipsnet.data.Loader): Data loader
+            data (chipsnet.data.Reader): Data reader
         """
         self.config = config
         self.model = model
@@ -68,7 +68,7 @@ class BasicTrainer(BaseTrainer):
         Args:
             config (dotmap.DotMap): DotMap Configuration namespace
             model (chipsnet.models model): Model to use with trainer
-            data (chipsnet.data.Loader): Data loader
+            data (chipsnet.data.Reader): Data reader
         """
         super().__init__(config, model, data)
         self.init_callbacks()
@@ -158,7 +158,7 @@ class MultiTrainer(BaseTrainer):
         Args:
             config (dotmap.DotMap): DotMap Configuration namespace
             model (chipsnet.models model): Model to use with trainer
-            data (chipsnet.data.Loader): Data loader
+            data (chipsnet.data.Reader): Data reader
         """
         super().__init__(config, model, data)
 

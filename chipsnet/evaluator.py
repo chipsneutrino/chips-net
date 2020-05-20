@@ -39,8 +39,8 @@ class Evaluator(object):
         """Initialise the evaluator.
         """
         # Get the test dataset
-        data_loader = chipsnet.data.Loader(self.config)
-        self.data = data_loader.test_data()
+        data_reader = chipsnet.data.Reader(self.config)
+        self.data = data_reader.test_data()
 
         # Fully combined category names
         self.comb_cat_names = ['Nuel-CC', 'Numu-CC', 'NC', 'Cosmic']

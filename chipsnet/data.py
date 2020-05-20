@@ -2,7 +2,7 @@
 
 """Data creation and loading module
 
-This module contains both the Creator and Loader classes, these
+This module contains both the Creator and Reader classes, these
 are used to firstly generate tfrecords files from ROOT hitmap files and
 then to read these on the fly using tf.datasets at model training or
 evaluation.
@@ -180,12 +180,12 @@ class Mapper:
         return None
 
 
-class Loader:
+class Reader:
     """Generates tf datasets for training/evaluation from the configuration.
     """
 
     def __init__(self, config):
-        """Initialise the Loader.
+        """Initialise the Reader.
         Args:
             config (str): Dotmap configuration namespace
         """
