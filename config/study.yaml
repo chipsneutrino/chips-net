@@ -55,6 +55,7 @@ trainer:
     val_examples: 160000  # Make it a multiple of the batch size
     batch_size: 64
     epochs: 0
+    tb_update: 1000
     steps_per_epoch: -1
     es_delta: 0.01
     es_epochs: 3

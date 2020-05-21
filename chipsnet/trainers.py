@@ -91,6 +91,8 @@ class BasicTrainer(BaseTrainer):
             tf.keras.callbacks.TensorBoard(
                 log_dir=self.config.exp.tensorboard_dir,
                 histogram_freq=1,
+                update_freq=self.config.trainer.tb_update,
+                write_images=True
             )
         )
 
