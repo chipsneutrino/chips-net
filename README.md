@@ -2,7 +2,7 @@
 
 [![Pipeline](https://gitlab.com/chipsneutrino/chips-net/badges/master/pipeline.svg)](https://gitlab.com/chipsneutrino/chips-net/pipelines)        [![Docs chipsneutrino.gitlab.io/chips-net](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://chipsneutrino.gitlab.io/chips-net/)
 
-chips-net (CHIPS Convolutional Visual Network) provides the code to train Convolutional Neural Networks (CNNs) for CHIPS event analysis using the [Tensorflow](https://www.tensorflow.org/) framework.
+The CHIPS convolutional visual network provides a framework to train and evaluate CNNs for neutrino water Cherenkov event classification and reconstruction. The [Tensorflow](https://www.tensorflow.org/) framework is used as the backend.
 
 The docs can be found at [https://chipsneutrino.gitlab.io/chips-net/](https://chipsneutrino.gitlab.io/chips-net/)
 
@@ -15,26 +15,17 @@ $ source setup.sh
 
 Once this is done you can source 'setup.sh' again in the future to activate the environment.
 
-This also sets up two aliases (run and preprocess) used to execute run.py and preprocess.py.
-
-## Preprocessing
-To preprocess .root map files into tfrecords run...
-
-```
-$ preprocess [input_prod_directory]
-```
+This also sets up the alias 'run' used to execute the run.py script that executes all possible jobs in chipsnet
 
 ## To Run
-To run train, study, or evaluate, modify or create a new config file, exampes of which are in ./data/config/ and call...
+To run create data, train, study, or evaluate, modify or create a new config file, examples of which are in ./config/ and call...
 
 ```
-$ run [yaml_configuration]
+$ run [config_path]
 ```
 
 ## Tips
-You can use ./scripts/preprocess_maps.sh to preprocess a whole production set
-
-It's important to first copy data to the local GPU machine or the training rate is reduced significantly due to the network bottleneck. The script ./scripts/copy_to_local.sh shows how to do this.
+It's important to first copy data to the local GPU machine or the training rate is reduced significantly due to the network bottleneck.
 
 ## Notebooks
 To use the notebooks in ./scripts/ run the following and navigate to the url given.
@@ -62,3 +53,11 @@ Again you will need to forward the port to your local machine if working remotel
 ```
 $ jupyter nbconvert [notebook] --to slides --post serve
 ```
+
+## Comet Integration
+
+To enable this feature define a file .comet containing 
+
+    COMET_API_KEY=<your-comet-api-key>
+    COMET_WORKSPACE=<your-comet-workspace>
+    COMET_PROJECT_NAME=<your-comet-project-name>

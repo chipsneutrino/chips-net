@@ -85,7 +85,6 @@ if [[ -f ".comet" ]]; then
 fi
 
 alias run="python $DIR/scripts/run.py"
-alias preprocess="python $DIR/scripts/preprocess.py"
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
 echo "Setup complete."
