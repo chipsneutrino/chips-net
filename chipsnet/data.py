@@ -195,16 +195,15 @@ class Reader:
         self.test_dirs = [os.path.join(in_dir, 'test') for in_dir in config.data.input_dirs]
 
         if config.data.all_chan:
-            self.full_image_shape = [64, 64, 13]
+            self.full_image_shape = [
+                self.config.data.img_size[0],
+                self.config.data.img_size[1],
+                13]
         else:
-            self.full_image_shape = [64, 64, 3]
-
-        self.rand = []
-        self.shift = []
-        for i, enabled in enumerate(self.config.data.channels):
-            self.rand.append(tf.random.normal(
-                shape=[64, 64], mean=1, stddev=config.data.rand[i], dtype=tf.float32))
-            self.shift.append(tf.fill([64, 64], (1.0 + config.data.shift[i])))
+            self.full_image_shape = [
+                self.config.data.img_size[0],
+                self.config.data.img_size[1],
+                3]
 
         self.map = Mapper()
 
@@ -239,10 +238,22 @@ class Reader:
         channels = []
         for i, enabled in enumerate(self.config.data.channels):
             if enabled:
+
+                rand = tf.random.normal(
+                    shape=[self.config.data.img_size[0], self.config.data.img_size[1]],
+                    mean=1,
+                    stddev=self.config.data.rand[i],
+                    dtype=tf.float32
+                )
+                shift = tf.fill(
+                    [self.config.data.img_size[0], self.config.data.img_size[1]],
+                    (1.0 + self.config.data.shift[i])
+                )
+
                 # Cast to float, scale to [0,1], apply rand, apply shift
                 unstacked[i] = tf.cast(unstacked[i], tf.float32) / 256.0
-                unstacked[i] = tf.math.multiply(unstacked[i], self.rand[i])
-                unstacked[i] = tf.math.multiply(unstacked[i], self.shift[i])
+                unstacked[i] = tf.math.multiply(unstacked[i], rand)
+                unstacked[i] = tf.math.multiply(unstacked[i], shift)
                 channels.append(unstacked[i])
                 # TODO: Could take values below zero, change to prevent this
 
