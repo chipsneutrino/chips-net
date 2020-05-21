@@ -75,7 +75,7 @@ def train_model(config):
         trainer.train()
         print('\n--- Running quick evaluation ---\n')
         trainer.eval()
-        print('\n--- Saving model ---\n')
+        print('\n--- Saving model to {} ---\n'.format(config.exp.exp_dir))
         trainer.save()
     else:
         print('\n--- Skipping training ---\n')

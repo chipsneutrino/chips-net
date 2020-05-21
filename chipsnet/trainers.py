@@ -144,7 +144,10 @@ class BasicTrainer(BaseTrainer):
     def eval(self):
         """Run a quick evaluation.
         """
-        self.model.model.evaluate(self.data.testing_ds)
+        testing_ds = self.data.testing_ds
+        testing_ds = testing_ds.take(self.config.trainer.test_examples)
+        testing_ds = testing_ds.batch(self.config.trainer.batch_size, drop_remainder=True)
+        self.model.model.evaluate(testing_ds)
 
     def save(self):
         """Save the training history to file.

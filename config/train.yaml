@@ -19,7 +19,7 @@ data:
     input_dirs:
         - "./data/input/beam_nuel_all/chips_1200_sk1pe/"
         - "./data/input/beam_numu_all/chips_1200_sk1pe/"
-        - "./data/input/cosmic_numu_all/chips_1200_sk1pe/"
+        # - "./data/input/cosmic_numu_all/chips_1200_sk1pe/"
     # Should the data reader, create the full set of parameters from file?
     extra_vars: False
     # Does the input data contain all possible input channels?
@@ -52,6 +52,7 @@ model:
 trainer:
     train_examples: 1000000  # Make it a multiple of the batch size
     val_examples: 160000  # Make it a multiple of the batch size
+    test_examples: 160000  # Make it a multiple of the batch size
     batch_size: 64
     epochs: 5
     tb_update: 1000

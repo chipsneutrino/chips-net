@@ -2,6 +2,7 @@ __pycache__/
 tmp/
 .conda/
 data/output/*models*
+data/output/training_test
 *.ipynb_checkpoints
 *.root
 example_data/

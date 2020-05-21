@@ -142,7 +142,7 @@ class VGGBlock(layers.Layer):
         self.convs = []
         for i in range(num_conv):
             self.convs.append(ConvBN(filters, kernel_size, strides, activation, padding,
-                                     bn, name=prefix+'_conv'+str(i)))
+                                     bn, prefix=prefix+'_conv'+str(i)))
         self.pool = layers.MaxPooling2D((2, 2), strides=(2, 2), name=prefix+'_pool')
         self.dropout = layers.Dropout(drop_rate, name=prefix+'_drop') if drop_rate > 0.0 else None
 
@@ -176,7 +176,7 @@ class InceptionModule(layers.Layer):
             padding (str): Padding mode in convolutions
             prefix (str): Block name prefix
         """
-        super(ConvBN, self).__init__(name=prefix, **kwargs)
+        super(InceptionModule, self).__init__(name=prefix, **kwargs)
         self.path1_1 = layers.Conv2D(filters, (1, 1), activation=activation,
                                      padding=padding, name=prefix+'_1x1')
         self.path2_1 = layers.Conv2D(filters, (1, 1), activation=activation,
@@ -229,10 +229,10 @@ class MBConvBlock(layers.Layer):
             drop_rate (float): Dropout rate
             prefix (str): Block name prefix
         """
-        super(ConvBN, self).__init__(name=prefix, **kwargs)
+        super(MBConvBlock, self).__init__(name=prefix, **kwargs)
         filters = in_filters * expand_ratio
-        self.expansion = ConvBN(filters, (1, 1), (1, 1), activation, name=prefix+'_expand')
-        self.depthwise = DepthwiseConvBN(kernel_size, strides, activation, name=prefix+'_depthwise')
+        self.expansion = ConvBN(filters, (1, 1), (1, 1), activation, prefix=prefix+'_expand')
+        self.depthwise = DepthwiseConvBN(kernel_size, strides, activation, prefix=prefix+'_depthwise')
         self.se_ratio = se_ratio
         if (se_ratio is not None) and (0 < se_ratio <= 1):
             reduced_filters = max(1, int(in_filters * se_ratio))
@@ -319,15 +319,15 @@ def vgg16_core(x, config, name):
         tf.tensor: Output vgg16 core tensor
     """
     x = VGGBlock(2, config.model.filters, config.model.kernel_size,
-                 drop_rate=config.model.dropout, name=name+'_block1')(x)
+                 drop_rate=config.model.dropout, prefix=name+'_block1')(x)
     x = VGGBlock(2, config.model.filters*2, config.model.kernel_size,
-                 drop_rate=config.model.dropout, name=name+'_block2')(x)
+                 drop_rate=config.model.dropout, prefix=name+'_block2')(x)
     x = VGGBlock(3, config.model.filters*4, config.model.kernel_size,
-                 drop_rate=config.model.dropout, name=name+'_block3')(x)
+                 drop_rate=config.model.dropout, prefix=name+'_block3')(x)
     x = VGGBlock(3, config.model.filters*8, config.model.kernel_size,
-                 drop_rate=config.model.dropout, name=name+'_block4')(x)
+                 drop_rate=config.model.dropout, prefix=name+'_block4')(x)
     x = VGGBlock(3, config.model.filters*8, config.model.kernel_size,
-                 drop_rate=config.model.dropout, name=name+'_block5')(x)
+                 drop_rate=config.model.dropout, prefix=name+'_block5')(x)
     x = layers.Flatten(name='flatten')(x)
     return x
 
@@ -342,15 +342,15 @@ def vgg19_core(x, config, name):
         tf.tensor: Output vgg19 core tensor
     """
     x = VGGBlock(2, config.model.filters, config.model.kernel_size,
-                 drop_rate=config.model.dropout, name=name+'_block1')(x)
+                 drop_rate=config.model.dropout, prefix=name+'_block1')(x)
     x = VGGBlock(2, config.model.filters*2, config.model.kernel_size,
-                 drop_rate=config.model.dropout, name=name+'_block2')(x)
+                 drop_rate=config.model.dropout, prefix=name+'_block2')(x)
     x = VGGBlock(4, config.model.filters*4, config.model.kernel_size,
-                 drop_rate=config.model.dropout, name=name+'_block3')(x)
+                 drop_rate=config.model.dropout, prefix=name+'_block3')(x)
     x = VGGBlock(4, config.model.filters*8, config.model.kernel_size,
-                 drop_rate=config.model.dropout, name=name+'_block4')(x)
+                 drop_rate=config.model.dropout, prefix=name+'_block4')(x)
     x = VGGBlock(4, config.model.filters*8, config.model.kernel_size,
-                 drop_rate=config.model.dropout, name=name+'_block5')(x)
+                 drop_rate=config.model.dropout, prefix=name+'_block5')(x)
     x = layers.Flatten(name='flatten')(x)
     return x
 
@@ -364,17 +364,17 @@ def inceptionv1_core(x, config, name):
     Returns:
         tf.tensor: Output Inception-v1 core tensor
     """
-    x = ConvBN(64, (7, 7), strides=(2, 2), padding='same', name=name+'_conv1')(x)
+    x = ConvBN(64, (7, 7), strides=(2, 2), padding='same', prefix=name+'_conv1')(x)
     x = layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same', name=name+'_pool1')(x)
-    x = ConvBN(192, (3, 3), strides=(1, 1), padding='same', name=name+'_conv2')(x)
+    x = ConvBN(192, (3, 3), strides=(1, 1), padding='same', prefix=name+'_conv2')(x)
     x = layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same', name=name+'_pool2')(x)
-    x = InceptionModule(64, name=name+'_inception1')(x)
-    x = InceptionModule(120, name=name+'_inception2')(x)
+    x = InceptionModule(64, prefix=name+'_inception1')(x)
+    x = InceptionModule(120, prefix=name+'_inception2')(x)
     x = layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same', name=name+'pool3')(x)
-    x = InceptionModule(128, name=name+'_inception3')(x)
-    x = InceptionModule(128, name=name+'_inception4')(x)
+    x = InceptionModule(128, prefix=name+'_inception3')(x)
+    x = InceptionModule(128, prefix=name+'_inception4')(x)
     x = layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same', name=name+'_pool4')(x)
-    x = InceptionModule(256, name=name+'_inception5')(x)
+    x = InceptionModule(256, prefix=name+'_inception5')(x)
     x = layers.AveragePooling2D(pool_size=(7, 7), strides=(7, 7), padding='same',
                                 name=name+'_pool5')(x)
     x = layers.Flatten(name=name+'_flatten')(x)
@@ -392,11 +392,11 @@ def effnet_core(x, config, name):
     Returns:
         tf.tensor: Output Inception-v1 core tensor
     """
-    x = mb_conv_block(x, 3, 32, 16, 1, strides=[1, 1], se_ratio=0.25, drop_rate=0.2, name="0")
-    x = mb_conv_block(x, 3, 16, 32, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, name="1")
-    x = mb_conv_block(x, 3, 32, 64, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, name="2")
-    x = mb_conv_block(x, 5, 64, 128, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, name="3")
-    x = mb_conv_block(x, 5, 128, 256, 6, strides=[1, 1], se_ratio=0.25, drop_rate=0.2, name="4")
+    x = mb_conv_block(x, 3, 32, 16, 1, strides=[1, 1], se_ratio=0.25, drop_rate=0.2, prefix="0")
+    x = mb_conv_block(x, 3, 16, 32, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, prefix="1")
+    x = mb_conv_block(x, 3, 32, 64, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, prefix="2")
+    x = mb_conv_block(x, 5, 64, 128, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, prefix="3")
+    x = mb_conv_block(x, 5, 128, 256, 6, strides=[1, 1], se_ratio=0.25, drop_rate=0.2, prefix="4")
     x = tf.keras.layers.Flatten()(x)
     return x
 
@@ -539,15 +539,15 @@ class CHIPSMultitask(tf.keras.Model):
     def __init__(self, config, num_cats=16, cat='t_cat', name='chips_multitask', **kwargs):
         super(CHIPSMultitask, self).__init__(name=name, **kwargs)
         self.block1 = VGGBlock(2, config.model.filters, config.model.kernel_size,
-                               drop_rate=config.model.dropout, name=name+'_block1')
+                               drop_rate=config.model.dropout, prefix=name+'_block1')
         self.block2 = VGGBlock(2, config.model.filters*2, config.model.kernel_size,
-                               drop_rate=config.model.dropout, name=name+'_block2')
+                               drop_rate=config.model.dropout, prefix=name+'_block2')
         self.block3 = VGGBlock(3, config.model.filters*4, config.model.kernel_size,
-                               drop_rate=config.model.dropout, name=name+'_block3')
+                               drop_rate=config.model.dropout, prefix=name+'_block3')
         self.block4 = VGGBlock(3, config.model.filters*8, config.model.kernel_size,
-                               drop_rate=config.model.dropout, name=name+'_block4')
+                               drop_rate=config.model.dropout, prefix=name+'_block4')
         self.block5 = VGGBlock(3, config.model.filters*8, config.model.kernel_size,
-                               drop_rate=config.model.dropout, name=name+'_block5')
+                               drop_rate=config.model.dropout, prefix=name+'_block5')
         self.flatten = layers.Flatten(name='flatten')
         self.dense1 = layers.Dense(config.model.dense_units, activation='relu', name='dense1')
         self.dense2 = layers.Dense(config.model.dense_units, activation='relu', name='dense_final')
