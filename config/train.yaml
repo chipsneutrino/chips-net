@@ -50,11 +50,10 @@ model:
     precision_policy: 'float32'
 
 trainer:
+    train_examples: 1000000  # Make it a multiple of the batch size
+    val_examples: 160000  # Make it a multiple of the batch size
     batch_size: 64
-    train_examples: 10000
-    val_examples: 2500
-    test_examples: 2500
-    epochs: 0
+    epochs: 5
     steps_per_epoch: -1
     es_delta: 0.01
     es_epochs: 3

@@ -262,6 +262,8 @@ models:
 
 eval:
     output: "./data/output/eval_output/cvn_output.root"
+    test_examples: 160000  # Make it a multiple of the batch size
+    batch_size: 64
     make_dense: False
     steps_per_epoch: -1
     cuts:

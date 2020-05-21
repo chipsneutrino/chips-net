@@ -172,6 +172,8 @@ class MultiTrainer(BaseTrainer):
         """
         optimizer = tf.keras.optimizers.Adam(learning_rate=self.config.model.lr)
         training_ds = self.data.training_ds
+        training_ds = training_ds.take(self.config.trainer.train_examples)
+        training_ds = training_ds.batch(self.config.trainer.batch_size, drop_remainder=True)
 
         loss_results = []
         for epoch in range(self.config.trainer.epochs):

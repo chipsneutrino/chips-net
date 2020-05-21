@@ -14,13 +14,13 @@ import numpy as np
 from tensorflow.keras import Model
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
-from root_numpy import fill_hist
-from root_pandas import to_root
-from tqdm import tqdm
+from root_numpy import fill_hist  # noqa: E402
+from root_pandas import to_root  # noqa: E402
+from tqdm import tqdm  # noqa: E402
 
-import chipsnet.config
-import chipsnet.data
-import chipsnet.models
+import chipsnet.config  # noqa: E402
+import chipsnet.data  # noqa: E402
+import chipsnet.models  # noqa: E402
 
 
 class Evaluator(object):
@@ -41,6 +41,8 @@ class Evaluator(object):
         # Get the test dataset
         data_reader = chipsnet.data.Reader(self.config)
         self.data = data_reader.test_data()
+        self.data = self.data.take(self.config.eval.test_examples)
+        self.data = self.data.batch(self.config.eval.batch_size, drop_remainder=True)
 
         # Fully combined category names
         self.comb_cat_names = ['Nuel-CC', 'Numu-CC', 'NC', 'Cosmic']

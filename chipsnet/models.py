@@ -162,8 +162,8 @@ class BeamModel(BaseModel):
         policy = mixed_precision.Policy(self.config.model.precision_policy)
         mixed_precision.set_policy(policy)
         inputs, x = chipsnet.layers.get_vgg16_base(self.config)
-        x = tf.keras.layers.Dense(chipsnet.data.Mapper().get_map(self.config.model.labels[0]).train_num,
-                                  name='dense_logits')(x)
+        x = tf.keras.layers.Dense(chipsnet.data.Mapper().get_map(
+            self.config.model.labels[0]).train_num, name='dense_logits')(x)
         outputs = tf.keras.layers.Activation('softmax', dtype='float32',
                                              name=self.config.model.labels[0])(x)
         self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name=self.config.model.name)
@@ -195,8 +195,8 @@ class BeamMultiSimpleModel(BaseModel):
 
         inputs, x = chipsnet.layers.get_vgg16_base(self.config)
         out_c = tf.keras.layers.Dense(self.config.model.dense_units, activation='relu')(x)
-        out_c = tf.keras.layers.Dense(chipsnet.data.Mapper().get_map(self.config.model.labels[0]).train_num,
-                                      name='c_logits')(out_c)
+        out_c = tf.keras.layers.Dense(chipsnet.data.Mapper().get_map(
+            self.config.model.labels[0]).train_num, name='c_logits')(out_c)
         out_c = tf.keras.layers.Activation('softmax', dtype='float32',
                                            name=self.config.model.labels[0])(out_c)
         out_e = tf.keras.layers.Dense(self.config.model.dense_units, activation='relu')(x)
