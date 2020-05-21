@@ -14,26 +14,26 @@ build:
     DOCKER_HOST: tcp://docker:2376
     DOCKER_TLS_CERTDIR: "/certs"
   script:
-    - cd ./env/
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $CI_REGISTRY/chipsneutrino/chips-net/chips-net:latest .
     - docker push $CI_REGISTRY/chipsneutrino/chips-net/chips-net:latest
   only:
     changes:
-      - ./env/*
+      - environment.yaml
+      - Dockerfile
 
 flake8:
   stage: test
   script:
     - source /opt/conda/bin/activate
-    - source activate chips
+    - source activate chipsnet
     - flake8 --max-line-length=120 chipsnet/*.py
 
 pytest:
   stage: test
   script:
     - source /opt/conda/bin/activate
-    - source activate chips
+    - source activate chipsnet
     - export PYTHONPATH=$PYTHONPATH:$(pwd)
     - pytest
 
@@ -41,7 +41,7 @@ pdoc:
   stage: docs
   script:
     - source /opt/conda/bin/activate
-    - source activate chips
+    - source activate chipsnet
     - pdoc --html chipsnet -o ./doc --force
     - mkdir .public
     - cp -r ./doc/chipsnet/* .public
