@@ -81,7 +81,6 @@ class BasicTrainer(BaseTrainer):
             float: The generated dataset
         """
         lr = self.config.model.lr * 1/(1 + self.config.model.lr_decay * epoch)
-        print("\nLearning Rate: {}".format(lr))
         return lr
 
     def init_callbacks(self):

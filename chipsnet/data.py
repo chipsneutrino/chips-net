@@ -27,6 +27,7 @@ class Mapper:
     def __init__(self):
         """Initialise the Mapper.
         """
+        # TODO: Use tf.lookup.TextFileInitializer and initialise all from file
 
         """Map nuel and numu (Total = 2)
         0=Nuel, 1=Numu (cosmic muons are included in this)"""
@@ -53,8 +54,16 @@ class Mapper:
                        'NC-QEL', 'NC-RES', 'NC-DIS', 'NC-COH', 'Cosmic', 'Other'],
             'table': tf.lookup.StaticHashTable(
                 tf.lookup.KeyValueTensorInitializer(
-                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 91, 92, 96, 97, 98, 99, 100]),
-                    tf.constant([9, 0, 4, 1, 1, 1, 5, 5, 5, 5,  2,  6,  7,  3,  9,  9,   8])
+                    tf.constant([0, 1, 2,
+                                 3, 4, 5, 6, 7, 8, 9,
+                                 10, 11, 12, 13, 14, 15, 16,
+                                 17, 18, 19, 20, 21,
+                                 91, 92, 96, 97, 98, 99, 100]),
+                    tf.constant([9, 0, 4,
+                                 1, 1, 1, 5, 5, 5, 5,
+                                 1, 1, 1, 5, 5, 5, 5,
+                                 9,  9,  9,  9,  9,
+                                 2,  6,  7,  3,  9,  9,  8])
                 ), -1)
         })
 
@@ -267,15 +276,16 @@ class Reader:
         # Generate all the category mappings
         true_pars_i = tf.io.decode_raw(example['true_pars_i'], tf.int32)
         nu_type = self.map.nu_type.table.lookup(true_pars_i[0])
-        labels[self.map.nu_type.name] = nu_type
         int_type = self.map.int_type.table.lookup(true_pars_i[1])
-        labels[self.map.int_type.name] = int_type
         category = self.map.all_cat.table.lookup(
             tf.strings.join((
                 tf.strings.as_string(nu_type),
                 tf.strings.as_string(int_type)
             ))
         )
+
+        labels[self.map.nu_type.name] = nu_type
+        labels[self.map.int_type.name] = int_type
         labels[self.map.all_cat.name] = category
         labels[self.map.cosmic_cat.name] = self.map.cosmic_cat.table.lookup(category)
         labels[self.map.comb_cat.name] = self.map.comb_cat.table.lookup(category)
@@ -297,8 +307,8 @@ class Reader:
         inputs['r_dirPhi'] = tf.math.divide(reco_pars_f[9], self.config.data.par_scale[4])
 
         if len(self.config.model.labels) > 1:
-            inputs[self.map.all_cat.name] = labels[self.map.all_cat.name]
-            inputs['t_nuEnergy'] = labels['t_nuEnergy']
+            inputs[self.config.model.labels[0]] = labels[self.config.model.labels[0]]
+            inputs[self.config.model.labels[1]] = labels[self.config.model.labels[1]]
 
         if self.config.data.extra_vars:
             true_prim_i = tf.io.decode_raw(example['true_prim_i'], tf.int32)
@@ -322,7 +332,8 @@ class Reader:
             inputs['r_last_ring_height'] = reco_pars_f[3]
             inputs['r_vtxT'] = reco_pars_f[7]
 
-        return inputs, labels
+        stripped_labels = {k: labels[k] for k in self.config.model.labels}
+        return inputs, stripped_labels
 
     def filter_other(self, inputs, labels):
         """Filters out 'other' cateogory events from dataset.
@@ -461,16 +472,16 @@ class Creator:
         self.join = config.create.join
         self.parallel = config.create.parallel
         self.all_maps = config.create.all_maps
-        self.init(config.create.directory, config.create.geometry)
+        self.in_dir = config.create.in_dir
+        self.out_dir = config.create.out_dir
+        self.init()
 
-    def init(self, directory, geom):
+    def init(self):
         """Initialise the output directories.
         Args:
             directory (str): Production input/output directory path
             geom (str): CHIPS geometry to use
         """
-        self.in_dir = os.path.join(directory, "map/", geom)
-        self.out_dir = os.path.join(directory, "tf/", geom)
         os.makedirs(self.out_dir, exist_ok=True)
         os.makedirs(os.path.join(self.out_dir, "train/"), exist_ok=True)
         os.makedirs(os.path.join(self.out_dir, "val/"), exist_ok=True)
@@ -531,36 +542,20 @@ class Creator:
             axis=1)
 
         channels = []
-        ranges = []
-
         channels.append('r_raw_charge_map_vtx')
-        ranges.append((0.0, 15.0))
         channels.append('r_raw_time_map_vtx')
-        ranges.append((0.0, 80.0))
         channels.append('r_filtered_hit_hough_map_vtx')
-        ranges.append((0.0, 1500.0))
-
         if self.all_maps:
             channels.append('r_raw_hit_map_origin')
-            ranges.append((0.0, 15.0))
             channels.append('r_raw_charge_map_origin')
-            ranges.append((0.0, 15.0))
             channels.append('r_raw_time_map_origin')
-            ranges.append((0.0, 80.0))
             channels.append('r_filtered_hit_map_origin')
-            ranges.append((0.0, 15.0))
             channels.append('r_filtered_charge_map_origin')
-            ranges.append((0.0, 15.0))
             channels.append('r_filtered_time_map_origin')
-            ranges.append((0.0, 80.0))
             channels.append('r_raw_hit_map_vtx')
-            ranges.append((0.0, 15.0))
             channels.append('r_filtered_hit_map_vtx')
-            ranges.append((0.0, 15.0))
             channels.append('r_filtered_charge_map_vtx')
-            ranges.append((0.0, 15.0))
             channels.append('r_filtered_time_map_vtx')
-            ranges.append((0.0, 80.0))
 
         channel_images = []
         for i, channel in enumerate(channels):

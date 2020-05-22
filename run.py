@@ -63,22 +63,24 @@ def train_model(config):
         print('Error: Need to set comet_ml env variables')
         pass
 
-    print('--- Setting up directories ---\n')
-    chipsnet.config.setup_dirs(config, True)
-    print('--- Setting up data reader ---\n')
-    data = chipsnet.data.Reader(config)
-    print('--- Building model ---\n')
-    model = chipsnet.models.get_model(config)
-    if config.trainer.epochs > 0:
-        print('\n--- Training model ---')
-        trainer = chipsnet.trainers.get_trainer(config, model, data)
-        trainer.train()
-        print('\n--- Running quick evaluation ---\n')
-        trainer.eval()
-        print('\n--- Saving model to {} ---\n'.format(config.exp.exp_dir))
-        trainer.save()
-    else:
-        print('\n--- Skipping training ---\n')
+    strategy = tf.distribute.MirroredStrategy()
+    with strategy.scope():
+        print('--- Setting up directories ---\n')
+        chipsnet.config.setup_dirs(config, True)
+        print('--- Setting up data reader ---\n')
+        data = chipsnet.data.Reader(config)
+        print('--- Building model ---\n')
+        model = chipsnet.models.get_model(config)
+        if config.trainer.epochs > 0:
+            print('\n--- Training model ---')
+            trainer = chipsnet.trainers.get_trainer(config, model, data)
+            trainer.train()
+            print('\n--- Running quick evaluation ---\n')
+            trainer.eval()
+            print('\n--- Saving model to {} ---\n'.format(config.exp.exp_dir))
+            trainer.save()
+        else:
+            print('\n--- Skipping training ---\n')
 
     try:
         experiment.end()
@@ -91,12 +93,14 @@ def study_model(config):
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
-    print('--- Setting up directories ---\n')
-    chipsnet.config.setup_dirs(config, True)
-    print('--- Setting up the study---\n')
-    study = chipsnet.studies.get_study(config)
-    print('--- Running study ---\n')
-    study.run()
+    strategy = tf.distribute.MirroredStrategy()
+    with strategy.scope():
+        print('--- Setting up directories ---\n')
+        chipsnet.config.setup_dirs(config, True)
+        print('--- Setting up the study---\n')
+        study = chipsnet.studies.get_study(config)
+        print('--- Running study ---\n')
+        study.run()
 
 
 def evaluate_model(config):
@@ -123,8 +127,6 @@ def main():
     print('\n--- Its Magic, it must be chipsnet ---\n')
     config = chipsnet.config.get(parse_args().config)
 
-    # strategy = tf.distribute.MirroredStrategy()
-    # with strategy.scope():
     if config.task == 'create':
         create_data(config)
     elif config.task == 'train':

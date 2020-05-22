@@ -84,7 +84,7 @@ if [[ -f ".comet" ]]; then
     while read LINE; do export "$LINE"; done < .comet
 fi
 
-alias run="python $DIR/scripts/run.py"
+alias run="python $DIR/run.py"
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
 echo "Setup complete."

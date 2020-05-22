@@ -9,14 +9,14 @@ task: 'create'
 
 create:
     # The input 'production' directory
-    directory: "/unix/chips/production/beam_nuel_all/"
-    # The chips geometry type to use
-    geometry: "chips_1200"
+    in_dir: "/mnt/storage/jtingey/chips-net/data/input/beam_nuel_cccoh/chips_1200"
+    # The input 'production' directory
+    out_dir: "/mnt/storage/jtingey/chips-net/data/input/beam_nuel_cccoh_test/"
     # Fraction of data to set aside for both validation and testing
     split: 0.1
     # How many input .root map files to join together
-    join: 10
+    join: 5
     # Should all hit maps be passed through to the .tfrecords file?
-    all_maps: False
+    all_maps: True
     # Should the creation process be done in parallel, using multiple threads?
-    parallel: False
+    parallel: True

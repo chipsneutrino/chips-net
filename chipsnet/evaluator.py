@@ -12,15 +12,11 @@ import time
 import pandas as pd
 import numpy as np
 from tensorflow.keras import Model
-import ROOT
-ROOT.PyConfig.IgnoreCommandLineOptions = True
-from root_numpy import fill_hist  # noqa: E402
-from root_pandas import to_root  # noqa: E402
-from tqdm import tqdm  # noqa: E402
+from tqdm import tqdm
 
-import chipsnet.config  # noqa: E402
-import chipsnet.data  # noqa: E402
-import chipsnet.models  # noqa: E402
+import chipsnet.config
+import chipsnet.data
+import chipsnet.models
 
 
 class Evaluator(object):
@@ -399,123 +395,5 @@ class Evaluator(object):
         """Save everything to a ROOT file.
         """
         print('--- saving to file... ', end='', flush=True)
-        to_root(self.events, self.config.eval.output, key='events')
+        #to_root(self.events, self.config.eval.output, key='events')
         print('done')
-
-    def cat_plot(self, parameter, bins, x_low, x_high, y_low, y_high, scale='norm',
-                 base_cut=True, cosmic_cut=True):
-        """Make the histograms and legend for a parameter, split by true category.
-        Args:
-            parameter (str): Paramter to plot
-            bins (int): How many x-bins to use
-            x_low (float): Low x-range
-            x_high (float): High x-range
-            y_low (float): Low y-range
-            y_high (float): High y-range
-            scale (str): How to scale the histograms
-            base_cut (bool): Apply to the base cut?
-            cosmic_cut (bool): Apply the cosmic cut?
-        Returns:
-            tuple(List[ROOT.TH1F], ROOT.TLegend): (List of histograms, Plot legend)
-        """
-        hists = []
-        colours = [ROOT.kGreen, ROOT.kGreen+1, ROOT.kGreen+2, ROOT.kGreen+3,
-                   ROOT.kBlue, ROOT.kBlue+1, ROOT.kBlue+2, ROOT.kBlue+3,
-                   ROOT.kRed, ROOT.kRed+1, ROOT.kRed+2, ROOT.kRed+3,
-                   ROOT.kOrange, ROOT.kOrange+1, ROOT.kOrange+2, ROOT.kOrange+3,
-                   ROOT.kBlack]
-        leg = ROOT.TLegend(0.65, 0.65, 0.80, 0.89, "Event Type")
-        entries = ["EL-CC-QEL", "EL-CC-RES", "EL-CC-DIS", "EL-CC-COH",
-                   "MU-CC-QEL", "MU-CC-RES", "MU-CC-DIS", "MU-CC-COH",
-                   "EL-NC-QEL", "EL-NC-RES", "EL-NC-DIS", "EL-NC-COH",
-                   "MU-NC-QEL", "MU-NC-RES", "MU-NC-DIS", "MU-NC-COH",
-                   "Cosmic"]
-        for i in range(17):
-            name = "h_" + parameter + "_" + entries[i]
-            hist = ROOT.TH1F(name, parameter, bins, x_low, x_high)
-            hist.SetLineColor(colours[i])
-            hist.SetLineWidth(2)
-            hist.GetXaxis().SetTitle(parameter)
-
-            events = self.events[self.events['t_cat'] == i]
-
-            if base_cut:
-                events = events[events.base_cut == 0]
-            if cosmic_cut:
-                events = events[events.cosmic_cut == 0]
-
-            if scale == 'weight':
-                fill_hist(hist, events[parameter].to_numpy(), events['weight'].to_numpy())
-            elif scale == 'norm':
-                fill_hist(hist, events[parameter].to_numpy())
-                if hist.GetEntries() > 0:
-                    hist.Scale(1.0/hist.GetEntries())
-            elif scale == 'none':
-                fill_hist(hist, events[parameter].to_numpy())
-            else:
-                raise NotImplementedError
-            hists.append(hist)
-            leg.AddEntry(hists[i], entries[i], "PL")
-
-        hists[0].GetYaxis().SetRangeUser(y_low, y_high)
-
-        leg.SetTextSize(0.03)
-        leg.SetTextFont(42)
-        leg.SetBorderSize(0)
-
-        return hists, leg
-
-    def combined_cat_plot(self, parameter, bins, x_low, x_high, y_low, y_high, scale='norm',
-                          base_cut=True, cosmic_cut=True):
-        """Make the histograms and legend for a parameter, split by combined category.
-        Args:
-            parameter (str): Paramter to plot
-            bins (int): How many x-bins to use
-            x_low (float): Low x-range
-            x_high (float): High x-range
-            y_low (float): Low y-range
-            y_high (float): High y-range
-            scale (str): How to scale the histograms
-            base_cut (bool): Apply to the base cut?
-            cosmic_cut (bool): Apply the cosmic cut?
-        Returns:
-            tuple(List[ROOT.TH1F], ROOT.TLegend): (List of histograms, Plot legend)
-        """
-        hists = []
-        colours = [ROOT.kGreen, ROOT.kBlue, ROOT.kRed, ROOT.kBlack]
-        leg = ROOT.TLegend(0.65, 0.65, 0.80, 0.89, "Event Type")
-        entries = ["EL-CC", "MU-CC", "NC", "Cosmic"]
-        for i in range(4):
-            name = "h_" + parameter + "_" + entries[i]
-            hist = ROOT.TH1F(name, parameter, bins, x_low, x_high)
-            hist.SetLineColor(colours[i])
-            hist.SetLineWidth(2)
-            hist.GetXaxis().SetTitle(parameter)
-
-            events = self.events[self.events['t_full_cat'] == i]
-
-            if base_cut:
-                events = events[events.base_cut == 0]
-            if cosmic_cut:
-                events = events[events.cosmic_cut == 0]
-
-            if scale == 'weight':
-                fill_hist(hist, events[parameter].to_numpy(), events['weight'].to_numpy())
-            elif scale == 'norm':
-                fill_hist(hist, events[parameter].to_numpy())
-                if hist.GetEntries() > 0:
-                    hist.Scale(1.0/hist.GetEntries())
-            elif scale == 'none':
-                fill_hist(hist, events[parameter].to_numpy())
-            else:
-                raise NotImplementedError
-            hists.append(hist)
-            leg.AddEntry(hists[i], entries[i], "PL")
-
-        hists[0].GetYaxis().SetRangeUser(y_low, y_high)
-
-        leg.SetTextSize(0.03)
-        leg.SetTextFont(42)
-        leg.SetBorderSize(0)
-
-        return hists, leg

@@ -168,8 +168,10 @@ class BeamModel(BaseModel):
                                              name=self.config.model.labels[0])(x)
         self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name=self.config.model.name)
         self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.model.lr),
-                           loss='sparse_categorical_crossentropy',
-                           metrics=['accuracy'])
+                           loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
+        self.es_monitor = 'val_accuracy'
+        self.parameters = ['t_cosmic_cat']
 
         self.es_monitor = 'val_accuracy'
         self.parameters = [self.config.model.category]
