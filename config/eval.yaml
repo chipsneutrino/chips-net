@@ -12,9 +12,11 @@ task: 'evaluate'
 data:
     # The directories from which to take input data
     input_dirs: 
-        - "./data/input/beam_nuel_all/chips_1200_sk1pe/"
-        - "./data/input/beam_numu_all/chips_1200_sk1pe/"
-        - "./data/input/cosmic_numu_all/chips_1200_sk1pe/"
+        - "./data/input/chips_1200/beam_all_nuel/"
+        - "./data/input/chips_1200/beam_all_anuel/"
+        - "./data/input/chips_1200/beam_all_numu/"
+        - "./data/input/chips_1200/beam_all_anumu/"
+        - "./data/input/chips_1200/cosmic_all/"
     # Should the data reader, create the full set of parameters from file?
     extra_vars: False
     # Does the input data contain all possible input channels?

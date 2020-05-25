@@ -91,7 +91,8 @@ class BasicTrainer(BaseTrainer):
                 log_dir=self.config.exp.tensorboard_dir,
                 histogram_freq=1,
                 update_freq=self.config.trainer.tb_update,
-                write_images=True
+                write_images=True,
+                profile_batch='1,10'
             )
         )
 

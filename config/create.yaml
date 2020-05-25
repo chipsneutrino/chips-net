@@ -8,10 +8,55 @@ task: 'create'
 # - create: data creator input parameters
 
 create:
-    # The input 'production' directory
-    in_dir: "/mnt/storage/jtingey/chips-net/data/input/beam_nuel_cccoh/chips_1200"
-    # The input 'production' directory
-    out_dir: "/mnt/storage/jtingey/chips-net/data/input/beam_nuel_cccoh_test/"
+    # The input map directory
+    in_dir: "/unix/chips/jtingey/production/beam_all/nuel/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_all/anuel/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_all/numu/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_all/anumu/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_nuel/cccoh/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_nuel/nccoh/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_nuel/ccdis/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_nuel/ncdis/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_nuel/ccqel/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_nuel/ncqel/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_nuel/ccres/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_nuel/ncres/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_nuel/ccmec/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_numu/cccoh/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_numu/nccoh/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_numu/ccdis/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_numu/ncdis/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_numu/ccqel/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_numu/ncqel/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_numu/ccres/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_numu/ncres/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/beam_numu/ccmec/map/chips_1200"
+    #in_dir: "/unix/chips/jtingey/production/cosmic_all/map/chips_1200"
+
+    # The output data directory
+    out_dir: "./data/input/chips_1200/beam_all_nuel/"
+    #out_dir: "./data/input/chips_1200/beam_all_anuel/"
+    #out_dir: "./data/input/chips_1200/beam_all_numu/"
+    #out_dir: "./data/input/chips_1200/beam_all_anumu/"
+    #out_dir: "./data/input/chips_1200/beam_nuel_cccoh/"
+    #out_dir: "./data/input/chips_1200/beam_nuel_nccoh/"
+    #out_dir: "./data/input/chips_1200/beam_nuel_ccdis/"
+    #out_dir: "./data/input/chips_1200/beam_nuel_ncdis/"
+    #out_dir: "./data/input/chips_1200/beam_nuel_ccqel/"
+    #out_dir: "./data/input/chips_1200/beam_nuel_ncqel/"
+    #out_dir: "./data/input/chips_1200/beam_nuel_ccres/"
+    #out_dir: "./data/input/chips_1200/beam_nuel_ncres/"
+    #out_dir: "./data/input/chips_1200/beam_nuel_ccmec/"
+    #out_dir: "./data/input/chips_1200/beam_numu_cccoh/"
+    #out_dir: "./data/input/chips_1200/beam_numu_nccoh/"
+    #out_dir: "./data/input/chips_1200/beam_numu_ccdis/"
+    #out_dir: "./data/input/chips_1200/beam_numu_ncdis/"
+    #out_dir: "./data/input/chips_1200/beam_numu_ccqel/"
+    #out_dir: "./data/input/chips_1200/beam_numu_ncqel/"
+    #out_dir: "./data/input/chips_1200/beam_numu_ccres/"
+    #out_dir: "./data/input/chips_1200/beam_numu_ncres/"
+    #out_dir: "./data/input/chips_1200/beam_numu_ccmec/"
+    #out_dir: "./data/input/chips_1200/cosmic_all/"
     # Fraction of data to set aside for both validation and testing
     split: 0.1
     # How many input .root map files to join together
@@ -19,4 +64,4 @@ create:
     # Should all hit maps be passed through to the .tfrecords file?
     all_maps: True
     # Should the creation process be done in parallel, using multiple threads?
-    parallel: True
+    parallel: False

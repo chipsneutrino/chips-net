@@ -57,11 +57,13 @@ def train_model(config):
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
-    try:
-        experiment = Experiment()
-    except Exception:
-        print('Error: Need to set comet_ml env variables')
-        pass
+    comet_exp = None
+    if config.exp.comet:
+        try:
+            comet_exp = Experiment()
+        except Exception:
+            print('Error: Need to set comet_ml env variables')
+            pass
 
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
@@ -82,10 +84,11 @@ def train_model(config):
         else:
             print('\n--- Skipping training ---\n')
 
-    try:
-        experiment.end()
-    except Exception:
-        pass
+    if config.exp.comet:
+        try:
+            comet_exp.end()
+        except Exception:
+            pass
 
 
 def study_model(config):
