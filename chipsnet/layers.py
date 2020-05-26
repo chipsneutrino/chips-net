@@ -12,41 +12,51 @@ import tensorflow.keras.initializers as initializers
 import tensorflow as tf
 
 
-def add_inputs(config, core):
-    """Add reco inputs and apply multi-channel path input logic to a core model block
-    Args:
-        config (str): Dotmap configuration namespace
-        core (func): Core model building function
-    Returns:
-        tuple (List[tf.keras.Input], tf.tensor): (List of inputs, Keras functional tensor)
-    """
-    inputs, paths = [], []
-    reco_par_names = ['r_vtxX', 'r_vtxY', 'r_vtxZ', 'r_dirTheta', 'r_dirPhi']
-    if config.model.reco_pars:
-        for name in reco_par_names:
-            reco_input = tf.keras.Input(shape=(1), name=name)
-            inputs.append(reco_input)
-            paths.append(reco_input)
+################################
+# Kernel Initialisers
+################################
+CONV_KERNEL_INITIALIZER = {
+    'class_name': 'VarianceScaling',
+    'config': {
+        'scale': 2.0,
+        'mode': 'fan_out',
+        'distribution': 'normal'
+    }
+}
 
-    images = config.data.img_size[2]
-    shape = (config.data.img_size[0], config.data.img_size[1], 1)
-    if config.data.stack:
-        images = 1
-        shape = config.data.img_size
-
-    for channel in range(images):
-        image = tf.keras.Input(shape=shape, name='image_'+str(channel))
-        path = core(image, config, 'path'+str(channel))
-        paths.append(path)
-        inputs.append(image)
-
-    if len(paths) == 1:
-        x = paths[0]
-    else:
-        x = layers.concatenate(paths, name='reco_pars_concat')
-    return inputs, x
+DENSE_KERNEL_INITIALIZER = {
+    'class_name': 'VarianceScaling',
+    'config': {
+        'scale': 1. / 3.,
+        'mode': 'fan_out',
+        'distribution': 'uniform'
+    }
+}
 
 
+################################
+# Activations
+################################
+def get_swish():
+    def swish(x):
+        """Swish activation function: x * sigmoid(x).
+        Reference: [Searching for Activation Functions](https://arxiv.org/abs/1710.05941)
+        """
+        return tf.keras.activations.swish(x)
+    return swish
+
+
+def get_relu6():
+    def relu6(x):
+        """relu6 activation function: x * sigmoid(x).
+        """
+        return tf.keras.activations.relu(x, max_value=6)
+    return relu6
+
+
+################################
+# Blocks
+################################
 class ConvBN(layers.Layer):
     """Convolution + Batch Normalisation layer
     """
@@ -65,9 +75,18 @@ class ConvBN(layers.Layer):
             prefix (str): Block name prefix
         """
         super(ConvBN, self).__init__(name=prefix, **kwargs)
-        self.conv = layers.Conv2D(filters, kernel_size, strides, padding,
-                                  use_bias=False, name=prefix+'_conv')
-        self.bn = layers.BatchNormalization(axis=3, scale=False, name=prefix+'_bn') if bn else None
+        self.conv = layers.Conv2D(  # TODO: Study performance of kernel initialiser
+            filters,
+            kernel_size,
+            strides,
+            padding,
+            use_bias=False,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            name=prefix+'_conv')
+        self.bn = layers.BatchNormalization(  # TODO: Study performance of scale = True/False
+            axis=3,
+            scale=True,
+            name=prefix+'_bn') if bn else None
         self.activation = layers.Activation(activation, name=prefix+'_ac')
 
     def call(self, inputs):
@@ -100,9 +119,17 @@ class DepthwiseConvBN(layers.Layer):
             prefix (str): Block name prefix
         """
         super(ConvBN, self).__init__(name=prefix, **kwargs)
-        self.dconv = layers.DepthwiseConv2D(kernel_size, strides, padding,
-                                            use_bias=False, name=prefix+'_dconv')
-        self.bn = layers.BatchNormalization(axis=3, scale=False, name=prefix+'_bn') if bn else None
+        self.dconv = layers.DepthwiseConv2D(  # TODO: Study performance of kernel initialiser
+            kernel_size,
+            strides,
+            padding,
+            use_bias=False,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            name=prefix+'_dconv')
+        self.bn = layers.BatchNormalization(  # TODO: Study performance of scale = True/False
+            axis=3,
+            scale=True,
+            name=prefix+'_bn') if bn else None
         self.activation = layers.Activation(activation, name=prefix+'_ac')
 
     def call(self, inputs):
@@ -141,10 +168,22 @@ class VGGBlock(layers.Layer):
         super(VGGBlock, self).__init__(name=prefix, **kwargs)
         self.convs = []
         for i in range(num_conv):
-            self.convs.append(ConvBN(filters, kernel_size, strides, activation, padding,
-                                     bn, prefix=prefix+'_conv'+str(i)))
-        self.pool = layers.MaxPooling2D((2, 2), strides=(2, 2), name=prefix+'_pool')
-        self.dropout = layers.Dropout(drop_rate, name=prefix+'_drop') if drop_rate > 0.0 else None
+            self.convs.append(ConvBN(
+                filters,
+                kernel_size,
+                strides,
+                activation,
+                padding,
+                bn,
+                prefix=prefix+'_conv'+str(i))
+            )
+        self.pool = layers.MaxPooling2D(
+            (2, 2),
+            strides=(2, 2),
+            name=prefix+'_pool')
+        self.dropout = layers.Dropout(
+            drop_rate,
+            name=prefix+'_drop') if drop_rate > 0.0 else None
 
     def call(self, inputs):
         """Run forward pass on the VGGBlock.
@@ -231,19 +270,56 @@ class MBConvBlock(layers.Layer):
         """
         super(MBConvBlock, self).__init__(name=prefix, **kwargs)
         filters = in_filters * expand_ratio
-        self.expansion = ConvBN(filters, (1, 1), (1, 1), activation, prefix=prefix+'_expand')
-        self.depthwise = DepthwiseConvBN(kernel_size, strides, activation, prefix=prefix+'_depthwise')
+
+        # Expansion phase
+        self.expansion = ConvBN(
+            filters,
+            (1, 1),
+            (1, 1),
+            activation,
+            prefix=prefix+'_expand')
+
+        # Depth-wise convolution phase.
+        self.depthwise = DepthwiseConvBN(
+            kernel_size,
+            strides,
+            activation,
+            prefix=prefix+'_depthwise')
+
+        # Squeeze and Excitation layer.
         self.se_ratio = se_ratio
         if (se_ratio is not None) and (0 < se_ratio <= 1):
             reduced_filters = max(1, int(in_filters * se_ratio))
             self.se_pool = layers.GlobalAveragePooling2D(name=prefix+'_se_squeeze')
             self.se_reshape = layers.Reshape((1, 1, filters), name=prefix+'_se_reshape')
-            self.se_conv1 = layers.Conv2D(reduced_filters, 1, activation=activation, padding='same',
-                                          use_bias=True, name=prefix+'_se_reduce')
-            self.se_conv2 = layers.Conv2D(filters, 1, activation='sigmoid', padding='same',
-                                          use_bias=True, name=prefix+'_se_expand')
-        self.proj_conv = layers.Conv2D(out_filters, 1, padding='same', use_bias=False,
-                                       name=prefix+'_proj_conv')
+            self.se_reduce = layers.Conv2D(
+                reduced_filters,
+                kernel_size=(1, 1),
+                strides=(1, 1),
+                activation=activation,
+                padding='same',
+                use_bias=True,
+                kernel_initializer=CONV_KERNEL_INITIALIZER,
+                name=prefix+'_se_reduce')
+            self.se_expand = layers.Conv2D(
+                filters,
+                kernel_size=(1, 1),
+                strides=(1, 1),
+                activation='sigmoid',
+                padding='same',
+                use_bias=True,
+                kernel_initializer=CONV_KERNEL_INITIALIZER,
+                name=prefix+'_se_expand')
+
+        # Output phase.
+        self.proj_conv = layers.Conv2D(
+            out_filters,
+            kernel_size=(1, 1),
+            strides=(1, 1),
+            padding='same',
+            use_bias=False,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            name=prefix+'_proj_conv')
         self.proj_bn = layers.BatchNormalization(axis=3, name=prefix+'_proj_bn')
         self.dropout = layers.Dropout(drop_rate, name=prefix+'_drop') if drop_rate > 0.0 else None
         self.residual = all(s == 1 for s in strides) and in_filters == out_filters
@@ -260,55 +336,19 @@ class MBConvBlock(layers.Layer):
         if (self.se_ratio is not None) and (0 < self.se_ratio <= 1):
             se = self.se_pool(x)
             se = self.se_reshape(se)
-            se = self.se_conv1(se)
-            se = self.se_conv2(se)
+            se = self.se_reduce(se)
+            se = self.se_expand(se)
             x = tf.math.multiply(x, se)
         x = self.proj_conv(x)
         x = self.proj_bn(x)
         x = self.dropout(x) if self.dropout is not None else x
-        x = tf.add(x, inputs) if self.residual else x
+        x = tf.add(x, inputs) if self.residual else x  # Add residual if we can
         return x
 
 
-def mb_conv_block(inputs, kernel_size, in_filters, out_filters, expand_ratio,
-                  strides=(1, 1), se_ratio=None, activation='relu', drop_rate=None,
-                  prefix='mbconv_block'):
-    """Mobile Inverted Residual Bottleneck block with squeeze-and-excitation optimization.
-    Args:
-        inputs (tf.tensor): Input tensor of conv layer
-        kernel_size (int): DepthwiseConv kernel_size
-        in_filters (int): Number of input filters
-        out_filters (int): Number of output filters
-        expand_ratio (int): Filter expansion ratio
-        strides (tuple(int, int)): Strides for the convolutions
-        se_ratio (float): Squeeze and Excitation ratio
-        activation (activation): Which activation to use
-        drop_rate (float): Dropout rate
-        prefix (str): Block name prefix
-    Returns:
-        tf.tensor: Output tensor
-    """
-    filters = in_filters * expand_ratio
-    x = ConvBN(filters, (1, 1), (1, 1), activation, prefix=prefix+'_expand')(inputs)
-    x = DepthwiseConvBN(kernel_size, strides, activation, name=prefix)(x)
-    if (se_ratio is not None) and (0 < se_ratio <= 1):
-        reduced_filters = max(1, int(in_filters * se_ratio))
-        se = layers.GlobalAveragePooling2D(name=prefix + '_se_squeeze')(x)
-        se = layers.Reshape((1, 1, filters), name=prefix + '_se_reshape')(se)
-        se = layers.Conv2D(reduced_filters, 1, activation=activation, padding='same',
-                           use_bias=True, name=prefix + '_se_reduce')(se)
-        se = layers.Conv2D(filters, 1, activation='sigmoid', padding='same',
-                           use_bias=True, name=prefix + '_se_expand')(se)
-        x = layers.multiply([x, se], name=prefix + '_se_excite')
-    x = layers.Conv2D(out_filters, 1, padding='same', use_bias=False, name=prefix+'_proj_conv')(x)
-    x = layers.BatchNormalization(axis=3, name=prefix + '_proj_bn')(x)
-    if drop_rate and (drop_rate > 0):  # Dropout if required
-        x = layers.Dropout(drop_rate, name=prefix + '_drop')(x)
-    if all(s == 1 for s in strides) and in_filters == out_filters:  # Add residual if we can
-        x = layers.add([x, inputs], name=prefix + '_add')
-    return x
-
-
+################################
+# Model cores
+################################
 def vgg16_core(x, config, name):
     """Core of vgg16 model
     Args:
@@ -392,15 +432,18 @@ def effnet_core(x, config, name):
     Returns:
         tf.tensor: Output Inception-v1 core tensor
     """
-    x = mb_conv_block(x, 3, 32, 16, 1, strides=[1, 1], se_ratio=0.25, drop_rate=0.2, prefix="0")
-    x = mb_conv_block(x, 3, 16, 32, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, prefix="1")
-    x = mb_conv_block(x, 3, 32, 64, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, prefix="2")
-    x = mb_conv_block(x, 5, 64, 128, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, prefix="3")
-    x = mb_conv_block(x, 5, 128, 256, 6, strides=[1, 1], se_ratio=0.25, drop_rate=0.2, prefix="4")
+    x = MBConvBlock(3, 32, 16, 1, strides=[1, 1], se_ratio=0.25, drop_rate=0.2, prefix="0")(x)
+    x = MBConvBlock(3, 16, 32, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, prefix="1")(x)
+    x = MBConvBlock(3, 32, 64, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, prefix="2")(x)
+    x = MBConvBlock(5, 64, 128, 6, strides=[2, 2], se_ratio=0.25, drop_rate=0.2, prefix="3")(x)
+    x = MBConvBlock(5, 128, 256, 6, strides=[1, 1], se_ratio=0.25, drop_rate=0.2, prefix="4")(x)
     x = tf.keras.layers.Flatten()(x)
     return x
 
 
+################################
+# Base Models
+################################
 def get_vgg16_base(config):
     """Returns the vgg model base.
     Args:
@@ -455,6 +498,9 @@ def get_effnet_base(config):
     return inputs, x
 
 
+################################
+# Other
+################################
 class MultiLossLayer(layers.Layer):
     """Weighted multi-loss layer for multitask network
     https://arxiv.org/pdf/1705.07115.pdf
@@ -586,3 +632,38 @@ class CHIPSMultitask(tf.keras.Model):
                 't_nuEnergy': true_e
             })
         )
+
+
+def add_inputs(config, core):
+    """Add reco inputs and apply multi-channel path input logic to a core model block
+    Args:
+        config (str): Dotmap configuration namespace
+        core (func): Core model building function
+    Returns:
+        tuple (List[tf.keras.Input], tf.tensor): (List of inputs, Keras functional tensor)
+    """
+    inputs, paths = [], []
+    reco_par_names = ['r_vtxX', 'r_vtxY', 'r_vtxZ', 'r_dirTheta', 'r_dirPhi']
+    if config.model.reco_pars:
+        for name in reco_par_names:
+            reco_input = tf.keras.Input(shape=(1), name=name)
+            inputs.append(reco_input)
+            paths.append(reco_input)
+
+    images = config.data.img_size[2]
+    shape = (config.data.img_size[0], config.data.img_size[1], 1)
+    if config.data.stack:
+        images = 1
+        shape = config.data.img_size
+
+    for channel in range(images):
+        image = tf.keras.Input(shape=shape, name='image_'+str(channel))
+        path = core(image, config, 'path'+str(channel))
+        paths.append(path)
+        inputs.append(image)
+
+    if len(paths) == 1:
+        x = paths[0]
+    else:
+        x = layers.concatenate(paths, name='reco_pars_concat')
+    return inputs, x
