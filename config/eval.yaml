@@ -1,10 +1,10 @@
 ---
 # Standard model evaluation configuration file
 
-# Define the run task to be 'evaluate' 
-task: 'evaluate'
+# Define the run task to be "evaluate" 
+task: "evaluate"
 
-# The 'evaluate' task requires 3 types of variables used to define the configuration
+# The "evaluate" task requires 3 types of variables used to define the configuration
 # - data: the input data and how it should be used
 # - models: the model to train
 # - eval: how the trainer should run
@@ -36,7 +36,7 @@ data:
 
 models:
     cosmic_classification:
-        dir: "./data/output/cosmic_models/"
+        dir: "./data/models/"
         path: "cosmic"
         name: "cosmic"
         reco_pars: True
@@ -47,9 +47,9 @@ models:
         kernel_size: 3
         filters: 64
     beam_classification:
-        dir: "./data/output/beam_models/"
-        path: "beam_all_long" 
-        name: "beam_all"  # [beam_all, beam_full_comb, beam_nu_nc_comb, beam_nc_comb, beam_multi, beam_all_inception]
+        dir: "./data/models/"
+        path: "beam" 
+        name: "beam"  # "parameter", "cosmic", "beam", "multi_simple", "multi"
         reco_pars: True
         lr: 0.0002
         lr_decay: 0.0
@@ -58,7 +58,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_0_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "nuel_qel_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -70,7 +70,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_1_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "nuel_res_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -82,7 +82,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_2_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "nuel_dis_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -94,7 +94,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_3_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "nuel_coh_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -106,7 +106,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_4_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "numu_qel_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -118,7 +118,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_5_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "numu_res_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -130,7 +130,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_6_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "numu_dis_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -142,7 +142,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_7_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "numu_coh_cc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -154,7 +154,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_8_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "nuel_qel_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -166,7 +166,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_9_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "nuel_res_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -178,7 +178,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_10_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "nuel_dis_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -190,7 +190,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_11_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "nuel_coh_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -202,7 +202,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_12_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "numu_qel_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -214,7 +214,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_13_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "numu_res_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -226,7 +226,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_14_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "numu_dis_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -238,7 +238,7 @@ models:
         kernel_size: 3
         filters: 64
     cat_15_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "numu_coh_nc_nuEnergy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -250,7 +250,7 @@ models:
         kernel_size: 3
         filters: 64
     cosmic_energy:
-        dir: "./data/output/energy_models/"
+        dir: "./data/models/"
         path: "cosmic_energy" 
         name: "parameter"
         parameter: "t_nuEnergy"
@@ -263,7 +263,7 @@ models:
         filters: 64
 
 eval:
-    output: "./data/output/eval_output/cvn_output.root"
+    output: "./data/output/evaluation_output.root"
     test_examples: 160000  # Make it a multiple of the batch size
     batch_size: 64
     make_dense: False

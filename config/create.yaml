@@ -1,10 +1,10 @@
 ---
 # Standard data creation configuration file
 
-# Define the run task to be 'create' 
-task: 'create'
+# Define the run task to be "create" 
+task: "create"
 
-# The 'study' task requires 1 types of variable used to define the configuration
+# The "create" task requires 1 types of variable used to define the configuration
 # - create: data creator input parameters
 
 create:

@@ -1,18 +1,18 @@
 ---
 # Standard model training configuration file
 
-# Define the task to be 'train' 
-task: 'train'
+# Define the task to be "train" 
+task: "train"
 
-# The 'train' task requires 4 types of variables used to define the configuration
+# The "train" task requires 4 types of variables used to define the configuration
 # - exp: the training experiment output directory
 # - data: the input data and how it should be used
 # - model: the model to train
 # - trainer: how the trainer should run
 
 exp:
-    name: "test"
-    output_dir: "./data/output/beam_models"
+    name: "beam"
+    output_dir: "./data/models/"
     comet: False
 
 data:
@@ -59,8 +59,8 @@ data:
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
 
 model: 
-    name: 'beam'  # 'parameter', 'cosmic', 'beam', 'multi_simple', 'multi'
-    labels: ['t_all_cat']  # ['t_nuEnergy'], ['t_cosmic_cat'], ['t_all_cat'], ['t_all_cat', 't_nuEnergy'], ['t_all_cat', 't_nuEnergy']
+    name: "beam"  # "parameter", "cosmic", "beam", "multi_simple", "multi"
+    labels: ["t_all_cat"]  # ["t_nuEnergy"], ["t_cosmic_cat"], ["t_all_cat"], ["t_all_cat", "t_nuEnergy"], ["t_all_cat", "t_nuEnergy"]
     reco_pars: False
     lr: 0.0001
     lr_decay: 0.0
@@ -68,7 +68,7 @@ model:
     dropout: 0.3
     kernel_size: 3
     filters: 64
-    precision_policy: 'float32'
+    precision_policy: "float32"
 
 trainer:
     train_examples: 1000000  # Make it a multiple of the batch size

@@ -1,10 +1,10 @@
 ---
 # Standard model study configuration file
 
-# Define the run task to be 'study' 
-task: 'study'
+# Define the run task to be "study" 
+task: "study"
 
-# The 'study' task requires 3 types of variables used to define the configuration
+# The "study" task requires 3 types of variables used to define the configuration
 # - exp: the training experiment output directory
 # - data: the input data and how it should be used
 # - model: the model to train
@@ -12,8 +12,8 @@ task: 'study'
 # - study: how variables should be modified during the SHERPA study
 
 exp:
-    name: "study_test"
-    output_dir: "./data/output/"
+    name: "beam_study"
+    output_dir: "./data/models/"
 
 data:
     # The directories from which to take input data
@@ -59,8 +59,8 @@ data:
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
 
 model: 
-    name: 'beam'  # 'parameter', 'cosmic', 'beam', 'multi_simple', 'multi'
-    labels: ['t_all_cat']  # ['t_nuEnergy'], ['t_cosmic_cat'], ['t_all_cat'], ['t_all_cat', 't_nuEnergy'], ['t_all_cat', 't_nuEnergy']
+    name: "beam"  # "parameter", "cosmic", "beam", "multi_simple", "multi"
+    labels: ["t_all_cat"]  # ["t_nuEnergy"], ["t_cosmic_cat"], ["t_all_cat"], ["t_all_cat", "t_nuEnergy"], ["t_all_cat", "t_nuEnergy"]
     reco_pars: False
     lr: 0.0001
     lr_decay: 0.0
@@ -68,7 +68,7 @@ model:
     dropout: 0.3
     kernel_size: 3
     filters: 64
-    precision_policy: 'float32'
+    precision_policy: "float32"
 
 trainer: 
     train_examples: 1000000  # Make it a multiple of the batch size
