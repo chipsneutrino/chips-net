@@ -207,7 +207,7 @@ class Reader:
             self.full_image_shape = [
                 self.config.data.img_size[0],
                 self.config.data.img_size[1],
-                13]
+                19]
         else:
             self.full_image_shape = [
                 self.config.data.img_size[0],
@@ -476,12 +476,6 @@ class Creator:
         self.out_dir = config.create.out_dir
         self.init()
 
-    def init(self):
-        """Initialise the output directories.
-        Args:
-            directory (str): Production input/output directory path
-            geom (str): CHIPS geometry to use
-        """
         os.makedirs(self.out_dir, exist_ok=True)
         os.makedirs(os.path.join(self.out_dir, "train/"), exist_ok=True)
         os.makedirs(os.path.join(self.out_dir, "val/"), exist_ok=True)
@@ -544,7 +538,7 @@ class Creator:
         channels = []
         channels.append('r_raw_charge_map_vtx')
         channels.append('r_raw_time_map_vtx')
-        channels.append('r_filtered_hit_hough_map_vtx')
+        channels.append('r_raw_hit_hough_map_vtx')
         if self.all_maps:
             channels.append('r_raw_hit_map_origin')
             channels.append('r_raw_charge_map_origin')
@@ -556,6 +550,12 @@ class Creator:
             channels.append('r_filtered_hit_map_vtx')
             channels.append('r_filtered_charge_map_vtx')
             channels.append('r_filtered_time_map_vtx')
+            channels.append('r_raw_hit_map_iso')
+            channels.append('r_raw_charge_map_iso')
+            channels.append('r_raw_time_map_iso')
+            channels.append('r_filtered_hit_map_iso')
+            channels.append('r_filtered_charge_map_iso')
+            channels.append('r_filtered_time_map_iso')
 
         channel_images = []
         for i, channel in enumerate(channels):
