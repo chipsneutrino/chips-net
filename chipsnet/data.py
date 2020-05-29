@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Data creation and loading module
+"""Data creation and reading module
 
 This module contains both the Creator and Reader classes, these
 are used to firstly generate tfrecords files from ROOT hitmap files and
@@ -12,185 +12,20 @@ import os
 from joblib import Parallel, delayed
 import multiprocessing
 import random
+import math
 
 import pandas as pd
 import uproot
 import numpy as np
 import tensorflow as tf
 from dotmap import DotMap
-
-
-class Mapper:
-    """Holds all the category mappers.
-    """
-
-    def __init__(self):
-        """Initialise the Mapper.
-        """
-        # TODO: Use tf.lookup.TextFileInitializer and initialise all from file
-
-        """Map nuel and numu (Total = 2)
-        0=Nuel, 1=Numu (cosmic muons are included in this)"""
-        self.nu_type = DotMap({
-            'name': 't_nu_type',
-            'total_num': 2,
-            'train_num': 2,
-            'labels': ['Nuel', 'Numu'],
-            'table': tf.lookup.StaticHashTable(
-                tf.lookup.KeyValueTensorInitializer(
-                    tf.constant([11, 12, 13, 14]),
-                    tf.constant([0,  0,  1,  1])
-                ), -1)
-        })
-
-        """Map interaction types (Total = 10)
-        0=CC-QEL, 1=CC-RES, 2=CC-DIS, 3=CC-COH
-        4=NC-QEL, 5=NC-RES, 6=NC-DIS, 7=NC-COH, 8=Cosmic, 9=Other"""
-        self.int_type = DotMap({
-            'name': 't_int_type',
-            'total_num': 10,
-            'train_num': 8,
-            'labels': ['CC-QEL', 'CC-RES', 'CC-DIS', 'CC-COH',
-                       'NC-QEL', 'NC-RES', 'NC-DIS', 'NC-COH', 'Cosmic', 'Other'],
-            'table': tf.lookup.StaticHashTable(
-                tf.lookup.KeyValueTensorInitializer(
-                    tf.constant([0, 1, 2,
-                                 3, 4, 5, 6, 7, 8, 9,
-                                 10, 11, 12, 13, 14, 15, 16,
-                                 17, 18, 19, 20, 21,
-                                 91, 92, 96, 97, 98, 99, 100]),
-                    tf.constant([9, 0, 4,
-                                 1, 1, 1, 5, 5, 5, 5,
-                                 1, 1, 1, 5, 5, 5, 5,
-                                 9,  9,  9,  9,  9,
-                                 2,  6,  7,  3,  9,  9,  8])
-                ), -1)
-        })
-
-        """Map to all categories (Total = 19)
-        Category keys are a string of pdg+type, e.g an nuel ccqe event is '0'+'0' = '00'
-        0=Nuel-CC-QEL, 1=Nuel-CC-RES, 2=Nuel-CC-DIS, 3=Nuel-CC-COH
-        4=Numu-CC-QEL, 5=Numu-CC-RES, 6=Numu-CC-DIS, 7=Numu-CC-COH
-        8=Nuel-NC-QEL, 9=Nuel-NC-RES, 10=Nuel-NC-DIS, 11=Nuel-NC-COH
-        12=Numu-NC-QEL, 13=Numu-NC-RES, 14=Numu-NC-DIS, 15=Numu-NC-COH
-        16=Cosmic, 17=Nuel-Other, 18=Numu-Other"""
-        self.all_cat = DotMap({
-            'name': 't_all_cat',
-            'total_num': 19,
-            'train_num': 16,
-            'labels': ['Nuel-CC-QEL', 'Nuel-CC-RES', 'Nuel-CC-DIS', 'Nuel-CC-COH'
-                       'Numu-CC-QEL', 'Numu-CC-RES', 'Numu-CC-DIS', 'Numu-CC-COH'
-                       'Nuel-NC-QEL', 'Nuel-NC-RES', 'Nuel-NC-DIS', 'Nuel-NC-COH'
-                       'Numu-NC-QEL', 'Numu-NC-RES', 'Numu-NC-DIS', 'Numu-NC-COH'
-                       'Cosmic', 'Nuel-Other', 'Numu-Other'],
-            'table': tf.lookup.StaticHashTable(
-                tf.lookup.KeyValueTensorInitializer(
-                    tf.constant(['00', '01', '02', '03', '10', '11', '12', '13',
-                                 '04', '05', '06', '07', '14', '15', '16', '17',
-                                 '18', '09', '19'], dtype=tf.string),
-                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                                 8, 9, 10, 11, 12, 13, 14, 15,
-                                 16, 17, 18])
-                ), -1)
-        })
-
-        """Map a cosmic flag (Total = 2)
-        0=Cosmic, 1=Not-Cosmic"""
-        self.cosmic_cat = DotMap({
-            'name': 't_cosmic_cat',
-            'total_num': 2,
-            'train_num': 2,
-            'labels': ['Cosmic', 'Not-Cosmic'],
-            'table': tf.lookup.StaticHashTable(
-                tf.lookup.KeyValueTensorInitializer(
-                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                                 8, 9, 10, 11, 12, 13, 14, 15,
-                                 16, 17, 18]),
-                    tf.constant([0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0,
-                                 1, 0, 0])
-                ), -1)
-        })
-
-        """Map to full_combined categories (Total = 5)
-        0=Nuel-CC, 1=Numu-CC, 2=NC, 3=Cosmic, 4=Other"""
-        self.comb_cat = DotMap({
-            'name': 't_comb_cat',
-            'total_num': 5,
-            'train_num': 3,
-            'labels': ['Nuel-CC', 'Numu-CC', 'NC', 'Cosmic', 'Other'],
-            'table': tf.lookup.StaticHashTable(
-                tf.lookup.KeyValueTensorInitializer(
-                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                                 8, 9, 10, 11, 12, 13, 14, 15,
-                                 16, 17, 18]),
-                    tf.constant([0, 0, 0, 0, 1, 1, 1, 1,
-                                 2, 2, 2, 2, 2, 2, 2, 2,
-                                 3, 4, 4])
-                ), -1)
-        })
-
-        """Map to nc_nu_combined categories (Total = 14)
-        0=Nuel CC-QEL, 1=Nuel CC-RES, 2=Nuel CC-DIS, 3=Nuel CC-COH
-        4=Numu CC-QEL, 5=Numu CC-RES, 6=Numu CC-DIS, 7=Numu CC-COH
-        8=NC-QEL, 9=NC-RES, 10=NC-DIS, 11=NC-COH, 12=Cosmic, 13=Other"""
-        self.nu_nc_comb = DotMap({
-            'name': 't_nu_nc_cat',
-            'total_num': 14,
-            'train_num': 12,
-            'labels': ['Nuel CC-QEL', 'Nuel CC-RES', 'Nuel CC-DIS', 'Nuel CC-COH',
-                       'Numu CC-QEL', 'Numu CC-RES', 'Numu CC-DIS', 'Numu CC-COH',
-                       'NC-QEL', 'NC-RES', 'NC-DIS', 'NC-COH', 'Cosmic', 'Other'],
-            'table': tf.lookup.StaticHashTable(
-                tf.lookup.KeyValueTensorInitializer(
-                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                                 8, 9, 10, 11, 12, 13, 14, 15,
-                                 16, 17, 18]),
-                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                                 8, 9, 10, 11, 8, 9, 10, 11,
-                                 12, 13, 13])
-                ), -1)
-        })
-
-        """Map to nc_combined categories (Total = 11)
-        0=Nuel-CC-QEL, 1=Nuel-CC-RES, 2=Nuel-CC-DIS, 3=Nuel-CC-COH
-        4=Numu-CC-QEL, 5=Numu-CC-RES, 6=Numu-CC-DIS, 7=Numu-CC-COH
-        8=NC, 9=Cosmic, 10=Other"""
-        self.nc_comb = DotMap({
-            'name': 't_nc_cat',
-            'total_num': 11,
-            'train_num': 9,
-            'labels': ['Nuel-CC-QEL', 'Nuel-CC-RES', 'Nuel-CC-DIS', 'Nuel-CC-COH',
-                       'Numu-CC-QEL', 'Numu-CC-RES', 'Numu-CC-DIS', 'Numu-CC-COH',
-                       'NC', 'Cosmic', 'Other'],
-            'table': tf.lookup.StaticHashTable(
-                tf.lookup.KeyValueTensorInitializer(
-                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                                 8, 9, 10, 11, 12, 13, 14, 15,
-                                 16, 17, 18]),
-                    tf.constant([0, 1, 2, 3, 4, 5, 6, 7,
-                                 8, 8, 8, 8, 8, 8, 8, 8,
-                                 9, 10, 10])
-                ), -1)
-        })
-
-    def get_map(self, name):
-        """Getting category mapping dict from name.
-        Args:
-            name (str): Name of mapping
-        Returns:
-            dict: Mapping dictionary
-        """
-        for map in [self.nu_type, self.int_type, self.all_cat,
-                    self.cosmic_cat, self.comb_cat, self.nu_nc_comb,
-                    self.nc_comb]:
-            if map.name == name:
-                return map
-        return None
+from particle import Particle
 
 
 class Reader:
     """Generates tf datasets for training/evaluation from the configuration.
+    These can be read on the fly by Tensorflow so that the entire dataset does
+    not need to be loaded into memory.
     """
 
     def __init__(self, config):
@@ -203,18 +38,11 @@ class Reader:
         self.val_dirs = [os.path.join(in_dir, 'val') for in_dir in config.data.input_dirs]
         self.test_dirs = [os.path.join(in_dir, 'test') for in_dir in config.data.input_dirs]
 
-        if config.data.all_chan:
-            self.full_image_shape = [
-                self.config.data.img_size[0],
-                self.config.data.img_size[1],
-                19]
-        else:
-            self.full_image_shape = [
-                self.config.data.img_size[0],
-                self.config.data.img_size[1],
-                3]
-
-        self.map = Mapper()
+        self.image_shape = [
+            self.config.data.img_size[0],
+            self.config.data.img_size[1],
+            len(self.config.data.channels)
+        ]
 
     @tf.function
     def parse(self, serialised_example):
@@ -225,128 +53,83 @@ class Reader:
             Tuple[dict, dict]: (Inputs dictionary, Labels dictionary)
         """
         features = {
-            'true_pars_i': tf.io.FixedLenFeature([], tf.string),
-            'true_pars_f': tf.io.FixedLenFeature([], tf.string),
-            'true_prim_i': tf.io.FixedLenFeature([], tf.string),
-            'true_prim_f': tf.io.FixedLenFeature([], tf.string),
-            'reco_pars_i': tf.io.FixedLenFeature([], tf.string),
-            'reco_pars_f': tf.io.FixedLenFeature([], tf.string),
-            'image': tf.io.FixedLenFeature([], tf.string),
+            'inputs_image': tf.io.FixedLenFeature([], tf.string),
+            'inputs_other': tf.io.FixedLenFeature([], tf.string),
+            'labels_i': tf.io.FixedLenFeature([], tf.string),
+            'labels_f': tf.io.FixedLenFeature([], tf.string)
         }
         example = tf.io.parse_single_example(serialised_example, features)
 
         inputs, labels = {}, {}  # The two dictionaries to fill
 
-        # We first generate the core inputs and labels we need for training.
-        # Extra variables are then added later if required
-        # Decode and reshape the 'image' into a tf tensor and then 'unstack'
-        full_image = tf.io.decode_raw(example['image'], tf.uint8)
-        full_image = tf.reshape(full_image, self.full_image_shape)
-        unstacked = tf.unstack(full_image, axis=2)
+        # Decode and reshape the 'image' into a tf tensor, reshape, then cast correctly and scale
+        image = tf.io.decode_raw(example['inputs_image'], tf.uint8)
+        image = tf.reshape(image, self.image_shape)
+        image = tf.cast(image, tf.float32) / 256.0  # Cast to float and salce to [0,1]
 
+        # Check if we actually need to unstack the image before we do...
+        unstacked = tf.unstack(image, axis=2)
         channels = []
         for i, enabled in enumerate(self.config.data.channels):
             if enabled:
-
-                rand = tf.random.normal(
-                    shape=[self.config.data.img_size[0], self.config.data.img_size[1]],
-                    mean=1,
-                    stddev=self.config.data.rand[i],
-                    dtype=tf.float32
-                )
-                shift = tf.fill(
-                    [self.config.data.img_size[0], self.config.data.img_size[1]],
-                    (1.0 + self.config.data.shift[i])
-                )
-
-                # Cast to float, scale to [0,1], apply rand, apply shift
-                unstacked[i] = tf.cast(unstacked[i], tf.float32) / 256.0
-                unstacked[i] = tf.math.multiply(unstacked[i], rand)
-                unstacked[i] = tf.math.multiply(unstacked[i], shift)
+                if self.config.data.augment:
+                    rand_shift = tf.random.normal(
+                        shape=self.config.data.img_size,
+                        mean=(1.0 + self.config.data.shift[i]),
+                        stddev=self.config.data.rand[i],
+                        dtype=tf.float32
+                    )
+                    unstacked[i] = tf.math.multiply(unstacked[i], rand_shift)
                 channels.append(unstacked[i])
-                # TODO: Could take values below zero, change to prevent this
 
         # Choose to either stack the channels back into a single tensor or keep them seperate
-        if self.config.data.stack:
-            inputs['image_0'] = tf.stack(channels, axis=2)
-        else:
+        if self.config.data.unstack:
             for i, input_image in enumerate(channels):
                 inputs['image_'+str(i)] = tf.expand_dims(input_image, 2)
-
-        # Generate all the category mappings
-        true_pars_i = tf.io.decode_raw(example['true_pars_i'], tf.int32)
-        nu_type = self.map.nu_type.table.lookup(true_pars_i[0])
-        int_type = self.map.int_type.table.lookup(true_pars_i[1])
-        category = self.map.all_cat.table.lookup(
-            tf.strings.join((
-                tf.strings.as_string(nu_type),
-                tf.strings.as_string(int_type)
-            ))
-        )
-
-        labels[self.map.nu_type.name] = nu_type
-        labels[self.map.int_type.name] = int_type
-        labels[self.map.all_cat.name] = category
-        labels[self.map.cosmic_cat.name] = self.map.cosmic_cat.table.lookup(category)
-        labels[self.map.comb_cat.name] = self.map.comb_cat.table.lookup(category)
-        labels[self.map.nu_nc_comb.name] = self.map.nu_nc_comb.table.lookup(category)
-        labels[self.map.nc_comb.name] = self.map.nc_comb.table.lookup(category)
-
-        true_pars_f = tf.io.decode_raw(example['true_pars_f'], tf.float32)
-        labels['t_vtxX'] = true_pars_f[0]
-        labels['t_vtxY'] = true_pars_f[1]
-        labels['t_vtxZ'] = true_pars_f[2]
-        labels['t_vtxT'] = true_pars_f[3]
-        labels['t_nuEnergy'] = true_pars_f[4]
-
-        reco_pars_f = tf.io.decode_raw(example['reco_pars_f'], tf.float32)
-        inputs['r_vtxX'] = tf.math.divide(reco_pars_f[4], self.config.data.par_scale[0]),
-        inputs['r_vtxY'] = tf.math.divide(reco_pars_f[5], self.config.data.par_scale[1]),
-        inputs['r_vtxZ'] = tf.math.divide(reco_pars_f[6], self.config.data.par_scale[2]),
-        inputs['r_dirTheta'] = tf.math.divide(reco_pars_f[8], self.config.data.par_scale[3]),
-        inputs['r_dirPhi'] = tf.math.divide(reco_pars_f[9], self.config.data.par_scale[4])
-
-        if len(self.config.model.labels) > 1:
-            inputs[self.config.model.labels[0]] = labels[self.config.model.labels[0]]
-            inputs[self.config.model.labels[1]] = labels[self.config.model.labels[1]]
-
-        if self.config.data.extra_vars:
-            true_prim_i = tf.io.decode_raw(example['true_prim_i'], tf.int32)
-            true_prim_f = tf.io.decode_raw(example['true_prim_f'], tf.float32)
-            reco_pars_i = tf.io.decode_raw(example['reco_pars_i'], tf.int32)
-
-            # Need to reshape the primary particle array
-            true_prim_f = tf.reshape(true_prim_f, [3, 10])
-
-            labels['t_p_pdgs'] = true_prim_i
-            labels['t_p_energies'] = true_prim_f[0]
-            labels['t_p_dirTheta'] = true_prim_f[1]
-            labels['t_p_dirPhi'] = true_prim_f[2]
-
-            inputs['r_raw_num_hits'] = reco_pars_i[0]
-            inputs['r_filtered_num_hits'] = reco_pars_i[1]
-            inputs['r_num_hough_rings'] = reco_pars_i[2]
-            inputs['r_raw_total_digi_q'] = reco_pars_f[0]
-            inputs['r_filtered_total_digi_q'] = reco_pars_f[1]
-            inputs['r_first_ring_height'] = reco_pars_f[2]
-            inputs['r_last_ring_height'] = reco_pars_f[3]
-            inputs['r_vtxT'] = reco_pars_f[7]
-
-        stripped_labels = {k: labels[k] for k in self.config.model.labels}
-        return inputs, stripped_labels
-
-    def filter_other(self, inputs, labels):
-        """Filters out 'other' cateogory events from dataset.
-        Args:
-            inputs (dict): Inputs dictionary
-            labels (dict): Labels dictionary
-        Returns:
-            bool: Is this an 'other' category event?
-        """
-        if (labels[self.map.all_cat.name]) == 17 or (labels[self.map.all_cat.name] == 18):
-            return False
         else:
-            return True
+            inputs['image_0'] = tf.stack(channels, axis=2)
+
+        # Decode the other inputs and append to inputs dictionary
+        inputs_other = tf.io.decode_raw(example['inputs_other'], tf.float32)
+        inputs['r_raw_total_digi_q'] = inputs_other[0]
+        inputs['r_first_ring_height'] = inputs_other[1]
+        inputs['r_vtxX'] = inputs_other[2]
+        inputs['r_vtxY'] = inputs_other[3]
+        inputs['r_vtxZ'] = inputs_other[4]
+        inputs['r_dirTheta'] = inputs_other[5]
+        inputs['r_dirPhi'] = inputs_other[6]
+
+        # Decode integer labels and append to labels dictionary
+        labels_i = tf.io.decode_raw(example['labels_i'], tf.int32)
+        labels[MAP_NU_TYPE.name] = labels_i[0]
+        labels[MAP_SIGN_TYPE.name] = labels_i[1]
+        labels[MAP_INT_TYPE.name] = labels_i[2]
+        labels[MAP_ALL_CAT.name] = labels_i[3]
+        labels[MAP_COSMIC_CAT.name] = labels_i[4]
+        labels[MAP_FULL_COMB_CAT.name] = labels_i[5]
+        labels[MAP_NU_NC_COMB_CAT.name] = labels_i[6]
+        labels[MAP_NC_COMB_CAT.name] = labels_i[7]
+        labels["prim_total"] = labels_i[8]
+        labels["prim_p"] = labels_i[9]
+        labels["prim_cp"] = labels_i[10]
+        labels["prim_np"] = labels_i[11]
+        labels["prim_g"] = labels_i[12]
+
+        # Decode float labels and append to the labels dictionary
+        labels_f = tf.io.decode_raw(example['labels_f'], tf.float32)
+        labels['t_vtxX'] = labels_f[0]
+        labels['t_vtxY'] = labels_f[1]
+        labels['t_vtxZ'] = labels_f[2]
+        labels['t_nuEnergy'] = labels_f[3]
+
+        # Append labels to inputs if needed for multitask network
+        if self.config.data.labels_to_inputs:
+            for label in self.config.model.labels:
+                inputs[label] = labels[label]
+
+        # Strip all labels from the labels dictionary except those needed
+        labels = {k: labels[k] for k in self.config.model.labels}
+        return inputs, labels
 
     def dataset(self, dirs, parallel=True):
         """Returns a dataset formed from all the files in the input directories.
@@ -355,15 +138,15 @@ class Reader:
         Returns:
             tf.dataset: The generated dataset
         """
-        files = []  # Add all files in dirs to a list
+        # Generate list of input files and shuffle
+        files = []
         for d in dirs:
             for file in os.listdir(d):
                 files.append(os.path.join(d, file))
-
         random.seed(8)
-        random.shuffle(files)  # Shuffle the list to randomise the 'interleave'
-        ds = tf.data.Dataset.from_tensor_slices(files)
+        random.shuffle(files)
 
+        ds = tf.data.Dataset.from_tensor_slices(files)
         if parallel:
             ds = ds.interleave(
                 tf.data.TFRecordDataset,
@@ -382,18 +165,20 @@ class Reader:
             ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
             ds = ds.map(lambda x: self.parse(x))
 
-        ds = ds.filter(self.filter_other)
         return ds
 
-    def df_from_ds(self, df):
+    def df_from_ds(self, ds, num_events):
         """Create a pandas dataframe from a tf dataset
         Args:
-            df (tf.dataset): Input dataset
+            ds (tf.dataset): Input dataset
+            num_events (int): Number of events to include
         Returns:
             pandas.DataFrame: DataFrame generated from the dataset
         """
+        ds = ds.take(num_events)
+        ds = ds.batch(64, drop_remainder=True)  # Batch to make loading faster
         events = {}
-        for x, y in df:
+        for x, y in ds:
             for name, array in list(x.items()):  # Fill events dict with 'inputs'
                 if name in events.keys():
                     events[name].extend(array.numpy())
@@ -435,28 +220,34 @@ class Reader:
         return self.dataset(self.test_dirs, parallel)
 
     @property
-    def training_df(self):
+    def training_df(self, num_events):
         """Returns the training DataFrame.
+        Args:
+            num_events (int): Number of events to include
         Returns:
             pd.DataFrame: Training data DataFrame
         """
-        return self.df_from_ds(self.training_ds)
+        return self.df_from_ds(self.training_ds, num_events)
 
     @property
-    def validation_df(self):
+    def validation_df(self, num_events):
         """Returns the validation DataFrame.
+        Args:
+            num_events (int): Number of events to include
         Returns:
             pd.DataFrame: Validation data DataFrame
         """
-        return self.df_from_ds(self.validation_ds)
+        return self.df_from_ds(self.validation_ds, num_events)
 
     @property
-    def testing_df(self, parallel=False):
+    def testing_df(self, num_events):
         """Returns the testing DataFrame.
+        Args:
+            num_events (int): Number of events to include
         Returns:
             pd.DataFrame: Testing data DataFrame
         """
-        return self.df_from_ds(self.testing_ds)
+        return self.df_from_ds(self.testing_ds, num_events)
 
 
 class Creator:
@@ -468,18 +259,11 @@ class Creator:
         Args:
             config (str): Dotmap configuration namespace
         """
-        self.split = config.create.split
-        self.join = config.create.join
-        self.parallel = config.create.parallel
-        self.all_maps = config.create.all_maps
-        self.in_dir = config.create.in_dir
-        self.out_dir = config.create.out_dir
-        self.init()
-
-        os.makedirs(self.out_dir, exist_ok=True)
-        os.makedirs(os.path.join(self.out_dir, "train/"), exist_ok=True)
-        os.makedirs(os.path.join(self.out_dir, "val/"), exist_ok=True)
-        os.makedirs(os.path.join(self.out_dir, "test/"), exist_ok=True)
+        self.config = config
+        os.makedirs(config.create.out_dir, exist_ok=True)
+        os.makedirs(os.path.join(config.create.out_dir, "train/"), exist_ok=True)
+        os.makedirs(os.path.join(config.create.out_dir, "val/"), exist_ok=True)
+        os.makedirs(os.path.join(config.create.out_dir, "test/"), exist_ok=True)
 
     def bytes_feature(self, value):
         """Returns a BytesList feature from a string/byte.
@@ -490,6 +274,45 @@ class Creator:
         """
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
+    def count_primaries(self, pdgs, energies):
+        """Counts the number of Cherenkov threshold passing primaries for each type in the event.
+
+        We count the number of particles for...
+            - protons (above the cherenkov threshold)
+            - charged pions (above the cherenkov threshold)
+            - neutral pions (above a few pair productions in energy)
+            - photons (above a few pair productions in energy)
+            - total (total above the their threshold)
+        in the event, either (0, 1, 2, n). Anything above 2 is classified into the 'n' category
+
+        Args:
+            pdgs (np.array): Primary particle pdgs
+            energies (np.array): Primary particle energies
+        Returns:
+            np.array: array of the particle counts
+        """
+        events = []
+        for ev_pdgs, ev_energies in zip(pdgs, energies):  # loop through all events
+            counts = np.array([0, 0, 0, 0, 0])
+            for i, pdg in enumerate(ev_pdgs):
+                if pdg == -999:
+                    continue
+                elif pdg in [2212, 2212] and ev_energies[i] > PROTON_THRESHOLD:
+                    counts[0] += 1
+                    counts[1] += 1
+                elif pdg in [211, -211] and ev_energies[i] > CP_THRESHOLD:
+                    counts[0] += 1
+                    counts[2] += 1
+                elif pdg in [111] and ev_energies[i] > NP_THRESHOLD:
+                    counts[0] += 1
+                    counts[3] += 1
+                elif pdg in [22] and ev_energies[i] > GAMMA_THRESHOLD:
+                    counts[0] += 1
+                    counts[4] += 1
+            counts = np.clip(counts, a_min=0, a_max=3)  # 4th value is for n>2 particles
+            events.append(counts)
+        return np.stack(events, axis=0)
+
     def gen_examples(self, true, reco):
         """Generates a list of examples from the input .root map file.
         Args:
@@ -498,48 +321,9 @@ class Creator:
         Returns:
             List[tf.train.Example]: List of examples
         """
-        # Get the numpy arrays from the .root map file, we need to seperate by type
-        # for the deserialisation during reading to work correctly.
-        true_pars_i = np.stack((  # True Parameters (integers)
-            true.array('t_nu'),
-            true.array('t_code')),
-            axis=1)
-        true_pars_f = np.stack((  # True Parameters (floats)
-            true.array('t_vtxX'),
-            true.array('t_vtxY'),
-            true.array('t_vtxZ'),
-            true.array('t_vtxT'),
-            true.array('t_nuEnergy')),
-            axis=1)
-        true_prim_i = true.array('t_p_pdgs')  # True Primaries (integers)
-        true_prim_f = np.stack((  # True Primaries (floats)
-            true.array('t_p_energies'),
-            true.array('t_p_dirTheta'),
-            true.array('t_p_dirPhi')),
-            axis=1)
-        reco_pars_i = np.stack((  # Reco Parameters (integers)
-            reco.array('r_raw_num_hits'),
-            reco.array('r_filtered_num_hits'),
-            reco.array('r_num_hough_rings')),
-            axis=1)
-        reco_pars_f = np.stack((  # Reco Parameters (floats)
-            reco.array('r_raw_total_digi_q'),
-            reco.array('r_filtered_total_digi_q'),
-            reco.array('r_first_ring_height'),
-            reco.array('r_last_ring_height'),
-            reco.array('r_vtxX'),
-            reco.array('r_vtxY'),
-            reco.array('r_vtxZ'),
-            reco.array('r_vtxT'),
-            reco.array('r_dirTheta'),
-            reco.array('r_dirPhi')),
-            axis=1)
-
-        channels = []
-        channels.append('r_raw_charge_map_vtx')
-        channels.append('r_raw_time_map_vtx')
-        channels.append('r_raw_hit_hough_map_vtx')
-        if self.all_maps:
+        # First setup the input image
+        channels = ['r_raw_charge_map_vtx', 'r_raw_time_map_vtx', 'r_raw_hit_hough_map_vtx']
+        if self.config.create.all_maps:
             channels.append('r_raw_hit_map_origin')
             channels.append('r_raw_charge_map_origin')
             channels.append('r_raw_time_map_origin')
@@ -556,23 +340,62 @@ class Creator:
             channels.append('r_filtered_hit_map_iso')
             channels.append('r_filtered_charge_map_iso')
             channels.append('r_filtered_time_map_iso')
+        channel_images = [reco.array(channel) for channel in channels]
+        inputs_image = np.stack(channel_images, axis=3)
 
-        channel_images = []
-        for i, channel in enumerate(channels):
-            channel_images.append(reco.array(channel))
+        # Next setup the other inputs, mainly reconstructed variables
+        inputs_other = np.stack((  # Reco Parameters (floats)
+            reco.array('r_raw_total_digi_q'),
+            reco.array('r_first_ring_height'),
+            reco.array('r_vtxX')/self.config.create.par_scale[0],
+            reco.array('r_vtxY')/self.config.create.par_scale[1],
+            reco.array('r_vtxZ')/self.config.create.par_scale[2],
+            reco.array('r_dirTheta')/self.config.create.par_scale[3],
+            reco.array('r_dirPhi')/self.config.create.par_scale[4]),
+            axis=1)
 
-        image = np.stack(channel_images, axis=3)
+        # Next setup the integer labels, we need to map to the different categories etc...
+        n_arr = np.vectorize(MAP_NU_TYPE.table.get)(true.array('t_nu'))
+        s_arr = np.vectorize(MAP_SIGN_TYPE.table.get)(true.array('t_nu'))
+        i_arr = np.vectorize(MAP_INT_TYPE.table.get)(true.array('t_code'))
+        cat_arr = np.array([MAP_ALL_CAT.table[(n, i)] for n, i in zip(n_arr, i_arr)])
+        cosmic_arr = np.array([MAP_COSMIC_CAT.table[(n, i)] for n, i in zip(n_arr, i_arr)])
+        comb_arr = np.array([MAP_FULL_COMB_CAT.table[(n, i)] for n, i in zip(n_arr, i_arr)])
+        nu_nc_comb_arr = np.array([MAP_NU_NC_COMB_CAT.table[(n, i)] for n, i in zip(n_arr, i_arr)])
+        nc_comb_arr = np.array([MAP_NC_COMB_CAT.table[(n, i)] for n, i in zip(n_arr, i_arr)])
+
+        counts = self.count_primaries(true.array('t_p_pdgs'), true.array('t_p_energies'))
+
+        labels_i = np.stack((  # True Parameters (integers)
+            n_arr,
+            s_arr,
+            i_arr,
+            cat_arr,
+            cosmic_arr,
+            comb_arr,
+            nu_nc_comb_arr,
+            nc_comb_arr,
+            counts[:, 0],
+            counts[:, 1],
+            counts[:, 2],
+            counts[:, 3],
+            counts[:, 4]),
+            axis=1).astype(np.int32)
+
+        labels_f = np.stack((  # True Parameters (floats)
+            true.array('t_vtxX'),
+            true.array('t_vtxY'),
+            true.array('t_vtxZ'),
+            true.array('t_nuEnergy')),
+            axis=1)
 
         examples = []  # Generate examples using a feature dict
-        for i in range(len(true_pars_i)):
+        for i in range(len(labels_i)):
             feature_dict = {
-                'true_pars_i': self.bytes_feature(true_pars_i[i].tostring()),
-                'true_pars_f': self.bytes_feature(true_pars_f[i].tostring()),
-                'true_prim_i': self.bytes_feature(true_prim_i[i].tostring()),
-                'true_prim_f': self.bytes_feature(true_prim_f[i].tostring()),
-                'reco_pars_i': self.bytes_feature(reco_pars_i[i].tostring()),
-                'reco_pars_f': self.bytes_feature(reco_pars_f[i].tostring()),
-                'image': self.bytes_feature(image[i].tostring())
+                'inputs_image': self.bytes_feature(inputs_image[i].tostring()),
+                'inputs_other': self.bytes_feature(inputs_other[i].tostring()),
+                'labels_i': self.bytes_feature(labels_i[i].tostring()),
+                'labels_f': self.bytes_feature(labels_f[i].tostring())
             }
             examples.append(tf.train.Example(features=tf.train.Features(feature=feature_dict)))
 
@@ -594,40 +417,399 @@ class Creator:
             num (int): Job number
             files (list[str]): List of input files to use
         """
-        print('Processing job {}...'.format(num))
         examples = []
+        print("job {}...".format(num))
         for file in files:
             file_u = uproot.open(file)
-            try:
-                examples.extend(self.gen_examples(file_u['true'], file_u['reco']))
-            except Exception as err:  # Catch when there is an uproot exception and skip
-                print('Error:', type(err), err)
-                pass
+            examples.extend(self.gen_examples(file_u['true'], file_u['reco']))
 
         # Split into training, validation and testing samples
         random.shuffle(examples)  # Shuffle the examples list
-        val_split = int((1.0-self.split-self.split) * len(examples))
-        test_split = int((1.0-self.split) * len(examples))
+        val_split = int((1.0-self.config.create.split-self.config.create.split) * len(examples))
+        test_split = int((1.0-self.config.create.split) * len(examples))
         train_examples = examples[:val_split]
         val_examples = examples[val_split:test_split]
         test_examples = examples[test_split:]
 
         self.write_examples(
-            os.path.join(self.out_dir, 'train/', str(num) + '_train.tfrecords'), train_examples)
+            os.path.join(self.config.create.out_dir, 'train/', str(num) + '_train.tfrecords'),
+            train_examples)
         self.write_examples(
-            os.path.join(self.out_dir, 'val/', str(num) + '_val.tfrecords'), val_examples)
+            os.path.join(self.config.create.out_dir, 'val/', str(num) + '_val.tfrecords'),
+            val_examples)
         self.write_examples(
-            os.path.join(self.out_dir, 'test/', str(num) + '_test.tfrecords'), test_examples)
+            os.path.join(self.config.create.out_dir, 'test/', str(num) + '_test.tfrecords'),
+            test_examples)
 
     def run(self):
         """Preprocess all the files from the input directory into tfrecords.
         """
-        files = [os.path.join(self.in_dir, file) for file in os.listdir(self.in_dir)]
-        file_lists = [files[n:n+self.join] for n in range(0, len(files), self.join)]
-        if self.parallel:  # File independence allows for parallelisation
+        files = []
+        for directory in self.config.create.input_dirs:
+            files.extend([os.path.join(directory, file) for file in os.listdir(directory)])
+
+        random.seed(8)
+        random.shuffle(files)  # Shuffle the file list
+
+        file_lists = [files[n:n+self.config.create.join] for n in range(
+            0, len(files), self.config.create.join)]
+        if self.config.create.parallel:  # File independence allows for parallelisation
             Parallel(n_jobs=multiprocessing.cpu_count(), verbose=10)(delayed(
                 self.preprocess_files)(counter, f_list) for counter, f_list in enumerate(
                     file_lists))
         else:
             for counter, f_list in enumerate(file_lists):
                 self.preprocess_files(counter, f_list)
+
+
+"""Declare constants for use in primary particle counting"""
+INDEX = 1.344  # for 405nm at ~4 degrees celcius
+PROTON_THRESHOLD = math.sqrt(math.pow(Particle.from_pdgid(2212).mass, 2)/(1-(1/math.pow(INDEX, 2))))
+CP_THRESHOLD = math.sqrt(math.pow(Particle.from_pdgid(211).mass, 2)/(1-(1/math.pow(INDEX, 2))))
+NP_THRESHOLD = 20 * Particle.from_pdgid(11).mass
+GAMMA_THRESHOLD = 20 * Particle.from_pdgid(11).mass
+
+
+def get_map(name):
+    """Getting category mapping dict from name.
+    Args:
+        name (str): Name of mapping
+    Returns:
+        dict: Mapping dictionary
+    """
+    for map in [MAP_NU_TYPE, MAP_INT_TYPE, MAP_ALL_CAT,
+                MAP_COSMIC_CAT, MAP_FULL_COMB_CAT, MAP_NU_NC_COMB_CAT,
+                MAP_NC_COMB_CAT]:
+        if map.name == name:
+            return map
+    return None
+
+
+"""Map to electron or muon types (Total = 2) (cosmic muons are included in this)"""
+MAP_NU_TYPE = DotMap({
+    'name': 't_nu_type',
+    'categories': 2,
+    'labels': [
+        'Nuel',         # 0
+        'Numu'],        # 1
+    'table': {
+        11: 0,          # el-
+        -11: 0,         # el+
+        12: 0,          # el neutrino
+        -12: 0,         # el anti neutrino
+        13: 1,          # mu-
+        -13: 1,         # mu+
+        14: 1,          # mu neutrino
+        -14: 1}         # mu anti neutrino
+})
+
+
+"""Map to particle vs anti-particle (Total = 2) (cosmic muons are included in this)"""
+MAP_SIGN_TYPE = DotMap({
+    'name': 't_sign_type',
+    'categories': 2,
+    'labels': [
+        'Nu',           # 0
+        'Anu'],         # 1
+    'table': {
+        11: 0,          # el-
+        -11: 1,         # el+
+        12: 0,          # el neutrino
+        -12: 1,         # el anti neutrino
+        13: 0,          # mu-
+        -13: 1,         # mu+
+        14: 0,          # mu neutrino
+        -14: 1}         # mu anti neutrino
+})
+
+
+"""Map interaction types (Total = 13)
+We put IMD, ElasticScattering and InverseMuDecay into 'NC-OTHER' for simplicity"""
+MAP_INT_TYPE = DotMap({
+    'name': 't_int_type',
+    'categories': 12,
+    'labels': [
+        'CC-QEL',       # 0
+        'CC-RES',       # 1
+        'CC-DIS',       # 2
+        'CC-COH',       # 3
+        'CC-MEC',       # 4
+        'CC-OTHER'      # 5
+        'NC-QEL',       # 6
+        'NC-RES',       # 7
+        'NC-DIS',       # 8
+        'NC-COH',       # 9
+        'NC-MEC',       # 10
+        'NC-OTHER'      # 11
+        'Cosmic'],      # 12
+    'table': {
+        0: 11,          # Other
+        1: 0,           # CCQEL
+        2: 6,           # NCQEL
+        3: 1,           # CCNuPtoLPPiPlus
+        4: 1,           # CCNuNtoLPPiZero
+        5: 1,           # CCNuNtoLNPiPlus
+        6: 7,           # NCNuPtoNuPPiZero
+        7: 7,           # NCNuPtoNuNPiPlus
+        8: 7,           # NCNuNtoNuNPiZero
+        9: 7,           # NCNuNtoNuPPiMinus
+        10: 1,          # CCNuBarNtoLNPiMinus
+        11: 1,          # CCNuBarPtoLNPiZero
+        12: 1,          # CCNuBarPtoLPPiMinus
+        13: 7,          # NCNuBarPtoNuBarPPiZero
+        14: 7,          # NCNuBarPtoNuBarNPiPlus
+        15: 7,          # NCNuBarNtoNuBarNPiZero
+        16: 7,          # NCNuBarNtoNuBarPPiMinus
+        17: 5,          # CCOtherResonant
+        18: 11,         # NCOtherResonant
+        19: 4,          # CCMEC
+        20: 10,         # NCMEC
+        21: 11,         # IMD
+        91: 2,          # CCDIS
+        92: 8,          # NCDIS
+        96: 9,          # NCCoh
+        97: 3,          # CCCoh
+        98: 11,         # ElasticScattering
+        99: 11,         # InverseMuDecay
+        100: 12         # CosmicMuon
+    }
+})
+
+"""Map to all categories (Total = 19)"""
+MAP_ALL_CAT = DotMap({
+    'name': 't_all_cat',
+    'categories': 24,
+    'labels': [
+        'Nuel-CC-QEL',  # 0
+        'Nuel-CC-RES',  # 1
+        'Nuel-CC-DIS',  # 2
+        'Nuel-CC-COH',  # 3
+        'Nuel-CC-MEC',  # 4
+        'Nuel-CC-OTHER',  # 5
+        'Nuel-NC-QEL',  # 6
+        'Nuel-NC-RES',  # 7
+        'Nuel-NC-DIS',  # 8
+        'Nuel-NC-COH',  # 9
+        'Nuel-NC-MEC',  # 10
+        'Nuel-NC-OTHER',  # 11
+        'Numu-CC-QEL',  # 12
+        'Numu-CC-RES',  # 13
+        'Numu-CC-DIS',  # 14
+        'Numu-CC-COH',  # 15
+        'Numu-CC-MEC',  # 16
+        'Numu-CC-OTHER',  # 17
+        'Numu-NC-QEL',  # 18
+        'Numu-NC-RES',  # 19
+        'Numu-NC-DIS',  # 20
+        'Numu-NC-COH',  # 21
+        'Numu-NC-MEC',  # 22
+        'Numu-NC-OTHER',  # 23
+        'Cosmic'],      # 24
+    'table': {
+        (0, 0): 0,
+        (0, 1): 1,
+        (0, 2): 2,
+        (0, 3): 3,
+        (0, 4): 4,
+        (0, 5): 5,
+        (0, 6): 6,
+        (0, 7): 7,
+        (0, 8): 8,
+        (0, 9): 9,
+        (0, 10): 10,
+        (0, 11): 11,
+        (0, 12): 24,
+        (1, 0): 12,
+        (1, 1): 13,
+        (1, 2): 14,
+        (1, 3): 15,
+        (1, 4): 16,
+        (1, 5): 17,
+        (1, 6): 18,
+        (1, 7): 19,
+        (1, 8): 20,
+        (1, 9): 21,
+        (1, 10): 22,
+        (1, 11): 23,
+        (1, 12): 24,
+    }
+})
+
+"""Map a cosmic flag (Total = 2)"""
+MAP_COSMIC_CAT = DotMap({
+    'name': 't_cosmic_cat',
+    'categories': 2,
+    'labels': [
+        'Cosmic',       # 0
+        'Beam'],        # 1
+    'table': {
+        (0, 0): 0,
+        (0, 1): 0,
+        (0, 2): 0,
+        (0, 3): 0,
+        (0, 4): 0,
+        (0, 5): 0,
+        (0, 6): 0,
+        (0, 7): 0,
+        (0, 8): 0,
+        (0, 9): 0,
+        (0, 10): 0,
+        (0, 11): 0,
+        (0, 12): 1,
+        (1, 0): 0,
+        (1, 1): 0,
+        (1, 2): 0,
+        (1, 3): 0,
+        (1, 4): 0,
+        (1, 5): 0,
+        (1, 6): 0,
+        (1, 7): 0,
+        (1, 8): 0,
+        (1, 9): 0,
+        (1, 10): 0,
+        (1, 11): 0,
+        (1, 12): 1,
+    }
+})
+
+"""Map to full_combined categories (Total = 5)"""
+MAP_FULL_COMB_CAT = DotMap({
+    'name': 't_comb_cat',
+    'categories': 3,
+    'labels': [
+        'Nuel-CC',      # 0
+        'Numu-CC',      # 1
+        'NC',           # 2
+        'Cosmic'],      # 3
+    'table': {
+        (0, 0): 0,
+        (0, 1): 0,
+        (0, 2): 0,
+        (0, 3): 0,
+        (0, 4): 0,
+        (0, 5): 0,
+        (0, 6): 2,
+        (0, 7): 2,
+        (0, 8): 2,
+        (0, 9): 2,
+        (0, 10): 2,
+        (0, 11): 2,
+        (0, 12): 3,
+        (1, 0): 1,
+        (1, 1): 1,
+        (1, 2): 1,
+        (1, 3): 1,
+        (1, 4): 1,
+        (1, 5): 1,
+        (1, 6): 2,
+        (1, 7): 2,
+        (1, 8): 2,
+        (1, 9): 2,
+        (1, 10): 2,
+        (1, 11): 2,
+        (1, 12): 3,
+    }
+})
+
+"""Map to nc_nu_combined categories (Total = 14)"""
+MAP_NU_NC_COMB_CAT = DotMap({
+    'name': 't_nu_nc_cat',
+    'categories': 18,
+    'labels': [
+        'Nuel-CC-QEL',  # 0
+        'Nuel-CC-RES',  # 1
+        'Nuel-CC-DIS',  # 2
+        'Nuel-CC-COH',  # 3
+        'Nuel-CC-MEC',  # 4
+        'Nuel-CC-OTHER',  # 5
+        'Numu-CC-QEL',  # 6
+        'Numu-CC-RES',  # 7
+        'Numu-CC-DIS',  # 8
+        'Numu-CC-COH',  # 9
+        'Numu-CC-MEC',  # 10
+        'Numu-CC-OTHER',  # 11
+        'NC-QEL',       # 12
+        'NC-RES',       # 13
+        'NC-DIS',       # 14
+        'NC-COH',       # 15
+        'NC-MEC',       # 16
+        'NC-OTHER',     # 17
+        'Cosmic'],      # 18
+    'table': {
+        (0, 0): 0,
+        (0, 1): 1,
+        (0, 2): 2,
+        (0, 3): 3,
+        (0, 4): 4,
+        (0, 5): 5,
+        (0, 6): 12,
+        (0, 7): 13,
+        (0, 8): 14,
+        (0, 9): 15,
+        (0, 10): 16,
+        (0, 11): 17,
+        (0, 12): 18,
+        (1, 0): 6,
+        (1, 1): 7,
+        (1, 2): 8,
+        (1, 3): 9,
+        (1, 4): 10,
+        (1, 5): 11,
+        (1, 6): 12,
+        (1, 7): 13,
+        (1, 8): 14,
+        (1, 9): 15,
+        (1, 10): 16,
+        (1, 11): 17,
+        (1, 12): 18,
+    }
+})
+
+"""Map to nc_combined categories (Total = 11)"""
+MAP_NC_COMB_CAT = DotMap({
+    'name': 't_nc_cat',
+    'categories': 13,
+    'labels': [
+        'Nuel-CC-QEL',  # 0
+        'Nuel-CC-RES',  # 1
+        'Nuel-CC-DIS',  # 2
+        'Nuel-CC-COH',  # 3
+        'Nuel-CC-MEC',  # 4
+        'Nuel-CC-OTHER',  # 5
+        'Numu-CC-QEL',  # 6
+        'Numu-CC-RES',  # 7
+        'Numu-CC-DIS',  # 8
+        'Numu-CC-COH',  # 9
+        'Numu-CC-MEC',  # 10
+        'Numu-CC-OTHER',  # 11
+        'NC',           # 12
+        'Cosmic'],      # 13
+    'table': {
+        (0, 0): 0,
+        (0, 1): 1,
+        (0, 2): 2,
+        (0, 3): 3,
+        (0, 4): 4,
+        (0, 5): 5,
+        (0, 6): 12,
+        (0, 7): 12,
+        (0, 8): 12,
+        (0, 9): 12,
+        (0, 10): 12,
+        (0, 11): 12,
+        (0, 12): 13,
+        (1, 0): 6,
+        (1, 1): 7,
+        (1, 2): 8,
+        (1, 3): 9,
+        (1, 4): 10,
+        (1, 5): 11,
+        (1, 6): 12,
+        (1, 7): 12,
+        (1, 8): 12,
+        (1, 9): 12,
+        (1, 10): 12,
+        (1, 11): 12,
+        (1, 12): 13,
+    }
+})

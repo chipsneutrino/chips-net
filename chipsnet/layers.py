@@ -118,7 +118,7 @@ class DepthwiseConvBN(layers.Layer):
             bn (bool): Shall we apply the batch normalisation?
             prefix (str): Block name prefix
         """
-        super(ConvBN, self).__init__(name=prefix, **kwargs)
+        super(DepthwiseConvBN, self).__init__(name=prefix, **kwargs)
         self.dconv = layers.DepthwiseConv2D(  # TODO: Study performance of kernel initialiser
             kernel_size,
             strides,
@@ -650,11 +650,11 @@ def add_inputs(config, core):
             inputs.append(reco_input)
             paths.append(reco_input)
 
-    images = config.data.img_size[2]
-    shape = (config.data.img_size[0], config.data.img_size[1], 1)
-    if config.data.stack:
-        images = 1
-        shape = config.data.img_size
+    images = 1
+    shape = (config.data.img_size[0], config.data.img_size[1], config.data.channels.count(1))
+    if config.data.unstack:
+        images = config.data.channels.count(1)
+        shape = (config.data.img_size[0], config.data.img_size[1], 1)
 
     for channel in range(images):
         image = tf.keras.Input(shape=shape, name='image_'+str(channel))

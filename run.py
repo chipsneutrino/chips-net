@@ -23,22 +23,23 @@ import tensorflow as tf
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 logging.disable(logging.CRITICAL)
 
-# Need to setup the GPU's before we import anything else that uses tensorflow
-gpus = tf.config.list_physical_devices('GPU')
-if tf.config.list_physical_devices('GPU'):
-    try:  # Currently, memory growth needs to be the same across GPUs
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        logical_gpus = tf.config.list_logical_devices('GPU')
-    except RuntimeError as e:  # Memory growth must be set before GPUs have been initialized
-        print(e)
-
 import chipsnet.config  # noqa: E402
 import chipsnet.data  # noqa: E402
 import chipsnet.models  # noqa: E402
 import chipsnet.trainers  # noqa: E402
 import chipsnet.studies  # noqa: E402
 import chipsnet.evaluator  # noqa: E402
+
+
+def setup_gpus():
+    # Need to setup the GPU's before we import anything else that uses tensorflow
+    gpus = tf.config.list_physical_devices('GPU')
+    if tf.config.list_physical_devices('GPU'):
+        try:  # Currently, memory growth needs to be the same across GPUs
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+        except RuntimeError as e:  # Memory growth must be set before GPUs have been initialized
+            print(e)
 
 
 def create_data(config):
@@ -65,6 +66,7 @@ def train_model(config):
             print('Error: Need to set comet_ml env variables')
             pass
 
+    setup_gpus()
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
         print('--- Setting up directories ---\n')
@@ -96,6 +98,7 @@ def study_model(config):
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
+    setup_gpus()
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
         print('--- Setting up directories ---\n')
@@ -111,6 +114,7 @@ def evaluate_model(config):
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
+    setup_gpus()
     print('--- Setting up evaluator ---\n')
     evaluator = chipsnet.evaluator.Evaluator(config)
     evaluator.run_all()

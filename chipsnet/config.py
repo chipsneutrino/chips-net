@@ -42,9 +42,9 @@ def setup_dirs(config, remove_old):
     # Set the experiment directories
     os.makedirs(config.exp.output_dir, exist_ok=True)
     os.makedirs(config.exp.exp_dir, exist_ok=True)
-    config.exp.tensorboard_dir = os.path.join(config.exp.exp_dir, 'tensorboard')
+    config.exp.tensorboard_dir = os.path.join(config.exp.exp_dir, 'tensorboard/')
     os.makedirs(config.exp.tensorboard_dir, exist_ok=True)
-    config.exp.checkpoints_dir = os.path.join(config.exp.exp_dir, 'checkpoints')
+    config.exp.checkpoints_dir = os.path.join(config.exp.exp_dir, 'checkpoints/')
     os.makedirs(config.exp.checkpoints_dir, exist_ok=True)
 
     if remove_old:  # Copy file to keep record of training configuration
