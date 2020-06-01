@@ -71,6 +71,8 @@ class BaseModel:
 
         # Plot an image of the model to file
         file_name = os.path.join(self.config.exp.exp_dir, "model_diagram.png")
+        model._layers = [layer for layer in model._layers if isinstance(
+            layer, tf.keras.layers.Layer)]
         tf.keras.utils.plot_model(
             model,
             to_file=file_name,
@@ -113,7 +115,8 @@ class ParameterModel(BaseModel):
 
         self.es_monitor = "val_mae"
         self.parameters = [self.config.model.parameter]
-        self.summarise(self.model)
+        if self.config.model.summarise:
+            self.summarise(self.model)
 
 
 class CosmicModel(BaseModel):
@@ -142,7 +145,8 @@ class CosmicModel(BaseModel):
 
         self.es_monitor = "val_accuracy"
         self.parameters = ["t_cosmic_cat"]
-        self.summarise(self.model)
+        if self.config.model.summarise:
+            self.summarise(self.model)
 
 
 class BeamModel(BaseModel):
@@ -172,7 +176,8 @@ class BeamModel(BaseModel):
 
         self.es_monitor = "val_accuracy"
         self.parameters = [self.config.model.labels[0]]
-        self.summarise(self.model)
+        if self.config.model.summarise:
+            self.summarise(self.model)
 
 
 class BeamMultiSimpleModel(BaseModel):
@@ -380,7 +385,8 @@ class BeamMultiSimpleModel(BaseModel):
         self.model.compile(optimizer=optimiser, loss=losses, loss_weights=weights, metrics=metrics)
         self.es_monitor = self.config.model.labels[0]  # We monitor the first output in the list
         self.parameters = [self.config.model.labels[0], self.config.model.labels[1]]
-        self.summarise(self.model)
+        if self.config.model.summarise:
+            self.summarise(self.model)
 
 
 class BeamMultiModel(BaseModel):
@@ -402,4 +408,5 @@ class BeamMultiModel(BaseModel):
             data.get_map(self.config.model.labels[0]).categories,
             self.config.model.labels[0]
         )
-        self.summarise(self.model.model())
+        if self.config.model.summarise:
+            self.summarise(self.model.model())

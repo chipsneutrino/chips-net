@@ -11,16 +11,16 @@ task: "train"
 # - trainer: how the trainer should run
 
 exp:
-    name: "beam_test"
+    name: "beam"
     output_dir: "/mnt/storage/jtingey/chips-net/data/models/"
     comet: False
 
 data:
     # The directories from which to take input data
     input_dirs:
-        #- "./data/input/chips_1200/beam_flux/"
+        #- "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
         - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_uniform/"
-        #- "./data/input/chips_1200/cosmic/"
+        #- "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/cosmic/"
     # Does the input data contain all possible input channels?
     all_chan: True
     # Should we unstack the images into seperate branches?
@@ -50,13 +50,14 @@ model:
     kernel_size: 3
     filters: 64
     precision_policy: "float32"
+    summarise: True
 
 trainer:
-    train_examples: 1920000  # Make it a multiple of the batch size
-    val_examples: 160000  # Make it a multiple of the batch size
-    test_examples: 320000  # Make it a multiple of the batch size
+    train_examples: 320000  # Make it a multiple of the batch size
+    val_examples: 64000  # Make it a multiple of the batch size
+    test_examples: 160000  # Make it a multiple of the batch size
     batch_size: 64
-    epochs: 10
+    epochs: 5
     tb_update: 1000
     steps_per_epoch: -1
     es_delta: 0.01

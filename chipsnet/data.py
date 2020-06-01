@@ -127,11 +127,20 @@ class Reader:
             for label in self.config.model.labels:
                 inputs[label] = labels[label]
 
-        # Strip all labels from the labels dictionary except those needed
+        return inputs, labels
+
+    @tf.function
+    def strip(self, inputs, labels):
+        """Strips all labels except those needed in training/validation.
+        Args:
+            Tuple[dict, dict]: (Inputs dictionary, Labels dictionary)
+        Returns:
+            Tuple[dict, dict]: (Inputs dictionary, Stripped labels dictionary)
+        """
         labels = {k: labels[k] for k in self.config.model.labels}
         return inputs, labels
 
-    def dataset(self, dirs, parallel=True):
+    def dataset(self, dirs, strip=True, parallel=True):
         """Returns a dataset formed from all the files in the input directories.
         Args:
             dirs (list[str]): List of input directories
@@ -155,7 +164,11 @@ class Reader:
                 num_parallel_calls=tf.data.experimental.AUTOTUNE
             )
             ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-            ds = ds.map(lambda x: self.parse(x), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            ds = ds.map(lambda x: self.parse(x),
+                        num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            if strip:
+                ds = ds.map(lambda x, y: self.strip(x, y),
+                            num_parallel_calls=tf.data.experimental.AUTOTUNE)
         else:
             ds = ds.interleave(
                 tf.data.TFRecordDataset,
@@ -164,6 +177,8 @@ class Reader:
             )
             ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
             ds = ds.map(lambda x: self.parse(x))
+            if strip:
+                ds = ds.map(lambda x, y: self.strip(x, y))
 
         return ds
 
@@ -196,30 +211,29 @@ class Reader:
         return pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
 
     @property
-    def training_ds(self, parallel=True):
+    def training_ds(self):
         """Returns the training dataset.
         Returns:
             tf.dataset: The training dataset
         """
-        return self.dataset(self.train_dirs, parallel)
+        return self.dataset(self.train_dirs, strip=True, parallel=True)
 
     @property
-    def validation_ds(self, parallel=True):
+    def validation_ds(self):
         """Returns the validation dataset.
         Returns:
             tf.dataset: The validation dataset
         """
-        return self.dataset(self.val_dirs, parallel)
+        return self.dataset(self.val_dirs, strip=True, parallel=True)
 
     @property
-    def testing_ds(self, parallel=False):
+    def testing_ds(self):
         """Returns the testing dataset.
         Returns:
             tf.dataset: The testing dataset
         """
-        return self.dataset(self.test_dirs, parallel)
+        return self.dataset(self.test_dirs, strip=False, parallel=False)
 
-    @property
     def training_df(self, num_events):
         """Returns the training DataFrame.
         Args:
@@ -229,7 +243,6 @@ class Reader:
         """
         return self.df_from_ds(self.training_ds, num_events)
 
-    @property
     def validation_df(self, num_events):
         """Returns the validation DataFrame.
         Args:
@@ -239,7 +252,6 @@ class Reader:
         """
         return self.df_from_ds(self.validation_ds, num_events)
 
-    @property
     def testing_df(self, num_events):
         """Returns the testing DataFrame.
         Args:

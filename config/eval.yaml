@@ -1,282 +1,96 @@
 ---
-# Standard model evaluation configuration file
-
-# Define the run task to be "evaluate" 
-task: "evaluate"
-
-# The "evaluate" task requires 3 types of variables used to define the configuration
-# - data: the input data and how it should be used
-# - models: the model to train
-# - eval: how the trainer should run
+# Evaluation configuration, different to the others mainly listing the various trained models
+# and input datasets etc...
 
 data:
-    # The directories from which to take input data
-    input_dirs: 
-        - "./data/input/chips_1200/beam_all_nuel/"
-        - "./data/input/chips_1200/beam_all_anuel/"
-        - "./data/input/chips_1200/beam_all_numu/"
-        - "./data/input/chips_1200/beam_all_anumu/"
-        - "./data/input/chips_1200/cosmic_all/"
-    # Should the data reader, create the full set of parameters from file?
-    extra_vars: False
-    # Does the input data contain all possible input channels?
-    all_chan: False
-    # Should the images be stacked into a single tensor?
-    stack: True
-    # Which channels should be active?
-    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # How much should each channel be randomly scaled?
-    rand: [0.05, 0.05, 0.05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # How much should each channel be randomly shifted?
-    shift: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # The input image size
-    img_size: [64, 64, 3]
-    # How to scale each of the reco parameters [vtxX, vtxY, vtxZ, dirTheta, dirPhi]
-    par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
+    img_size: [64, 64]
+    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+samples:
+    beam_flux:
+        input_dirs: 
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/cosmic/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
+        all_chan: True
+        unstack: False
+        channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        augment: False
+        rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
+        shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
+        img_size: [64, 64]
+        labels_to_inputs: False
+    beam_uniform:
+        input_dirs: 
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/cosmic/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_uniform/"
+        all_chan: True
+        unstack: False
+        channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        augment: False
+        rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
+        shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
+        img_size: [64, 64]
+        labels_to_inputs: False
 
 models:
-    cosmic_classification:
-        dir: "./data/models/"
+    beam_flux:
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
+        path: "beam_flux" 
+        name: "multi_simple"
+        labels: ["t_all_cat", "t_nuEnergy", "prim_p", "prim_cp", "prim_np"]  
+        reco_pars: False
+        lr: 0.0002
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+        precision_policy: "float32"
+        summarise: False
+    beam_uniform:
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
+        path: "beam_uniform" 
+        name: "multi_simple"
+        labels: ["t_all_cat", "t_nuEnergy", "prim_p", "prim_cp", "prim_np"]  
+        reco_pars: False
+        lr: 0.0002
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+        precision_policy: "float32"
+        summarise: False
+    cosmic:
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "cosmic"
         name: "cosmic"
-        reco_pars: True
+        labels: ["t_cosmic_cat"]
+        reco_pars: False
         lr: 0.0002
         lr_decay: 0.0
         dense_units: 512
         dropout: 0.2
         kernel_size: 3
         filters: 64
-    beam_classification:
-        dir: "./data/models/"
-        path: "beam" 
-        name: "beam"  # "parameter", "cosmic", "beam", "multi_simple", "multi"
-        reco_pars: True
-        lr: 0.0002
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_0_energy:
-        dir: "./data/models/"
-        path: "nuel_qel_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_1_energy:
-        dir: "./data/models/"
-        path: "nuel_res_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_2_energy:
-        dir: "./data/models/"
-        path: "nuel_dis_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_3_energy:
-        dir: "./data/models/"
-        path: "nuel_coh_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_4_energy:
-        dir: "./data/models/"
-        path: "numu_qel_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_5_energy:
-        dir: "./data/models/"
-        path: "numu_res_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_6_energy:
-        dir: "./data/models/"
-        path: "numu_dis_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_7_energy:
-        dir: "./data/models/"
-        path: "numu_coh_cc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_8_energy:
-        dir: "./data/models/"
-        path: "nuel_qel_nc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_9_energy:
-        dir: "./data/models/"
-        path: "nuel_res_nc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_10_energy:
-        dir: "./data/models/"
-        path: "nuel_dis_nc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_11_energy:
-        dir: "./data/models/"
-        path: "nuel_coh_nc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_12_energy:
-        dir: "./data/models/"
-        path: "numu_qel_nc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_13_energy:
-        dir: "./data/models/"
-        path: "numu_res_nc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_14_energy:
-        dir: "./data/models/"
-        path: "numu_dis_nc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cat_15_energy:
-        dir: "./data/models/"
-        path: "numu_coh_nc_nuEnergy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
-    cosmic_energy:
-        dir: "./data/models/"
-        path: "cosmic_energy" 
-        name: "parameter"
-        parameter: "t_nuEnergy"
-        reco_pars: True
-        lr: 0.0001
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
+        precision_policy: "float32"
+        summarise: False
 
 eval:
     output: "./data/output/evaluation_output.root"
-    test_examples: 160000  # Make it a multiple of the batch size
-    batch_size: 64
-    make_dense: False
-    steps_per_epoch: -1
+    examples: 32000  # Make it a multiple of the batch size
     cuts:
         cosmic: 0.001
         q: 500.0
         hough: 500.0
         theta: 0.7
         phi: 0.3
-    weights:
-        total:  1214186
-        nuel:   0.000065135681199
-        numu:   0.002807858128483
-        cosmic: 0.997127006190318
+    weights: # 1200
+        nuel:   0.00003202064566
+        anuel:  0.00000208200747
+        numu:   0.00276174709613
+        anumu:  0.00006042213136
+        cosmic: 0.99714372811940
+        total:  1214165.85244438
+
     

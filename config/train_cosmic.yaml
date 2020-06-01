@@ -1,0 +1,64 @@
+---
+# Standard model training configuration file
+
+# Define the task to be "train" 
+task: "train"
+
+# The "train" task requires 4 types of variables used to define the configuration
+# - exp: the training experiment output directory
+# - data: the input data and how it should be used
+# - model: the model to train
+# - trainer: how the trainer should run
+
+exp:
+    name: "cosmic"
+    output_dir: "/mnt/storage/jtingey/chips-net/data/models/"
+    comet: False
+
+data:
+    # The directories from which to take input data
+    input_dirs:
+        #- "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
+        - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_uniform/"
+        - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/cosmic/"
+    # Does the input data contain all possible input channels?
+    all_chan: True
+    # Should we unstack the images into seperate branches?
+    unstack: False
+    # Which channels should be active?
+    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # How much should each channel be randomly scaled/shifted?
+    augment: False
+    rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
+    shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
+    # The input image size
+    img_size: [64, 64]
+    # Should we append the labels to the inputs for the multi-task network?
+    labels_to_inputs: False
+
+model: 
+    # "parameter", "cosmic", "beam", "multi_simple", "multi"
+    name: "cosmic"  
+    # t_nu_type, t_sign_type, t_int_type, t_all_cat, t_cosmic_cat, t_comb_cat, t_nu_nc_cat, t_nc_cat
+    # prim_total, prim_p, prim_cp, prim_np, prim_g, t_vtxX, t_vtxY, t_vtxZ, t_nuEnergy 
+    labels: ["t_cosmic_cat"]
+    reco_pars: False
+    lr: 0.0002
+    lr_decay: 0.0
+    dense_units: 512
+    dropout: 0.2
+    kernel_size: 3
+    filters: 64
+    precision_policy: "float32"
+    summarise: True
+
+trainer:
+    train_examples: 1920000  # Make it a multiple of the batch size
+    val_examples: 160000  # Make it a multiple of the batch size
+    test_examples: 320000  # Make it a multiple of the batch size
+    batch_size: 64
+    epochs: 10
+    tb_update: 1000
+    steps_per_epoch: -1
+    es_delta: 0.0001
+    es_epochs: 2

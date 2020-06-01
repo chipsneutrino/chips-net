@@ -9,10 +9,10 @@ task: "create"
 
 create:
     input_dirs:
-        - "./data/maps/chips_1200/beam_all_nuel/"
-        - "./data/maps/chips_1200/beam_all_anuel/"
-        - "./data/maps/chips_1200/beam_all_numu/"
-        - "./data/maps/chips_1200/beam_all_anumu/"
+        #- "./data/maps/chips_1200/beam_all_nuel/"
+        #- "./data/maps/chips_1200/beam_all_anuel/"
+        #- "./data/maps/chips_1200/beam_all_numu/"
+        #- "./data/maps/chips_1200/beam_all_anumu/"
         #- ./data/maps/chips_1200/beam_nuel_cccoh/
         #- ./data/maps/chips_1200/beam_nuel_nccoh/
         #- ./data/maps/chips_1200/beam_nuel_ccdis/
@@ -31,12 +31,12 @@ create:
         #- ./data/maps/chips_1200/beam_numu_ccres/
         #- ./data/maps/chips_1200/beam_numu_ncres/
         #- ./data/maps/chips_1200/beam_numu_ccmec/
-        #- "./data/maps/chips_1200/cosmic_all/"
+        - "./data/maps/chips_1200/cosmic_all/"
 
     # The output data directory
-    out_dir: "./data/input/chips_1200_all/beam_flux/"
+    #out_dir: "./data/input/chips_1200_all/beam_flux/"
     #out_dir: "./data/input/chips_1200_all/beam_uniform/"
-    #out_dir: "./data/input/chips_1200_all/cosmic/"
+    out_dir: "./data/input/chips_1200_all/cosmic/"
     # Fraction of data to set aside for both validation and testing
     split: 0.1
     # How many input .root map files to join together

@@ -1,7 +1,7 @@
 name: chipsnet
 channels:
-  - defaults
   - conda-forge
+  - defaults
 dependencies:
   - python=3.8
   - tqdm=4.46.0
@@ -15,9 +15,11 @@ dependencies:
   - pandas=1.0.3
   - matplotlib=3.2.1
   - seaborn=0.10.1
+  - mplhep=0.1.21
   - pydotplus=2.0.2
   - python-graphviz=0.14
   - jupyterlab=2.1.2
+  - papermill=2.1.0
   - uproot=3.11.6
   - cudnn=7.6.5=cuda10.1_0
   - pip=20.1.1
