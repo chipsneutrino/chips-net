@@ -119,13 +119,15 @@ class BasicTrainer(BaseTrainer):
         """Train the model using the tf.keras fit api call.
         """
         self.callbacks.extend(additional_callbacks)
-        training_ds = self.data.training_ds
-        training_ds = training_ds.take(self.config.trainer.train_examples)
-        training_ds = training_ds.batch(self.config.trainer.batch_size, drop_remainder=True)
 
-        validation_ds = self.data.validation_ds
-        validation_ds = validation_ds.take(self.config.trainer.val_examples)
-        validation_ds = validation_ds.batch(self.config.trainer.batch_size, drop_remainder=True)
+        training_ds = self.data.training_ds(
+            self.config.trainer.train_examples,
+            self.config.trainer.batch_size
+        )
+        validation_ds = self.data.validation_ds(
+            self.config.trainer.val_examples,
+            self.config.trainer.batch_size
+        )
 
         if self.config.trainer.steps_per_epoch == -1:
             steps = None
@@ -144,9 +146,11 @@ class BasicTrainer(BaseTrainer):
     def eval(self):
         """Run a quick evaluation.
         """
-        testing_ds = self.data.testing_ds
-        testing_ds = testing_ds.take(self.config.trainer.test_examples)
-        testing_ds = testing_ds.batch(self.config.trainer.batch_size, drop_remainder=True)
+        testing_ds = self.data.testing_ds(
+            self.config.trainer.test_examples,
+            self.config.trainer.batch_size,
+            strip=True
+        )
         self.model.model.evaluate(testing_ds)
 
     def save(self):

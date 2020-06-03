@@ -361,7 +361,7 @@ class BeamMultiSimpleModel(BaseModel):
                     dtype="float32",
                     name=output)(out))
                 losses[output] = "mean_squared_error"
-                weights[output] = 0.00001
+                weights[output] = 0.000001
                 metrics[output] = "mae"
 
             if output in ["prim_total", "prim_p", "prim_cp", "prim_np", "prim_g"]:

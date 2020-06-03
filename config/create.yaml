@@ -9,29 +9,29 @@ task: "create"
 
 create:
     input_dirs:
-        #- "./data/maps/chips_1200/beam_all_nuel/"
-        #- "./data/maps/chips_1200/beam_all_anuel/"
-        #- "./data/maps/chips_1200/beam_all_numu/"
-        #- "./data/maps/chips_1200/beam_all_anumu/"
-        #- ./data/maps/chips_1200/beam_nuel_cccoh/
-        #- ./data/maps/chips_1200/beam_nuel_nccoh/
-        #- ./data/maps/chips_1200/beam_nuel_ccdis/
-        #- ./data/maps/chips_1200/beam_nuel_ncdis/
-        #- ./data/maps/chips_1200/beam_nuel_ccqel/
-        #- ./data/maps/chips_1200/beam_nuel_ncqel/
-        #- ./data/maps/chips_1200/beam_nuel_ccres/
-        #- ./data/maps/chips_1200/beam_nuel_ncres/
-        #- ./data/maps/chips_1200/beam_nuel_ccmec/
-        #- ./data/maps/chips_1200/beam_numu_cccoh/
-        #- ./data/maps/chips_1200/beam_numu_nccoh/
-        #- ./data/maps/chips_1200/beam_numu_ccdis/
-        #- ./data/maps/chips_1200/beam_numu_ncdis/
-        #- ./data/maps/chips_1200/beam_numu_ccqel/
-        #- ./data/maps/chips_1200/beam_numu_ncqel/
-        #- ./data/maps/chips_1200/beam_numu_ccres/
-        #- ./data/maps/chips_1200/beam_numu_ncres/
-        #- ./data/maps/chips_1200/beam_numu_ccmec/
-        - "./data/maps/chips_1200/cosmic_all/"
+        #- "/unix/chips/jtingey/production/beam_all/nuel/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_all/anuel/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_all/numu/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_all/anumu/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_nuel/cccoh/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_nuel/nccoh/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_nuel/ccdis/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_nuel/ncdis/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_nuel/ccqel/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_nuel/ncqel/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_nuel/ccres/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_nuel/ncres/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_nuel/ccmec/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_numu/cccoh/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_numu/nccoh/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_numu/ccdis/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_numu/ncdis/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_numu/ccqel/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_numu/ncqel/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_numu/ccres/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_numu/ncres/map/chips_1200/"
+        #- "/unix/chips/jtingey/production/beam_numu/ccmec/map/chips_1200/"
+        - "/unix/chips/jtingey/production/cosmic_all/map/chips_1200/"
 
     # The output data directory
     #out_dir: "./data/input/chips_1200_all/beam_flux/"

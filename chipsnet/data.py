@@ -182,7 +182,7 @@ class Reader:
 
         return ds
 
-    def df_from_ds(self, ds, num_events):
+    def df_from_ds(self, ds):
         """Create a pandas dataframe from a tf dataset
         Args:
             ds (tf.dataset): Input dataset
@@ -190,8 +190,6 @@ class Reader:
         Returns:
             pandas.DataFrame: DataFrame generated from the dataset
         """
-        ds = ds.take(num_events)
-        ds = ds.batch(64, drop_remainder=True)  # Batch to make loading faster
         events = {}
         for x, y in ds:
             for name, array in list(x.items()):  # Fill events dict with 'inputs'
@@ -210,29 +208,38 @@ class Reader:
 
         return pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
 
-    @property
-    def training_ds(self):
+    def training_ds(self, num_events, batch_size=None, strip=True, parallel=True):
         """Returns the training dataset.
         Returns:
             tf.dataset: The training dataset
         """
-        return self.dataset(self.train_dirs, strip=True, parallel=True)
+        ds = self.dataset(self.train_dirs, strip=strip, parallel=parallel)
+        ds = ds.take(num_events)
+        if batch_size is not None:
+            ds = ds.batch(batch_size, drop_remainder=True)
+        return ds
 
-    @property
-    def validation_ds(self):
+    def validation_ds(self, num_events, batch_size=None, strip=True, parallel=True):
         """Returns the validation dataset.
         Returns:
             tf.dataset: The validation dataset
         """
-        return self.dataset(self.val_dirs, strip=True, parallel=True)
+        ds = self.dataset(self.val_dirs, strip=strip, parallel=parallel)
+        ds = ds.take(num_events)
+        if batch_size is not None:
+            ds = ds.batch(batch_size, drop_remainder=True)
+        return ds
 
-    @property
-    def testing_ds(self):
+    def testing_ds(self, num_events, batch_size=None, strip=False, parallel=False):
         """Returns the testing dataset.
         Returns:
             tf.dataset: The testing dataset
         """
-        return self.dataset(self.test_dirs, strip=False, parallel=False)
+        ds = self.dataset(self.test_dirs, strip=strip, parallel=parallel)
+        ds = ds.take(num_events)
+        if batch_size is not None:
+            ds = ds.batch(batch_size, drop_remainder=True)
+        return ds
 
     def training_df(self, num_events):
         """Returns the training DataFrame.
@@ -241,7 +248,7 @@ class Reader:
         Returns:
             pd.DataFrame: Training data DataFrame
         """
-        return self.df_from_ds(self.training_ds, num_events)
+        return self.df_from_ds(self.training_ds(num_events, 64))
 
     def validation_df(self, num_events):
         """Returns the validation DataFrame.
@@ -250,7 +257,7 @@ class Reader:
         Returns:
             pd.DataFrame: Validation data DataFrame
         """
-        return self.df_from_ds(self.validation_ds, num_events)
+        return self.df_from_ds(self.validation_ds(num_events, 64))
 
     def testing_df(self, num_events):
         """Returns the testing DataFrame.
@@ -259,7 +266,7 @@ class Reader:
         Returns:
             pd.DataFrame: Testing data DataFrame
         """
-        return self.df_from_ds(self.testing_ds, num_events)
+        return self.df_from_ds(self.testing_ds(num_events, 64))
 
 
 class Creator:
@@ -500,7 +507,7 @@ def get_map(name):
 """Map to electron or muon types (Total = 2) (cosmic muons are included in this)"""
 MAP_NU_TYPE = DotMap({
     'name': 't_nu_type',
-    'categories': 2,
+    'categories': 1,
     'labels': [
         'Nuel',         # 0
         'Numu'],        # 1
@@ -519,7 +526,7 @@ MAP_NU_TYPE = DotMap({
 """Map to particle vs anti-particle (Total = 2) (cosmic muons are included in this)"""
 MAP_SIGN_TYPE = DotMap({
     'name': 't_sign_type',
-    'categories': 2,
+    'categories': 1,
     'labels': [
         'Nu',           # 0
         'Anu'],         # 1
@@ -650,7 +657,7 @@ MAP_ALL_CAT = DotMap({
 """Map a cosmic flag (Total = 2)"""
 MAP_COSMIC_CAT = DotMap({
     'name': 't_cosmic_cat',
-    'categories': 2,
+    'categories': 1,
     'labels': [
         'Cosmic',       # 0
         'Beam'],        # 1

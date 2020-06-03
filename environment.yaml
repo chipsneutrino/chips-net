@@ -21,6 +21,8 @@ dependencies:
   - jupyterlab=2.1.2
   - papermill=2.1.0
   - uproot=3.11.6
+  - root_pandas=0.7.0
+  - root=6.20.4
   - cudnn=7.6.5=cuda10.1_0
   - pip=20.1.1
   - pip:
@@ -30,3 +32,4 @@ dependencies:
     - tf-explain==0.2.1
     - particle==0.10.0
     - comet-ml==3.1.7
+    - coffea==0.6.39

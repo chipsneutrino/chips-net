@@ -61,6 +61,20 @@ models:
         filters: 64
         precision_policy: "float32"
         summarise: False
+    beam_uniform_long:
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
+        path: "beam" 
+        name: "multi_simple"
+        labels: ["t_all_cat", "t_nuEnergy", "prim_p", "prim_cp", "prim_np"]  
+        reco_pars: False
+        lr: 0.0002
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+        precision_policy: "float32"
+        summarise: False
     cosmic:
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "cosmic"
@@ -82,7 +96,7 @@ eval:
     cuts:
         cosmic: 0.001
         q: 500.0
-        hough: 500.0
+        h: 500.0
         theta: 0.7
         phi: 0.3
     weights: # 1200

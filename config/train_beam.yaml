@@ -11,7 +11,7 @@ task: "train"
 # - trainer: how the trainer should run
 
 exp:
-    name: "beam"
+    name: "t_all_cat_vertex_charge_time_hough_uniform"
     output_dir: "/mnt/storage/jtingey/chips-net/data/models/"
     comet: False
 
@@ -38,10 +38,11 @@ data:
 
 model: 
     # "parameter", "cosmic", "beam", "multi_simple", "multi"
-    name: "multi_simple"  
+    name: "beam"  
     # t_nu_type, t_sign_type, t_int_type, t_all_cat, t_cosmic_cat, t_comb_cat, t_nu_nc_cat, t_nc_cat
     # prim_total, prim_p, prim_cp, prim_np, prim_g, t_vtxX, t_vtxY, t_vtxZ, t_nuEnergy 
-    labels: ["t_all_cat", "t_nuEnergy", "prim_p", "prim_cp", "prim_np"]  
+    #labels: ["t_all_cat", "t_nuEnergy", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"]  
+    labels: ["t_all_cat"]  
     reco_pars: False
     lr: 0.0002
     lr_decay: 0.0
@@ -60,5 +61,5 @@ trainer:
     epochs: 5
     tb_update: 1000
     steps_per_epoch: -1
-    es_delta: 0.01
+    es_delta: 0.001
     es_epochs: 2

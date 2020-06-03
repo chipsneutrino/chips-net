@@ -28,7 +28,6 @@ import chipsnet.data  # noqa: E402
 import chipsnet.models  # noqa: E402
 import chipsnet.trainers  # noqa: E402
 import chipsnet.studies  # noqa: E402
-import chipsnet.evaluator  # noqa: E402
 
 
 def setup_gpus():
@@ -109,17 +108,6 @@ def study_model(config):
         study.run()
 
 
-def evaluate_model(config):
-    """Evaluate the trained model according to the configuration.
-    Args:
-        config (dotmap.DotMap): Configuration namespace
-    """
-    setup_gpus()
-    print('--- Setting up evaluator ---\n')
-    evaluator = chipsnet.evaluator.Evaluator(config)
-    evaluator.run_all()
-
-
 def parse_args():
     """Parse the command line arguments.
     """
@@ -140,10 +128,8 @@ def main():
         train_model(config)
     elif config.task == 'study':
         study_model(config)
-    elif config.task == 'evaluate':
-        evaluate_model(config)
     else:
-        print('\nError: must define a task in configuration [create, train, study, evaluate]')
+        print('\nError: must define a task in configuration [create, train, study]')
         raise SystemExit
     print('--- Magic complete ---\n')
 
