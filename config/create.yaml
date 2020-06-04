@@ -46,4 +46,4 @@ create:
     # Should the creation process be done in parallel, using multiple threads?
     parallel: False
     # How to scale each of the reco parameters [vtxX, vtxY, vtxZ, dirTheta, dirPhi]
-    par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
+    par_scale: [1250.0, 1250.0, 600.0, 1.0, 3.14159]
