@@ -140,7 +140,7 @@ class Reader:
         labels = {k: labels[k] for k in self.config.model.labels}
         return inputs, labels
 
-    def dataset(self, dirs, strip=True, parallel=True):
+    def dataset(self, dirs, strip=True):
         """Returns a dataset formed from all the files in the input directories.
         Args:
             dirs (list[str]): List of input directories
@@ -156,29 +156,17 @@ class Reader:
         random.shuffle(files)
 
         ds = tf.data.Dataset.from_tensor_slices(files)
-        if parallel:
-            ds = ds.interleave(
-                tf.data.TFRecordDataset,
-                cycle_length=len(files),
-                block_length=1,
-                num_parallel_calls=tf.data.experimental.AUTOTUNE
-            )
-            ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-            ds = ds.map(lambda x: self.parse(x),
+        ds = ds.interleave(
+            tf.data.TFRecordDataset,
+            cycle_length=len(files),
+            block_length=1,
+            num_parallel_calls=tf.data.experimental.AUTOTUNE
+        )
+        ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+        ds = ds.map(lambda x: self.parse(x), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        if strip:
+            ds = ds.map(lambda x, y: self.strip(x, y),
                         num_parallel_calls=tf.data.experimental.AUTOTUNE)
-            if strip:
-                ds = ds.map(lambda x, y: self.strip(x, y),
-                            num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        else:
-            ds = ds.interleave(
-                tf.data.TFRecordDataset,
-                cycle_length=1,
-                block_length=1
-            )
-            ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-            ds = ds.map(lambda x: self.parse(x))
-            if strip:
-                ds = ds.map(lambda x, y: self.strip(x, y))
 
         return ds
 
@@ -208,34 +196,34 @@ class Reader:
 
         return pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
 
-    def training_ds(self, num_events, batch_size=None, strip=True, parallel=True):
+    def training_ds(self, num_events, batch_size=None, strip=True):
         """Returns the training dataset.
         Returns:
             tf.dataset: The training dataset
         """
-        ds = self.dataset(self.train_dirs, strip=strip, parallel=parallel)
+        ds = self.dataset(self.train_dirs, strip=strip)
         ds = ds.take(num_events)
         if batch_size is not None:
             ds = ds.batch(batch_size, drop_remainder=True)
         return ds
 
-    def validation_ds(self, num_events, batch_size=None, strip=True, parallel=True):
+    def validation_ds(self, num_events, batch_size=None, strip=True):
         """Returns the validation dataset.
         Returns:
             tf.dataset: The validation dataset
         """
-        ds = self.dataset(self.val_dirs, strip=strip, parallel=parallel)
+        ds = self.dataset(self.val_dirs, strip=strip)
         ds = ds.take(num_events)
         if batch_size is not None:
             ds = ds.batch(batch_size, drop_remainder=True)
         return ds
 
-    def testing_ds(self, num_events, batch_size=None, strip=False, parallel=False):
+    def testing_ds(self, num_events, batch_size=None, strip=False):
         """Returns the testing dataset.
         Returns:
             tf.dataset: The testing dataset
         """
-        ds = self.dataset(self.test_dirs, strip=strip, parallel=parallel)
+        ds = self.dataset(self.test_dirs, strip=strip)
         ds = ds.take(num_events)
         if batch_size is not None:
             ds = ds.batch(batch_size, drop_remainder=True)
@@ -553,13 +541,13 @@ MAP_INT_TYPE = DotMap({
         'CC-DIS',       # 2
         'CC-COH',       # 3
         'CC-MEC',       # 4
-        'CC-OTHER'      # 5
+        'CC-OTHER',     # 5
         'NC-QEL',       # 6
         'NC-RES',       # 7
         'NC-DIS',       # 8
         'NC-COH',       # 9
         'NC-MEC',       # 10
-        'NC-OTHER'      # 11
+        'NC-OTHER',     # 11
         'Cosmic'],      # 12
     'table': {
         0: 11,          # Other

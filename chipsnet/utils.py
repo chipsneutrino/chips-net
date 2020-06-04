@@ -17,29 +17,6 @@ import chipsnet.data as data
 import chipsnet.models
 
 
-def standard_model_evaluation(data, model):
-    """Run a standard evaluation on the model
-    Args:
-        data (tf.dataset): Input dataset
-        model (chipsnet.Model): Model to use for prediction
-    """
-    print('\n--- Running Evaluation ---')
-    start_time = time.time()  # Time how long it takes
-    '''
-    self.load_models()  # Load all the required models
-    self.load_dataset()  # Load the dataset into the pandas df
-    self.calculate_weights()  # Calculate the weights to apply categorically
-    self.run_inference()  # Get model outputs for test data
-    self.calculate_cuts()  # Calculate different cuts to be applied
-    print('--- classifying events... ', end='', flush=True)
-    self.events['classification'] = self.events.apply(self.classify, axis=1)
-    print('done')
-    self.predict_energies()
-    self.save_to_file()  # Save everything to a ROOT file
-    '''
-    print('--- Done (took %s seconds) ---\n' % (time.time() - start_time))
-
-
 def data_from_conf(config, name):
     """Get the input data from the configuration.
     Args:
@@ -68,43 +45,53 @@ def model_from_conf(config, name):
     model_config.model = config.models[name]
     model_config.exp.output_dir = config.models[name].dir
     model_config.exp.name = config.models[name].path
+    model_config.data.channels = config.models[name].channels
     chipsnet.config.setup_dirs(model_config, False)
     model = chipsnet.models.get_model(model_config)
     model.load()
     return model
 
 
-def run_inference(data, events, model, num_events, prefix=''):
+def run_inference(events, model, prefix=''):
     """Run predictions on the input dataset and append outputs to events dataframe.
     Args:
-        data (tf.dataset): Input dataset
         events (pandas.DataFrame): Events dataframe to append outputs
         model (chipsnet.Model): Model to use for prediction
-        num_events (int): Number of events to predict
         prefix (str): Prefix to append to column name
     Returns:
         pandas.DataFrame: Events dataframe with model predictions
     """
     print('Running inference on {}... '.format(model.model.name), end='', flush=True)
     start_time = time.time()
-    data = data.testing_ds(num_events, batch_size=64)
-    num_model_outputs = len(model.config.model.labels)
-    outputs = model.model.predict(data)
-    for i, label in enumerate(model.config.model.labels):
-        base_key = prefix + 'pred_' + label
-        if int(num_model_outputs) == 1:
-            events[base_key] = outputs
-        elif outputs[i].shape[1] == 1:
-            events[base_key] = outputs[i]
+
+    # Make the predictions
+    outputs = model.model.predict(np.stack(events["image_0"].to_numpy()))
+
+    # Append the predictions to the events dataframe
+    model_outputs = model.model.outputs
+    for i, model_output in enumerate(model_outputs):
+        base_key = prefix + 'pred_' + model_output.name.split("/", 1)[0]
+        for j in range(10):
+            base_key = base_key.split("_" + str(j), 1)[0]
+
+        output = None
+        if len(model_outputs) == 1:
+            output = outputs
         else:
-            for j in range(outputs[i].shape[1]):
-                key = base_key + '_' + str(j)
-                events[key] = outputs[i][:, j]
+            output = outputs[i]
+
+        if output.shape[1] == 1:
+            events[base_key] = output
+        else:
+            for cat in range(output.shape[1]):
+                key = base_key + '_' + str(cat)
+                events[key] = output[:, cat]
+
     print('took {:.2f} seconds'.format(time.time() - start_time))
     return events
 
 
-def full_comb_combine(events, prefix):
+def full_comb_combine(events, prefix=""):
     """Get the dense layer outputs for the specified dataset and model.
     Args:
         events (pandas.DataFrame): Events dataframe to calculate combined category scores
@@ -112,21 +99,21 @@ def full_comb_combine(events, prefix):
     Returns:
         pandas.DataFrame: Events dataframe with combined category scores
     """
-    def full_comb_apply(event, prefix):
+    def full_comb_apply(event, apply_prefix):
         nuel_cc_cats = [0, 1, 2, 3, 4, 5]
         nuel_cc_value = 0.0
         for cat in nuel_cc_cats:
-            nuel_cc_value = nuel_cc_value + event[prefix + str(cat)]
+            nuel_cc_value = nuel_cc_value + event[str(apply_prefix) + str(cat)]
 
         numu_cc_cats = [12, 13, 14, 15, 16, 17]
         numu_cc_value = 0.0
         for cat in numu_cc_cats:
-            numu_cc_value = numu_cc_value + event[prefix + str(cat)]
+            numu_cc_value = numu_cc_value + event[apply_prefix + str(cat)]
 
         nc_cats = [6, 7, 8, 9, 10, 11, 18, 19, 20, 21, 22, 23]
         nc_value = 0.0
         for cat in nc_cats:
-            nc_value = nc_value + event[prefix + str(cat)]
+            nc_value = nc_value + event[apply_prefix + str(cat)]
 
         return nuel_cc_value, numu_cc_value, nc_value
 
@@ -163,7 +150,8 @@ def apply_weights(
     anuel_frac=0.00000208200747,  # for chips_1200
     numu_frac=0.00276174709613,   # for chips_1200
     anumu_frac=0.00006042213136,  # for chips_1200
-    cosmic_frac=0.99714372811940  # for chips_1200
+    cosmic_frac=0.99714372811940,  # for chips_1200
+    print_summary=False
         ):
     """Calculate and apply the 'weight' column to scale events to predicted numbers.
     Args:
@@ -222,11 +210,30 @@ def apply_weights(
                        (events[data.MAP_COSMIC_CAT.name] == 0)].shape[0]
     tot_cosmic = events[events[data.MAP_COSMIC_CAT.name] == 1].shape[0]
 
-    w_nuel = (1.0/tot_nuel)*(nuel_frac * total_num)
-    w_anuel = (1.0/tot_anuel)*(anuel_frac * total_num)
-    w_numu = (1.0/tot_numu)*(numu_frac * total_num)
-    w_anumu = (1.0/tot_anumu)*(anumu_frac * total_num)
-    w_cosmic = (1.0/tot_cosmic)*(cosmic_frac * total_num)
+    if tot_nuel == 0:
+        w_nuel = 0.0
+    else:
+        w_nuel = (1.0/tot_nuel)*(nuel_frac * total_num)
+
+    if tot_anuel == 0:
+        w_anuel = 0.0
+    else:
+        w_anuel = (1.0/tot_anuel)*(anuel_frac * total_num)
+
+    if tot_numu == 0:
+        w_numu = 0.0
+    else:
+        w_numu = (1.0/tot_numu)*(numu_frac * total_num)
+
+    if tot_anumu == 0:
+        w_anumu = 0.0
+    else:
+        w_anumu = (1.0/tot_anumu)*(anumu_frac * total_num)
+
+    if tot_cosmic == 0:
+        w_cosmic = 0.0
+    else:
+        w_cosmic = (1.0/tot_cosmic)*(cosmic_frac * total_num)
 
     events['w'] = events.apply(
         add_weight,
@@ -234,11 +241,17 @@ def apply_weights(
         args=(w_nuel, w_anuel, w_numu, w_anumu, w_cosmic)
     )
 
-    print("Nuel number:   {}, weight: {:.5f}".format(tot_nuel, w_nuel))
-    print("Anuel number:  {}, weight: {:.5f}".format(tot_anuel, w_anuel))
-    print("Numu number:   {}, weight: {:.5f}".format(tot_numu, w_numu))
-    print("Anumu number:  {}, weight: {:.5f}".format(tot_anumu, w_anumu))
-    print("Cosmic number: {}, weight: {:.3f}".format(tot_cosmic, w_cosmic))
+    if print_summary:
+        print("Nuel:   {}, weight: {:.5f}, actual: {:.2f}".format(
+            tot_nuel, w_nuel, total_num*nuel_frac))
+        print("Anuel:  {}, weight: {:.5f}, actual: {:.2f}".format(
+            tot_anuel, w_anuel, total_num*anuel_frac))
+        print("Numu:   {}, weight: {:.5f}, actual: {:.2f}".format(
+            tot_numu, w_numu, total_num*numu_frac))
+        print("Anumu:  {}, weight: {:.5f}, actual: {:.2f}".format(
+            tot_anumu, w_anumu, total_num*anumu_frac))
+        print("Cosmic: {}, weight: {:.3f}, actual: {:.2f}".format(
+            tot_cosmic, w_cosmic, total_num*cosmic_frac))
     return events
 
 
@@ -248,7 +261,8 @@ def apply_standard_cuts(
     q_cut=500.0,
     h_cut=500.0,
     theta_cut=0.7,
-    phi_cut=0.3
+    phi_cut=0.3,
+    print_summary=False
         ):
     """Calculate and apply the standard cuts to the events dataframe.
     Args:
@@ -261,13 +275,15 @@ def apply_standard_cuts(
     Returns:
         events (pandas.DataFrame): Events with cuts applied
     """
-    cosmic_cut_func = cut_apply("pred_t_cosmic_cat", cosmic_cut, type='greater')
-    cosmic_cuts = events.apply(cosmic_cut_func, axis=1)
+    cosmic_cuts = np.zeros(len(events), dtype=bool)
+    if 'pred_t_cosmic_cat' in events.columns:
+        cosmic_cut_func = cut_apply("pred_t_cosmic_cat", cosmic_cut, type='greater')
+        cosmic_cuts = events.apply(cosmic_cut_func, axis=1)
 
-    q_cut_func = cut_apply('r_first_ring_height', h_cut, type='lower')
+    q_cut_func = cut_apply('r_raw_total_digi_q', q_cut, type='lower')
     q_cuts = events.apply(q_cut_func, axis=1)
 
-    h_cut_func = cut_apply('r_raw_total_digi_q', q_cut, type='lower')
+    h_cut_func = cut_apply('r_first_ring_height', h_cut, type='lower')
     h_cuts = events.apply(h_cut_func, axis=1)
 
     theta_low_cut_func = cut_apply('r_dirTheta', -theta_cut, type='lower')
@@ -286,14 +302,17 @@ def apply_standard_cuts(
                                           theta_low_cuts, theta_high_cuts,
                                           phi_low_cuts, phi_high_cuts))
 
-    for i in range(len(data.MAP_FULL_COMB_CAT.labels)):
-        cat_events = events[events[data.MAP_FULL_COMB_CAT.name] == i]
-        survived_events = cat_events[cat_events["cut"] == 0]
-        print("{}: total {}, survived: {}".format(
-            data.MAP_FULL_COMB_CAT.labels[i],
-            cat_events.shape[0],
-            survived_events.shape[0]/cat_events.shape[0])
-        )
+    if print_summary:
+        for i in range(len(data.MAP_FULL_COMB_CAT.labels)):
+            cat_events = events[events[data.MAP_FULL_COMB_CAT.name] == i]
+            survived_events = cat_events[cat_events["cut"] == 0]
+            if cat_events.shape[0] == 0:
+                continue
+            print("{}: total {}, survived: {}".format(
+                data.MAP_FULL_COMB_CAT.labels[i],
+                cat_events.shape[0],
+                survived_events.shape[0]/cat_events.shape[0])
+            )
 
     return events
 
@@ -380,7 +399,7 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix=""):
                 max_foms[count_cat] = foms[count_cat][cut+1]
                 max_fom_cuts[count_cat] = cuts[cut+1]
 
-    print("--- Maximum FOMS ---")
+    print("\n--- Maximum FOMS ---")
     for cat in range(num_cats):
         label = chipsnet.data.get_map(cat_name).labels[cat]
         print(label + ": {0:.4f}({1:.4f})".format(max_foms[cat], max_fom_cuts[cat]))
@@ -417,7 +436,7 @@ def classify(event, categories, prefix):
     if categories == 1:
         return round(event[prefix])
     else:
-        x = [event[prefix + "_" + str(i)] for i in range(categories)]
+        x = [event[prefix + str(i)] for i in range(categories)]
         return np.asarray(x).argmax()
 
 
