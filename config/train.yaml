@@ -11,16 +11,16 @@ task: "train"
 # - trainer: how the trainer should run
 
 exp:
-    name: "t_all_cat_vertex_charge_time_hough_uniform"
-    output_dir: "/mnt/storage/jtingey/chips-net/data/models/"
+    name: "beam"
+    output_dir: "./data/models/"
     comet: False
 
 data:
     # The directories from which to take input data
     input_dirs:
-        #- "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
-        - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_uniform/"
-        #- "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/cosmic/"
+        #- "./data/input/chips_1200_all/beam_flux/"
+        - "./data/input/chips_1200_all/beam_uniform/"
+        #- "./data/input/chips_1200_all/cosmic/"
     # Does the input data contain all possible input channels?
     all_chan: True
     # Should we unstack the images into seperate branches?
@@ -41,7 +41,6 @@ model:
     name: "beam"  
     # t_nu_type, t_sign_type, t_int_type, t_all_cat, t_cosmic_cat, t_comb_cat, t_nu_nc_cat, t_nc_cat
     # prim_total, prim_p, prim_cp, prim_np, prim_g, t_vtxX, t_vtxY, t_vtxZ, t_nuEnergy 
-    #labels: ["t_all_cat", "t_nuEnergy", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"]  
     labels: ["t_all_cat"]  
     reco_pars: False
     lr: 0.0002

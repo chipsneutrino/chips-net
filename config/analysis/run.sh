@@ -12,3 +12,4 @@ run ./config/analysis/t_cosmic_cat_v_cth_flux.yaml
 
 run ./config/analysis/multi_simple_v_cth_uniform.yaml
 run ./config/analysis/multi_simple_v_cth_flux.yaml
+run ./config/analysis/multi_simple_energy_v_cth_uniform.yaml

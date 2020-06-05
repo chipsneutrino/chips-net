@@ -12,3 +12,4 @@ rm -rf ./data/models/analysis/t_cosmic_cat_v_cth_flux
 
 rm -rf ./data/models/analysis/multi_simple_v_cth_uniform
 rm -rf ./data/models/analysis/multi_simple_v_cth_flux
+rm -rf ./data/models/analysis/multi_simple_energy_v_cth_uniform

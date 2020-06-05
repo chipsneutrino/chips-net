@@ -3,14 +3,27 @@
 """Utility module containing lots of helpful methods for evaluation and plotting
 """
 
+import os
 import time
 import copy
 
 import pandas as pd
 import numpy as np
+import tensorflow as tf
 from tensorflow.keras import Model
 from tqdm import tqdm
-from root_pandas import to_root
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+from sklearn.preprocessing import StandardScaler
+from tf_explain.core.grad_cam import GradCAM
+from tf_explain.core.occlusion_sensitivity import OcclusionSensitivity
+from tf_explain.core.activations import ExtractActivations
+from tf_explain.core.vanilla_gradients import VanillaGradients
+from tf_explain.core.smoothgrad import SmoothGrad
+from tf_explain.core.integrated_gradients import IntegratedGradients
+from tf_explain.core.gradients_inputs import GradientsInputs
 
 import chipsnet.config
 import chipsnet.data as data
@@ -18,7 +31,7 @@ import chipsnet.models
 
 
 def data_from_conf(config, name):
-    """Get the input data from the configuration.
+    """Get the named data reader as defined in the configuration.
     Args:
         config (dotmap.DotMap): Base configuration namespace
         name (str): Data name
@@ -33,7 +46,7 @@ def data_from_conf(config, name):
 
 
 def model_from_conf(config, name):
-    """Get and load the model from the configuration.
+    """Get the loaded model corresponding to the given name and configuration.
     Args:
         config (dotmap.DotMap): Base configuration namespace
         name (str): Model name
@@ -49,7 +62,110 @@ def model_from_conf(config, name):
     chipsnet.config.setup_dirs(model_config, False)
     model = chipsnet.models.get_model(model_config)
     model.load()
-    return model
+
+
+def model_history(config, name):
+    """Get the model training history.
+    Args:
+        config (dotmap.DotMap): Base configuration namespace
+        name (str): Model name
+    Returns:
+        pandas.DataFrame: Dataframe containing model training history
+    """
+    model_config = copy.copy(config)
+    model_config.model = config.models[name]
+    model_config.exp.output_dir = config.models[name].dir
+    model_config.exp.name = config.models[name].path
+    model_config.data.channels = config.models[name].channels
+    chipsnet.config.setup_dirs(model_config, False)
+    history = pd.read_csv(os.path.join(config.exp.exp_dir, 'history.csv'))
+    return history
+
+
+def process_ds(config, data_name, model_names, verbose=False):
+    """Fully process a dataset through a list of models and run standard evaluation.
+    Args:
+        config (dotmap.DotMap): Base configuration namespace
+        data_name (str): Data name
+        model_names (List[str]): Model names
+        verbose (bool): Should processing print summaries?
+    Returns:
+        pandas.DataFrame: Events dataframe fully processed
+    """
+    print('Processing {}... '.format(data_name), end='', flush=True)
+    start_time = time.time()
+
+    # Get the dataframe from the dataset name
+    events = data_from_conf(config, data_name).testing_df(config.eval.examples)
+
+    # Run all the required inference
+    for model_name in model_names:
+        model = model_from_conf(config, model_name)
+        events = run_inference(events, model, prefix=model_name+"_")
+
+    # Apply the event weights
+    events = apply_weights(events, verbose=verbose)
+
+    # Apply the standard cuts
+    events = apply_standard_cuts(events, verbose=verbose)
+
+    # TODO: How should I then use the cuts in the rest of the analysis?
+
+    # Classify into fully combined categories and print the classification reports
+    outputs = {"cuts": [], "sig_effs": [], "bkg_effs": [], "purs": [], "foms": [],
+               "comb_matrices": [], "all_matrices": []}
+    for model_name in model_names:
+        # Combine categories into fully combined ones
+        events = full_comb_combine(events, prefix=model_name+"_")
+
+        # Run classification and print report
+        class_prefix = model_name+"_" + "pred_t_comb_cat_"
+        events[model_name + "_comb_cat_class"] = events.apply(
+            classify, axis=1, args=(3, class_prefix))
+        class_prefix = model_name+"_" + "pred_t_all_cat_"
+        events[model_name + "_all_cat_class"] = events.apply(
+            classify, axis=1, args=(24, class_prefix))
+        if verbose:
+            print(classification_report(events["t_comb_cat"], events["comb_cat_class"],
+                                        target_names=["nuel-cc", "numu-cc", "nc"]))
+
+        # Run curve calculation
+        cut, sig, bkg, pur, fom = calculate_curves(
+            events[events.cut == 0], prefix=model_name+"_", verbose=verbose)
+        outputs["cuts"].append(cut)
+        outputs["sig_effs"].append(sig)
+        outputs["bkg_effs"].append(bkg)
+        outputs["purs"].append(pur)
+        outputs["foms"].append(fom)
+
+        matrix_comb = confusion_matrix(
+            events["t_comb_cat"],
+            events[model_name + "_comb_cat_class"],
+            normalize='true')
+        matrix_comb = np.rot90(matrix_comb, 1)
+        matrix_comb = pd.DataFrame(
+            matrix_comb,
+            index=data.MAP_FULL_COMB_CAT.labels[::-1],
+            columns=data.MAP_FULL_COMB_CAT.labels)
+        outputs["comb_matrices"].append(matrix_comb)
+
+        matrix_all = confusion_matrix(
+            events["t_comb_cat"],
+            events[model_name + "_all_cat_class"],
+            normalize='true')
+        matrix_all = np.rot90(matrix_all, 1)
+        matrix_all = pd.DataFrame(
+            matrix_all,
+            index=data.MAP_ALL_CAT.labels[::-1],
+            columns=data.MAP_ALL_CAT.labels)
+        outputs["all_matrices"].append(matrix_all)
+
+    # TODO: Eff/pur vs energy plots
+
+    print('took {:.2f} seconds'.format(time.time() - start_time))
+
+    # Return everything
+    return events, outputs
 
 
 def run_inference(events, model, prefix=''):
@@ -61,9 +177,6 @@ def run_inference(events, model, prefix=''):
     Returns:
         pandas.DataFrame: Events dataframe with model predictions
     """
-    print('Running inference on {}... '.format(model.model.name), end='', flush=True)
-    start_time = time.time()
-
     # Make the predictions
     outputs = model.model.predict(np.stack(events["image_0"].to_numpy()))
 
@@ -87,12 +200,11 @@ def run_inference(events, model, prefix=''):
                 key = base_key + '_' + str(cat)
                 events[key] = output[:, cat]
 
-    print('took {:.2f} seconds'.format(time.time() - start_time))
     return events
 
 
 def full_comb_combine(events, prefix=""):
-    """Get the dense layer outputs for the specified dataset and model.
+    """Combine t_all_cat scores into t_comb_cat scores.
     Args:
         events (pandas.DataFrame): Events dataframe to calculate combined category scores
         prefix (str): Prefix to apply to model output values
@@ -127,31 +239,15 @@ def full_comb_combine(events, prefix=""):
     return events
 
 
-def dense_output(data, model, layer_name="dense_final"):
-    """Get the dense layer outputs for the specified dataset and model.
-    Args:
-        data (tf.dataset): Input dataset
-        model (chipsnet.Model): Model to use
-    Returns:
-        np.array: Array of dense layer outputs
-    """
-    # Create model that outputs the dense layer outputs
-    dense_model = Model(
-        inputs=model.model.input,
-        outputs=model.model.get_layer(layer_name).output
-    )
-    return dense_model.predict(data)
-
-
 def apply_weights(
     events,
-    total_num=1214165.85244438,   # for chips_1200
-    nuel_frac=0.00003202064566,   # for chips_1200
-    anuel_frac=0.00000208200747,  # for chips_1200
-    numu_frac=0.00276174709613,   # for chips_1200
-    anumu_frac=0.00006042213136,  # for chips_1200
-    cosmic_frac=0.99714372811940,  # for chips_1200
-    print_summary=False
+    total_num=1214165.85244438,     # for chips_1200
+    nuel_frac=0.00003202064566,     # for chips_1200
+    anuel_frac=0.00000208200747,    # for chips_1200
+    numu_frac=0.00276174709613,     # for chips_1200
+    anumu_frac=0.00006042213136,    # for chips_1200
+    cosmic_frac=0.99714372811940,   # for chips_1200
+    verbose=False
         ):
     """Calculate and apply the 'weight' column to scale events to predicted numbers.
     Args:
@@ -162,6 +258,7 @@ def apply_weights(
         numu_frac (float): Fraction of events from numu
         anumu_frac (float): Fraction of events from anumu
         cosmic_frac (float): Fractions of events from cosmics
+        verbose (bool): Should we print weight summary?
     Returns:
         pandas.DataFrame: Events dataframe with weights
     """
@@ -241,7 +338,7 @@ def apply_weights(
         args=(w_nuel, w_anuel, w_numu, w_anumu, w_cosmic)
     )
 
-    if print_summary:
+    if verbose:
         print("Nuel:   {}, weight: {:.5f}, actual: {:.2f}".format(
             tot_nuel, w_nuel, total_num*nuel_frac))
         print("Anuel:  {}, weight: {:.5f}, actual: {:.2f}".format(
@@ -262,7 +359,7 @@ def apply_standard_cuts(
     h_cut=500.0,
     theta_cut=0.7,
     phi_cut=0.3,
-    print_summary=False
+    verbose=False
         ):
     """Calculate and apply the standard cuts to the events dataframe.
     Args:
@@ -272,6 +369,7 @@ def apply_standard_cuts(
         h_cut (float): Hough peak height cut
         theta_cut (float): Reco theta direction cut
         phi_cut (float): Reco phi direction cut
+        verbose (bool): Should we print cut summary?
     Returns:
         events (pandas.DataFrame): Events with cuts applied
     """
@@ -302,7 +400,7 @@ def apply_standard_cuts(
                                           theta_low_cuts, theta_high_cuts,
                                           phi_low_cuts, phi_high_cuts))
 
-    if print_summary:
+    if verbose:
         for i in range(len(data.MAP_FULL_COMB_CAT.labels)):
             cat_events = events[events[data.MAP_FULL_COMB_CAT.name] == i]
             survived_events = cat_events[cat_events["cut"] == 0]
@@ -336,13 +434,14 @@ def cut_apply(variable, value, type):
     return cut_func
 
 
-def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix=""):
-    """Calculate efficiency curves etc...
+def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix="", verbose=False):
+    """Calculate efficiency, purity and figure of merit across the full range of cut values
     Args:
         events (pandas.DataFrame): Events dataframe to use
         cat_name (str): Category name to use
         thresholds (int): Number of threshold values to use
         prefix (str): Prefix to apply to model output values
+        verbose (bool): Should we print summary?
     Returns:
         cuts (np.array): Array of threshold cut values
         sig_effs (np.array): Array signal efficiencies
@@ -368,7 +467,7 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix=""):
 
     cuts.append(0.0)
     inc = float(1.0/thresholds)
-    for cut in tqdm(range(thresholds), desc='--- calculating curves'):
+    for cut in range(thresholds):
         cuts.append((cut * inc) + inc)
         for count_cat in range(num_cats):
             passed = []
@@ -399,11 +498,6 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix=""):
                 max_foms[count_cat] = foms[count_cat][cut+1]
                 max_fom_cuts[count_cat] = cuts[cut+1]
 
-    print("\n--- Maximum FOMS ---")
-    for cat in range(num_cats):
-        label = chipsnet.data.get_map(cat_name).labels[cat]
-        print(label + ": {0:.4f}({1:.4f})".format(max_foms[cat], max_fom_cuts[cat]))
-
     # Convert the lists to numpy arrays
     cuts = np.asarray(cuts)
     sig_effs = np.asarray(sig_effs)
@@ -411,25 +505,100 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix=""):
     purities = np.asarray(purities)
     foms = np.asarray(foms)
 
-    # Calculate the areas under the curves and print them
-    sig_effs_int = np.trapz(sig_effs[0], x=cuts)
-    bkg_effs_int = np.trapz(bkg_effs[0], x=cuts)
-    purities_int = np.trapz(purities[0], x=cuts)
-    fom_int = np.trapz(foms[0], x=cuts)
-    sig_vs_bkg_int = np.trapz(sig_effs[0], x=bkg_effs[0])
-    print("Signal efficiency AUC: {}".format(sig_effs_int))
-    print("Background efficiency AUC: {}".format(bkg_effs_int))
-    print("Purity AUC: {}".format(purities_int))
-    print("FOM AUC: {}".format(fom_int))
-    print("ROC AUC: {}".format(sig_vs_bkg_int))
+    # We now use the maximum foms to calculate efficiency and purity hists in neutrino energy
+    for count_cat in range(num_cats):
+        passed = []
+        for cut_cat in range(num_cats):
+            passed.append(
+                events[(events[cat_name] == cut_cat) &
+                       (events[prefix + str(count_cat)] > max_fom_cuts[count_cat])]['w'].sum()
+            )
+
+    '''
+    nuelCCAll = b_ev[b_ev.t_full_cat == 0]
+    nuelCCSel = b_ev[(b_ev.t_full_cat == 0) & (b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) &
+    (b_ev.nuel_score > nuel_max_fom_cut)]
+    nuelCCAll_h = ROOT.TH1F("nuelCCAll", "", 10, 1000, 6000)
+    nuelCCSel_h = ROOT.TH1F("nuelCCSel", "", 10, 1000, 6000)
+    nuelCCAll_h.Sumw2()
+    nuelCCSel_h.Sumw2()
+    fill_hist(nuelCCAll_h, nuelCCAll['t_nuEnergy'].to_numpy(), nuelCCAll['weight'].to_numpy())
+    fill_hist(nuelCCSel_h, nuelCCSel['t_nuEnergy'].to_numpy(), nuelCCSel['weight'].to_numpy())
+    nuelCCEff = ROOT.TGraphAsymmErrors(nuelCCSel_h, nuelCCAll_h, "n")
+
+    numuCCAll = b_ev[b_ev.t_full_cat == 1]
+    numuCCSel = b_ev[(b_ev.t_full_cat == 1) & (b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) &
+    (b_ev.nuel_score > nuel_max_fom_cut)]
+    numuCCAll_h = ROOT.TH1F("numuCCAll", "", 10, 1000, 6000)
+    numuCCSel_h = ROOT.TH1F("numuCCSel", "", 10, 1000, 6000)
+    numuCCAll_h.Sumw2()
+    numuCCSel_h.Sumw2()
+    fill_hist(numuCCAll_h, numuCCAll['t_nuEnergy'].to_numpy(), numuCCAll['weight'].to_numpy())
+    fill_hist(numuCCSel_h, numuCCSel['t_nuEnergy'].to_numpy(), numuCCSel['weight'].to_numpy())
+    numuCCEff = ROOT.TGraphAsymmErrors(numuCCSel_h, numuCCAll_h, "n")
+
+    ncAll = b_ev[b_ev.t_full_cat == 2]
+    ncSel = b_ev[(b_ev.t_full_cat == 2) & (b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) &
+    (b_ev.nuel_score > nuel_max_fom_cut)]
+    ncAll_h = ROOT.TH1F("ncAll", "", 10, 1000, 6000)
+    ncSel_h = ROOT.TH1F("ncSel", "", 10, 1000, 6000)
+    ncAll_h.Sumw2()
+    ncSel_h.Sumw2()
+    fill_hist(ncAll_h, ncAll['t_nuEnergy'].to_numpy(), ncAll['weight'].to_numpy())
+    fill_hist(ncSel_h, ncSel['t_nuEnergy'].to_numpy(), ncSel['weight'].to_numpy())
+    ncEff = ROOT.TGraphAsymmErrors(ncSel_h, ncAll_h, "n")
+
+    cosmicAll = b_ev[b_ev.t_full_cat == 3]
+    cosmicSel = b_ev[(b_ev.t_full_cat == 3) & (b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) & (
+        b_ev.nuel_score > nuel_max_fom_cut)]
+    cosmicAll_h = ROOT.TH1F("cosmicAll", "", 10, 1000, 6000)
+    cosmicSel_h = ROOT.TH1F("cosmicSel", "", 10, 1000, 6000)
+    cosmicAll_h.Sumw2()
+    cosmicSel_h.Sumw2()
+    fill_hist(cosmicAll_h, cosmicAll['t_nuEnergy'].to_numpy(), cosmicAll['weight'].to_numpy())
+    fill_hist(cosmicSel_h, cosmicSel['t_nuEnergy'].to_numpy(), cosmicSel['weight'].to_numpy())
+    cosmicEff = ROOT.TGraphAsymmErrors(cosmicSel_h, cosmicAll_h, "n")
+
+    signal = b_ev[(b_ev.t_full_cat == 0) & (b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) &
+    (b_ev.nuel_score > nuel_max_fom_cut)]
+    total = b_ev[(b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) &
+    (b_ev.nuel_score > nuel_max_fom_cut)]
+    signal_h = ROOT.TH1F("signal", "", 10, 1000, 6000)
+    total_h = ROOT.TH1F("total", "", 10, 1000, 6000)
+    signal_h.Sumw2()
+    total_h.Sumw2()
+    fill_hist(signal_h, signal['t_nuEnergy'].to_numpy(), signal['weight'].to_numpy())
+    fill_hist(total_h, total['t_nuEnergy'].to_numpy(), total['weight'].to_numpy())
+    purity = ROOT.TGraphAsymmErrors(signal_h, total_h, "n")
+    '''
+
+    # Print summary if verbose
+    if verbose:
+        for cat in range(num_cats):
+            label = chipsnet.data.get_map(cat_name).labels[cat]
+            print(label + ": {0:.4f}({1:.4f})".format(max_foms[cat], max_fom_cuts[cat]))
+
+        # Calculate the areas under the curves and print them
+        sig_effs_int = np.trapz(sig_effs[0], x=cuts)
+        bkg_effs_int = np.trapz(bkg_effs[0], x=cuts)
+        purities_int = np.trapz(purities[0], x=cuts)
+        fom_int = np.trapz(foms[0], x=cuts)
+        sig_vs_bkg_int = np.trapz(sig_effs[0], x=bkg_effs[0])
+        print("Signal efficiency AUC: {}".format(sig_effs_int))
+        print("Background efficiency AUC: {}".format(bkg_effs_int))
+        print("Purity AUC: {}".format(purities_int))
+        print("FOM AUC: {}".format(fom_int))
+        print("ROC AUC: {}".format(sig_vs_bkg_int))
 
     return cuts, sig_effs, bkg_effs, purities, foms
 
 
 def classify(event, categories, prefix):
-    """Add the correct weight to each event.
+    """Classify the event by the highest score.
     Args:
         event (dict): Pandas event(row) dict
+        categories (int): Number of categories
+        prefix: (str): prefix of the different scores for this classification
     Returns:
         int: category classification
     """
@@ -438,6 +607,180 @@ def classify(event, categories, prefix):
     else:
         x = [event[prefix + str(i)] for i in range(categories)]
         return np.asarray(x).argmax()
+
+
+def run_pca(events, model, layer_name="dense_final",
+            standardise=True, components=3, verbose=False):
+    """Run PCA on the final dense layer outputs and append results to events dataframe.
+    Args:
+        events (pandas.DataFrame): Events dataframe to append outputs
+        model (chipsnet.Model): Model to use for prediction
+        layer_name (str): Final dense layer name
+        standardise (bool): Should we apply a standard scalar to the dense layer outputs?
+        components (int): Number of PCA componenets to calculate
+        verbose (bool): Should we print summary?
+    Returns:
+        pandas.DataFrame: Events dataframe with PCA outputs
+    """
+    # Create model that outputs the dense layer outputs
+    dense_model = Model(
+        inputs=model.model.input,
+        outputs=model.model.get_layer(layer_name).output
+    )
+
+    # Make the predictions
+    dense_outputs = dense_model.predict(np.stack(events["image_0"].to_numpy()))
+
+    # Run a standard scalar on the dense outputs if needed
+    if standardise:
+        dense_outputs = StandardScaler().fit_transform(dense_outputs)
+
+    # Run the PCA
+    pca = PCA(n_components=components)
+    pca_result = pca.fit_transform(dense_outputs)
+    pca_result = pd.DataFrame(pca_result)
+
+    # Append the results to the events dataframe
+    for component in range(components):
+        events["pca_" + str(component)] = pca_result[component]
+
+    if verbose:
+        print('Explained variation per principal component: {}'.format(
+            pca.explained_variance_ratio_))
+
+    return events
+
+
+def run_tsne(events, model, layer_name="dense_final", standardise=True, components=3):
+    """Run t-SNE on the final dense layer outputs and append results to events dataframe.
+    Args:
+        events (pandas.DataFrame): Events dataframe to append outputs
+        model (chipsnet.Model): Model to use for prediction
+        layer_name (str): Final dense layer name
+        standardise (bool): Should we apply a standard scalar to the dense layer outputs?
+        components (int): Number of t-SNE componenets to calculate
+        verbose (bool): Should we print summary?
+    Returns:
+        pandas.DataFrame: Events dataframe with t-SNE outputs
+    """
+    # Create model that outputs the dense layer outputs
+    dense_model = Model(
+        inputs=model.model.input,
+        outputs=model.model.get_layer(layer_name).output
+    )
+
+    # Make the predictions
+    dense_outputs = dense_model.predict(np.stack(events["image_0"].to_numpy()))
+
+    # Run a standard scalar on the dense outputs if needed
+    if standardise:
+        dense_outputs = StandardScaler().fit_transform(dense_outputs)
+
+    # Run t-SNE
+    tsne = TSNE(n_components=components, verbose=1, perplexity=40, n_iter=300)
+    tsne_result = tsne.fit_transform(dense_outputs)
+    tsne_result = pd.DataFrame(tsne_result)
+
+    # Append the results to the events dataframe
+    for component in range(components):
+        events["pca_" + str(component)] = tsne_result[component]
+
+    return events
+
+
+def explain_gradcam(events, model, num_events, output="t_all_cat",
+                    layer_name="path0_block1"):
+    """Run GradCAM on the given model using the events.
+    Args:
+        events (pandas.DataFrame): Events dataframe to append outputs
+        model (chipsnet.Model): Model to use for prediction
+        num_events (int): Number of events to run
+        output (str): Single classification model output to use
+        layer_name (str): Model layer name to use
+    Returns:
+        list[event_outputs]: List of GradCAM outputs
+    """
+    explain_m = Model(inputs=model.model.input, outputs=model.model.get_layer(output).output)
+    outputs = []
+    for event in range(num_events):
+        category = int(events['t_all_cat'][event])
+        image = tf.expand_dims(events['image_0'][event], axis=0).numpy()
+        outputs.append(GradCAM().explain(
+            (image, category), explain_m, class_index=category, layer_name=layer_name))
+    return outputs
+
+
+def explain_occlusion(events, model, num_events, output="t_all_cat"):
+    """Run OcclusionSensitivity on the given model using the events.
+    Args:
+        events (pandas.DataFrame): Events dataframe to append outputs
+        model (chipsnet.Model): Model to use for prediction
+        num_events (int): Number of events to run
+        output (str): Single classification model output to use
+    Returns:
+        list[event_outputs]: List of OcclusionSensitivity outputs
+    """
+    explain_m = Model(inputs=model.model.input, outputs=model.model.get_layer(output).output)
+    outputs = []
+    for event in range(num_events):
+        category = int(events['t_all_cat'][event])
+        image = tf.expand_dims(events['image_0'][event], axis=0).numpy()
+        outputs.append(OcclusionSensitivity().explain(
+            (image, category), explain_m, class_index=category, patch_size=3))
+    return outputs
+
+
+def explain_activation(events, model, num_events, output="t_all_cat",
+                       layer_name="path0_block1_conv0"):
+    """Run ExtractActivations on the given model using the events.
+    Args:
+        events (pandas.DataFrame): Events dataframe to append outputs
+        model (chipsnet.Model): Model to use for prediction
+        num_events (int): Number of events to run
+        output (str): Single classification model output to use
+        layer_name (str): Model layer name to use
+    Returns:
+        list[event_outputs]: List of ExtractActivations outputs
+    """
+    explain_m = Model(inputs=model.model.input, outputs=model.model.get_layer(output).output)
+    outputs = []
+    for event in range(num_events):
+        category = int(events['t_all_cat'][event])
+        image = tf.expand_dims(events['image_0'][event], axis=0).numpy()
+        outputs.append(ExtractActivations().explain(
+            (image, category), explain_m, layers_name=layer_name))
+    return outputs
+
+
+def explain_grads(events, model, num_events, output="t_all_cat"):
+    """Run various gradient explain methods on the given model using the events.
+    Args:
+        events (pandas.DataFrame): Events dataframe to append outputs
+        model (chipsnet.Model): Model to use for prediction
+        num_events (int): Number of events to run
+        output (str): Single classification model output to use
+    Returns:
+        dict: Dictionary of gradient outputs
+    """
+    explain_m = Model(inputs=model.model.input, outputs=model.model.get_layer(output).output)
+    outputs = {
+        "vanilla": [],
+        "smooth": [],
+        "integrated": [],
+        "inputs": []
+    }
+    for event in range(num_events):
+        category = int(events['t_all_cat'][event])
+        image = tf.expand_dims(events['image_0'][event], axis=0).numpy()
+        outputs["vanilla"].append(VanillaGradients().explain(
+            (image, category), explain_m, class_index=category))
+        outputs["smooth"].append(SmoothGrad().explain(
+            (image, category), explain_m, class_index=category))
+        outputs["integrated"].append(IntegratedGradients().explain(
+            (image, category), explain_m, class_index=category))
+        outputs["inputs"].append(GradientsInputs().explain(
+            (image, category), explain_m, class_index=category))
+    return outputs
 
 
 def predict_energies(self):
@@ -476,12 +819,3 @@ def globes_smearing_file(hists, names):
                         f.write(str.format('{0:.5f}, ', hist[j, i]))
                 f.write("}:\n")
             f.write(">\n")
-
-
-def save_to_file(events, path):
-    """Save events dataframe to a ROOT file.
-    Args:
-        events (pandas.DataFrame): Events dataframe to save
-        names (str): Output file path
-    """
-    to_root(events, path, key='events')
