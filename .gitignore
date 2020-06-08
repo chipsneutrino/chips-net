@@ -11,3 +11,5 @@ data/input/*nu*
 .vscode
 smearing/
 .comet
+data/output/*.pgf
+data/output/*.png

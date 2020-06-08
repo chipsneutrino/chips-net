@@ -14,6 +14,7 @@ from tensorflow.keras import Model
 from tqdm import tqdm
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import auc
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
@@ -62,6 +63,7 @@ def model_from_conf(config, name):
     chipsnet.config.setup_dirs(model_config, False)
     model = chipsnet.models.get_model(model_config)
     model.load()
+    return model
 
 
 def model_history(config, name):
@@ -109,12 +111,15 @@ def process_ds(config, data_name, model_names, verbose=False):
     # Apply the standard cuts
     events = apply_standard_cuts(events, verbose=verbose)
 
-    # TODO: How should I then use the cuts in the rest of the analysis?
-
     # Classify into fully combined categories and print the classification reports
     outputs = {"cuts": [], "sig_effs": [], "bkg_effs": [], "purs": [], "foms": [],
-               "comb_matrices": [], "all_matrices": []}
+               "fom_effs": [], "fom_purs": [],
+               "sig_effs_auc": [], "bkg_effs_auc": [], "pur_auc": [], "fom_auc": [], "roc_auc": [], 
+               "comb_matrices": [], "all_matrices": [], "report": []}
     for model_name in model_names:
+        if "cosmic" in model_name or "cos" in model_name:
+            continue
+
         # Combine categories into fully combined ones
         events = full_comb_combine(events, prefix=model_name+"_")
 
@@ -125,39 +130,42 @@ def process_ds(config, data_name, model_names, verbose=False):
         class_prefix = model_name+"_" + "pred_t_all_cat_"
         events[model_name + "_all_cat_class"] = events.apply(
             classify, axis=1, args=(24, class_prefix))
+
+        report = classification_report(events["t_comb_cat"],
+                                       events[model_name + "_comb_cat_class"],
+                                       target_names=["nuel-cc", "numu-cc", "nc"])
+        outputs["report"].append(report)
         if verbose:
-            print(classification_report(events["t_comb_cat"], events["comb_cat_class"],
-                                        target_names=["nuel-cc", "numu-cc", "nc"]))
+            print(report)
 
         # Run curve calculation
-        cut, sig, bkg, pur, fom = calculate_curves(
-            events[events.cut == 0], prefix=model_name+"_", verbose=verbose)
-        outputs["cuts"].append(cut)
-        outputs["sig_effs"].append(sig)
-        outputs["bkg_effs"].append(bkg)
-        outputs["purs"].append(pur)
-        outputs["foms"].append(fom)
+        curves_output = calculate_curves(events, prefix=model_name+"_", verbose=verbose)
+        outputs["cuts"].append(curves_output["cuts"])
+        outputs["sig_effs"].append(curves_output["sig_effs"])
+        outputs["bkg_effs"].append(curves_output["bkg_effs"])
+        outputs["purs"].append(curves_output["purs"])
+        outputs["foms"].append(curves_output["foms"])
+        outputs["fom_effs"].append(curves_output["fom_effs"])
+        outputs["fom_purs"].append(curves_output["fom_purs"])
+        outputs["sig_effs_auc"].append(curves_output["sig_effs_auc"])
+        outputs["bkg_effs_auc"].append(curves_output["bkg_effs_auc"])
+        outputs["pur_auc"].append(curves_output["pur_auc"])
+        outputs["fom_auc"].append(curves_output["fom_auc"])
+        outputs["roc_auc"].append(curves_output["roc_auc"])
 
         matrix_comb = confusion_matrix(
             events["t_comb_cat"],
             events[model_name + "_comb_cat_class"],
             normalize='true')
         matrix_comb = np.rot90(matrix_comb, 1)
-        matrix_comb = pd.DataFrame(
-            matrix_comb,
-            index=data.MAP_FULL_COMB_CAT.labels[::-1],
-            columns=data.MAP_FULL_COMB_CAT.labels)
+        matrix_comb = pd.DataFrame(matrix_comb)
         outputs["comb_matrices"].append(matrix_comb)
-
         matrix_all = confusion_matrix(
             events["t_comb_cat"],
             events[model_name + "_all_cat_class"],
             normalize='true')
         matrix_all = np.rot90(matrix_all, 1)
-        matrix_all = pd.DataFrame(
-            matrix_all,
-            index=data.MAP_ALL_CAT.labels[::-1],
-            columns=data.MAP_ALL_CAT.labels)
+        matrix_all = pd.DataFrame(matrix_all)
         outputs["all_matrices"].append(matrix_all)
 
     # TODO: Eff/pur vs energy plots
@@ -355,10 +363,10 @@ def apply_weights(
 def apply_standard_cuts(
     events,
     cosmic_cut=0.001,
-    q_cut=500.0,
-    h_cut=500.0,
-    theta_cut=0.7,
-    phi_cut=0.3,
+    q_cut=600.0,
+    h_cut=600.0,
+    theta_cut=0.65,
+    phi_cut=0.25,
     verbose=False
         ):
     """Calculate and apply the standard cuts to the events dataframe.
@@ -472,7 +480,8 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix="", v
         for count_cat in range(num_cats):
             passed = []
             for cut_cat in range(num_cats):
-                passed.append(events[(events[cat_name] == cut_cat) &
+                passed.append(events[(events["cut"] == 0) &
+                                     (events[cat_name] == cut_cat) &
                                      (events[prefix + str(count_cat)] > cuts[cut+1])]['w'].sum())
 
             # Calculate the signal and background efficiencies for this category
@@ -505,72 +514,18 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix="", v
     purities = np.asarray(purities)
     foms = np.asarray(foms)
 
-    # We now use the maximum foms to calculate efficiency and purity hists in neutrino energy
-    for count_cat in range(num_cats):
-        passed = []
-        for cut_cat in range(num_cats):
-            passed.append(
-                events[(events[cat_name] == cut_cat) &
-                       (events[prefix + str(count_cat)] > max_fom_cuts[count_cat])]['w'].sum()
-            )
-
-    '''
-    nuelCCAll = b_ev[b_ev.t_full_cat == 0]
-    nuelCCSel = b_ev[(b_ev.t_full_cat == 0) & (b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) &
-    (b_ev.nuel_score > nuel_max_fom_cut)]
-    nuelCCAll_h = ROOT.TH1F("nuelCCAll", "", 10, 1000, 6000)
-    nuelCCSel_h = ROOT.TH1F("nuelCCSel", "", 10, 1000, 6000)
-    nuelCCAll_h.Sumw2()
-    nuelCCSel_h.Sumw2()
-    fill_hist(nuelCCAll_h, nuelCCAll['t_nuEnergy'].to_numpy(), nuelCCAll['weight'].to_numpy())
-    fill_hist(nuelCCSel_h, nuelCCSel['t_nuEnergy'].to_numpy(), nuelCCSel['weight'].to_numpy())
-    nuelCCEff = ROOT.TGraphAsymmErrors(nuelCCSel_h, nuelCCAll_h, "n")
-
-    numuCCAll = b_ev[b_ev.t_full_cat == 1]
-    numuCCSel = b_ev[(b_ev.t_full_cat == 1) & (b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) &
-    (b_ev.nuel_score > nuel_max_fom_cut)]
-    numuCCAll_h = ROOT.TH1F("numuCCAll", "", 10, 1000, 6000)
-    numuCCSel_h = ROOT.TH1F("numuCCSel", "", 10, 1000, 6000)
-    numuCCAll_h.Sumw2()
-    numuCCSel_h.Sumw2()
-    fill_hist(numuCCAll_h, numuCCAll['t_nuEnergy'].to_numpy(), numuCCAll['weight'].to_numpy())
-    fill_hist(numuCCSel_h, numuCCSel['t_nuEnergy'].to_numpy(), numuCCSel['weight'].to_numpy())
-    numuCCEff = ROOT.TGraphAsymmErrors(numuCCSel_h, numuCCAll_h, "n")
-
-    ncAll = b_ev[b_ev.t_full_cat == 2]
-    ncSel = b_ev[(b_ev.t_full_cat == 2) & (b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) &
-    (b_ev.nuel_score > nuel_max_fom_cut)]
-    ncAll_h = ROOT.TH1F("ncAll", "", 10, 1000, 6000)
-    ncSel_h = ROOT.TH1F("ncSel", "", 10, 1000, 6000)
-    ncAll_h.Sumw2()
-    ncSel_h.Sumw2()
-    fill_hist(ncAll_h, ncAll['t_nuEnergy'].to_numpy(), ncAll['weight'].to_numpy())
-    fill_hist(ncSel_h, ncSel['t_nuEnergy'].to_numpy(), ncSel['weight'].to_numpy())
-    ncEff = ROOT.TGraphAsymmErrors(ncSel_h, ncAll_h, "n")
-
-    cosmicAll = b_ev[b_ev.t_full_cat == 3]
-    cosmicSel = b_ev[(b_ev.t_full_cat == 3) & (b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) & (
-        b_ev.nuel_score > nuel_max_fom_cut)]
-    cosmicAll_h = ROOT.TH1F("cosmicAll", "", 10, 1000, 6000)
-    cosmicSel_h = ROOT.TH1F("cosmicSel", "", 10, 1000, 6000)
-    cosmicAll_h.Sumw2()
-    cosmicSel_h.Sumw2()
-    fill_hist(cosmicAll_h, cosmicAll['t_nuEnergy'].to_numpy(), cosmicAll['weight'].to_numpy())
-    fill_hist(cosmicSel_h, cosmicSel['t_nuEnergy'].to_numpy(), cosmicSel['weight'].to_numpy())
-    cosmicEff = ROOT.TGraphAsymmErrors(cosmicSel_h, cosmicAll_h, "n")
-
-    signal = b_ev[(b_ev.t_full_cat == 0) & (b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) &
-    (b_ev.nuel_score > nuel_max_fom_cut)]
-    total = b_ev[(b_ev.base_cut == 0) & (b_ev.cosmic_cut == 0) &
-    (b_ev.nuel_score > nuel_max_fom_cut)]
-    signal_h = ROOT.TH1F("signal", "", 10, 1000, 6000)
-    total_h = ROOT.TH1F("total", "", 10, 1000, 6000)
-    signal_h.Sumw2()
-    total_h.Sumw2()
-    fill_hist(signal_h, signal['t_nuEnergy'].to_numpy(), signal['weight'].to_numpy())
-    fill_hist(total_h, total['t_nuEnergy'].to_numpy(), total['weight'].to_numpy())
-    purity = ROOT.TGraphAsymmErrors(signal_h, total_h, "n")
-    '''
+    # Calculate summary values
+    sig_effs_auc = []
+    bkg_effs_auc = []
+    pur_auc = []
+    fom_auc = []
+    roc_auc = []
+    for cat in range(num_cats):
+        sig_effs_auc.append(auc(cuts, sig_effs[cat]))
+        bkg_effs_auc.append(auc(cuts, bkg_effs[cat]))
+        pur_auc.append(auc(cuts, purities[cat]))
+        fom_auc.append(auc(cuts, foms[cat]))
+        roc_auc.append(auc(bkg_effs[cat], sig_effs[cat]))
 
     # Print summary if verbose
     if verbose:
@@ -578,19 +533,59 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix="", v
             label = chipsnet.data.get_map(cat_name).labels[cat]
             print(label + ": {0:.4f}({1:.4f})".format(max_foms[cat], max_fom_cuts[cat]))
 
-        # Calculate the areas under the curves and print them
-        sig_effs_int = np.trapz(sig_effs[0], x=cuts)
-        bkg_effs_int = np.trapz(bkg_effs[0], x=cuts)
-        purities_int = np.trapz(purities[0], x=cuts)
-        fom_int = np.trapz(foms[0], x=cuts)
-        sig_vs_bkg_int = np.trapz(sig_effs[0], x=bkg_effs[0])
-        print("Signal efficiency AUC: {}".format(sig_effs_int))
-        print("Background efficiency AUC: {}".format(bkg_effs_int))
-        print("Purity AUC: {}".format(purities_int))
-        print("FOM AUC: {}".format(fom_int))
-        print("ROC AUC: {}".format(sig_vs_bkg_int))
+        print("Signal efficiency AUC: {}".format(sig_effs_auc))
+        print("Background efficiency AUC: {}".format(bkg_effs_auc))
+        print("Purity AUC: {}".format(pur_auc))
+        print("FOM AUC: {}".format(fom_auc))
+        print("ROC AUC: {}".format(roc_auc))
 
-    return cuts, sig_effs, bkg_effs, purities, foms
+    # We now use the maximum figure-of-merit values to calculate the efficiency
+    # and purity hists with neutrino energy.
+    e_bins = 14
+    e_range = (1000, 8000)
+    fom_effs = []
+    fom_purs = []
+    for count_cat in range(num_cats):
+        signal_h = None
+        bkg_h = np.zeros(e_bins)
+        eff_hists = []
+        for cut_cat in range(num_cats):
+            total = events[events[cat_name] == cut_cat]
+            passed = events[(events[cat_name] == cut_cat) &
+                            (events["cut"] == 0) &
+                            (events[prefix + str(count_cat)] > max_fom_cuts[count_cat])]
+
+            total_h = np.histogram(total["t_nuEnergy"], bins=e_bins,
+                                   range=e_range, weights=total["w"])
+            passed_h = np.histogram(passed["t_nuEnergy"], bins=e_bins,
+                                    range=e_range, weights=passed["w"])
+            eff_h = np.divide(passed_h, total_h)
+            eff_hists.append(eff_h[0])
+
+            if cut_cat == count_cat:
+                signal_h = passed_h[0]
+            else:
+                bkg_h = np.add(bkg_h, passed_h[0])
+
+        fom_effs.append(eff_hists)
+        fom_purs.append(np.divide(signal_h, np.add(signal_h, bkg_h)))
+
+    output = {
+        "cuts": cuts,
+        "sig_effs": sig_effs,
+        "bkg_effs": bkg_effs,
+        "purs": purities,
+        "foms": foms,
+        "fom_effs": fom_effs,
+        "fom_purs": fom_purs,
+        "sig_effs_auc": sig_effs_auc,
+        "bkg_effs_auc": bkg_effs_auc,
+        "pur_auc": pur_auc,
+        "fom_auc": fom_auc,
+        "roc_auc": roc_auc
+    }
+
+    return output
 
 
 def classify(event, categories, prefix):

@@ -72,7 +72,7 @@ samples:
         shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
         img_size: [64, 64]
         labels_to_inputs: False
-    v_cth_uniform_cosmic:
+    v_cth_uniform_cos:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_uniform/"
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/cosmic/"
@@ -84,7 +84,7 @@ samples:
         shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
         img_size: [64, 64]
         labels_to_inputs: False
-    v_cth_flux_cosmic:
+    v_cth_flux_cos:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/cosmic/"
@@ -188,12 +188,72 @@ models:
         filters: 64
         precision_policy: "float32"
         summarise: False
-    cosmic:
+    t_cos_cat_v_cth_flux:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/"
-        path: "cosmic"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        path: "t_cosmic_cat_v_cth_flux"
         name: "cosmic"
-        labels: ["t_cosmic_cat"]
+        labels: ["t_cosmic_cat"]  
+        reco_pars: False
+        lr: 0.0002
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+        precision_policy: "float32"
+        summarise: False
+    t_cos_cat_v_cth_uniform:
+        channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        path: "t_cosmic_cat_v_cth_uniform"
+        name: "cosmic"
+        labels: ["t_cosmic_cat"]  
+        reco_pars: False
+        lr: 0.0002
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+        precision_policy: "float32"
+        summarise: False
+    multi_v_cth_flux:
+        channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        path: "multi_simple_v_cth_flux"
+        name: "multi_simple"   
+        labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"] 
+        reco_pars: False
+        lr: 0.0002
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+        precision_policy: "float32"
+        summarise: False
+    multi_v_cth_uniform:
+        channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        path: "multi_simple_v_cth_uniform"
+        name: "multi_simple"   
+        labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"] 
+        reco_pars: False
+        lr: 0.0002
+        lr_decay: 0.0
+        dense_units: 512
+        dropout: 0.2
+        kernel_size: 3
+        filters: 64
+        precision_policy: "float32"
+        summarise: False
+    multi_energy_v_cth_uniform:
+        channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        path: "multi_simple_energy_v_cth_uniform"
+        name: "multi_simple"   
+        labels: ["t_all_cat", "t_nuEnergy", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"] 
         reco_pars: False
         lr: 0.0002
         lr_decay: 0.0
@@ -209,10 +269,10 @@ eval:
     examples: 32000
     cuts:
         cosmic: 0.001   # Cosmic classifier cut
-        q:      500.0   # r_raw_total_digi_q cut
-        h:      500.0   # r_first_ring_height cut
-        theta:  0.7     # r_dirTheta cut
-        phi:    0.3     # r_dirPhi cut
+        q:      600.0   # r_raw_total_digi_q cut
+        h:      600.0   # r_first_ring_height cut
+        theta:  0.65    # r_dirTheta cut
+        phi:    0.25    # r_dirPhi cut
     weights:
         # chips_1200 detector
         nuel:   0.00003202064566
@@ -222,39 +282,39 @@ eval:
         cosmic: 0.99714372811940
         total:  1214165.85244438
         # chips_1000 detector
-        nuel:   0.00002974799103
-        anuel:  0.00000193423768
-        numu:   0.00256573301963
-        anumu:  0.00005613369079
-        cosmic: 0.99734645106085
-        total:  1089103.64395438
+        #nuel:   0.00002974799103
+        #anuel:  0.00000193423768
+        #numu:   0.00256573301963
+        #anumu:  0.00005613369079
+        #cosmic: 0.99734645106085
+        #total:  1089103.64395438
         # chips_800 detector
-        nuel:   0.00002676062972
-        anuel:  0.00000173999711
-        numu:   0.00230807624024
-        anumu:  0.00005049661715
-        cosmic: 0.99761292651578
-        total:  968546.578321513
+        #nuel:   0.00002676062972
+        #anuel:  0.00000173999711
+        #numu:   0.00230807624024
+        #anumu:  0.00005049661715
+        #cosmic: 0.99761292651578
+        #total:  968546.578321513
         # chips_600 detector
-        nuel:   0.00002250846505
-        anuel:  0.00000146351803
-        numu:   0.00194133149815
-        anumu:  0.00004247289223
-        cosmic: 0.99799222362654
-        total:  863638.956297674
+        #nuel:   0.00002250846505
+        #anuel:  0.00000146351803
+        #numu:   0.00194133149815
+        #anumu:  0.00004247289223
+        #cosmic: 0.99799222362654
+        #total:  863638.956297674
         # chips_400 detector
-        nuel:   0.00001704846385
-        anuel:  0.00000110850448
-        numu:   0.00147041212187
-        anumu:  0.00003217001097
-        cosmic: 0.99847926089884
-        total:  760154.010964974
+        #nuel:   0.00001704846385
+        #anuel:  0.00000110850448
+        #numu:   0.00147041212187
+        #anumu:  0.00003217001097
+        #cosmic: 0.99847926089884
+        #total:  760154.010964974
         # chips_275 detector
-        nuel:   0.00001265444000
-        anuel:  0.00000082280160
-        numu:   0.00109143217450
-        anumu:  0.00002387860145
-        cosmic: 0.99887121198245
-        total:  704071.258478269
+        #nuel:   0.00001265444000
+        #anuel:  0.00000082280160
+        #numu:   0.00109143217450
+        #anumu:  0.00002387860145
+        #cosmic: 0.99887121198245
+        #total:  704071.258478269
 
     
