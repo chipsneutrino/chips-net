@@ -105,7 +105,7 @@ class BasicTrainer(BaseTrainer):
 
         self.callbacks.append(  # Early stopping callback to stop training if not improving
             tf.keras.callbacks.EarlyStopping(
-                monitor=self.model.es_monitor,
+                monitor=self.config.trainer.es_monitor,
                 min_delta=self.config.trainer.es_delta,
                 patience=self.config.trainer.es_epochs,
                 verbose=1,

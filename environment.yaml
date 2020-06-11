@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - python=3.8
+  - papermill=2.1.0
   - tqdm=4.46.1
   - flake8=3.8.2
   - autopep8=1.5.3
@@ -11,7 +12,7 @@ dependencies:
   - pdoc3=0.7.2
   - dotmap=1.2.20
   - pyyaml=5.3.1
-  - numpy=1.18.4
+  - numpy=1.18.5
   - pandas=1.0.4
   - matplotlib=3.2.1
   - seaborn=0.10.1
@@ -21,6 +22,7 @@ dependencies:
   - jupyterlab=2.1.4
   - uproot=3.11.7
   - cudnn=7.6.5=cuda10.1_0
+  - scikit-learn=0.22.1
   - pip=20.1.1
   - pip:
     - tensorflow==2.2.0
@@ -28,4 +30,4 @@ dependencies:
     - parameter-sherpa==1.0.6
     - tf-explain==0.2.1
     - particle==0.10.0
-    - comet-ml==3.1.8
+    - comet-ml==3.1.9

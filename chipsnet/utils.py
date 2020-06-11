@@ -6,6 +6,7 @@
 import os
 import time
 import copy
+import ast
 
 import pandas as pd
 import numpy as np
@@ -80,8 +81,11 @@ def model_history(config, name):
     model_config.exp.name = config.models[name].path
     model_config.data.channels = config.models[name].channels
     chipsnet.config.setup_dirs(model_config, False)
-    history = pd.read_csv(os.path.join(config.exp.exp_dir, 'history.csv'))
-    return history
+    history = pd.read_csv(os.path.join(model_config.exp.exp_dir, 'history.csv'))
+    history_dict = {}
+    for key in history.keys():
+        history_dict[key] = ast.literal_eval(history[key].values[0])
+    return pd.DataFrame.from_dict(history_dict)
 
 
 def process_ds(config, data_name, model_names, verbose=False):
@@ -106,15 +110,32 @@ def process_ds(config, data_name, model_names, verbose=False):
         events = run_inference(events, model, prefix=model_name+"_")
 
     # Apply the event weights
-    events = apply_weights(events, verbose=verbose)
+    events = apply_weights(
+        events,
+        total_num=config.eval.weights.total,
+        nuel_frac=config.eval.weights.nuel,
+        anuel_frac=config.eval.weights.anuel,
+        numu_frac=config.eval.weights.numu,
+        anumu_frac=config.eval.weights.anumu,
+        cosmic_frac=config.eval.weights.cosmic,
+        verbose=verbose
+    )
 
     # Apply the standard cuts
-    events = apply_standard_cuts(events, verbose=verbose)
+    events = apply_standard_cuts(
+        events,
+        cosmic_cut=config.eval.cuts.cosmic,
+        q_cut=config.eval.cuts.q,
+        h_cut=config.eval.cuts.h,
+        theta_cut=config.eval.cuts.theta,
+        phi_cut=config.eval.cuts.phi,
+        verbose=verbose
+    )
 
     # Classify into fully combined categories and print the classification reports
     outputs = {"cuts": [], "sig_effs": [], "bkg_effs": [], "purs": [], "foms": [],
                "fom_effs": [], "fom_purs": [],
-               "sig_effs_auc": [], "bkg_effs_auc": [], "pur_auc": [], "fom_auc": [], "roc_auc": [], 
+               "sig_effs_auc": [], "bkg_effs_auc": [], "pur_auc": [], "fom_auc": [], "roc_auc": [],
                "comb_matrices": [], "all_matrices": [], "report": []}
     for model_name in model_names:
         if "cosmic" in model_name or "cos" in model_name:
@@ -161,14 +182,12 @@ def process_ds(config, data_name, model_names, verbose=False):
         matrix_comb = pd.DataFrame(matrix_comb)
         outputs["comb_matrices"].append(matrix_comb)
         matrix_all = confusion_matrix(
-            events["t_comb_cat"],
+            events["t_all_cat"],
             events[model_name + "_all_cat_class"],
             normalize='true')
         matrix_all = np.rot90(matrix_all, 1)
         matrix_all = pd.DataFrame(matrix_all)
         outputs["all_matrices"].append(matrix_all)
-
-    # TODO: Eff/pur vs energy plots
 
     print('took {:.2f} seconds'.format(time.time() - start_time))
 
@@ -568,7 +587,8 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix="", v
                 bkg_h = np.add(bkg_h, passed_h[0])
 
         fom_effs.append(eff_hists)
-        fom_purs.append(np.divide(signal_h, np.add(signal_h, bkg_h)))
+        fom_purs.append(np.divide(signal_h, np.add(signal_h, bkg_h),
+                        out=np.zeros_like(bkg_h), where=(bkg_h != 0)))
 
     output = {
         "cuts": cuts,
@@ -646,7 +666,8 @@ def run_pca(events, model, layer_name="dense_final",
     return events
 
 
-def run_tsne(events, model, layer_name="dense_final", standardise=True, components=3):
+def run_tsne(events, model, layer_name="dense_final", standardise=True,
+             components=3, max_events=10000):
     """Run t-SNE on the final dense layer outputs and append results to events dataframe.
     Args:
         events (pandas.DataFrame): Events dataframe to append outputs
@@ -673,12 +694,12 @@ def run_tsne(events, model, layer_name="dense_final", standardise=True, componen
 
     # Run t-SNE
     tsne = TSNE(n_components=components, verbose=1, perplexity=40, n_iter=300)
-    tsne_result = tsne.fit_transform(dense_outputs)
+    tsne_result = tsne.fit_transform(dense_outputs[:max_events])
     tsne_result = pd.DataFrame(tsne_result)
 
     # Append the results to the events dataframe
     for component in range(components):
-        events["pca_" + str(component)] = tsne_result[component]
+        events["tsne_" + str(component)] = tsne_result[component]
 
     return events
 

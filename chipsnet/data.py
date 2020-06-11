@@ -123,9 +123,8 @@ class Reader:
         labels['t_nuEnergy'] = labels_f[3]
 
         # Append labels to inputs if needed for multitask network
-        if self.config.data.labels_to_inputs:
-            for label in self.config.model.labels:
-                inputs[label] = labels[label]
+        for label in self.config.model.labels:
+            inputs["input_"+label] = labels[label]
 
         return inputs, labels
 

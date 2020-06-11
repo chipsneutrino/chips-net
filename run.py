@@ -73,7 +73,7 @@ def train_model(config):
         print('--- Setting up data reader ---\n')
         data = chipsnet.data.Reader(config)
         print('--- Building model ---\n')
-        model = chipsnet.models.get_model(config)
+        model = chipsnet.models.Model(config)
         if config.trainer.epochs > 0:
             print('\n--- Training model ---')
             trainer = chipsnet.trainers.get_trainer(config, model, data)

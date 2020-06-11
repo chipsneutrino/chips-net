@@ -13,3 +13,4 @@ smearing/
 .comet
 data/output/*.pgf
 data/output/*.png
+data/output/*.pdf

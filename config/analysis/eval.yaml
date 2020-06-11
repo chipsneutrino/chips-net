@@ -266,7 +266,7 @@ models:
 
 eval:
     output: "./data/output/analysis_output.root"
-    examples: 32000
+    examples: 64000
     cuts:
         cosmic: 0.001   # Cosmic classifier cut
         q:      600.0   # r_raw_total_digi_q cut

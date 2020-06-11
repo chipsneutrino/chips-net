@@ -11,7 +11,7 @@ task: "train"
 # - trainer: how the trainer should run
 
 exp:
-    name: "beam"
+    name: "beam_test"
     output_dir: "./data/models/"
     comet: False
 
@@ -33,15 +33,12 @@ data:
     shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
     # The input image size
     img_size: [64, 64]
-    # Should we append the labels to the inputs for the multi-task network?
-    labels_to_inputs: False
 
 model: 
-    # "parameter", "cosmic", "beam", "multi_simple", "multi"
-    name: "beam"  
     # t_nu_type, t_sign_type, t_int_type, t_all_cat, t_cosmic_cat, t_comb_cat, t_nu_nc_cat, t_nc_cat
     # prim_total, prim_p, prim_cp, prim_np, prim_g, t_vtxX, t_vtxY, t_vtxZ, t_nuEnergy 
-    labels: ["t_all_cat"]  
+    type: "vgg"
+    labels: ["t_all_cat", "t_nuEnergy"]
     reco_pars: False
     lr: 0.0002
     lr_decay: 0.0
@@ -50,6 +47,9 @@ model:
     kernel_size: 3
     filters: 64
     precision_policy: "float32"
+    bottleneck: False
+    se: False
+    learn_weights: False
     summarise: True
 
 trainer:
@@ -62,3 +62,4 @@ trainer:
     steps_per_epoch: -1
     es_delta: 0.001
     es_epochs: 2
+    es_monitor: "val_accuracy"  # "val_t_all_cat_accuracy"
