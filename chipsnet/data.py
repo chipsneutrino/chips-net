@@ -139,6 +139,9 @@ class Reader:
         labels = {k: labels[k] for k in self.config.model.labels}
         return inputs, labels
 
+    def filter_cats(self, inputs, labels):
+        return tf.math.equal(labels['t_all_cat'], self.config.data.cat_select)
+
     def dataset(self, dirs, strip=True):
         """Returns a dataset formed from all the files in the input directories.
         Args:
@@ -166,6 +169,9 @@ class Reader:
         if strip:
             ds = ds.map(lambda x, y: self.strip(x, y),
                         num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+        if self.config.data.cat_select != -1:
+            ds = ds.filter(self.filter_cats)
 
         return ds
 

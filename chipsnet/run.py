@@ -26,8 +26,8 @@ logging.disable(logging.CRITICAL)
 import chipsnet.config  # noqa: E402
 import chipsnet.data  # noqa: E402
 import chipsnet.models  # noqa: E402
-import chipsnet.trainers  # noqa: E402
-import chipsnet.studies  # noqa: E402
+import chipsnet.trainer  # noqa: E402
+import chipsnet.study  # noqa: E402
 
 
 def setup_gpus():
@@ -76,7 +76,7 @@ def train_model(config):
         model = chipsnet.models.Model(config)
         if config.trainer.epochs > 0:
             print('\n--- Training model ---')
-            trainer = chipsnet.trainers.get_trainer(config, model, data)
+            trainer = chipsnet.trainer.Trainer(config, model, data)
             trainer.train()
             print('\n--- Running quick evaluation ---\n')
             trainer.eval()
@@ -97,15 +97,29 @@ def study_model(config):
     Args:
         config (dotmap.DotMap): Configuration namespace
     """
+    comet_exp = None
+    if config.exp.comet:
+        try:
+            comet_exp = Experiment()
+        except Exception:
+            print('Error: Need to set comet_ml env variables')
+            pass
+
     setup_gpus()
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
         print('--- Setting up directories ---\n')
         chipsnet.config.setup_dirs(config, True)
         print('--- Setting up the study---\n')
-        study = chipsnet.studies.get_study(config)
+        study = chipsnet.study.SherpaStudy(config)
         print('--- Running study ---\n')
         study.run()
+
+    if config.exp.comet:
+        try:
+            comet_exp.end()
+        except Exception:
+            pass
 
 
 def parse_args():

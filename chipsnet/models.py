@@ -21,6 +21,8 @@ from tensorflow.keras.layers import (Conv2D, BatchNormalization, Activation, Max
                                      Dropout, GlobalAveragePooling2D, Reshape, add, Dense,
                                      multiply, concatenate, Flatten, AveragePooling2D, Lambda,
                                      Concatenate, DepthwiseConv2D)
+from tensorflow.keras.losses import (SparseCategoricalCrossentropy, MeanSquaredError,
+                                     BinaryCrossentropy, Reduction)
 
 import chipsnet.data as data
 
@@ -89,14 +91,13 @@ class Model:
             self.summarise()
 
 
-CONV_INITIALISER = 'he_normal'  # he_normal, glorot_uniform
-DENSE_INITIALISER = 'he_normal'  # he_normal, glorot_uniform
+CONV_INITIALISER = 'glorot_uniform'  # he_normal, glorot_uniform
+DENSE_INITIALISER = 'glorot_uniform'  # he_normal, glorot_uniform
 
 
 def conv2d_bn(x, filters, kernel_size, strides=1, padding='same',
               activation='relu', use_bias=False, prefix=None):
     """Utility function to apply conv + BN.
-
     Args:
         x (tf.tensor): input tensor.
         filters (int): Number of filters in the Conv2D
@@ -106,7 +107,6 @@ def conv2d_bn(x, filters, kernel_size, strides=1, padding='same',
         activation (str): Activation in Conv2D
         use_bias (bool): Whether to use a bias in Conv2D
         prefix (str): Prefix to prepend to all layer names
-
     Returns:
         Output tensor after applying `Conv2D` and `BatchNormalization`.
     """
@@ -121,27 +121,23 @@ def conv2d_bn(x, filters, kernel_size, strides=1, padding='same',
     return x
 
 
-def vgg_block(x, num_conv=2, filters=64, se=False, dropout=0.0, prefix=""):
+def vgg_block(x, num_conv=2, filters=64, se_ratio=0, dropout=0.0, prefix=""):
     """Builds a VGG block.
-
     This function builds a vgg block as defined by the 'Visual Geometry Group' at Oxford and
     layed out in the paper https://arxiv.org/abs/1409.1556. We additionally add the now prevalent
     batch normalisation after the convolutional layer. Optionally, a squeeze-exitation block
     as first set out in https://arxiv.org/abs/1709.01507 can be added, as well as a dropout layer.
     The following was used to guide the implementation,
     https://github.com/keras-team/keras-applications/blob/master/keras_applications/vgg16.py.
-
     Args:
         x (tf.tensor): Input tf tensor
         num_conv (int): Number of convolutional layers
         filters (int): Number of filters to use in convolutional layers
-        se (bool): Should we add a squeeze-excitation?
+        se_ratio (int): Squeeze-exitation ratio if '0' will not be used
         dropout (float): What should the dropout rate be?
         prefix (str): Prefix to prepend to all layer names
-
     Returns:
         tf.tensor: Output tf tensor from the vgg block
-
     Raises:
         ValueError: if 'num_conv' is not one of 2, 3, or 4.
     """
@@ -153,15 +149,14 @@ def vgg_block(x, num_conv=2, filters=64, se=False, dropout=0.0, prefix=""):
         x = conv2d_bn(x, filters, (3, 3), prefix=prefix + '_conv' + str(i))
     x = MaxPooling2D((2, 2), strides=(2, 2), name=prefix+'_pool')(x)
 
-    x = squeeze_excite_block(x, prefix=prefix) if se else x
+    x = squeeze_excite_block(x, se_ratio, prefix=prefix) if se_ratio > 0 else x
     x = Dropout(dropout, name=prefix+'_drop')(x) if dropout > 0.0 else x
     return x
 
 
 def resnet_block(x, filters, k=1, strides=(1, 1), bottleneck=False,
-                 se=False, dropout=0.0, prefix=""):
+                 se_ratio=0, dropout=0.0, prefix=""):
     """Builds a resnet block
-
     This function builds pre-activation resnet block using the improved structure layed
     out in https://arxiv.org/abs/1603.05027. Optionally, a squeeze-exitation block as first set
     out in https://arxiv.org/abs/1709.01507 can be added, as well as a dropout layer. The option
@@ -172,17 +167,15 @@ def resnet_block(x, filters, k=1, strides=(1, 1), bottleneck=False,
         - https://github.com/keras-team/keras-applications/blob/master/ \
             keras_applications/resnet_common.py
         - https://github.com/kobiso/SENet-tensorflow-slim/blob/master/nets/resnet_v2.py
-
     Args:
         x (tf.tensor): Input tf tensor
         filters (int): Number of output filters
         k (int): Width factor
         strides (int): Strides of the convolution layer
         bottleneck (bool): Should we use the bottleneck variant?
-        se (bool): Should we add a squeeze-excitation?
+        se_ratio (int): Squeeze-exitation ratio if '0' will not be used
         dropout (float): What should the dropout rate be?
         prefix (str): Prefix to prepend to all layer names
-
     Returns:
         tf.tensor: Output tf tensor from the resnet block
     """
@@ -220,16 +213,15 @@ def resnet_block(x, filters, k=1, strides=(1, 1), bottleneck=False,
         x = Conv2D(filters * k, (3, 3), padding='same', kernel_initializer=CONV_INITIALISER,
                    use_bias=False, name=prefix + '_conv2')(x)
 
-    x = squeeze_excite_block(x, prefix=prefix) if se else x
+    x = squeeze_excite_block(x, se_ratio, prefix=prefix) if se_ratio > 0 else x
     x = Dropout(dropout, name=prefix+'_drop')(x) if dropout > 0.0 else x
     x = add([x, init])  # Add the residual and shortcut together
     return x
 
 
-def inception_resnet_block(x, scale, block_type, activation='relu', se=False,
+def inception_resnet_block(x, scale, block_type, activation='relu', se_ratio=0,
                            dropout=0.0, prefix=''):
     """Builds an Inception-ResNet block
-
     This function builds 3 types of Inception-ResNet blocks mentioned in the paper
     https://arxiv.org/abs/1602.07261, controlled by the block_type argument (which is the
     block name used in the official TF-slim implementation):
@@ -239,19 +231,16 @@ def inception_resnet_block(x, scale, block_type, activation='relu', se=False,
     Implementation taken from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/ \
     python/keras/applications/inception_resnet_v2.py. Optionally, a squeeze-exitation block as
     first set out in https://arxiv.org/abs/1709.01507 can be added, as well as a dropout layer
-
     Args:
         x (tf.tensor): Input tf tensor
         scale (float): scaling factor to scale the residuals
         block_type (str): 'block35', 'block17' or 'block8'
         activation (str): Activation function to use at the end of the block
-        se (bool): Should we add a squeeze-excitation?
+        se_ratio (int): Squeeze-exitation ratio if '0' will not be used
         dropout (float): What should the dropout rate be?
         prefix (str): Prefix to prepend to all layer names
-
     Returns:
         Output tensor for the inception resnet block.
-
     Raises:
         ValueError: if 'block_type' is not one of 'block35', 'block17' or 'block8'.
     """
@@ -291,24 +280,21 @@ def inception_resnet_block(x, scale, block_type, activation='relu', se=False,
     if activation is not None:
         x = Activation(activation, name=prefix + '_ac')(x)
 
-    x = squeeze_excite_block(x, prefix=prefix) if se else x
+    x = squeeze_excite_block(x, se_ratio, prefix=prefix) if se_ratio > 0 else x
     x = Dropout(dropout, name=prefix+'_drop')(x) if dropout > 0.0 else x
     return x
 
 
 def squeeze_excite_block(x, ratio=16, prefix=""):
     """Builds a squeeze-exitation block
-
     This function builds a squeeze-exitation block as first set out in
     https://arxiv.org/abs/1709.01507. The implementation used here was taken from
     https://github.com/titu1994/keras-squeeze-excite-network/blob/master/ \
         keras_squeeze_excite_network/se.py
-
     Args:
         x (tf.tensor): Input tf tensor
         ratio (int): Squeeze ratio
         prefix (str): Prefix to prepend to all layer names
-
     Returns:
         Output tensor for the squeeze_excite_block block.
     """
@@ -332,7 +318,6 @@ def vgg_model(config):
     """Builds the VGG-16 model
     Args:
         config (dotmap): Dotmap configuration namespace
-
     Returns:
         tf.keras.Model: VGG keras model
     """
@@ -344,7 +329,7 @@ def vgg_model(config):
     # Build the core of the model
     paths = []
     for i, image_input in enumerate(inputs):
-        path = vgg_block(image_input, 2, config.model.filters, config.model.se,
+        path = vgg_block(image_input, 2, config.model.filters, config.model.se_ratio,
                          config.model.dropout, prefix="block1_path"+str(i))
         paths.append(path)
 
@@ -352,13 +337,13 @@ def vgg_model(config):
     if len(paths) > 1:
         x = concatenate(paths)
 
-    x = vgg_block(x, 2, config.model.filters*2, config.model.se,
+    x = vgg_block(x, 2, config.model.filters*2, config.model.se_ratio,
                   config.model.dropout, prefix="block2")
-    x = vgg_block(x, 3, config.model.filters*4, config.model.se,
+    x = vgg_block(x, 3, config.model.filters*4, config.model.se_ratio,
                   config.model.dropout, prefix="block3")
-    x = vgg_block(x, 3, config.model.filters*8, config.model.se,
+    x = vgg_block(x, 3, config.model.filters*8, config.model.se_ratio,
                   config.model.dropout, prefix="block4")
-    x = vgg_block(x, 3, config.model.filters*8, config.model.se,
+    x = vgg_block(x, 3, config.model.filters*8, config.model.se_ratio,
                   config.model.dropout, prefix="block5")
     x = Flatten(name='flatten')(x)
 
@@ -399,7 +384,6 @@ def resnet_model(config):
     """Builds the resnet model
     Args:
         config (dotmap): Dotmap configuration namespace
-
     Returns:
         tf.keras.Model: Resnet keras model
     """
@@ -423,8 +407,8 @@ def resnet_model(config):
             path = resnet_block(path, filters[0],
                                 k=1, strides=(1, 1),
                                 bottleneck=config.model.bottleneck,
-                                se=config.model.se,
-                                drop_rate=config.model.dropout,
+                                se_ratio=config.model.se_ratio,
+                                dropout=config.model.dropout,
                                 prefix="path" + str(i) + "_block0_" + str(j))
         paths.append(path)
 
@@ -436,15 +420,15 @@ def resnet_model(config):
         x = resnet_block(x, filters[k],
                          k=1, strides=(2, 2),
                          bottleneck=config.model.bottleneck,
-                         se=config.model.se,
-                         drop_rate=config.model.dropout,
+                         se_ratio=config.model.se_ratio,
+                         dropout=config.model.dropout,
                          prefix="block"+str(k)+"_0")
         for i in range(depths[k] - 1):
             x = resnet_block(x, filters[k],
                              k=1, strides=(1, 1),
                              bottleneck=config.model.bottleneck,
-                             se=config.model.se,
-                             drop_rate=config.model.dropout,
+                             se_ratio=config.model.se_ratio,
+                             dropout=config.model.dropout,
                              prefix="block"+str(k)+"_"+str(i+1))
 
     x = BatchNormalization(axis=3)(x)
@@ -465,10 +449,20 @@ def resnet_model(config):
     # Get the model outputs
     outputs, lwm = get_outputs(config, x)
 
-    # Compile and return the model
-    model = tf.keras.Model(inputs=inputs, outputs=outputs, name=config.model.name)
-    optimiser = tf.keras.optimizers.Adam(learning_rate=config.model.lr)
-    model.compile(optimizer=optimiser, loss=lwm[0], loss_weights=lwm[1], metrics=lwm[2])
+    # If we want to use the custom loss weight learning layer add now and then
+    # compile and return the model
+    model = None
+    if config.model.learn_weights:
+        label_inputs, outputs = add_multitask_loss(config, outputs)
+        inputs.extend(label_inputs)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name=config.model.name)
+        optimiser = tf.keras.optimizers.Adam(learning_rate=config.model.lr)
+        model.compile(optimizer=optimiser, loss=None, loss_weights=None, metrics=lwm[2])
+    else:
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name=config.model.name)
+        optimiser = tf.keras.optimizers.Adam(learning_rate=config.model.lr)
+        model.compile(optimizer=optimiser, loss=lwm[0], loss_weights=lwm[1], metrics=lwm[2])
+
     return model
 
 
@@ -476,12 +470,12 @@ def inception_resnet_model(config):
     """Builds the Inception-Resnet-v2 model
     Args:
         config (dotmap): Dotmap configuration namespace
-
     Returns:
         tf.keras.Model: Inception-Resnet-v2 keras model
     """
 
     blocks = [5, 5, 5]  # [11, 21, 10]
+    scales = [0.17, 0.1, 0.2]
 
     # Get the image inputs
     inputs = []
@@ -522,7 +516,7 @@ def inception_resnet_model(config):
 
     # 10x block35 (Inception-ResNet-A block): 35 x 35 x 320
     for block_idx in range(1, blocks[0]):
-        x = inception_resnet_block(x, scale=0.17, block_type='block35',
+        x = inception_resnet_block(x, scale=scales[0], block_type='block35',
                                    prefix='block35_' + str(block_idx))
 
     # Mixed 6a (Reduction-A block): 17 x 17 x 1088
@@ -536,7 +530,7 @@ def inception_resnet_model(config):
 
     # 20x block17 (Inception-ResNet-B block): 17 x 17 x 1088
     for block_idx in range(1, blocks[1]):
-        x = inception_resnet_block(x, scale=0.1, block_type='block17',
+        x = inception_resnet_block(x, scale=scales[1], block_type='block17',
                                    prefix='block17_' + str(block_idx))
 
     # Mixed 7a (Reduction-B block): 8 x 8 x 2080
@@ -553,10 +547,10 @@ def inception_resnet_model(config):
 
     # 10x block8 (Inception-ResNet-C block): 8 x 8 x 2080
     for block_idx in range(1, blocks[2]):
-        x = inception_resnet_block(x, scale=0.2, block_type='block8',
+        x = inception_resnet_block(x, scale=scales[2], block_type='block8',
                                    prefix='block8_' + str(block_idx))
     x = inception_resnet_block(
-        x, scale=1., activation=None, block_type='block8', prefix='block8_' + str(blocks[2]))
+        x, scale=1.0, activation=None, block_type='block8', prefix='block8_' + str(blocks[2]))
 
     # Final convolution block: 8 x 8 x 1536
     x = conv2d_bn(x, 1536, 1, prefix='conv_7b')
@@ -572,10 +566,20 @@ def inception_resnet_model(config):
     # Get the model outputs
     outputs, lwm = get_outputs(config, x)
 
-    # Compile and return the model
-    model = tf.keras.Model(inputs=inputs, outputs=outputs, name=config.model.name)
-    optimiser = tf.keras.optimizers.Adam(learning_rate=config.model.lr)
-    model.compile(optimizer=optimiser, loss=lwm[0], loss_weights=lwm[1], metrics=lwm[2])
+    # If we want to use the custom loss weight learning layer add now and then
+    # compile and return the model
+    model = None
+    if config.model.learn_weights:
+        label_inputs, outputs = add_multitask_loss(config, outputs)
+        inputs.extend(label_inputs)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name=config.model.name)
+        optimiser = tf.keras.optimizers.Adam(learning_rate=config.model.lr)
+        model.compile(optimizer=optimiser, loss=None, loss_weights=None, metrics=lwm[2])
+    else:
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name=config.model.name)
+        optimiser = tf.keras.optimizers.Adam(learning_rate=config.model.lr)
+        model.compile(optimizer=optimiser, loss=lwm[0], loss_weights=lwm[1], metrics=lwm[2])
+
     return model
 
 
@@ -583,7 +587,6 @@ def get_image_inputs(config):
     """Generates the image inputs for the model
     Args:
         config (dotmap): Dotmap configuration namespace
-
     Returns:
         list[tf.keras.Inputs]: Image inputs to the model
     """
@@ -604,7 +607,6 @@ def get_reco_inputs():
     """Generates the reconstructed parameters inputs
     Args:
         config (dotmap): Dotmap configuration namespace
-
     Returns:
         list[tf.keras.Inputs]: Reco inputs to the model
     """
@@ -620,11 +622,9 @@ def get_outputs(config, x):
     Args:
         config (dotmap): Dotmap configuration namespace
         x (tf.tensor): Input tensor of model
-
     Returns:
         list[tf.tensor]: Model outputs
         tuple(losses, weights, metrics): Tuple of model compilation arguments
-
     Raises:
         ValueError: if labels is not a list with length atleast 1
     """
@@ -693,13 +693,6 @@ def get_outputs(config, x):
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output == "t_nuEnergy":
-            out = Dense(1, name=output+"_logits")(x)
-            outputs.append(Activation("linear", dtype="float32", name=output)(out))
-            losses[output] = "mean_squared_error"
-            weights[output] = 0.0000005
-            metrics[output] = "mae"
-
         elif output in ["t_vtxX", "t_vtxY", "t_vtxZ"]:
             out = Dense(1, name=output+"_logits")(x)
             outputs.append(Activation("linear", dtype="float32", name=output)(out))
@@ -714,6 +707,14 @@ def get_outputs(config, x):
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
+        elif output == "t_nuEnergy":
+            out = Dense(config.model.dense_units, name="energy_dense")(x)
+            out = Dense(1, name=output+"_logits")(out)
+            outputs.append(Activation("linear", dtype="float32", name=output)(out))
+            losses[output] = "mean_squared_error"
+            weights[output] = 0.0000005
+            metrics[output] = "mae"
+
     return outputs, (losses, weights, metrics)
 
 
@@ -722,27 +723,21 @@ def add_multitask_loss(config, outputs):
     Args:
         config (dotmap): Dotmap configuration namespace
         outputs (tf.tensor): Model outputs
-
     Returns:
         tf.tensor: Additional inputs for the labels
         tf.tensor: Model outputs
     """
-    label_inputs = []
-    for label_input in config.model.labels:
-        label_inputs.append(tf.keras.Input(shape=(1), name="input_" + label_input))
-
-    multiloss_inputs = {
-        "input1": label_inputs[0], "input2": label_inputs[1],
-        "output1": outputs[0], "output2": outputs[1]
-    }
-
-    outputs.append(MultiLossLayer(config, name='multiloss')(multiloss_inputs))
-    return label_inputs, outputs
+    inputs = []
+    for label in config.model.labels:
+        inputs.append(tf.keras.Input(shape=(1), name="input_" + label))
+    outputs.append(MultiLossLayer(config, name='multiloss')(inputs + outputs))
+    return inputs, outputs
 
 
 class MultiLossLayer(tf.keras.layers.Layer):
     """Weighted multi-loss layer for multitask network
-    https://arxiv.org/pdf/1705.07115.pdf
+    A layer to calculate a custom combined loss according to the paper https://arxiv.org/abs/1705.07115
+    the implementation at the following link was used for reference
     https://github.com/yaringal/multi-task-learning-example/blob/master/multi-task-learning-example.ipynb
     """
 
@@ -751,253 +746,97 @@ class MultiLossLayer(tf.keras.layers.Layer):
         Args:
             config (dotmap): Dotmap configuration namespace
         """
+        self.config = config
         self.is_placeholder = True
         super(MultiLossLayer, self).__init__(**kwargs)
 
     def build(self, input_shape=None):
-        """Initialise the log_vars.
+        """Initialise the self.log_vars.
         Args:
-            config (str): Dotmap configuration namespace
+            input_shape: Tensor input shape
         """
-        self.log_var_c = self.add_weight(
-            name='log_var_c', shape=(1,),
-            dtype=tf.float32,
-            initializer=initializers.Constant(0.),
-            # initializer=initializers.RandomUniform(minval=0.2, maxval=1),
-            trainable=True
-        )
-        self.log_var_e = self.add_weight(
-            name='log_var_e', shape=(1,),
-            dtype=tf.float32,
-            initializer=initializers.Constant(0.),
-            # initializer=initializers.RandomUniform(minval=0.2, maxval=1),
-            trainable=True
-        )
-        self.loss_func_c = tf.keras.losses.SparseCategoricalCrossentropy(
-            reduction=tf.keras.losses.Reduction.SUM)
-        # self.loss_func_c = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-        self.loss_func_e = tf.keras.losses.MeanSquaredError(
-            reduction=tf.keras.losses.Reduction.SUM)
+        self.loss_funcs, self.lw, self.log_vars = [], [], []
+        for output in self.config.model.labels:
+            if output == data.MAP_NU_TYPE.name:
+                self.loss_funcs.append(BinaryCrossentropy(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(1.0)
+            elif output == data.MAP_SIGN_TYPE.name:
+                self.loss_funcs.append(BinaryCrossentropy(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(1.0)
+            elif output == data.MAP_INT_TYPE.name:
+                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(1.0)
+            elif output == data.MAP_ALL_CAT.name:
+                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(1.0)
+            elif output == data.MAP_COSMIC_CAT.name:
+                self.loss_funcs.append(BinaryCrossentropy(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(1.0)
+            elif output == data.MAP_FULL_COMB_CAT.name:
+                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(1.0)
+            elif output == data.MAP_NU_NC_COMB_CAT.name:
+                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(1.0)
+            elif output == data.MAP_NC_COMB_CAT.name:
+                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(1.0)
+            elif output == "t_nuEnergy":
+                self.loss_funcs.append(MeanSquaredError(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(0.0000005)
+            elif output in ["t_vtxX", "t_vtxY", "t_vtxZ"]:
+                self.loss_funcs.append(MeanSquaredError(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(0.000001)
+            if output in ["prim_total", "prim_p", "prim_cp", "prim_np", "prim_g"]:
+                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(1.0)
 
         super(MultiLossLayer, self).build(input_shape)
 
-    def multi_loss(self, c_true, e_true, c_pred, e_pred):
+    def add_var(self, output, initial=0.0):
+        """Add loss weight variable.
+        Args:
+            output (str): Output name
+            initial (float): Initial weight value
+        """
+        return self.add_weight(
+            name=output+'_log_var',
+            shape=(1,),
+            dtype=tf.float32,
+            initializer=initializers.Constant(initial),
+            trainable=True
+        )
+
+    def multi_loss(self, ys_true, ys_pred):
         """Calculate the multi-loss.
         Args:
             ys_true (list[tf.tensor]): True tensors
             ys_pred (list[tf.tensor]): Predicted tensors
         """
-        # Calculate the categorical loss
-        # factor_c = tf.math.divide(1.0, tf.multiply(2.0, self.log_var_c[0]))
-        factor_c = tf.math.exp(-self.log_var_c[0])
-        loss_c = self.loss_func_c(c_true, c_pred)
-        # loss = tf.math.add_n([tf.multiply(factor_c, loss_c), tf.math.log(self.log_var_c[0])])
-        loss = tf.math.add_n([tf.multiply(factor_c, loss_c), self.log_var_c[0]])
-
-        # Calculate the energy loss
-        # factor_e = tf.math.divide(1.0, tf.multiply(2.0, self.log_var_e[0]))
-        factor_e = tf.math.exp(-self.log_var_e[0])
-        loss_e = self.loss_func_e(e_true, e_pred)
-        # loss = tf.math.add_n([loss, tf.multiply(factor_e, loss_e), tf.math.log(self.log_var_e[0])])
-        loss = tf.math.add_n([loss, tf.multiply(factor_e, loss_e), self.log_var_e[0]])
-
-        # Do I need a mean in here?
-        return loss
+        loss = 0
+        for i in range(len(ys_true)):
+            precision = tf.keras.backend.exp(-self.log_vars[i][0])
+            var_loss = self.lw[i] * self.loss_funcs[i](ys_true[i], ys_pred[i])
+            loss += tf.keras.backend.sum(precision * var_loss + self.log_vars[i][0])
+        return tf.keras.backend.mean(loss)
 
     def call(self, inputs):
         """Layer call method.
         Args:
             inputs (list[tf.tensor]): List of layer inputs
         """
-        c_true = inputs["input1"]
-        e_true = inputs["input2"]
-        c_pred = inputs["output1"]
-        e_pred = inputs["output2"]
-        loss = self.multi_loss(c_true, e_true, c_pred, e_pred)
+        num_outputs = len(self.config.model.labels)
+        loss = self.multi_loss(inputs[:num_outputs], inputs[num_outputs:])
         self.add_loss(loss, inputs=inputs)
         return tf.constant(1)  # We don't actually use this output
-
-
-class ConvBN(tf.keras.layers.Layer):
-    """Convolution + Batch Normalisation layer
-    """
-
-    def __init__(self, filters, kernel_size=(3, 3), strides=(1, 1),
-                 activation='relu', padding='same', bn=True,
-                 prefix='conv_bn', **kwargs):
-        """Initialise the ConvBN layer.
-        Args:
-            filters (int): Number of filters in convolutions
-            kernel_size (int): Kernel size in convolutions
-            strides (tuple(int, int)): Stride size in convolutions
-            activation (str): Activation to use
-            padding (str): Padding mode in convolutions
-            bn (bool): Shall we apply the batch normalisation?
-            prefix (str): Block name prefix
-        """
-        super(ConvBN, self).__init__(name=prefix, **kwargs)
-        self.conv = Conv2D(
-            filters,
-            kernel_size,
-            strides,
-            padding,
-            use_bias=False,
-            kernel_initializer=CONV_INITIALISER,
-            name=prefix+'_conv')
-        self.bn = BatchNormalization(
-            axis=3,
-            scale=True,
-            name=prefix+'_bn') if bn else None
-        self.activation = Activation(activation, name=prefix+'_ac')
-
-    def call(self, inputs):
-        """Run forward pass on ConvBN layer.
-        Args:
-            inputs (tf.tensor): Input tensor
-        Returns:
-            tf.tensor: Output tensor from `Conv2D` and `BatchNormalization`
-        """
-        x = self.conv(inputs)
-        x = self.bn(x) if self.bn is not None else x
-        x = self.activation(x)
-        return x
-
-
-class DepthwiseConvBN(tf.keras.layers.Layer):
-    """Depthwise Convolution + Batch Normalisation layer
-    """
-
-    def __init__(self, kernel_size=(3, 3), strides=(1, 1),
-                 activation='relu', padding='same', bn=True,
-                 prefix='dconv_bn', **kwargs):
-        """Initialise the DepthwiseConvBN layer.
-        Args:
-            kernel_size (int): Kernel size in convolutions
-            strides (tuple(int, int)): Stride size in convolutions
-            activation (str): Activation to use
-            padding (str): Padding mode in convolutions
-            bn (bool): Shall we apply the batch normalisation?
-            prefix (str): Block name prefix
-        """
-        super(DepthwiseConvBN, self).__init__(name=prefix, **kwargs)
-        self.dconv = DepthwiseConv2D(  # TODO: Study performance of kernel initialiser
-            kernel_size,
-            strides,
-            padding,
-            use_bias=False,
-            kernel_initializer=CONV_INITIALISER,
-            name=prefix+'_dconv')
-        self.bn = BatchNormalization(  # TODO: Study performance of scale = True/False
-            axis=3,
-            scale=True,
-            name=prefix+'_bn') if bn else None
-        self.activation = Activation(activation, name=prefix+'_ac')
-
-    def call(self, inputs):
-        """Run forward pass on DepthwiseConvBN layer.
-        Args:
-            inputs (tf.tensor): Input tensor
-        Returns:
-            tf.tensor: Output tensor from `DepthwiseConv2D` and `BatchNormalization`
-        """
-        x = self.dconv(inputs)
-        x = self.bn(x) if self.bn is not None else x
-        x = self.activation(x)
-        return x
-
-
-class MBConvBlock(tf.keras.layers.Layer):
-    """Mobile Inverted Residual Bottleneck block with squeeze-and-excitation optimization.
-    """
-
-    def __init__(self, kernel_size, in_filters, out_filters, expand_ratio,
-                 strides=(1, 1), se_ratio=None, activation='relu', drop_rate=0.0,
-                 prefix='mbconv_block', **kwargs):
-        """Initialise the MBConvBlock.
-        Args:
-            kernel_size (int): DepthwiseConv kernel_size
-            in_filters (int): Number of input filters
-            out_filters (int): Number of output filters
-            expand_ratio (int): Filter expansion ratio
-            strides (tuple(int, int)): Strides for the convolutions
-            se_ratio (float): Squeeze and Excitation ratio
-            activation (activation): Which activation to use
-            drop_rate (float): Dropout rate
-            prefix (str): Block name prefix
-        """
-        super(MBConvBlock, self).__init__(name=prefix, **kwargs)
-        filters = in_filters * expand_ratio
-
-        # Expansion phase
-        self.expansion = ConvBN(
-            filters,
-            (1, 1),
-            (1, 1),
-            activation,
-            prefix=prefix+'_expand')
-
-        # Depth-wise convolution phase.
-        self.depthwise = DepthwiseConvBN(
-            kernel_size,
-            strides,
-            activation,
-            prefix=prefix+'_depthwise')
-
-        # Squeeze and Excitation layer.
-        self.se_ratio = se_ratio
-        if (se_ratio is not None) and (0 < se_ratio <= 1):
-            reduced_filters = max(1, int(in_filters * se_ratio))
-            self.se_pool = GlobalAveragePooling2D(name=prefix+'_se_squeeze')
-            self.se_reshape = Reshape((1, 1, filters), name=prefix+'_se_reshape')
-            self.se_reduce = Conv2D(
-                reduced_filters,
-                kernel_size=(1, 1),
-                strides=(1, 1),
-                activation=activation,
-                padding='same',
-                use_bias=True,
-                kernel_initializer=CONV_INITIALISER,
-                name=prefix+'_se_reduce')
-            self.se_expand = Conv2D(
-                filters,
-                kernel_size=(1, 1),
-                strides=(1, 1),
-                activation='sigmoid',
-                padding='same',
-                use_bias=True,
-                kernel_initializer=CONV_INITIALISER,
-                name=prefix+'_se_expand')
-
-        # Output phase.
-        self.proj_conv = Conv2D(
-            out_filters,
-            kernel_size=(1, 1),
-            strides=(1, 1),
-            padding='same',
-            use_bias=False,
-            kernel_initializer=CONV_INITIALISER,
-            name=prefix+'_proj_conv')
-        self.proj_bn = BatchNormalization(axis=3, name=prefix+'_proj_bn')
-        self.dropout = Dropout(drop_rate, name=prefix+'_drop') if drop_rate > 0.0 else None
-        self.residual = all(s == 1 for s in strides) and in_filters == out_filters
-
-    def call(self, inputs):
-        """Run forward pass on the MBConvBlock.
-        Args:
-            inputs (tf.tensor): Input tensor
-        Returns:
-            tf.tensor: Output tensor from MBConvBlock
-        """
-        x = self.expansion(inputs)
-        x = self.depthwise(x)
-        if (self.se_ratio is not None) and (0 < self.se_ratio <= 1):
-            se = self.se_pool(x)
-            se = self.se_reshape(se)
-            se = self.se_reduce(se)
-            se = self.se_expand(se)
-            x = tf.math.multiply(x, se)
-        x = self.proj_conv(x)
-        x = self.proj_bn(x)
-        x = self.dropout(x) if self.dropout is not None else x
-        x = tf.add(x, inputs) if self.residual else x  # Add residual if we can
-        return x

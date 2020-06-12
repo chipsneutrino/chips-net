@@ -1,96 +1,67 @@
----
-# Standard model study configuration file
-
-# Define the run task to be "study" 
-task: "study"
-
-# The "study" task requires 3 types of variables used to define the configuration
-# - exp: the training experiment output directory
-# - data: the input data and how it should be used
-# - model: the model to train
-# - trainer: how the trainer should run
-# - study: how variables should be modified during the SHERPA study
-
+task: "study"  # What is the task? (create, train, study)
 exp:
-    name: "beam_study"
-    output_dir: "./data/models/"
-
+    name: "study_test"  # Name of experiment
+    output_dir: "./data/models/"  # Path to model output experiment directory
+    comet: False  # Should we use comet to store the experiment online
 data:
-    # The directories from which to take input data
-    input_dirs:
-        #- "./data/input/chips_1200/beam_all_nuel/"
-        #- "./data/input/chips_1200/beam_all_anuel/"
-        #- "./data/input/chips_1200/beam_all_numu/"
-        #- "./data/input/chips_1200/beam_all_anumu/"
-        - ./data/input/chips_1200/beam_nuel_cccoh/
-        - ./data/input/chips_1200/beam_nuel_nccoh/
-        - ./data/input/chips_1200/beam_nuel_ccdis/
-        - ./data/input/chips_1200/beam_nuel_ncdis/
-        - ./data/input/chips_1200/beam_nuel_ccqel/
-        - ./data/input/chips_1200/beam_nuel_ncqel/
-        - ./data/input/chips_1200/beam_nuel_ccres/
-        - ./data/input/chips_1200/beam_nuel_ncres/
-        - ./data/input/chips_1200/beam_nuel_ccmec/
-        - ./data/input/chips_1200/beam_numu_cccoh/
-        - ./data/input/chips_1200/beam_numu_nccoh/
-        - ./data/input/chips_1200/beam_numu_ccdis/
-        - ./data/input/chips_1200/beam_numu_ncdis/
-        - ./data/input/chips_1200/beam_numu_ccqel/
-        - ./data/input/chips_1200/beam_numu_ncqel/
-        - ./data/input/chips_1200/beam_numu_ccres/
-        - ./data/input/chips_1200/beam_numu_ncres/
-        - ./data/input/chips_1200/beam_numu_ccmec/
-        #- "./data/input/chips_1200/cosmic_all/"
-    # Should the data reader, create the full set of parameters from file?
-    extra_vars: False
-    # Does the input data contain all possible input channels?
-    all_chan: True
-    # Should the images be stacked into a single tensor?
-    stack: True
-    # Which channels should be active?
-    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # How much should each channel be randomly scaled?
-    rand: [0.05, 0.05, 0.05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # How much should each channel be randomly shifted?
-    shift: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # The input image size
-    img_size: [64, 64, 3]
-    # How to scale each of the reco parameters [vtxX, vtxY, vtxZ, dirTheta, dirPhi]
-    par_scale: [1250.0, 1250.0, 600.0, 1.0, 180.0]
-
+    input_dirs:  # The directories from which to take input data
+        #- "./data/input/chips_1200_all/beam_flux/"
+        - "./data/input/chips_1200_all/beam_uniform/"
+        #- "./data/input/chips_1200_all/cosmic/"
+    all_chan: True  # Does the input data contain all possible channels?
+    unstack: False  # Should we split the channels into seperate images?
+    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # Active channels
+    augment: False  # Should we enable random and shifting augmentation to the images?
+    rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
+    shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
+    cat_select: -1  # Choose a singular t_all_cat category to train on, used for energy networks (-1 = don't choose)
+    img_size: [64, 64]  # The input image size
 model: 
-    name: "beam"  # "parameter", "cosmic", "beam", "multi_simple", "multi"
-    labels: ["t_all_cat"]  # ["t_nuEnergy"], ["t_cosmic_cat"], ["t_all_cat"], ["t_all_cat", "t_nuEnergy"], ["t_all_cat", "t_nuEnergy"]
-    reco_pars: False
-    lr: 0.0001
-    lr_decay: 0.0
-    dense_units: 512
-    dropout: 0.3
-    kernel_size: 3
-    filters: 64
-    precision_policy: "float32"
-
-trainer: 
-    train_examples: 1000000  # Make it a multiple of the batch size
-    val_examples: 160000  # Make it a multiple of the batch size
-    test_examples: 160000  # Make it a multiple of the batch size
-    batch_size: 64
-    epochs: 5
-    tb_update: 1000
-    steps_per_epoch: -1
-    es_delta: 0.01
-    es_epochs: 3
-
-study: # We list the number of trials and then all the variables we want to tune
-    trials: 50
+    type: "vgg"  # (vgg, resnet, inception)
+    # (t_nu_type, t_sign_type, t_int_type, t_all_cat, t_cosmic_cat, t_comb_cat, t_nu_nc_cat, t_nc_cat
+    # prim_total, prim_p, prim_cp, prim_np, prim_g, t_vtxX, t_vtxY, t_vtxZ, t_nuEnergy)
+    # List of label outputs, see above for options
+    #labels: ["t_cosmic_cat"]  # For cosmic classifier
+    labels: ["t_all_cat"]  # For beam category classifier
+    #labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"]  # Multi-task
+    #labels: ["t_nuEnergy"]  # For energy estimation
+    lr: 0.0002  # The initial learning rate
+    lr_decay: 0.5  # Learning rate decay coefficient
+    dense_units: 512  # Number of units to use in dense layers
+    dropout: 0.2  # Dropout rate to use in dropout layers
+    filters: 64  # Initial number of filters to use
+    reco_pars: False  # Should the reco paramters be appended to final dense layer?
+    bottleneck: False  # Should we use the bottleneck resnet variant?
+    se_ratio: 16  # Ratio for squeeze-exitation blocks, if zero they will not be used
+    learn_weights: False  # If training multiple labels, should we use the custom weight learning layer?
+    precision_policy: "mixed_float16"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
+    summarise: True  # Should we display a summary of the model when it is built?
+trainer:
+    train_examples: 640000  # Number of training examples to use
+    val_examples: 64000  # Number of validation examples to use
+    test_examples: 64000  # Number of testing examples to use
+    batch_size: 64  # Training batch size
+    epochs: 5  # Number of epochs to train for
+    tb_update: 1000  # How often should tensorboard record values (batches)
+    steps_per_epoch: -1  # Number of steps per epoch (-1 default)
+    es_monitor: "val_accuracy"  # Metric to monitor for early stopping
+    es_delta: 0.001  # Early stopping minimum delta value
+    es_epochs: 2  # Early stopping epochs without delta change before stop
+study:
+    trials: 50  # Number of trials in the study
+    # The following list the SHERPA options for variables in the previous sections
     data:
-        batch_size: [64]
-        stack: [true]
+        unstack: [True, False]
+        augment: [True, False]
     model:
-        reco_pars: [true, False]
         lr: [0.00005, 0.001]
-        lr_decay: [0.0, 0.0]
-        dense_units: [512, 1028]
-        dropout: [0.0, 0.5]
-        kernel_size: [3]
-        filters: [64, 128]
+        lr_decay: [0.5, 0.5]
+        dense_units: [255, 512]
+        dropout: [0.0, 0.25]
+        filters: [32, 64]
+        reco_pars: [True, False]
+        se_ratio: [0, 16]
+        learn_weights: [False]
+        precision_policy: ['float32', 'mixed_float16']        
+    trainer:
+        batch_size: [128, 256]

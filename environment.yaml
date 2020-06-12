@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - python=3.8
+  - gcc=4.8.5
   - papermill=2.1.0
   - tqdm=4.46.1
   - flake8=3.8.2

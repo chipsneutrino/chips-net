@@ -1,35 +1,33 @@
----
 task: "train"
 exp:
-    name: "resnet_test_se"
-    output_dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+    name: "multi_v_cth_flux"
+    output_dir: "/mnt/storage/jtingey/chips-net/data/models/"
     comet: False
 data:
     input_dirs:
-        - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_uniform/"
+        - "./data/input/chips_1200_all/beam_flux/"
     all_chan: True
     unstack: False
     channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     augment: False
     rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
     shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
+    cat_select: -1
     img_size: [64, 64]
-    labels_to_inputs: False
-model: 
-    type: "resnet"
-    labels: ["t_all_cat"]
-    reco_pars: False
+model:
+    type: "vgg"
+    labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"] 
     lr: 0.0002
-    lr_decay: 0.0
+    lr_decay: 0.5
     dense_units: 512
     dropout: 0.2
-    kernel_size: 3
     filters: 64
-    precision_policy: "float32"
-    bn: False
+    reco_pars: False
     bottleneck: False
-    se: True
-    summarise: True
+    se_ratio: 16
+    learn_weights: True
+    precision_policy: "float32"
+    summarise: True   
 trainer:
     train_examples: 960000
     val_examples: 160000
@@ -41,3 +39,4 @@ trainer:
     es_monitor: "val_accuracy"
     es_delta: 0.001
     es_epochs: 2
+    

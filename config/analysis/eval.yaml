@@ -100,7 +100,7 @@ samples:
 models:
     t_all_cat_v_c_uniform:
         channels: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_v_c_uniform" 
         name: "beam"  
         labels: ["t_all_cat"]  
@@ -115,7 +115,7 @@ models:
         summarise: False
     t_all_cat_v_ct_uniform:
         channels: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_v_ct_uniform" 
         name: "beam"  
         labels: ["t_all_cat"]  
@@ -130,7 +130,7 @@ models:
         summarise: False
     t_all_cat_o_ct_uniform:
         channels: [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_o_ct_uniform" 
         name: "beam"  
         labels: ["t_all_cat"]  
@@ -145,7 +145,7 @@ models:
         summarise: False
     t_all_cat_i_ct_uniform:
         channels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_i_ct_uniform" 
         name: "beam"  
         labels: ["t_all_cat"]  
@@ -160,7 +160,7 @@ models:
         summarise: False
     t_all_cat_v_cth_uniform:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_v_cth_uniform" 
         name: "beam"  
         labels: ["t_all_cat"]  
@@ -175,7 +175,7 @@ models:
         summarise: False
     t_all_cat_v_cth_flux:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_v_cth_flux" 
         name: "beam"  
         labels: ["t_all_cat"]  
@@ -190,7 +190,7 @@ models:
         summarise: False
     t_cos_cat_v_cth_flux:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_cosmic_cat_v_cth_flux"
         name: "cosmic"
         labels: ["t_cosmic_cat"]  
@@ -205,7 +205,7 @@ models:
         summarise: False
     t_cos_cat_v_cth_uniform:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_cosmic_cat_v_cth_uniform"
         name: "cosmic"
         labels: ["t_cosmic_cat"]  
@@ -220,7 +220,7 @@ models:
         summarise: False
     multi_v_cth_flux:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "multi_simple_v_cth_flux"
         name: "multi_simple"   
         labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"] 
@@ -235,7 +235,7 @@ models:
         summarise: False
     multi_v_cth_uniform:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "multi_simple_v_cth_uniform"
         name: "multi_simple"   
         labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"] 
@@ -250,7 +250,7 @@ models:
         summarise: False
     multi_energy_v_cth_uniform:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/analysis"
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "multi_simple_energy_v_cth_uniform"
         name: "multi_simple"   
         labels: ["t_all_cat", "t_nuEnergy", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"] 
