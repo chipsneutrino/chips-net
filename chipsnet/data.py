@@ -18,7 +18,6 @@ import pandas as pd
 import uproot
 import numpy as np
 import tensorflow as tf
-from dotmap import DotMap
 from particle import Particle
 
 
@@ -107,14 +106,14 @@ class Reader:
 
         # Decode integer labels and append to labels dictionary
         labels_i = tf.io.decode_raw(example["labels_i"], tf.int32)
-        labels[MAP_NU_TYPE.name] = labels_i[0]
-        labels[MAP_SIGN_TYPE.name] = labels_i[1]
-        labels[MAP_INT_TYPE.name] = labels_i[2]
-        labels[MAP_ALL_CAT.name] = labels_i[3]
-        labels[MAP_COSMIC_CAT.name] = labels_i[4]
-        labels[MAP_FULL_COMB_CAT.name] = labels_i[5]
-        labels[MAP_NU_NC_COMB_CAT.name] = labels_i[6]
-        labels[MAP_NC_COMB_CAT.name] = labels_i[7]
+        labels[MAP_NU_TYPE["name"]] = labels_i[0]
+        labels[MAP_SIGN_TYPE["name"]] = labels_i[1]
+        labels[MAP_INT_TYPE["name"]] = labels_i[2]
+        labels[MAP_ALL_CAT["name"]] = labels_i[3]
+        labels[MAP_COSMIC_CAT["name"]] = labels_i[4]
+        labels[MAP_FULL_COMB_CAT["name"]] = labels_i[5]
+        labels[MAP_NU_NC_COMB_CAT["name"]] = labels_i[6]
+        labels[MAP_NC_COMB_CAT["name"]] = labels_i[7]
         labels["prim_total"] = labels_i[8]
         labels["prim_p"] = labels_i[9]
         labels["prim_cp"] = labels_i[10]
@@ -384,21 +383,21 @@ class Creator:
         )
 
         # Next setup the integer labels, we need to map to the different categories etc...
-        n_arr = np.vectorize(MAP_NU_TYPE.table.get)(true.array("t_nu"))
-        s_arr = np.vectorize(MAP_SIGN_TYPE.table.get)(true.array("t_nu"))
-        i_arr = np.vectorize(MAP_INT_TYPE.table.get)(true.array("t_code"))
-        cat_arr = np.array([MAP_ALL_CAT.table[(n, i)] for n, i in zip(n_arr, i_arr)])
+        n_arr = np.vectorize(MAP_NU_TYPE["table"].get)(true.array("t_nu"))
+        s_arr = np.vectorize(MAP_SIGN_TYPE["table"].get)(true.array("t_nu"))
+        i_arr = np.vectorize(MAP_INT_TYPE["table"].get)(true.array("t_code"))
+        cat_arr = np.array([MAP_ALL_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)])
         cosmic_arr = np.array(
-            [MAP_COSMIC_CAT.table[(n, i)] for n, i in zip(n_arr, i_arr)]
+            [MAP_COSMIC_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
         )
         comb_arr = np.array(
-            [MAP_FULL_COMB_CAT.table[(n, i)] for n, i in zip(n_arr, i_arr)]
+            [MAP_FULL_COMB_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
         )
         nu_nc_comb_arr = np.array(
-            [MAP_NU_NC_COMB_CAT.table[(n, i)] for n, i in zip(n_arr, i_arr)]
+            [MAP_NU_NC_COMB_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
         )
         nc_comb_arr = np.array(
-            [MAP_NC_COMB_CAT.table[(n, i)] for n, i in zip(n_arr, i_arr)]
+            [MAP_NC_COMB_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
         )
 
         counts = self.count_primaries(
@@ -553,348 +552,331 @@ def get_map(name):
         MAP_NU_NC_COMB_CAT,
         MAP_NC_COMB_CAT,
     ]:
-        if map.name == name:
+        if map["name"] == name:
             return map
     return None
 
 
 """Map to electron or muon types (Total = 2) (cosmic muons are included in this)"""
-MAP_NU_TYPE = DotMap(
-    {
-        "name": "t_nu_type",
-        "categories": 1,
-        "labels": ["Nuel", "Numu"],  # 0  # 1
-        "table": {
-            11: 0,  # el-
-            -11: 0,  # el+
-            12: 0,  # el neutrino
-            -12: 0,  # el anti neutrino
-            13: 1,  # mu-
-            -13: 1,  # mu+
-            14: 1,  # mu neutrino
-            -14: 1,
-        },  # mu anti neutrino
-    }
-)
-
+MAP_NU_TYPE = {
+    "name": "t_nu_type",
+    "categories": 1,
+    "labels": ["Nuel", "Numu"],  # 0  # 1
+    "table": {
+        11: 0,  # el-
+        -11: 0,  # el+
+        12: 0,  # el neutrino
+        -12: 0,  # el anti neutrino
+        13: 1,  # mu-
+        -13: 1,  # mu+
+        14: 1,  # mu neutrino
+        -14: 1,
+    },  # mu anti neutrino
+}
 
 """Map to particle vs anti-particle (Total = 2) (cosmic muons are included in this)"""
-MAP_SIGN_TYPE = DotMap(
-    {
-        "name": "t_sign_type",
-        "categories": 1,
-        "labels": ["Nu", "Anu"],  # 0  # 1
-        "table": {
-            11: 0,  # el-
-            -11: 1,  # el+
-            12: 0,  # el neutrino
-            -12: 1,  # el anti neutrino
-            13: 0,  # mu-
-            -13: 1,  # mu+
-            14: 0,  # mu neutrino
-            -14: 1,
-        },  # mu anti neutrino
-    }
-)
+MAP_SIGN_TYPE = {
+    "name": "t_sign_type",
+    "categories": 1,
+    "labels": ["Nu", "Anu"],  # 0  # 1
+    "table": {
+        11: 0,  # el-
+        -11: 1,  # el+
+        12: 0,  # el neutrino
+        -12: 1,  # el anti neutrino
+        13: 0,  # mu-
+        -13: 1,  # mu+
+        14: 0,  # mu neutrino
+        -14: 1,
+    },  # mu anti neutrino
+}
 
 
 """Map interaction types (Total = 13)
 We put IMD, ElasticScattering and InverseMuDecay into 'NC-OTHER' for simplicity"""
-MAP_INT_TYPE = DotMap(
-    {
-        "name": "t_int_type",
-        "categories": 12,
-        "labels": [
-            "CC-QEL",  # 0
-            "CC-RES",  # 1
-            "CC-DIS",  # 2
-            "CC-COH",  # 3
-            "CC-MEC",  # 4
-            "CC-OTHER",  # 5
-            "NC-QEL",  # 6
-            "NC-RES",  # 7
-            "NC-DIS",  # 8
-            "NC-COH",  # 9
-            "NC-MEC",  # 10
-            "NC-OTHER",  # 11
-            "Cosmic",
-        ],  # 12
-        "table": {
-            0: 11,  # Other
-            1: 0,  # CCQEL
-            2: 6,  # NCQEL
-            3: 1,  # CCNuPtoLPPiPlus
-            4: 1,  # CCNuNtoLPPiZero
-            5: 1,  # CCNuNtoLNPiPlus
-            6: 7,  # NCNuPtoNuPPiZero
-            7: 7,  # NCNuPtoNuNPiPlus
-            8: 7,  # NCNuNtoNuNPiZero
-            9: 7,  # NCNuNtoNuPPiMinus
-            10: 1,  # CCNuBarNtoLNPiMinus
-            11: 1,  # CCNuBarPtoLNPiZero
-            12: 1,  # CCNuBarPtoLPPiMinus
-            13: 7,  # NCNuBarPtoNuBarPPiZero
-            14: 7,  # NCNuBarPtoNuBarNPiPlus
-            15: 7,  # NCNuBarNtoNuBarNPiZero
-            16: 7,  # NCNuBarNtoNuBarPPiMinus
-            17: 5,  # CCOtherResonant
-            18: 11,  # NCOtherResonant
-            19: 4,  # CCMEC
-            20: 10,  # NCMEC
-            21: 11,  # IMD
-            91: 2,  # CCDIS
-            92: 8,  # NCDIS
-            96: 9,  # NCCoh
-            97: 3,  # CCCoh
-            98: 11,  # ElasticScattering
-            99: 11,  # InverseMuDecay
-            100: 12,  # CosmicMuon
-        },
-    }
-)
+MAP_INT_TYPE = {
+    "name": "t_int_type",
+    "categories": 12,
+    "labels": [
+        "CC-QEL",  # 0
+        "CC-RES",  # 1
+        "CC-DIS",  # 2
+        "CC-COH",  # 3
+        "CC-MEC",  # 4
+        "CC-OTHER",  # 5
+        "NC-QEL",  # 6
+        "NC-RES",  # 7
+        "NC-DIS",  # 8
+        "NC-COH",  # 9
+        "NC-MEC",  # 10
+        "NC-OTHER",  # 11
+        "Cosmic",
+    ],  # 12
+    "table": {
+        0: 11,  # Other
+        1: 0,  # CCQEL
+        2: 6,  # NCQEL
+        3: 1,  # CCNuPtoLPPiPlus
+        4: 1,  # CCNuNtoLPPiZero
+        5: 1,  # CCNuNtoLNPiPlus
+        6: 7,  # NCNuPtoNuPPiZero
+        7: 7,  # NCNuPtoNuNPiPlus
+        8: 7,  # NCNuNtoNuNPiZero
+        9: 7,  # NCNuNtoNuPPiMinus
+        10: 1,  # CCNuBarNtoLNPiMinus
+        11: 1,  # CCNuBarPtoLNPiZero
+        12: 1,  # CCNuBarPtoLPPiMinus
+        13: 7,  # NCNuBarPtoNuBarPPiZero
+        14: 7,  # NCNuBarPtoNuBarNPiPlus
+        15: 7,  # NCNuBarNtoNuBarNPiZero
+        16: 7,  # NCNuBarNtoNuBarPPiMinus
+        17: 5,  # CCOtherResonant
+        18: 11,  # NCOtherResonant
+        19: 4,  # CCMEC
+        20: 10,  # NCMEC
+        21: 11,  # IMD
+        91: 2,  # CCDIS
+        92: 8,  # NCDIS
+        96: 9,  # NCCoh
+        97: 3,  # CCCoh
+        98: 11,  # ElasticScattering
+        99: 11,  # InverseMuDecay
+        100: 12,  # CosmicMuon
+    },
+}
 
 """Map to all categories (Total = 19)"""
-MAP_ALL_CAT = DotMap(
-    {
-        "name": "t_all_cat",
-        "categories": 24,
-        "labels": [
-            "Nuel-CC-QEL",  # 0
-            "Nuel-CC-RES",  # 1
-            "Nuel-CC-DIS",  # 2
-            "Nuel-CC-COH",  # 3
-            "Nuel-CC-MEC",  # 4
-            "Nuel-CC-OTHER",  # 5
-            "Nuel-NC-QEL",  # 6
-            "Nuel-NC-RES",  # 7
-            "Nuel-NC-DIS",  # 8
-            "Nuel-NC-COH",  # 9
-            "Nuel-NC-MEC",  # 10
-            "Nuel-NC-OTHER",  # 11
-            "Numu-CC-QEL",  # 12
-            "Numu-CC-RES",  # 13
-            "Numu-CC-DIS",  # 14
-            "Numu-CC-COH",  # 15
-            "Numu-CC-MEC",  # 16
-            "Numu-CC-OTHER",  # 17
-            "Numu-NC-QEL",  # 18
-            "Numu-NC-RES",  # 19
-            "Numu-NC-DIS",  # 20
-            "Numu-NC-COH",  # 21
-            "Numu-NC-MEC",  # 22
-            "Numu-NC-OTHER",  # 23
-            "Cosmic",
-        ],  # 24
-        "table": {
-            (0, 0): 0,
-            (0, 1): 1,
-            (0, 2): 2,
-            (0, 3): 3,
-            (0, 4): 4,
-            (0, 5): 5,
-            (0, 6): 6,
-            (0, 7): 7,
-            (0, 8): 8,
-            (0, 9): 9,
-            (0, 10): 10,
-            (0, 11): 11,
-            (0, 12): 24,
-            (1, 0): 12,
-            (1, 1): 13,
-            (1, 2): 14,
-            (1, 3): 15,
-            (1, 4): 16,
-            (1, 5): 17,
-            (1, 6): 18,
-            (1, 7): 19,
-            (1, 8): 20,
-            (1, 9): 21,
-            (1, 10): 22,
-            (1, 11): 23,
-            (1, 12): 24,
-        },
-    }
-)
+MAP_ALL_CAT = {
+    "name": "t_all_cat",
+    "categories": 24,
+    "labels": [
+        "Nuel-CC-QEL",  # 0
+        "Nuel-CC-RES",  # 1
+        "Nuel-CC-DIS",  # 2
+        "Nuel-CC-COH",  # 3
+        "Nuel-CC-MEC",  # 4
+        "Nuel-CC-OTHER",  # 5
+        "Nuel-NC-QEL",  # 6
+        "Nuel-NC-RES",  # 7
+        "Nuel-NC-DIS",  # 8
+        "Nuel-NC-COH",  # 9
+        "Nuel-NC-MEC",  # 10
+        "Nuel-NC-OTHER",  # 11
+        "Numu-CC-QEL",  # 12
+        "Numu-CC-RES",  # 13
+        "Numu-CC-DIS",  # 14
+        "Numu-CC-COH",  # 15
+        "Numu-CC-MEC",  # 16
+        "Numu-CC-OTHER",  # 17
+        "Numu-NC-QEL",  # 18
+        "Numu-NC-RES",  # 19
+        "Numu-NC-DIS",  # 20
+        "Numu-NC-COH",  # 21
+        "Numu-NC-MEC",  # 22
+        "Numu-NC-OTHER",  # 23
+        "Cosmic",
+    ],  # 24
+    "table": {
+        (0, 0): 0,
+        (0, 1): 1,
+        (0, 2): 2,
+        (0, 3): 3,
+        (0, 4): 4,
+        (0, 5): 5,
+        (0, 6): 6,
+        (0, 7): 7,
+        (0, 8): 8,
+        (0, 9): 9,
+        (0, 10): 10,
+        (0, 11): 11,
+        (0, 12): 24,
+        (1, 0): 12,
+        (1, 1): 13,
+        (1, 2): 14,
+        (1, 3): 15,
+        (1, 4): 16,
+        (1, 5): 17,
+        (1, 6): 18,
+        (1, 7): 19,
+        (1, 8): 20,
+        (1, 9): 21,
+        (1, 10): 22,
+        (1, 11): 23,
+        (1, 12): 24,
+    },
+}
 
 """Map a cosmic flag (Total = 2)"""
-MAP_COSMIC_CAT = DotMap(
-    {
-        "name": "t_cosmic_cat",
-        "categories": 1,
-        "labels": ["Cosmic", "Beam"],  # 0  # 1
-        "table": {
-            (0, 0): 0,
-            (0, 1): 0,
-            (0, 2): 0,
-            (0, 3): 0,
-            (0, 4): 0,
-            (0, 5): 0,
-            (0, 6): 0,
-            (0, 7): 0,
-            (0, 8): 0,
-            (0, 9): 0,
-            (0, 10): 0,
-            (0, 11): 0,
-            (0, 12): 1,
-            (1, 0): 0,
-            (1, 1): 0,
-            (1, 2): 0,
-            (1, 3): 0,
-            (1, 4): 0,
-            (1, 5): 0,
-            (1, 6): 0,
-            (1, 7): 0,
-            (1, 8): 0,
-            (1, 9): 0,
-            (1, 10): 0,
-            (1, 11): 0,
-            (1, 12): 1,
-        },
-    }
-)
+MAP_COSMIC_CAT = {
+    "name": "t_cosmic_cat",
+    "categories": 1,
+    "labels": ["Cosmic", "Beam"],  # 0  # 1
+    "table": {
+        (0, 0): 0,
+        (0, 1): 0,
+        (0, 2): 0,
+        (0, 3): 0,
+        (0, 4): 0,
+        (0, 5): 0,
+        (0, 6): 0,
+        (0, 7): 0,
+        (0, 8): 0,
+        (0, 9): 0,
+        (0, 10): 0,
+        (0, 11): 0,
+        (0, 12): 1,
+        (1, 0): 0,
+        (1, 1): 0,
+        (1, 2): 0,
+        (1, 3): 0,
+        (1, 4): 0,
+        (1, 5): 0,
+        (1, 6): 0,
+        (1, 7): 0,
+        (1, 8): 0,
+        (1, 9): 0,
+        (1, 10): 0,
+        (1, 11): 0,
+        (1, 12): 1,
+    },
+}
 
 """Map to full_combined categories (Total = 5)"""
-MAP_FULL_COMB_CAT = DotMap(
-    {
-        "name": "t_comb_cat",
-        "categories": 3,
-        "labels": ["Nuel-CC", "Numu-CC", "NC", "Cosmic"],  # 0  # 1  # 2  # 3
-        "table": {
-            (0, 0): 0,
-            (0, 1): 0,
-            (0, 2): 0,
-            (0, 3): 0,
-            (0, 4): 0,
-            (0, 5): 0,
-            (0, 6): 2,
-            (0, 7): 2,
-            (0, 8): 2,
-            (0, 9): 2,
-            (0, 10): 2,
-            (0, 11): 2,
-            (0, 12): 3,
-            (1, 0): 1,
-            (1, 1): 1,
-            (1, 2): 1,
-            (1, 3): 1,
-            (1, 4): 1,
-            (1, 5): 1,
-            (1, 6): 2,
-            (1, 7): 2,
-            (1, 8): 2,
-            (1, 9): 2,
-            (1, 10): 2,
-            (1, 11): 2,
-            (1, 12): 3,
-        },
-    }
-)
+MAP_FULL_COMB_CAT = {
+    "name": "t_comb_cat",
+    "categories": 3,
+    "labels": ["Nuel-CC", "Numu-CC", "NC", "Cosmic"],  # 0  # 1  # 2  # 3
+    "table": {
+        (0, 0): 0,
+        (0, 1): 0,
+        (0, 2): 0,
+        (0, 3): 0,
+        (0, 4): 0,
+        (0, 5): 0,
+        (0, 6): 2,
+        (0, 7): 2,
+        (0, 8): 2,
+        (0, 9): 2,
+        (0, 10): 2,
+        (0, 11): 2,
+        (0, 12): 3,
+        (1, 0): 1,
+        (1, 1): 1,
+        (1, 2): 1,
+        (1, 3): 1,
+        (1, 4): 1,
+        (1, 5): 1,
+        (1, 6): 2,
+        (1, 7): 2,
+        (1, 8): 2,
+        (1, 9): 2,
+        (1, 10): 2,
+        (1, 11): 2,
+        (1, 12): 3,
+    },
+}
 
 """Map to nc_nu_combined categories (Total = 14)"""
-MAP_NU_NC_COMB_CAT = DotMap(
-    {
-        "name": "t_nu_nc_cat",
-        "categories": 18,
-        "labels": [
-            "Nuel-CC-QEL",  # 0
-            "Nuel-CC-RES",  # 1
-            "Nuel-CC-DIS",  # 2
-            "Nuel-CC-COH",  # 3
-            "Nuel-CC-MEC",  # 4
-            "Nuel-CC-OTHER",  # 5
-            "Numu-CC-QEL",  # 6
-            "Numu-CC-RES",  # 7
-            "Numu-CC-DIS",  # 8
-            "Numu-CC-COH",  # 9
-            "Numu-CC-MEC",  # 10
-            "Numu-CC-OTHER",  # 11
-            "NC-QEL",  # 12
-            "NC-RES",  # 13
-            "NC-DIS",  # 14
-            "NC-COH",  # 15
-            "NC-MEC",  # 16
-            "NC-OTHER",  # 17
-            "Cosmic",
-        ],  # 18
-        "table": {
-            (0, 0): 0,
-            (0, 1): 1,
-            (0, 2): 2,
-            (0, 3): 3,
-            (0, 4): 4,
-            (0, 5): 5,
-            (0, 6): 12,
-            (0, 7): 13,
-            (0, 8): 14,
-            (0, 9): 15,
-            (0, 10): 16,
-            (0, 11): 17,
-            (0, 12): 18,
-            (1, 0): 6,
-            (1, 1): 7,
-            (1, 2): 8,
-            (1, 3): 9,
-            (1, 4): 10,
-            (1, 5): 11,
-            (1, 6): 12,
-            (1, 7): 13,
-            (1, 8): 14,
-            (1, 9): 15,
-            (1, 10): 16,
-            (1, 11): 17,
-            (1, 12): 18,
-        },
-    }
-)
+MAP_NU_NC_COMB_CAT = {
+    "name": "t_nu_nc_cat",
+    "categories": 18,
+    "labels": [
+        "Nuel-CC-QEL",  # 0
+        "Nuel-CC-RES",  # 1
+        "Nuel-CC-DIS",  # 2
+        "Nuel-CC-COH",  # 3
+        "Nuel-CC-MEC",  # 4
+        "Nuel-CC-OTHER",  # 5
+        "Numu-CC-QEL",  # 6
+        "Numu-CC-RES",  # 7
+        "Numu-CC-DIS",  # 8
+        "Numu-CC-COH",  # 9
+        "Numu-CC-MEC",  # 10
+        "Numu-CC-OTHER",  # 11
+        "NC-QEL",  # 12
+        "NC-RES",  # 13
+        "NC-DIS",  # 14
+        "NC-COH",  # 15
+        "NC-MEC",  # 16
+        "NC-OTHER",  # 17
+        "Cosmic",
+    ],  # 18
+    "table": {
+        (0, 0): 0,
+        (0, 1): 1,
+        (0, 2): 2,
+        (0, 3): 3,
+        (0, 4): 4,
+        (0, 5): 5,
+        (0, 6): 12,
+        (0, 7): 13,
+        (0, 8): 14,
+        (0, 9): 15,
+        (0, 10): 16,
+        (0, 11): 17,
+        (0, 12): 18,
+        (1, 0): 6,
+        (1, 1): 7,
+        (1, 2): 8,
+        (1, 3): 9,
+        (1, 4): 10,
+        (1, 5): 11,
+        (1, 6): 12,
+        (1, 7): 13,
+        (1, 8): 14,
+        (1, 9): 15,
+        (1, 10): 16,
+        (1, 11): 17,
+        (1, 12): 18,
+    },
+}
 
 """Map to nc_combined categories (Total = 11)"""
-MAP_NC_COMB_CAT = DotMap(
-    {
-        "name": "t_nc_cat",
-        "categories": 13,
-        "labels": [
-            "Nuel-CC-QEL",  # 0
-            "Nuel-CC-RES",  # 1
-            "Nuel-CC-DIS",  # 2
-            "Nuel-CC-COH",  # 3
-            "Nuel-CC-MEC",  # 4
-            "Nuel-CC-OTHER",  # 5
-            "Numu-CC-QEL",  # 6
-            "Numu-CC-RES",  # 7
-            "Numu-CC-DIS",  # 8
-            "Numu-CC-COH",  # 9
-            "Numu-CC-MEC",  # 10
-            "Numu-CC-OTHER",  # 11
-            "NC",  # 12
-            "Cosmic",
-        ],  # 13
-        "table": {
-            (0, 0): 0,
-            (0, 1): 1,
-            (0, 2): 2,
-            (0, 3): 3,
-            (0, 4): 4,
-            (0, 5): 5,
-            (0, 6): 12,
-            (0, 7): 12,
-            (0, 8): 12,
-            (0, 9): 12,
-            (0, 10): 12,
-            (0, 11): 12,
-            (0, 12): 13,
-            (1, 0): 6,
-            (1, 1): 7,
-            (1, 2): 8,
-            (1, 3): 9,
-            (1, 4): 10,
-            (1, 5): 11,
-            (1, 6): 12,
-            (1, 7): 12,
-            (1, 8): 12,
-            (1, 9): 12,
-            (1, 10): 12,
-            (1, 11): 12,
-            (1, 12): 13,
-        },
-    }
-)
+MAP_NC_COMB_CAT = {
+    "name": "t_nc_cat",
+    "categories": 13,
+    "labels": [
+        "Nuel-CC-QEL",  # 0
+        "Nuel-CC-RES",  # 1
+        "Nuel-CC-DIS",  # 2
+        "Nuel-CC-COH",  # 3
+        "Nuel-CC-MEC",  # 4
+        "Nuel-CC-OTHER",  # 5
+        "Numu-CC-QEL",  # 6
+        "Numu-CC-RES",  # 7
+        "Numu-CC-DIS",  # 8
+        "Numu-CC-COH",  # 9
+        "Numu-CC-MEC",  # 10
+        "Numu-CC-OTHER",  # 11
+        "NC",  # 12
+        "Cosmic",
+    ],  # 13
+    "table": {
+        (0, 0): 0,
+        (0, 1): 1,
+        (0, 2): 2,
+        (0, 3): 3,
+        (0, 4): 4,
+        (0, 5): 5,
+        (0, 6): 12,
+        (0, 7): 12,
+        (0, 8): 12,
+        (0, 9): 12,
+        (0, 10): 12,
+        (0, 11): 12,
+        (0, 12): 13,
+        (1, 0): 6,
+        (1, 1): 7,
+        (1, 2): 8,
+        (1, 3): 9,
+        (1, 4): 10,
+        (1, 5): 11,
+        (1, 6): 12,
+        (1, 7): 12,
+        (1, 8): 12,
+        (1, 9): 12,
+        (1, 10): 12,
+        (1, 11): 12,
+        (1, 12): 13,
+    },
+}

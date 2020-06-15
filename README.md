@@ -1,6 +1,6 @@
 # chips-net
 
-[![Pipeline](https://gitlab.com/chipsneutrino/chips-net/badges/master/pipeline.svg)](https://gitlab.com/chipsneutrino/chips-net/pipelines)        [![Docs chipsneutrino.gitlab.io/chips-net](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://chipsneutrino.gitlab.io/chips-net/)
+[![Pipeline](https://gitlab.com/chipsneutrino/chips-net/badges/master/pipeline.svg)](https://gitlab.com/chipsneutrino/chips-net/pipelines) [![Docs chipsneutrino.gitlab.io/chips-net](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://chipsneutrino.gitlab.io/chips-net/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 The CHIPS convolutional visual network provides a framework to train and evaluate CNNs for neutrino water Cherenkov event classification and reconstruction. The [Tensorflow](https://www.tensorflow.org/) framework is used as the backend.
 
@@ -28,7 +28,7 @@ $ run [config_path]
 It's important to first copy data to the local GPU machine or the training rate is reduced significantly due to the network bottleneck.
 
 ## Notebooks
-To use the notebooks in ./scripts/ run the following and navigate to the url given.
+To use the notebooks in ./notebooks/ run the following and navigate to the url given.
 
 You will need to forward the port to your local machine if working remotely.
 

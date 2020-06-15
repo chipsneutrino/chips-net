@@ -540,7 +540,7 @@ def calculate_curves(
         purities (np.array): Array of purities
         foms (np.array): Array of figure-of-merits (efficiency*purity)
     """
-    num_cats = chipsnet.data.get_map(cat_name).categories
+    num_cats = chipsnet.data.get_map(cat_name)["categories"]
     prefix = prefix + "pred_" + cat_name + "_"
 
     cuts, totals, max_foms, max_fom_cuts = [], [], [], []
@@ -622,7 +622,7 @@ def calculate_curves(
     # Print summary if verbose
     if verbose:
         for cat in range(num_cats):
-            label = chipsnet.data.get_map(cat_name).labels[cat]
+            label = chipsnet.data.get_map(cat_name)["labels"][cat]
             print(label + ": {0:.4f}({1:.4f})".format(max_foms[cat], max_fom_cuts[cat]))
 
         print("Signal efficiency AUC: {}".format(sig_effs_auc))
