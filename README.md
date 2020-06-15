@@ -1,6 +1,6 @@
 # chips-net
 
-[![Pipeline](https://gitlab.com/chipsneutrino/chips-net/badges/master/pipeline.svg)](https://gitlab.com/chipsneutrino/chips-net/pipelines) [![Docs chipsneutrino.gitlab.io/chips-net](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://chipsneutrino.gitlab.io/chips-net/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Pipeline](https://gitlab.com/chipsneutrino/chips-net/badges/master/pipeline.svg)](https://gitlab.com/chipsneutrino/chips-net/pipelines) [![Docs chipsneutrino.gitlab.io/chips-net](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://chipsneutrino.gitlab.io/chips-net/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/78709e60f88f4918be95f8dcbabe4dd0)](https://www.codacy.com/gl/chipsneutrino/chips-net?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=chipsneutrino/chips-net&amp;utm_campaign=Badge_Grade)
 
 The CHIPS convolutional visual network provides a framework to train and evaluate CNNs for neutrino water Cherenkov event classification and reconstruction. The [Tensorflow](https://www.tensorflow.org/) framework is used as the backend.
 
@@ -9,7 +9,7 @@ The docs can be found at [https://chipsneutrino.gitlab.io/chips-net/](https://ch
 ## Setup
 To setup the correct version of CUDA and install the conda environment, run... 
 
-```
+```bash
 $ source setup.sh
 ```
 
@@ -20,7 +20,7 @@ This also sets up the alias 'run' used to execute the run.py script that execute
 ## To Run
 To run create data, train, study, or evaluate, modify or create a new config file, examples of which are in ./config/ and call...
 
-```
+```bash
 $ run [config_path]
 ```
 
@@ -32,15 +32,15 @@ To use the notebooks in ./notebooks/ run the following and navigate to the url g
 
 You will need to forward the port to your local machine if working remotely.
 
-```
+```bash
 $ jupyter-notebook
 ```
 
 ## Tensorboard
 To run tensorboard on the outputs from a model use...
 
-```
-tensorboard --logdir [model_dir]/tensorboard
+```bash
+$ tensorboard --logdir [model_dir]/tensorboard
 ```
 
 Again you will need to forward the port to your local machine if working remotely.
@@ -50,7 +50,7 @@ To serve a jupyter notebook as a slideshow run...
 
 Again you will need to forward the port to your local machine if working remotely.
 
-```
+```bash
 $ jupyter nbconvert [notebook] --to slides --post serve
 ```
 
@@ -58,6 +58,8 @@ $ jupyter nbconvert [notebook] --to slides --post serve
 
 To enable this feature define a file .comet containing 
 
-    COMET_API_KEY=<your-comet-api-key>
-    COMET_WORKSPACE=<your-comet-workspace>
-    COMET_PROJECT_NAME=<your-comet-project-name>
+```text
+COMET_API_KEY=<your-comet-api-key>
+COMET_WORKSPACE=<your-comet-workspace>
+COMET_PROJECT_NAME=<your-comet-project-name>
+```

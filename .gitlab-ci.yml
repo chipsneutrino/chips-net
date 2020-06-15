@@ -24,20 +24,13 @@ build:
       - environment.yaml
       - Dockerfile
 
-flake8:
-  stage: test
-  script:
-    - source /opt/conda/bin/activate
-    - source activate chipsnet
-    - flake8 --max-line-length=100 --ignore=E203,W503 chipsnet/*.py
-
-pytest:
+test:
   stage: test
   script:
     - source /opt/conda/bin/activate
     - source activate chipsnet
     - export PYTHONPATH=$PYTHONPATH:$(pwd)
-    - pytest
+    - pytest --pydocstyle --flake8 --black -v .
 
 pages:
   stage: pages

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-"""tf.keras Functional API Model Implementations
+"""tf.keras Functional API Model Implementations.
 
-This module contains the keras functional model definitions. All
-are derived from the BaseModel class for ease-of-use in other parts
-of the chipsnet code
+This module contains the Model class which builds all keras functional
+model definitions and implements other associated model methods for
+ease-of-use in other parts of the package.
 
 An illustrated guide to many of the blocks is at...
 https://towardsdatascience.com/illustrated-10-cnn-architectures-95d78ace614d
@@ -45,21 +45,22 @@ import chipsnet.data as data
 
 
 class Model:
-    """chipsnet model class containing many useful management methods.
-    """
+    """chipsnet model class containing many useful management methods."""
 
     def __init__(self, config):
         """Initialise the chipsnet model class.
+
         Args:
-            config (str): Dotmap configuration namespace
+            config (dotmap.DotMap): configuration namespace
         """
         self.config = config
         self.build()  # We build the model immediately
 
     def load(self, checkpoint_num=None):
-        """Returns the correct model with its trained weights loaded.
+        """Return the correct model with its trained weights loaded.
+
         Args:
-            checkpoint_num (int): Checkpoint number to use
+            checkpoint_num (int): checkpoint number to use
         """
         if checkpoint_num is None:
             latest = tf.train.latest_checkpoint(self.config.exp.checkpoints_dir)
@@ -74,10 +75,7 @@ class Model:
             self.model.load_weights(checkpoint_path).expect_partial()
 
     def summarise(self):
-        """Prints model summary to stdout and plots diagram of model to file.
-        Args:
-            model (tf model): Model to summarise
-        """
+        """Print model summary to stdout and plot diagram of model to file."""
         self.model.summary()  # Print the model structure to stdout
 
         # Plot an image of the model to file
@@ -98,8 +96,7 @@ class Model:
         )
 
     def build(self):
-        """Build the model.
-        """
+        """Build the model."""
         policy = mixed_precision.Policy(self.config.model.precision_policy)
         mixed_precision.set_policy(policy)
         if self.config.model.type == "vgg":
@@ -129,18 +126,20 @@ def conv2d_bn(
     use_bias=False,
     prefix=None,
 ):
-    """Utility function to apply conv + BN.
+    """Add conv + BN + activation layer.
+
     Args:
         x (tf.tensor): input tensor.
-        filters (int): Number of filters in the Conv2D
-        kernel_size (int): Kernel size in the Conv2D
-        strides (int): Strides in the Conv2D
-        padding (str): Padding mode in Conv2D
-        activation (str): Activation in Conv2D
-        use_bias (bool): Whether to use a bias in Conv2D
-        prefix (str): Prefix to prepend to all layer names
+        filters (int): number of filters in the Conv2D
+        kernel_size (int): kernel size in the Conv2D
+        strides (int): strides in the Conv2D
+        padding (str): padding mode in Conv2D
+        activation (str): activation in Conv2D
+        use_bias (bool): whether to use a bias in Conv2D
+        prefix (str): prefix to prepend to all layer names
+
     Returns:
-        Output tensor after applying `Conv2D` and `BatchNormalization`.
+        tf.tensor: Output tensor after applying `Conv2D` and `BatchNormalization`.
     """
     x = Conv2D(
         filters,
@@ -161,22 +160,26 @@ def conv2d_bn(
 
 
 def vgg_block(x, num_conv=2, filters=64, se_ratio=0, dropout=0.0, prefix=""):
-    """Builds a VGG block.
+    """Build a VGG block.
+
     This function builds a vgg block as defined by the 'Visual Geometry Group' at Oxford and
     layed out in the paper https://arxiv.org/abs/1409.1556. We additionally add the now prevalent
     batch normalisation after the convolutional layer. Optionally, a squeeze-exitation block
     as first set out in https://arxiv.org/abs/1709.01507 can be added, as well as a dropout layer.
     The following was used to guide the implementation,
     https://github.com/keras-team/keras-applications/blob/master/keras_applications/vgg16.py.
+
     Args:
-        x (tf.tensor): Input tf tensor
-        num_conv (int): Number of convolutional layers
-        filters (int): Number of filters to use in convolutional layers
-        se_ratio (int): Squeeze-exitation ratio if '0' will not be used
-        dropout (float): What should the dropout rate be?
-        prefix (str): Prefix to prepend to all layer names
+        x (tf.tensor): input tensor
+        num_conv (int): number of convolutional layers
+        filters (int): number of filters to use in convolutional layers
+        se_ratio (int): squeeze-exitation ratio if '0' will not be used
+        dropout (float): what should the dropout rate be?
+        prefix (str): prefix to prepend to all layer names
+
     Returns:
-        tf.tensor: Output tf tensor from the vgg block
+        tf.tensor: uutput tensor from the vgg block
+
     Raises:
         ValueError: if 'num_conv' is not one of 2, 3, or 4.
     """
@@ -203,7 +206,8 @@ def resnet_block(
     dropout=0.0,
     prefix="",
 ):
-    """Builds a resnet block
+    """Build a resnet block.
+
     This function builds pre-activation resnet block using the improved structure layed
     out in https://arxiv.org/abs/1603.05027. Optionally, a squeeze-exitation block as first set
     out in https://arxiv.org/abs/1709.01507 can be added, as well as a dropout layer. The option
@@ -214,17 +218,19 @@ def resnet_block(
         - https://github.com/keras-team/keras-applications/blob/master/ \
             keras_applications/resnet_common.py
         - https://github.com/kobiso/SENet-tensorflow-slim/blob/master/nets/resnet_v2.py
+
     Args:
-        x (tf.tensor): Input tf tensor
-        filters (int): Number of output filters
-        k (int): Width factor
-        strides (int): Strides of the convolution layer
-        bottleneck (bool): Should we use the bottleneck variant?
-        se_ratio (int): Squeeze-exitation ratio if '0' will not be used
-        dropout (float): What should the dropout rate be?
-        prefix (str): Prefix to prepend to all layer names
+        x (tf.tensor): input tensor
+        filters (int): number of output filters
+        k (int): width factor
+        strides (int): strides of the convolution layer
+        bottleneck (bool): should we use the bottleneck variant?
+        se_ratio (int): squeeze-exitation ratio if '0' will not be used
+        dropout (float): what should the dropout rate be?
+        prefix (str): prefix to prepend to all layer names
+
     Returns:
-        tf.tensor: Output tf tensor from the resnet block
+        tf.tensor: Output tensor from the resnet block
     """
     init = x
 
@@ -308,7 +314,8 @@ def resnet_block(
 def inception_resnet_block(
     x, scale, block_type, activation="relu", se_ratio=0, dropout=0.0, prefix=""
 ):
-    """Builds an Inception-ResNet block
+    """Build an Inception-ResNet block.
+
     This function builds 3 types of Inception-ResNet blocks mentioned in the paper
     https://arxiv.org/abs/1602.07261, controlled by the block_type argument (which is the
     block name used in the official TF-slim implementation):
@@ -318,16 +325,19 @@ def inception_resnet_block(
     Implementation taken from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/ \
     python/keras/applications/inception_resnet_v2.py. Optionally, a squeeze-exitation block as
     first set out in https://arxiv.org/abs/1709.01507 can be added, as well as a dropout layer
+
     Args:
-        x (tf.tensor): Input tf tensor
+        x (tf.tensor): input tensor
         scale (float): scaling factor to scale the residuals
         block_type (str): 'block35', 'block17' or 'block8'
-        activation (str): Activation function to use at the end of the block
-        se_ratio (int): Squeeze-exitation ratio if '0' will not be used
-        dropout (float): What should the dropout rate be?
-        prefix (str): Prefix to prepend to all layer names
+        activation (str): activation function to use at the end of the block
+        se_ratio (int): squeeze-exitation ratio if '0' will not be used
+        dropout (float): what should the dropout rate be?
+        prefix (str): prefix to prepend to all layer names
+
     Returns:
-        Output tensor for the inception resnet block.
+        tf.tensor: Output tensor for the inception resnet block.
+
     Raises:
         ValueError: if 'block_type' is not one of 'block35', 'block17' or 'block8'.
     """
@@ -383,19 +393,21 @@ def inception_resnet_block(
 
 
 def squeeze_excite_block(x, ratio=16, prefix=""):
-    """Builds a squeeze-exitation block
+    """Build a squeeze-exitation block.
+
     This function builds a squeeze-exitation block as first set out in
     https://arxiv.org/abs/1709.01507. The implementation used here was taken from
     https://github.com/titu1994/keras-squeeze-excite-network/blob/master/ \
         keras_squeeze_excite_network/se.py
-    Args:
-        x (tf.tensor): Input tf tensor
-        ratio (int): Squeeze ratio
-        prefix (str): Prefix to prepend to all layer names
-    Returns:
-        Output tensor for the squeeze_excite_block block.
-    """
 
+    Args:
+        x (tf.tensor): input tensor
+        ratio (int): squeeze ratio
+        prefix (str): prefix to prepend to all layer names
+
+    Returns:
+        tf.tensor: output tensor for the squeeze_excite_block block.
+    """
     init = x
     filters = init.shape[3]
     se_shape = (1, 1, filters)
@@ -420,13 +432,14 @@ def squeeze_excite_block(x, ratio=16, prefix=""):
 
 
 def vgg_model(config):
-    """Builds the VGG-16 model
+    """Build the VGG-16 model.
+
     Args:
-        config (dotmap): Dotmap configuration namespace
+        config (dotmap.DotMap): configuration namespace
+
     Returns:
         tf.keras.Model: VGG keras model
     """
-
     # Get the image inputs
     inputs = []
     inputs.extend(get_image_inputs(config))
@@ -526,13 +539,14 @@ def vgg_model(config):
 
 
 def resnet_model(config):
-    """Builds the resnet model
+    """Build the resnet model.
+
     Args:
-        config (dotmap): Dotmap configuration namespace
+        config (dotmap.DotMap): configuration namespace
+
     Returns:
         tf.keras.Model: Resnet keras model
     """
-
     depths = [3, 4, 6, 3]
     filters = [64, 128, 256, 512]
 
@@ -637,13 +651,14 @@ def resnet_model(config):
 
 
 def inception_resnet_model(config):
-    """Builds the Inception-Resnet-v2 model
+    """Build the Inception-Resnet-v2 model.
+
     Args:
-        config (dotmap): Dotmap configuration namespace
+        config (dotmap.DotMap): configuration namespace
+
     Returns:
         tf.keras.Model: Inception-Resnet-v2 keras model
     """
-
     blocks = [5, 5, 5]  # [11, 21, 10]
     scales = [0.17, 0.1, 0.2]
 
@@ -772,11 +787,13 @@ def inception_resnet_model(config):
 
 
 def get_image_inputs(config):
-    """Generates the image inputs for the model
+    """Generate the image inputs for the model.
+
     Args:
-        config (dotmap): Dotmap configuration namespace
+        config (dotmap.DotMap): configuration namespace
+
     Returns:
-        list[tf.keras.Inputs]: Image inputs to the model
+        list[tf.keras.Inputs]: image inputs to the model
     """
     inputs = []
     images = 1
@@ -796,11 +813,13 @@ def get_image_inputs(config):
 
 
 def get_reco_inputs():
-    """Generates the reconstructed parameters inputs
+    """Generate the reconstructed parameter inputs.
+
     Args:
-        config (dotmap): Dotmap configuration namespace
+        config (dotmap.DotMap): configuration namespace
+
     Returns:
-        list[tf.keras.Inputs]: Reco inputs to the model
+        list[tf.keras.Inputs]: reco inputs to the model
     """
     inputs = []
     parameters = ["r_vtxX", "r_vtxY", "r_vtxZ", "r_dirTheta", "r_dirPhi"]
@@ -810,17 +829,19 @@ def get_reco_inputs():
 
 
 def get_outputs(config, x):
-    """Generates the outputs to the model
+    """Generate the outputs to the model.
+
     Args:
-        config (dotmap): Dotmap configuration namespace
-        x (tf.tensor): Input tensor of model
+        config (dotmap.DotMap): configuration namespace
+        x (tf.tensor): input tensor of model
+
     Returns:
-        list[tf.tensor]: Model outputs
-        tuple(losses, weights, metrics): Tuple of model compilation arguments
+        list[tf.tensor]: model outputs
+        tuple(losses, weights, metrics): tuple of model compilation arguments
+
     Raises:
         ValueError: if labels is not a list with length atleast 1
     """
-
     if type(config.model.labels) != list:
         raise ValueError("Invalid labels type, must be a list")
     elif len(config.model.labels) == 0:
@@ -829,56 +850,56 @@ def get_outputs(config, x):
     outputs = []
     losses, weights, metrics = {}, {}, {}
     for output in config.model.labels:
-        if output == data.MAP_NU_TYPE.name:
+        if output == data.MAP_NU_TYPE["name"]:
             out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("sigmoid", dtype="float32", name=output)(out))
             losses[output] = "binary_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output == data.MAP_SIGN_TYPE.name:
+        elif output == data.MAP_SIGN_TYPE["name"]:
             out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("sigmoid", dtype="float32", name=output)(out))
             losses[output] = "binary_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output == data.MAP_INT_TYPE.name:
+        elif output == data.MAP_INT_TYPE["name"]:
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output == data.MAP_ALL_CAT.name:
+        elif output == data.MAP_ALL_CAT["name"]:
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output == data.MAP_COSMIC_CAT.name:
+        elif output == data.MAP_COSMIC_CAT["name"]:
             out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("sigmoid", dtype="float32", name=output)(out))
             losses[output] = "binary_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output == data.MAP_FULL_COMB_CAT.name:
+        elif output == data.MAP_FULL_COMB_CAT["name"]:
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output == data.MAP_NU_NC_COMB_CAT.name:
+        elif output == data.MAP_NU_NC_COMB_CAT["name"]:
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output == data.MAP_NC_COMB_CAT.name:
+        elif output == data.MAP_NC_COMB_CAT["name"]:
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
@@ -911,13 +932,15 @@ def get_outputs(config, x):
 
 
 def add_multitask_loss(config, outputs):
-    """Add the multitask loss layer thats 'learns' how to weight the losses
+    """Add the multitask loss layer thats 'learns' how to weight the losses.
+
     Args:
-        config (dotmap): Dotmap configuration namespace
-        outputs (tf.tensor): Model outputs
+        config (dotmap.DotMap): configuration namespace
+        outputs (tf.tensor): model outputs
+
     Returns:
-        tf.tensor: Additional inputs for the labels
-        tf.tensor: Model outputs
+        tf.tensor: additional inputs for the labels
+        tf.tensor: model outputs
     """
     inputs = []
     for label in config.model.labels:
@@ -927,7 +950,8 @@ def add_multitask_loss(config, outputs):
 
 
 class MultiLossLayer(tf.keras.layers.Layer):
-    """Weighted multi-loss layer for multitask network
+    """Weighted multi-loss layer for multitask network.
+
     A layer to calculate a custom combined loss according to the paper
     https://arxiv.org/abs/1705.07115
     the implementation at the following link was used for reference
@@ -937,8 +961,9 @@ class MultiLossLayer(tf.keras.layers.Layer):
 
     def __init__(self, config, **kwargs):
         """Initialise the MultiLossLayer.
+
         Args:
-            config (dotmap): Dotmap configuration namespace
+            config (dotmap.DotMap): configuration namespace
         """
         self.config = config
         self.is_placeholder = True
@@ -946,48 +971,49 @@ class MultiLossLayer(tf.keras.layers.Layer):
 
     def build(self, input_shape=None):
         """Initialise the self.log_vars.
+
         Args:
-            input_shape: Tensor input shape
+            input_shape: tensor input shape
         """
         self.loss_funcs, self.lw, self.log_vars = [], [], []
         for output in self.config.model.labels:
-            if output == data.MAP_NU_TYPE.name:
+            if output == data.MAP_NU_TYPE["name"]:
                 self.loss_funcs.append(BinaryCrossentropy(reduction=Reduction.SUM))
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
-            elif output == data.MAP_SIGN_TYPE.name:
+            elif output == data.MAP_SIGN_TYPE["name"]:
                 self.loss_funcs.append(BinaryCrossentropy(reduction=Reduction.SUM))
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
-            elif output == data.MAP_INT_TYPE.name:
+            elif output == data.MAP_INT_TYPE["name"]:
                 self.loss_funcs.append(
                     SparseCategoricalCrossentropy(reduction=Reduction.SUM)
                 )
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
-            elif output == data.MAP_ALL_CAT.name:
+            elif output == data.MAP_ALL_CAT["name"]:
                 self.loss_funcs.append(
                     SparseCategoricalCrossentropy(reduction=Reduction.SUM)
                 )
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
-            elif output == data.MAP_COSMIC_CAT.name:
+            elif output == data.MAP_COSMIC_CAT["name"]:
                 self.loss_funcs.append(BinaryCrossentropy(reduction=Reduction.SUM))
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
-            elif output == data.MAP_FULL_COMB_CAT.name:
+            elif output == data.MAP_FULL_COMB_CAT["name"]:
                 self.loss_funcs.append(
                     SparseCategoricalCrossentropy(reduction=Reduction.SUM)
                 )
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
-            elif output == data.MAP_NU_NC_COMB_CAT.name:
+            elif output == data.MAP_NU_NC_COMB_CAT["name"]:
                 self.loss_funcs.append(
                     SparseCategoricalCrossentropy(reduction=Reduction.SUM)
                 )
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
-            elif output == data.MAP_NC_COMB_CAT.name:
+            elif output == data.MAP_NC_COMB_CAT["name"]:
                 self.loss_funcs.append(
                     SparseCategoricalCrossentropy(reduction=Reduction.SUM)
                 )
@@ -1012,9 +1038,10 @@ class MultiLossLayer(tf.keras.layers.Layer):
 
     def add_var(self, output, initial=0.0):
         """Add loss weight variable.
+
         Args:
-            output (str): Output name
-            initial (float): Initial weight value
+            output (str): uutput name
+            initial (float): initial weight value
         """
         return self.add_weight(
             name=output + "_log_var",
@@ -1026,9 +1053,10 @@ class MultiLossLayer(tf.keras.layers.Layer):
 
     def multi_loss(self, ys_true, ys_pred):
         """Calculate the multi-loss.
+
         Args:
-            ys_true (list[tf.tensor]): True tensors
-            ys_pred (list[tf.tensor]): Predicted tensors
+            ys_true (list[tf.tensor]): true tensors
+            ys_pred (list[tf.tensor]): predicted tensors
         """
         loss = 0
         for i in range(len(ys_true)):
@@ -1039,8 +1067,9 @@ class MultiLossLayer(tf.keras.layers.Layer):
 
     def call(self, inputs):
         """Layer call method.
+
         Args:
-            inputs (list[tf.tensor]): List of layer inputs
+            inputs (list[tf.tensor]): list of layer inputs
         """
         num_outputs = len(self.config.model.labels)
         loss = self.multi_loss(inputs[:num_outputs], inputs[num_outputs:])

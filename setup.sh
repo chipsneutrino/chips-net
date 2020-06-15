@@ -8,7 +8,7 @@ fi
 
 CURRENTDIR=$(pwd)
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-cd $DIR
+cd "$DIR"
 
 # First we setup the CUDA version to use 10.1
 INSTALL_FOLDER="/usr/local"  # the location to look for CUDA installations at
@@ -58,15 +58,15 @@ else
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh --no-check-certificate
 
     # Install miniconda3 in the current directory
-    bash miniconda.sh -b -p $DIR/.conda
+    bash miniconda.sh -b -p "$DIR/.conda"
     rm miniconda.sh
 
     # Activate miniconda and create the chipsnet environment
     source .conda/bin/activate
     conda update -n base -c defaults conda -y
-    conda config --add envs_dirs $DIR/.conda/envs
-    conda config --add envs_dirs $DIR/.conda/envs
-    conda env create -f $DIR/environment.yaml
+    conda config --add envs_dirs "$DIR/.conda/envs"
+    conda config --add envs_dirs "$DIR/.conda/envs"
+    conda env create -f "$DIR/environment.yaml"
 
     # Clean the miniconda install
     conda clean --all -y
@@ -78,13 +78,12 @@ else
 fi
 
 # Go back to the user directory
-cd $CURRENTDIR
+cd "$CURRENTDIR"
 
 if [[ -f ".comet" ]]; then
     while read LINE; do export "$LINE"; done < .comet
 fi
 
-alias run="python $DIR/chipsnet/run.py"
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
 echo "Setup complete."

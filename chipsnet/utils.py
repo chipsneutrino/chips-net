@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Utility module containing lots of helpful methods for evaluation and plotting
-"""
+"""Utility module containing lots of helpful methods for evaluation and plotting."""
 
 import os
 import time
@@ -33,12 +32,14 @@ import chipsnet.models
 
 
 def data_from_conf(config, name):
-    """Get the named data reader as defined in the configuration.
+    """Get the named data.Reader as defined in the configuration.
+
     Args:
-        config (dotmap.DotMap): Base configuration namespace
-        name (str): Data name
+        config (dotmap.DotMap): base configuration namespace
+        name (str): data name
+
     Returns:
-        chipsnet.data reader: Data reader from configuration
+        chipsnet.data.Reader: data reader from configuration
     """
     # We copy the configuration so we don't modify it
     data_config = copy.copy(config)
@@ -48,12 +49,14 @@ def data_from_conf(config, name):
 
 
 def model_from_conf(config, name):
-    """Get the loaded model corresponding to the given name and configuration.
+    """Get the loaded models.Model corresponding to the given name and configuration.
+
     Args:
-        config (dotmap.DotMap): Base configuration namespace
-        name (str): Model name
+        config (dotmap.DotMap): base configuration namespace
+        name (str): model name
+
     Returns:
-        chipsnet.models model: Model from the configuration
+        chipsnet.models.Model: model loaded from the configuration
     """
     # We copy the configuration so we don't modify it
     model_config = copy.copy(config)
@@ -68,12 +71,14 @@ def model_from_conf(config, name):
 
 
 def model_history(config, name):
-    """Get the model training history.
+    """Get the saved model training history.
+
     Args:
-        config (dotmap.DotMap): Base configuration namespace
-        name (str): Model name
+        config (dotmap.DotMap): configuration namespace
+        name (str): model name
+
     Returns:
-        pandas.DataFrame: Dataframe containing model training history
+        pd.DataFrame: dataframe containing model training history
     """
     model_config = copy.copy(config)
     model_config.model = config.models[name]
@@ -89,14 +94,16 @@ def model_history(config, name):
 
 
 def process_ds(config, data_name, model_names, verbose=False):
-    """Fully process a dataset through a list of models and run standard evaluation.
+    """Fully process a dataset through a list of models and run a standard evaluation.
+
     Args:
-        config (dotmap.DotMap): Base configuration namespace
-        data_name (str): Data name
-        model_names (List[str]): Model names
-        verbose (bool): Should processing print summaries?
+        config (dotmap.DotMap): configuration namespace
+        data_name (str): data name
+        model_names (List[str]): model names
+        verbose (bool): should we print summaries?
+
     Returns:
-        pandas.DataFrame: Events dataframe fully processed
+        pd.DataFrame: fully processed events dataframe
     """
     print("Processing {}... ".format(data_name), end="", flush=True)
     start_time = time.time()
@@ -216,12 +223,14 @@ def process_ds(config, data_name, model_names, verbose=False):
 
 def run_inference(events, model, prefix=""):
     """Run predictions on the input dataset and append outputs to events dataframe.
+
     Args:
-        events (pandas.DataFrame): Events dataframe to append outputs
-        model (chipsnet.Model): Model to use for prediction
-        prefix (str): Prefix to append to column name
+        events (pd.DataFrame): events dataframe to append outputs
+        model (chipsnet.Model): model to use for prediction
+        prefix (str): prefix to append to column name
+
     Returns:
-        pandas.DataFrame: Events dataframe with model predictions
+        pd.DataFrame: events dataframe with model predictions
     """
     # Make the predictions
     outputs = model.model.predict(np.stack(events["image_0"].to_numpy()))
@@ -251,11 +260,13 @@ def run_inference(events, model, prefix=""):
 
 def full_comb_combine(events, prefix=""):
     """Combine t_all_cat scores into t_comb_cat scores.
+
     Args:
-        events (pandas.DataFrame): Events dataframe to calculate combined category scores
-        prefix (str): Prefix to apply to model output values
+        events (pd.DataFrame): events dataframe to calculate combined category scores
+        prefix (str): prefix to apply to model output values
+
     Returns:
-        pandas.DataFrame: Events dataframe with combined category scores
+        pd.DataFrame: events dataframe with combined category scores
     """
 
     def full_comb_apply(event, apply_prefix):
@@ -297,23 +308,26 @@ def apply_weights(
     verbose=False,
 ):
     """Calculate and apply the 'weight' column to scale events to predicted numbers.
+
     Args:
-        events (pandas.DataFrame): Events dataframe to append weights to
-        total_num (float): Total number of expected events in a year
-        nuel_frac (float): Fraction of events from nuel
-        anuel_frac (float): Fraction of events from anuel
-        numu_frac (float): Fraction of events from numu
-        anumu_frac (float): Fraction of events from anumu
-        cosmic_frac (float): Fractions of events from cosmics
-        verbose (bool): Should we print weight summary?
+        events (pd.DataFrame): events dataframe to append weights to
+        total_num (float): total number of expected events in a year
+        nuel_frac (float): fraction of events from nuel
+        anuel_frac (float): fraction of events from anuel
+        numu_frac (float): fraction of events from numu
+        anumu_frac (float): fraction of events from anumu
+        cosmic_frac (float): fractions of events from cosmics
+        verbose (bool): should we print the weight summary?
+
     Returns:
-        pandas.DataFrame: Events dataframe with weights
+        pd.DataFrame: events dataframe with weights
     """
 
     def add_weight(event, w_nuel, w_anuel, w_numu, w_anumu, w_cosmic):
         """Add the correct weight to each event.
+
         Args:
-            event (dict): Pandas event(row) dict
+            event (dict): pandas event(row) dict
             w_nuel: nuel weight
             w_anuel: anuel weight
             w_numu: numu weight
@@ -439,16 +453,18 @@ def apply_standard_cuts(
     verbose=False,
 ):
     """Calculate and apply the standard cuts to the events dataframe.
+
     Args:
-        events (pandas.DataFrame): Events dataframe to append weights to
-        cosmic_cut (float): Cosmic classifier output cut
-        q_cut (float): Total collected event chargr cut
-        h_cut (float): Hough peak height cut
-        theta_cut (float): Reco theta direction cut
-        phi_cut (float): Reco phi direction cut
-        verbose (bool): Should we print cut summary?
+        events (pd.DataFrame): events dataframe to append weights to
+        cosmic_cut (float): cosmic classifier output cut
+        q_cut (float): total collected event chargr cut
+        h_cut (float): hough peak height cut
+        theta_cut (float): reco theta direction cut
+        phi_cut (float): reco phi direction cut
+        verbose (bool): should we print the cut summary?
+
     Returns:
-        events (pandas.DataFrame): Events with cuts applied
+        pd.DataFrame: events with cuts applied
     """
     cosmic_cuts = np.zeros(len(events), dtype=bool)
     if "pred_t_cosmic_cat" in events.columns:
@@ -503,13 +519,15 @@ def apply_standard_cuts(
 
 
 def cut_apply(variable, value, type):
-    """Creates a function to apply a cut on a variable within the events dataframe
+    """Create a function to apply a cut on a variable within the events dataframe.
+
     Args:
-        variable (str): Variable name to cut on
-        value (float): Cut value
-        type (str): Type (greater or lower)
+        variable (str): variable name to cut on
+        value (float): cut value
+        type (str): type (greater or lower)
+
     Returns:
-        function: Function to apply the cut to the dataframe
+        function: function to apply the cut to the dataframe
     """
 
     def cut_func(event):
@@ -526,19 +544,21 @@ def cut_apply(variable, value, type):
 def calculate_curves(
     events, cat_name="t_comb_cat", thresholds=200, prefix="", verbose=False
 ):
-    """Calculate efficiency, purity and figure of merit across the full range of cut values
+    """Calculate efficiency, purity and figure of merit across the full range of cut values.
+
     Args:
-        events (pandas.DataFrame): Events dataframe to use
-        cat_name (str): Category name to use
-        thresholds (int): Number of threshold values to use
-        prefix (str): Prefix to apply to model output values
-        verbose (bool): Should we print summary?
+        events (pd.DataFrame): events dataframe to use
+        cat_name (str): category name to use
+        thresholds (int): number of threshold values to use
+        prefix (str): prefix to apply to model output values
+        verbose (bool): should we print summary?
+
     Returns:
-        cuts (np.array): Array of threshold cut values
-        sig_effs (np.array): Array signal efficiencies
-        bkg_effs (np.array): Array background efficiencies
-        purities (np.array): Array of purities
-        foms (np.array): Array of figure-of-merits (efficiency*purity)
+        cuts (np.array): array of threshold cut values
+        sig_effs (np.array): array signal efficiencies
+        bkg_effs (np.array): array background efficiencies
+        purities (np.array): array of purities
+        foms (np.array): array of figure-of-merits (efficiency*purity)
     """
     num_cats = chipsnet.data.get_map(cat_name)["categories"]
     prefix = prefix + "pred_" + cat_name + "_"
@@ -693,10 +713,12 @@ def calculate_curves(
 
 def classify(event, categories, prefix):
     """Classify the event by the highest score.
+
     Args:
-        event (dict): Pandas event(row) dict
-        categories (int): Number of categories
+        event (dict): pandas event(row) dict
+        categories (int): number of categories
         prefix: (str): prefix of the different scores for this classification
+
     Returns:
         int: category classification
     """
@@ -716,15 +738,17 @@ def run_pca(
     verbose=False,
 ):
     """Run PCA on the final dense layer outputs and append results to events dataframe.
+
     Args:
-        events (pandas.DataFrame): Events dataframe to append outputs
-        model (chipsnet.Model): Model to use for prediction
-        layer_name (str): Final dense layer name
-        standardise (bool): Should we apply a standard scalar to the dense layer outputs?
-        components (int): Number of PCA componenets to calculate
-        verbose (bool): Should we print summary?
+        events (pd.DataFrame): events dataframe to append outputs
+        model (chipsnet.Model): model to use for prediction
+        layer_name (str): final dense layer name
+        standardise (bool): should we apply a standard scalar to the dense layer outputs?
+        components (int): number of PCA componenets to calculate
+        verbose (bool): should we print the PCA summary?
+
     Returns:
-        pandas.DataFrame: Events dataframe with PCA outputs
+        pd.DataFrame: events dataframe with PCA outputs
     """
     # Create model that outputs the dense layer outputs
     dense_model = Model(
@@ -766,15 +790,17 @@ def run_tsne(
     max_events=10000,
 ):
     """Run t-SNE on the final dense layer outputs and append results to events dataframe.
+
     Args:
-        events (pandas.DataFrame): Events dataframe to append outputs
-        model (chipsnet.Model): Model to use for prediction
-        layer_name (str): Final dense layer name
-        standardise (bool): Should we apply a standard scalar to the dense layer outputs?
-        components (int): Number of t-SNE componenets to calculate
-        verbose (bool): Should we print summary?
+        events (pd.DataFrame): events dataframe to append outputs
+        model (chipsnet.Model): model to use for prediction
+        layer_name (str): final dense layer name
+        standardise (bool): should we apply a standard scalar to the dense layer outputs?
+        components (int): number of t-SNE componenets to calculate
+        max_events (int): maximum number of events to use in t-SNE
+
     Returns:
-        pandas.DataFrame: Events dataframe with t-SNE outputs
+        pd.DataFrame: events dataframe with t-SNE outputs
     """
     # Create model that outputs the dense layer outputs
     dense_model = Model(
@@ -804,14 +830,16 @@ def explain_gradcam(
     events, model, num_events, output="t_all_cat", layer_name="path0_block1"
 ):
     """Run GradCAM on the given model using the events.
+
     Args:
-        events (pandas.DataFrame): Events dataframe to append outputs
-        model (chipsnet.Model): Model to use for prediction
-        num_events (int): Number of events to run
-        output (str): Single classification model output to use
-        layer_name (str): Model layer name to use
+        events (pd.DataFrame): events dataframe to append outputs
+        model (chipsnet.Model): model to use for prediction
+        num_events (int): number of events to run
+        output (str): single classification model output to use
+        layer_name (str): model layer name to use
+
     Returns:
-        list[event_outputs]: List of GradCAM outputs
+        list[event_outputs]: list of GradCAM outputs
     """
     explain_m = Model(
         inputs=model.model.input, outputs=model.model.get_layer(output).output
@@ -833,13 +861,15 @@ def explain_gradcam(
 
 def explain_occlusion(events, model, num_events, output="t_all_cat"):
     """Run OcclusionSensitivity on the given model using the events.
+
     Args:
-        events (pandas.DataFrame): Events dataframe to append outputs
-        model (chipsnet.Model): Model to use for prediction
-        num_events (int): Number of events to run
-        output (str): Single classification model output to use
+        events (pd.DataFrame): events dataframe to append outputs
+        model (chipsnet.Model): model to use for prediction
+        num_events (int): number of events to run
+        output (str): single classification model output to use
+
     Returns:
-        list[event_outputs]: List of OcclusionSensitivity outputs
+        list[event_outputs]: list of OcclusionSensitivity outputs
     """
     explain_m = Model(
         inputs=model.model.input, outputs=model.model.get_layer(output).output
@@ -860,14 +890,16 @@ def explain_activation(
     events, model, num_events, output="t_all_cat", layer_name="path0_block1_conv0"
 ):
     """Run ExtractActivations on the given model using the events.
+
     Args:
-        events (pandas.DataFrame): Events dataframe to append outputs
-        model (chipsnet.Model): Model to use for prediction
-        num_events (int): Number of events to run
-        output (str): Single classification model output to use
-        layer_name (str): Model layer name to use
+        events (pd.DataFrame): events dataframe to append outputs
+        model (chipsnet.Model): model to use for prediction
+        num_events (int): number of events to run
+        output (str): single classification model output to use
+        layer_name (str): model layer name to use
+
     Returns:
-        list[event_outputs]: List of ExtractActivations outputs
+        list[event_outputs]: list of ExtractActivations outputs
     """
     explain_m = Model(
         inputs=model.model.input, outputs=model.model.get_layer(output).output
@@ -886,11 +918,13 @@ def explain_activation(
 
 def explain_grads(events, model, num_events, output="t_all_cat"):
     """Run various gradient explain methods on the given model using the events.
+
     Args:
-        events (pandas.DataFrame): Events dataframe to append outputs
-        model (chipsnet.Model): Model to use for prediction
-        num_events (int): Number of events to run
-        output (str): Single classification model output to use
+        events (pd.DataFrame): events dataframe to append outputs
+        model (chipsnet.Model): model to use for prediction
+        num_events (int): number of events to run
+        output (str): single classification model output to use
+
     Returns:
         dict: Dictionary of gradient outputs
     """
@@ -923,8 +957,7 @@ def explain_grads(events, model, num_events, output="t_all_cat"):
 
 
 def predict_energies(self):
-    """Estimate the event energy using the true category model
-    """
+    """Estimate the event energy using the true category model."""
     estimations = []
     for i in tqdm(
         range(self.beam_model.categories + 1), desc="--- predicting energies"
@@ -943,9 +976,10 @@ def predict_energies(self):
 
 def globes_smearing_file(hists, names):
     """Output Globes compatible energy smearing files.
+
     Args:
-        hists (list[numpy 2darray]): List of histogram energy smearing arrays
-        names (list[str]): Event type name
+        hists (list[numpy 2darray]): list of histogram energy smearing arrays
+        names (list[str]): event type name
     """
     for hist, name in zip(hists, names):
         with open("smearing/" + name + ".dat", "w", encoding="utf-8") as f:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Provides a configuration namespace from a yaml file
+"""Provides a configuration namespace from a yaml file.
 
 This module produces a configuration namespace from an input yaml config
 file that can be used in the rest of the chipsnet code. It also formats
@@ -14,14 +14,16 @@ from dotmap import DotMap
 
 
 def get(config_path):
-    """Returns a configuration namespace generated from the config file.
+    """Return a configuration namespace generated from the config file.
+
     Args:
-        config_path (str): Input configuration file path
+        config_path (str): input configuration file path
+
     Returns:
-        dotmap.DotMap: Dotmap configuration namespace
+        dotmap.DotMap: configuration namespace
     """
     with open(config_path, "r") as config_file:
-        config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
+        config_dict = yaml.safe_load(config_file)
 
     config_space = DotMap(config_dict)  # Convert yaml dict to namespace
     config_space.config_path = config_path
@@ -30,10 +32,11 @@ def get(config_path):
 
 
 def setup_dirs(config, remove_old):
-    """Sets up the experiment output directories.
+    """Set up the experiment output directories.
+
     Args:
         config (dotmap.DotMap): Configuration namespace
-        remove_old (bool): Should we remove old directories at the same path
+        remove_old (bool): should we remove old directories at the same path?
     """
     config.exp.exp_dir = os.path.join(config.exp.output_dir, config.exp.name)
     if remove_old:

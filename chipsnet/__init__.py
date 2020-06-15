@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-"""
-chipsnet package
+"""chipsnet package.
 
-This packaged provides the core functionality to train and evaluate
-classification and estimation models for CHIPS data. See the individual
-module docs for more info.
+This package provides the core functionality to train and study classification
+and parameter estimation models using the Tensorflow framework for the CHIPS
+(CHerenkov detectors In mine PitS) research and development project.
 """

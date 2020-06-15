@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Module containing trainer class
-"""
+"""Module containing the Trainer class, implementing a simple keras fitter."""
 
 import os
 import csv
@@ -9,15 +8,15 @@ import tensorflow as tf
 
 
 class Trainer(object):
-    """chipsnet trainer class, implements a keras fitter and associated utilities.
-    """
+    """chipsnet trainer class, implements a keras fitter and associated utilities."""
 
     def __init__(self, config, model, data):
         """Initialise the BasicTrainer.
+
         Args:
-            config (dotmap.DotMap): DotMap Configuration namespace
-            model (chipsnet.models model): Model to use with trainer
-            data (chipsnet.data.Reader): Data reader
+            config (dotmap.DotMap): configuration namespace
+            model (chipsnet.models.Model): model to use with trainer
+            data (chipsnet.data.Reader): data reader
         """
         self.config = config
         self.model = model
@@ -28,17 +27,18 @@ class Trainer(object):
 
     def lr_scheduler(self, epoch):
         """Learning rate schedule function.
+
         Args:
-            epoch (int): Epoch number
+            epoch (int): epoch number
+
         Returns:
-            float: The generated dataset
+            float: learning rate for the given epoch
         """
         lr = self.config.model.lr * 1 / (1 + self.config.model.lr_decay * epoch)
         return lr
 
     def init_callbacks(self):
-        """Initialise the keras callbacks to be called at the end of each epoch.
-        """
+        """Initialise the keras callbacks to be called at the end of each epoch."""
         self.callbacks.append(  # Tensorboard callback for viewing plots of model training
             tf.keras.callbacks.TensorBoard(
                 log_dir=self.config.exp.tensorboard_dir,
@@ -74,19 +74,14 @@ class Trainer(object):
             tf.keras.callbacks.LearningRateScheduler(self.lr_scheduler)
         )
 
-    def train(self, epochs=None):
-        """Train the model using the tf.keras fit api call.
-        """
+    def train(self):
+        """Train the model using the tf.keras fit api call."""
         training_ds = self.data.training_ds(
             self.config.trainer.train_examples, self.config.trainer.batch_size
         )
         validation_ds = self.data.validation_ds(
             self.config.trainer.val_examples, self.config.trainer.batch_size
         )
-
-        num_epochs = self.config.trainer.epochs
-        if epochs is not None:
-            num_epochs = epochs
 
         if self.config.trainer.steps_per_epoch == -1:
             steps = None
@@ -95,7 +90,7 @@ class Trainer(object):
 
         self.history = self.model.model.fit(
             training_ds,
-            epochs=num_epochs,
+            epochs=self.config.trainer.epochs,
             verbose=1,
             validation_data=validation_ds,
             callbacks=self.callbacks,
@@ -105,8 +100,7 @@ class Trainer(object):
         return self.history
 
     def eval(self):
-        """Run a quick evaluation.
-        """
+        """Run a quick evaluation."""
         testing_ds = self.data.testing_ds(
             self.config.trainer.test_examples,
             self.config.trainer.batch_size,
@@ -115,8 +109,7 @@ class Trainer(object):
         self.model.model.evaluate(testing_ds)
 
     def save(self):
-        """Save the training history to file.
-        """
+        """Save the training history to file."""
         if self.history is not None:
             history_name = os.path.join(self.config.exp.exp_dir, "history.csv")
             with open(history_name, mode="w") as history_file:

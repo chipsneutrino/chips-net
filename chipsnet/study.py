@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Module containing SHERPA study class
-"""
+"""Module containing the SherpaStudy used for hyperparamter optimisation using SHERPA."""
 
 from sherpa import Choice, Continuous, Ordinal, algorithms, Study
 import chipsnet.data
@@ -10,20 +9,19 @@ import chipsnet.trainer
 
 
 class SherpaStudy(object):
-    """Sherpa study class
-    """
+    """Sherpa study class."""
 
     def __init__(self, config):
         """Initialise the SherpaStudy.
+
         Args:
-            config (str): Dotmap configuration namespace
+            config (dotmap.DotMap): configuration namespace
         """
         self.config = config
         self.init_study()
 
     def init_study(self):
-        """Initialise the SHERPA study, overide in derived model class.
-        """
+        """Initialise the SHERPA study, overide in derived model class."""
         pars = [
             Choice(name="data.unstack", range=self.config.study.data.unstack),
             Choice(name="data.augment", range=self.config.study.data.augment),
@@ -67,8 +65,7 @@ class SherpaStudy(object):
         self.context = ["val_t_cat_accuracy", "val_t_nuEnergy_mae"]
 
     def run(self):
-        """Run the SHERPA study.
-        """
+        """Run the SHERPA study."""
         for trial in self.study:
             print(" *** Trial: {} *** ".format(trial.id))
             print("*******************")

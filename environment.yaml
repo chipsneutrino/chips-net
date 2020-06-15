@@ -8,8 +8,6 @@ dependencies:
   - gxx_linux-64
   - papermill
   - tqdm
-  - flake8
-  - black
   - pytest
   - pdoc3
   - dotmap
@@ -33,3 +31,6 @@ dependencies:
     - tf-explain
     - particle
     - comet-ml
+    - pytest-docstyle
+    - pytest-flake8
+    - pytest-black

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Data creation and reading module
+"""Data creation and reading module.
 
 This module contains both the Creator and Reader classes, these
 are used to firstly generate tfrecords files from ROOT hitmap files and
@@ -23,14 +23,16 @@ from particle import Particle
 
 class Reader:
     """Generates tf datasets for training/evaluation from the configuration.
+
     These can be read on the fly by Tensorflow so that the entire dataset does
     not need to be loaded into memory.
     """
 
     def __init__(self, config):
         """Initialise the Reader.
+
         Args:
-            config (str): Dotmap configuration namespace
+            config (dotmap.DotMap): configuration namespace
         """
         self.config = config
         self.train_dirs = [
@@ -51,11 +53,13 @@ class Reader:
 
     @tf.function
     def parse(self, serialised_example):
-        """Parses a single serialised example into both an input and labels dict.
+        """Parse a single serialised example into both an input and labels dict.
+
         Args:
-            serialised_example (tf.Example): A single example from .tfrecords file
+            serialised_example (tf.Example): a single example from .tfrecords file
+
         Returns:
-            Tuple[dict, dict]: (Inputs dictionary, Labels dictionary)
+            Tuple[dict, dict]: (inputs dict, labels dict)
         """
         features = {
             "inputs_image": tf.io.FixedLenFeature([], tf.string),
@@ -135,22 +139,27 @@ class Reader:
 
     @tf.function
     def strip(self, inputs, labels):
-        """Strips all labels except those needed in training/validation.
+        """Strip all labels except those needed in training/validation.
+
         Args:
-            Tuple[dict, dict]: (Inputs dictionary, Labels dictionary)
+            tuple[dict, dict]: (inputs dict, labels dict)
+
         Returns:
-            Tuple[dict, dict]: (Inputs dictionary, Stripped labels dictionary)
+            tuple[dict, dict]: (inputs dict, stripped labels dict)
         """
         labels = {k: labels[k] for k in self.config.model.labels}
         return inputs, labels
 
     def filter_cats(self, inputs, labels):
+        """Filter out all events except those in cat_select category."""
         return tf.math.equal(labels["t_all_cat"], self.config.data.cat_select)
 
     def dataset(self, dirs, strip=True):
-        """Returns a dataset formed from all the files in the input directories.
+        """Return a dataset formed from all the files in the input directories.
+
         Args:
             dirs (list[str]): List of input directories
+
         Returns:
             tf.dataset: The generated dataset
         """
@@ -185,12 +194,14 @@ class Reader:
         return ds
 
     def df_from_ds(self, ds):
-        """Create a pandas dataframe from a tf dataset
+        """Create a pandas dataframe from a tf dataset.
+
         Args:
-            ds (tf.dataset): Input dataset
-            num_events (int): Number of events to include
+            ds (tf.dataset): input dataset
+            num_events (int): number of events to include
+
         Returns:
-            pandas.DataFrame: DataFrame generated from the dataset
+            pd.DataFrame: dataFrame generated from the dataset
         """
         events = {}
         for x, y in ds:
@@ -211,9 +222,10 @@ class Reader:
         return pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
 
     def training_ds(self, num_events, batch_size=None, strip=True):
-        """Returns the training dataset.
+        """Return the training dataset.
+
         Returns:
-            tf.dataset: The training dataset
+            tf.dataset: training dataset
         """
         ds = self.dataset(self.train_dirs, strip=strip)
         ds = ds.take(num_events)
@@ -222,9 +234,10 @@ class Reader:
         return ds
 
     def validation_ds(self, num_events, batch_size=None, strip=True):
-        """Returns the validation dataset.
+        """Return the validation dataset.
+
         Returns:
-            tf.dataset: The validation dataset
+            tf.dataset: validation dataset
         """
         ds = self.dataset(self.val_dirs, strip=strip)
         ds = ds.take(num_events)
@@ -233,9 +246,10 @@ class Reader:
         return ds
 
     def testing_ds(self, num_events, batch_size=None, strip=False):
-        """Returns the testing dataset.
+        """Return the testing dataset.
+
         Returns:
-            tf.dataset: The testing dataset
+            tf.dataset: testing dataset
         """
         ds = self.dataset(self.test_dirs, strip=strip)
         ds = ds.take(num_events)
@@ -244,41 +258,47 @@ class Reader:
         return ds
 
     def training_df(self, num_events):
-        """Returns the training DataFrame.
+        """Return the training DataFrame.
+
         Args:
-            num_events (int): Number of events to include
+            num_events (int): number of events to include
+
         Returns:
-            pd.DataFrame: Training data DataFrame
+            pd.DataFrame: training sample DataFrame
         """
         return self.df_from_ds(self.training_ds(num_events, 64))
 
     def validation_df(self, num_events):
-        """Returns the validation DataFrame.
+        """Return the validation DataFrame.
+
         Args:
-            num_events (int): Number of events to include
+            num_events (int): number of events to include
+
         Returns:
-            pd.DataFrame: Validation data DataFrame
+            pd.DataFrame: validation sample DataFrame
         """
         return self.df_from_ds(self.validation_ds(num_events, 64))
 
     def testing_df(self, num_events):
-        """Returns the testing DataFrame.
+        """Return the testing DataFrame.
+
         Args:
-            num_events (int): Number of events to include
+            num_events (int): number of events to include
+
         Returns:
-            pd.DataFrame: Testing data DataFrame
+            pd.DataFrame: testing sample DataFrame
         """
         return self.df_from_ds(self.testing_ds(num_events, 64))
 
 
 class Creator:
-    """Generates tfrecords files from ROOT map files.
-    """
+    """Generate tfrecords files from ROOT map files."""
 
     def __init__(self, config):
         """Initialise the Creator.
+
         Args:
-            config (str): Dotmap configuration namespace
+            config (dotmap.DotMap): configuration namespace
         """
         self.config = config
         os.makedirs(config.create.out_dir, exist_ok=True)
@@ -287,16 +307,18 @@ class Creator:
         os.makedirs(os.path.join(config.create.out_dir, "test/"), exist_ok=True)
 
     def bytes_feature(self, value):
-        """Returns a BytesList feature from a string/byte.
+        """Return a BytesList feature from a string/byte.
+
         Args:
-            value (str): Raw string format of an array
+            value (str): raw string format of an array
+
         Returns:
-            tf.train.Feature: A BytesList feature
+            tf.train.Feature: a BytesList feature
         """
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
     def count_primaries(self, pdgs, energies):
-        """Counts the number of Cherenkov threshold passing primaries for each type in the event.
+        """Count the number of Cherenkov threshold passing primaries for each type in the event.
 
         We count the number of particles for...
             - protons (above the cherenkov threshold)
@@ -307,8 +329,9 @@ class Creator:
         in the event, either (0, 1, 2, n). Anything above 2 is classified into the 'n' category
 
         Args:
-            pdgs (np.array): Primary particle pdgs
-            energies (np.array): Primary particle energies
+            pdgs (np.array): primary particle pdgs
+            energies (np.array): primary particle energies
+
         Returns:
             np.array: array of the particle counts
         """
@@ -335,12 +358,14 @@ class Creator:
         return np.stack(events, axis=0)
 
     def gen_examples(self, true, reco):
-        """Generates a list of examples from the input .root map file.
+        """Generate a list of examples from the input .root map file.
+
         Args:
-            true (uproot TTree): True TTree from input file
-            reco (uproot TTree): Reco TTree from input file
+            true (uproot TTree): true TTree from input file
+            reco (uproot TTree): reco TTree from input file
+
         Returns:
-            List[tf.train.Example]: List of examples
+            List[tf.train.Example]: list of examples
         """
         # First setup the input image
         channels = [
@@ -449,9 +474,10 @@ class Creator:
 
     def write_examples(self, name, examples):
         """Write a list of examples to a tfrecords file.
+
         Args:
-            name (str): Output .tfrecords file path
-            examples (List[tf.train.Example]): List of examples
+            name (str): uutput .tfrecords file path
+            examples (list[tf.train.Example]): list of examples
         """
         with tf.io.TFRecordWriter(name) as writer:
             for example in examples:
@@ -459,9 +485,10 @@ class Creator:
 
     def preprocess_files(self, num, files):
         """Preprocess joined .root map files into train, val and test tfrecords files.
+
         Args:
-            num (int): Job number
-            files (list[str]): List of input files to use
+            num (int): job number
+            files (list[str]): list of input files to use
         """
         examples = []
         print("job {}...".format(num))
@@ -499,8 +526,7 @@ class Creator:
         )
 
     def run(self):
-        """Preprocess all the files from the input directory into tfrecords.
-        """
+        """Preprocess all the files from the input directory into tfrecords."""
         files = []
         for directory in self.config.create.input_dirs:
             files.extend(
@@ -537,11 +563,13 @@ GAMMA_THRESHOLD = 20 * Particle.from_pdgid(11).mass
 
 
 def get_map(name):
-    """Getting category mapping dict from name.
+    """Get category mapping dict from name.
+
     Args:
-        name (str): Name of mapping
+        name (str): name of mapping
+
     Returns:
-        dict: Mapping dictionary
+        dict: mapping dictionary
     """
     for map in [
         MAP_NU_TYPE,
