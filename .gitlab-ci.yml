@@ -29,7 +29,7 @@ flake8:
   script:
     - source /opt/conda/bin/activate
     - source activate chipsnet
-    - flake8 --max-line-length=120 chipsnet/*.py
+    - flake8 --max-line-length=100 --ignore=E203,W503 chipsnet/*.py
 
 pytest:
   stage: test

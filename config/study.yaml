@@ -62,6 +62,6 @@ study:
         reco_pars: [True, False]
         se_ratio: [0, 16]
         learn_weights: [False]
-        precision_policy: ['float32', 'mixed_float16']        
+        precision_policy: ['float32', 'mixed_float16']
     trainer:
         batch_size: [128, 256]

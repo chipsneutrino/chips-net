@@ -4,32 +4,32 @@ channels:
   - defaults
 dependencies:
   - python=3.8
-  - gcc_linux-64=8.2.0
-  - gxx_linux-64=7.5.0
-  - papermill=2.1.0
-  - tqdm=4.46.1
-  - flake8=3.8.2
-  - autopep8=1.5.3
-  - pytest=5.4.3
-  - pdoc3=0.7.2
-  - dotmap=1.2.20
-  - pyyaml=5.3.1
-  - numpy=1.18.5
-  - pandas=1.0.4
-  - matplotlib=3.2.1
-  - seaborn=0.10.1
-  - mplhep=0.1.21
-  - pydotplus=2.0.2
-  - python-graphviz=0.14
-  - jupyterlab=2.1.4
-  - uproot=3.11.7
+  - gcc_linux-64
+  - gxx_linux-64
+  - papermill
+  - tqdm
+  - flake8
+  - black
+  - pytest
+  - pdoc3
+  - dotmap
+  - pyyaml
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - mplhep
+  - pydotplus
+  - python-graphviz
+  - jupyterlab
+  - uproot
   - cudnn=7.6.5=cuda10.1_0
-  - scikit-learn=0.22.1
-  - pip=20.1.1
+  - scikit-learn
+  - pip
   - pip:
     - tensorflow==2.2.0
     - tensorboard-plugin-profile==2.2.0
-    - parameter-sherpa==1.0.6
-    - tf-explain==0.2.1
-    - particle==0.10.0
-    - comet-ml==3.1.9
+    - parameter-sherpa
+    - tf-explain
+    - particle
+    - comet-ml

@@ -17,12 +17,29 @@ import tensorflow.keras.regularizers as regularizers
 import tensorflow.keras.initializers as initializers
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 
-from tensorflow.keras.layers import (Conv2D, BatchNormalization, Activation, MaxPooling2D,
-                                     Dropout, GlobalAveragePooling2D, Reshape, add, Dense,
-                                     multiply, concatenate, Flatten, AveragePooling2D, Lambda,
-                                     Concatenate, DepthwiseConv2D)
-from tensorflow.keras.losses import (SparseCategoricalCrossentropy, MeanSquaredError,
-                                     BinaryCrossentropy, Reduction)
+from tensorflow.keras.layers import (
+    Conv2D,
+    BatchNormalization,
+    Activation,
+    MaxPooling2D,
+    Dropout,
+    GlobalAveragePooling2D,
+    Reshape,
+    add,
+    Dense,
+    multiply,
+    concatenate,
+    Flatten,
+    AveragePooling2D,
+    Lambda,
+    Concatenate,
+)
+from tensorflow.keras.losses import (
+    SparseCategoricalCrossentropy,
+    MeanSquaredError,
+    BinaryCrossentropy,
+    Reduction,
+)
 
 import chipsnet.data as data
 
@@ -49,7 +66,11 @@ class Model:
             self.model.load_weights(latest).expect_partial()
         else:
             checkpoint_path = (
-                self.config.exp.checkpoints_dir + "cp-" + str(checkpoint_num).zfill(4) + ".ckpt")
+                self.config.exp.checkpoints_dir
+                + "cp-"
+                + str(checkpoint_num).zfill(4)
+                + ".ckpt"
+            )
             self.model.load_weights(checkpoint_path).expect_partial()
 
     def summarise(self):
@@ -61,8 +82,11 @@ class Model:
 
         # Plot an image of the model to file
         file_name = os.path.join(self.config.exp.exp_dir, "model_diagram.png")
-        self.model._layers = [layer for layer in self.model._layers if isinstance(
-            layer, tf.keras.layers.Layer)]
+        self.model._layers = [
+            layer
+            for layer in self.model._layers
+            if isinstance(layer, tf.keras.layers.Layer)
+        ]
         tf.keras.utils.plot_model(
             self.model,
             to_file=file_name,
@@ -70,7 +94,7 @@ class Model:
             show_layer_names=True,
             rankdir="TB",
             expand_nested=False,
-            dpi=96
+            dpi=96,
         )
 
     def build(self):
@@ -91,12 +115,20 @@ class Model:
             self.summarise()
 
 
-CONV_INITIALISER = 'glorot_uniform'  # he_normal, glorot_uniform
-DENSE_INITIALISER = 'glorot_uniform'  # he_normal, glorot_uniform
+CONV_INITIALISER = "glorot_uniform"  # he_normal, glorot_uniform
+DENSE_INITIALISER = "glorot_uniform"  # he_normal, glorot_uniform
 
 
-def conv2d_bn(x, filters, kernel_size, strides=1, padding='same',
-              activation='relu', use_bias=False, prefix=None):
+def conv2d_bn(
+    x,
+    filters,
+    kernel_size,
+    strides=1,
+    padding="same",
+    activation="relu",
+    use_bias=False,
+    prefix=None,
+):
     """Utility function to apply conv + BN.
     Args:
         x (tf.tensor): input tensor.
@@ -110,13 +142,20 @@ def conv2d_bn(x, filters, kernel_size, strides=1, padding='same',
     Returns:
         Output tensor after applying `Conv2D` and `BatchNormalization`.
     """
-    x = Conv2D(filters, kernel_size, strides=strides, padding=padding,
-               use_bias=use_bias, kernel_initializer=CONV_INITIALISER, name=prefix)(x)
+    x = Conv2D(
+        filters,
+        kernel_size,
+        strides=strides,
+        padding=padding,
+        use_bias=use_bias,
+        kernel_initializer=CONV_INITIALISER,
+        name=prefix,
+    )(x)
     if not use_bias:
-        bn_name = None if prefix is None else prefix + '_bn'
+        bn_name = None if prefix is None else prefix + "_bn"
         x = BatchNormalization(axis=3, scale=False, name=bn_name)(x)
     if activation is not None:
-        ac_name = None if prefix is None else prefix + '_ac'
+        ac_name = None if prefix is None else prefix + "_ac"
         x = Activation(activation, name=ac_name)(x)
     return x
 
@@ -146,16 +185,24 @@ def vgg_block(x, num_conv=2, filters=64, se_ratio=0, dropout=0.0, prefix=""):
         raise ValueError("Invalid num_conv. Expected one of: {}".format(conv_options))
 
     for i in range(num_conv):
-        x = conv2d_bn(x, filters, (3, 3), prefix=prefix + '_conv' + str(i))
-    x = MaxPooling2D((2, 2), strides=(2, 2), name=prefix+'_pool')(x)
+        x = conv2d_bn(x, filters, (3, 3), prefix=prefix + "_conv" + str(i))
+    x = MaxPooling2D((2, 2), strides=(2, 2), name=prefix + "_pool")(x)
 
     x = squeeze_excite_block(x, se_ratio, prefix=prefix) if se_ratio > 0 else x
-    x = Dropout(dropout, name=prefix+'_drop')(x) if dropout > 0.0 else x
+    x = Dropout(dropout, name=prefix + "_drop")(x) if dropout > 0.0 else x
     return x
 
 
-def resnet_block(x, filters, k=1, strides=(1, 1), bottleneck=False,
-                 se_ratio=0, dropout=0.0, prefix=""):
+def resnet_block(
+    x,
+    filters,
+    k=1,
+    strides=(1, 1),
+    bottleneck=False,
+    se_ratio=0,
+    dropout=0.0,
+    prefix="",
+):
     """Builds a resnet block
     This function builds pre-activation resnet block using the improved structure layed
     out in https://arxiv.org/abs/1603.05027. Optionally, a squeeze-exitation block as first set
@@ -182,45 +229,85 @@ def resnet_block(x, filters, k=1, strides=(1, 1), bottleneck=False,
     init = x
 
     # Add the preactivation layers
-    x = BatchNormalization(axis=3, name=prefix + '_preact_bn')(x)
-    x = Activation('relu', name=prefix + '_preact_ac')(x)
+    x = BatchNormalization(axis=3, name=prefix + "_preact_bn")(x)
+    x = Activation("relu", name=prefix + "_preact_ac")(x)
 
     # Apply a convolution to the shortcut if required
     shortcut_f = filters * k * 4 if bottleneck else filters * k
     if strides != (1, 1) or init.shape[3] != shortcut_f:
-        init = Conv2D(shortcut_f, (1, 1), padding='same', kernel_initializer=CONV_INITIALISER,
-                      use_bias=False, strides=strides, name=prefix + '_conv0')(x)
+        init = Conv2D(
+            shortcut_f,
+            (1, 1),
+            padding="same",
+            kernel_initializer=CONV_INITIALISER,
+            use_bias=False,
+            strides=strides,
+            name=prefix + "_conv0",
+        )(x)
 
     if bottleneck:
-        x = Conv2D(filters * k, (1, 1), padding='same', kernel_initializer=CONV_INITIALISER,
-                   use_bias=False, name=prefix + '_conv1')(x)
-        x = BatchNormalization(axis=3, name=prefix + '_bn1')(x)
-        x = Activation('relu', name=prefix + '_ac1')(x)
+        x = Conv2D(
+            filters * k,
+            (1, 1),
+            padding="same",
+            kernel_initializer=CONV_INITIALISER,
+            use_bias=False,
+            name=prefix + "_conv1",
+        )(x)
+        x = BatchNormalization(axis=3, name=prefix + "_bn1")(x)
+        x = Activation("relu", name=prefix + "_ac1")(x)
 
-        x = Conv2D(filters * k, (3, 3), padding='same', kernel_initializer=CONV_INITIALISER,
-                   use_bias=False, strides=strides, name=prefix + '_conv2')(x)
-        x = BatchNormalization(axis=3, name=prefix + '_bn2')(x)
-        x = Activation('relu', name=prefix + '_ac2')(x)
+        x = Conv2D(
+            filters * k,
+            (3, 3),
+            padding="same",
+            kernel_initializer=CONV_INITIALISER,
+            use_bias=False,
+            strides=strides,
+            name=prefix + "_conv2",
+        )(x)
+        x = BatchNormalization(axis=3, name=prefix + "_bn2")(x)
+        x = Activation("relu", name=prefix + "_ac2")(x)
 
-        x = Conv2D(shortcut_f, (1, 1), padding='same', kernel_initializer=CONV_INITIALISER,
-                   use_bias=False, name=prefix + '_conv3')(x)
+        x = Conv2D(
+            shortcut_f,
+            (1, 1),
+            padding="same",
+            kernel_initializer=CONV_INITIALISER,
+            use_bias=False,
+            name=prefix + "_conv3",
+        )(x)
     else:
-        x = Conv2D(filters * k, (3, 3), padding='same', kernel_initializer=CONV_INITIALISER,
-                   use_bias=False, strides=strides, name=prefix + '_conv1')(x)
-        x = BatchNormalization(axis=3, name=prefix + '_bn1')(x)
-        x = Activation('relu', name=prefix + '_ac1')(x)
+        x = Conv2D(
+            filters * k,
+            (3, 3),
+            padding="same",
+            kernel_initializer=CONV_INITIALISER,
+            use_bias=False,
+            strides=strides,
+            name=prefix + "_conv1",
+        )(x)
+        x = BatchNormalization(axis=3, name=prefix + "_bn1")(x)
+        x = Activation("relu", name=prefix + "_ac1")(x)
 
-        x = Conv2D(filters * k, (3, 3), padding='same', kernel_initializer=CONV_INITIALISER,
-                   use_bias=False, name=prefix + '_conv2')(x)
+        x = Conv2D(
+            filters * k,
+            (3, 3),
+            padding="same",
+            kernel_initializer=CONV_INITIALISER,
+            use_bias=False,
+            name=prefix + "_conv2",
+        )(x)
 
     x = squeeze_excite_block(x, se_ratio, prefix=prefix) if se_ratio > 0 else x
-    x = Dropout(dropout, name=prefix+'_drop')(x) if dropout > 0.0 else x
+    x = Dropout(dropout, name=prefix + "_drop")(x) if dropout > 0.0 else x
     x = add([x, init])  # Add the residual and shortcut together
     return x
 
 
-def inception_resnet_block(x, scale, block_type, activation='relu', se_ratio=0,
-                           dropout=0.0, prefix=''):
+def inception_resnet_block(
+    x, scale, block_type, activation="relu", se_ratio=0, dropout=0.0, prefix=""
+):
     """Builds an Inception-ResNet block
     This function builds 3 types of Inception-ResNet blocks mentioned in the paper
     https://arxiv.org/abs/1602.07261, controlled by the block_type argument (which is the
@@ -244,7 +331,7 @@ def inception_resnet_block(x, scale, block_type, activation='relu', se_ratio=0,
     Raises:
         ValueError: if 'block_type' is not one of 'block35', 'block17' or 'block8'.
     """
-    if block_type == 'block35':
+    if block_type == "block35":
         branch_0 = conv2d_bn(x, 32, 1)
         branch_1 = conv2d_bn(x, 32, 1)
         branch_1 = conv2d_bn(branch_1, 32, 3)
@@ -252,36 +339,46 @@ def inception_resnet_block(x, scale, block_type, activation='relu', se_ratio=0,
         branch_2 = conv2d_bn(branch_2, 48, 3)
         branch_2 = conv2d_bn(branch_2, 64, 3)
         branches = [branch_0, branch_1, branch_2]
-    elif block_type == 'block17':
+    elif block_type == "block17":
         branch_0 = conv2d_bn(x, 192, 1)
         branch_1 = conv2d_bn(x, 128, 1)
         branch_1 = conv2d_bn(branch_1, 160, [1, 7])
         branch_1 = conv2d_bn(branch_1, 192, [7, 1])
         branches = [branch_0, branch_1]
-    elif block_type == 'block8':
+    elif block_type == "block8":
         branch_0 = conv2d_bn(x, 192, 1)
         branch_1 = conv2d_bn(x, 192, 1)
         branch_1 = conv2d_bn(branch_1, 224, [1, 3])
         branch_1 = conv2d_bn(branch_1, 256, [3, 1])
         branches = [branch_0, branch_1]
     else:
-        raise ValueError('Unknown Inception-ResNet block type. '
-                         'Expects "block35", "block17" or "block8", '
-                         'but got: {}'.format(block_type))
+        raise ValueError(
+            "Unknown Inception-ResNet block type. "
+            'Expects "block35", "block17" or "block8", '
+            "but got: {}".format(block_type)
+        )
 
-    mixed = Concatenate(axis=3, name=prefix + '_mixed')(branches)
-    up = conv2d_bn(mixed, tf.keras.backend.int_shape(x)[3], 1, activation=None,
-                   use_bias=True, prefix=prefix + '_conv')
+    mixed = Concatenate(axis=3, name=prefix + "_mixed")(branches)
+    up = conv2d_bn(
+        mixed,
+        tf.keras.backend.int_shape(x)[3],
+        1,
+        activation=None,
+        use_bias=True,
+        prefix=prefix + "_conv",
+    )
 
-    x = Lambda(lambda inputs, scale: inputs[0] + inputs[1] * scale,
-               output_shape=tf.keras.backend.int_shape(x)[1:],
-               arguments={'scale': scale},
-               name=prefix)([x, up])
+    x = Lambda(
+        lambda inputs, scale: inputs[0] + inputs[1] * scale,
+        output_shape=tf.keras.backend.int_shape(x)[1:],
+        arguments={"scale": scale},
+        name=prefix,
+    )([x, up])
     if activation is not None:
-        x = Activation(activation, name=prefix + '_ac')(x)
+        x = Activation(activation, name=prefix + "_ac")(x)
 
     x = squeeze_excite_block(x, se_ratio, prefix=prefix) if se_ratio > 0 else x
-    x = Dropout(dropout, name=prefix+'_drop')(x) if dropout > 0.0 else x
+    x = Dropout(dropout, name=prefix + "_drop")(x) if dropout > 0.0 else x
     return x
 
 
@@ -304,12 +401,20 @@ def squeeze_excite_block(x, ratio=16, prefix=""):
     se_shape = (1, 1, filters)
     se = GlobalAveragePooling2D(name=prefix + "_se_pool")(init)
     se = Reshape(se_shape, name=prefix + "_se_reshape")(se)
-    se = Dense(filters // ratio, activation='relu',
-               kernel_initializer=DENSE_INITIALISER, use_bias=False,
-               name=prefix + "_se_squeeze")(se)
-    se = Dense(filters, activation='sigmoid',
-               kernel_initializer=DENSE_INITIALISER, use_bias=False,
-               name=prefix + "_se_excite")(se)
+    se = Dense(
+        filters // ratio,
+        activation="relu",
+        kernel_initializer=DENSE_INITIALISER,
+        use_bias=False,
+        name=prefix + "_se_squeeze",
+    )(se)
+    se = Dense(
+        filters,
+        activation="sigmoid",
+        kernel_initializer=DENSE_INITIALISER,
+        use_bias=False,
+        name=prefix + "_se_excite",
+    )(se)
     x = multiply([init, se], name=prefix + "_se_multiply")
     return x
 
@@ -329,23 +434,53 @@ def vgg_model(config):
     # Build the core of the model
     paths = []
     for i, image_input in enumerate(inputs):
-        path = vgg_block(image_input, 2, config.model.filters, config.model.se_ratio,
-                         config.model.dropout, prefix="block1_path"+str(i))
+        path = vgg_block(
+            image_input,
+            2,
+            config.model.filters,
+            config.model.se_ratio,
+            config.model.dropout,
+            prefix="block1_path" + str(i),
+        )
         paths.append(path)
 
     x = paths[0]
     if len(paths) > 1:
         x = concatenate(paths)
 
-    x = vgg_block(x, 2, config.model.filters*2, config.model.se_ratio,
-                  config.model.dropout, prefix="block2")
-    x = vgg_block(x, 3, config.model.filters*4, config.model.se_ratio,
-                  config.model.dropout, prefix="block3")
-    x = vgg_block(x, 3, config.model.filters*8, config.model.se_ratio,
-                  config.model.dropout, prefix="block4")
-    x = vgg_block(x, 3, config.model.filters*8, config.model.se_ratio,
-                  config.model.dropout, prefix="block5")
-    x = Flatten(name='flatten')(x)
+    x = vgg_block(
+        x,
+        2,
+        config.model.filters * 2,
+        config.model.se_ratio,
+        config.model.dropout,
+        prefix="block2",
+    )
+    x = vgg_block(
+        x,
+        3,
+        config.model.filters * 4,
+        config.model.se_ratio,
+        config.model.dropout,
+        prefix="block3",
+    )
+    x = vgg_block(
+        x,
+        3,
+        config.model.filters * 8,
+        config.model.se_ratio,
+        config.model.dropout,
+        prefix="block4",
+    )
+    x = vgg_block(
+        x,
+        3,
+        config.model.filters * 8,
+        config.model.se_ratio,
+        config.model.dropout,
+        prefix="block5",
+    )
+    x = Flatten(name="flatten")(x)
 
     # Add the reco parameters as inputs if required
     if config.model.reco_pars:
@@ -354,11 +489,19 @@ def vgg_model(config):
         reco_concat = concatenate(reco_inputs)
         x = concatenate([x, reco_concat])
 
-    x = Dense(config.model.dense_units, activation='relu', kernel_initializer=DENSE_INITIALISER,
-              name='dense1')(x)
-    x = Dense(config.model.dense_units, activation='relu', kernel_initializer=DENSE_INITIALISER,
-              name='dense_final')(x)
-    x = Dropout(config.model.dropout, name='dropout_final')(x)
+    x = Dense(
+        config.model.dense_units,
+        activation="relu",
+        kernel_initializer=DENSE_INITIALISER,
+        name="dense1",
+    )(x)
+    x = Dense(
+        config.model.dense_units,
+        activation="relu",
+        kernel_initializer=DENSE_INITIALISER,
+        name="dense_final",
+    )(x)
+    x = Dropout(config.model.dropout, name="dropout_final")(x)
 
     # Get the model outputs
     outputs, lwm = get_outputs(config, x)
@@ -375,7 +518,9 @@ def vgg_model(config):
     else:
         model = tf.keras.Model(inputs=inputs, outputs=outputs, name=config.model.name)
         optimiser = tf.keras.optimizers.Adam(learning_rate=config.model.lr)
-        model.compile(optimizer=optimiser, loss=lwm[0], loss_weights=lwm[1], metrics=lwm[2])
+        model.compile(
+            optimizer=optimiser, loss=lwm[0], loss_weights=lwm[1], metrics=lwm[2]
+        )
 
     return model
 
@@ -398,18 +543,29 @@ def resnet_model(config):
     # Build the core of the model
     paths = []
     for i, image_input in enumerate(inputs):
-        path = Conv2D(filters[0], (3, 3), padding='same', use_bias=False, strides=(2, 2),
-                      kernel_initializer=CONV_INITIALISER, kernel_regularizer=regularizers.l2(1e-4),
-                      name="conv1_path" + str(i))(image_input)
-        #path = MaxPooling2D((3, 3), strides=(2, 2), padding='same',
+        path = Conv2D(
+            filters[0],
+            (3, 3),
+            padding="same",
+            use_bias=False,
+            strides=(2, 2),
+            kernel_initializer=CONV_INITIALISER,
+            kernel_regularizer=regularizers.l2(1e-4),
+            name="conv1_path" + str(i),
+        )(image_input)
+        # path = MaxPooling2D((3, 3), strides=(2, 2), padding='same',
         #                           name="pool1_path" + str(i))(path)
         for j in range(depths[0]):
-            path = resnet_block(path, filters[0],
-                                k=1, strides=(1, 1),
-                                bottleneck=config.model.bottleneck,
-                                se_ratio=config.model.se_ratio,
-                                dropout=config.model.dropout,
-                                prefix="path" + str(i) + "_block0_" + str(j))
+            path = resnet_block(
+                path,
+                filters[0],
+                k=1,
+                strides=(1, 1),
+                bottleneck=config.model.bottleneck,
+                se_ratio=config.model.se_ratio,
+                dropout=config.model.dropout,
+                prefix="path" + str(i) + "_block0_" + str(j),
+            )
         paths.append(path)
 
     x = paths[0]
@@ -417,25 +573,37 @@ def resnet_model(config):
         x = concatenate(paths)
 
     for k in range(1, len(depths)):
-        x = resnet_block(x, filters[k],
-                         k=1, strides=(2, 2),
-                         bottleneck=config.model.bottleneck,
-                         se_ratio=config.model.se_ratio,
-                         dropout=config.model.dropout,
-                         prefix="block"+str(k)+"_0")
+        x = resnet_block(
+            x,
+            filters[k],
+            k=1,
+            strides=(2, 2),
+            bottleneck=config.model.bottleneck,
+            se_ratio=config.model.se_ratio,
+            dropout=config.model.dropout,
+            prefix="block" + str(k) + "_0",
+        )
         for i in range(depths[k] - 1):
-            x = resnet_block(x, filters[k],
-                             k=1, strides=(1, 1),
-                             bottleneck=config.model.bottleneck,
-                             se_ratio=config.model.se_ratio,
-                             dropout=config.model.dropout,
-                             prefix="block"+str(k)+"_"+str(i+1))
+            x = resnet_block(
+                x,
+                filters[k],
+                k=1,
+                strides=(1, 1),
+                bottleneck=config.model.bottleneck,
+                se_ratio=config.model.se_ratio,
+                dropout=config.model.dropout,
+                prefix="block" + str(k) + "_" + str(i + 1),
+            )
 
     x = BatchNormalization(axis=3)(x)
-    x = Activation('relu')(x)
+    x = Activation("relu")(x)
     x = GlobalAveragePooling2D()(x)
-    x = Dense(config.model.dense_units, activation='relu', kernel_initializer=DENSE_INITIALISER,
-              name='dense_final')(x)
+    x = Dense(
+        config.model.dense_units,
+        activation="relu",
+        kernel_initializer=DENSE_INITIALISER,
+        name="dense_final",
+    )(x)
 
     # Add the reco parameters as inputs if required
     if config.model.reco_pars:
@@ -444,7 +612,7 @@ def resnet_model(config):
         reco_concat = concatenate(reco_inputs)
         x = concatenate([x, reco_concat])
 
-    x = Dropout(config.model.dropout, name='dropout_final')(x)
+    x = Dropout(config.model.dropout, name="dropout_final")(x)
 
     # Get the model outputs
     outputs, lwm = get_outputs(config, x)
@@ -461,7 +629,9 @@ def resnet_model(config):
     else:
         model = tf.keras.Model(inputs=inputs, outputs=outputs, name=config.model.name)
         optimiser = tf.keras.optimizers.Adam(learning_rate=config.model.lr)
-        model.compile(optimizer=optimiser, loss=lwm[0], loss_weights=lwm[1], metrics=lwm[2])
+        model.compile(
+            optimizer=optimiser, loss=lwm[0], loss_weights=lwm[1], metrics=lwm[2]
+        )
 
     return model
 
@@ -485,7 +655,7 @@ def inception_resnet_model(config):
     paths = []
     for i, image_input in enumerate(inputs):
         # Stem block: 35 x 35 x 192
-        path = conv2d_bn(image_input, 32, 3, padding='valid')
+        path = conv2d_bn(image_input, 32, 3, padding="valid")
         path = conv2d_bn(path, 64, 3)
         path = MaxPooling2D(3, strides=2)(path)
         # original version
@@ -509,59 +679,75 @@ def inception_resnet_model(config):
     branch_2 = conv2d_bn(x, 64, 1)
     branch_2 = conv2d_bn(branch_2, 96, 3)
     branch_2 = conv2d_bn(branch_2, 96, 3)
-    branch_pool = AveragePooling2D(3, strides=1, padding='same')(x)
+    branch_pool = AveragePooling2D(3, strides=1, padding="same")(x)
     branch_pool = conv2d_bn(branch_pool, 64, 1)
     branches = [branch_0, branch_1, branch_2, branch_pool]
-    x = Concatenate(axis=3, name='mixed_5b')(branches)
+    x = Concatenate(axis=3, name="mixed_5b")(branches)
 
     # 10x block35 (Inception-ResNet-A block): 35 x 35 x 320
     for block_idx in range(1, blocks[0]):
-        x = inception_resnet_block(x, scale=scales[0], block_type='block35',
-                                   prefix='block35_' + str(block_idx))
+        x = inception_resnet_block(
+            x, scale=scales[0], block_type="block35", prefix="block35_" + str(block_idx)
+        )
 
     # Mixed 6a (Reduction-A block): 17 x 17 x 1088
-    branch_0 = conv2d_bn(x, 384, 3, strides=2, padding='valid')
+    branch_0 = conv2d_bn(x, 384, 3, strides=2, padding="valid")
     branch_1 = conv2d_bn(x, 256, 1)
     branch_1 = conv2d_bn(branch_1, 256, 3)
-    branch_1 = conv2d_bn(branch_1, 384, 3, strides=2, padding='valid')
-    branch_pool = MaxPooling2D(3, strides=2, padding='valid')(x)
+    branch_1 = conv2d_bn(branch_1, 384, 3, strides=2, padding="valid")
+    branch_pool = MaxPooling2D(3, strides=2, padding="valid")(x)
     branches = [branch_0, branch_1, branch_pool]
-    x = Concatenate(axis=3, name='mixed_6a')(branches)
+    x = Concatenate(axis=3, name="mixed_6a")(branches)
 
     # 20x block17 (Inception-ResNet-B block): 17 x 17 x 1088
     for block_idx in range(1, blocks[1]):
-        x = inception_resnet_block(x, scale=scales[1], block_type='block17',
-                                   prefix='block17_' + str(block_idx))
+        x = inception_resnet_block(
+            x, scale=scales[1], block_type="block17", prefix="block17_" + str(block_idx)
+        )
 
     # Mixed 7a (Reduction-B block): 8 x 8 x 2080
     branch_0 = conv2d_bn(x, 256, 1)
-    branch_0 = conv2d_bn(branch_0, 384, 3, strides=2, padding='valid')
+    branch_0 = conv2d_bn(branch_0, 384, 3, strides=2, padding="valid")
     branch_1 = conv2d_bn(x, 256, 1)
-    branch_1 = conv2d_bn(branch_1, 288, 3, strides=2, padding='valid')
+    branch_1 = conv2d_bn(branch_1, 288, 3, strides=2, padding="valid")
     branch_2 = conv2d_bn(x, 256, 1)
     branch_2 = conv2d_bn(branch_2, 288, 3)
-    branch_2 = conv2d_bn(branch_2, 320, 3, strides=2, padding='valid')
-    branch_pool = MaxPooling2D(3, strides=2, padding='valid')(x)
+    branch_2 = conv2d_bn(branch_2, 320, 3, strides=2, padding="valid")
+    branch_pool = MaxPooling2D(3, strides=2, padding="valid")(x)
     branches = [branch_0, branch_1, branch_2, branch_pool]
-    x = Concatenate(axis=3, name='mixed_7a')(branches)
+    x = Concatenate(axis=3, name="mixed_7a")(branches)
 
     # 10x block8 (Inception-ResNet-C block): 8 x 8 x 2080
     for block_idx in range(1, blocks[2]):
-        x = inception_resnet_block(x, scale=scales[2], block_type='block8',
-                                   prefix='block8_' + str(block_idx))
+        x = inception_resnet_block(
+            x, scale=scales[2], block_type="block8", prefix="block8_" + str(block_idx)
+        )
     x = inception_resnet_block(
-        x, scale=1.0, activation=None, block_type='block8', prefix='block8_' + str(blocks[2]))
+        x,
+        scale=1.0,
+        activation=None,
+        block_type="block8",
+        prefix="block8_" + str(blocks[2]),
+    )
 
     # Final convolution block: 8 x 8 x 1536
-    x = conv2d_bn(x, 1536, 1, prefix='conv_7b')
+    x = conv2d_bn(x, 1536, 1, prefix="conv_7b")
 
-    x = GlobalAveragePooling2D(name='avg_pool')(x)
+    x = GlobalAveragePooling2D(name="avg_pool")(x)
 
-    x = Dense(config.model.dense_units, activation='relu', kernel_initializer=DENSE_INITIALISER,
-              name='dense1')(x)
-    x = Dense(config.model.dense_units, activation='relu', kernel_initializer=DENSE_INITIALISER,
-              name='dense_final')(x)
-    x = Dropout(config.model.dropout, name='dropout_final')(x)
+    x = Dense(
+        config.model.dense_units,
+        activation="relu",
+        kernel_initializer=DENSE_INITIALISER,
+        name="dense1",
+    )(x)
+    x = Dense(
+        config.model.dense_units,
+        activation="relu",
+        kernel_initializer=DENSE_INITIALISER,
+        name="dense_final",
+    )(x)
+    x = Dropout(config.model.dropout, name="dropout_final")(x)
 
     # Get the model outputs
     outputs, lwm = get_outputs(config, x)
@@ -578,7 +764,9 @@ def inception_resnet_model(config):
     else:
         model = tf.keras.Model(inputs=inputs, outputs=outputs, name=config.model.name)
         optimiser = tf.keras.optimizers.Adam(learning_rate=config.model.lr)
-        model.compile(optimizer=optimiser, loss=lwm[0], loss_weights=lwm[1], metrics=lwm[2])
+        model.compile(
+            optimizer=optimiser, loss=lwm[0], loss_weights=lwm[1], metrics=lwm[2]
+        )
 
     return model
 
@@ -592,13 +780,17 @@ def get_image_inputs(config):
     """
     inputs = []
     images = 1
-    shape = (config.data.img_size[0], config.data.img_size[1], config.data.channels.count(1))
+    shape = (
+        config.data.img_size[0],
+        config.data.img_size[1],
+        config.data.channels.count(1),
+    )
     if config.data.unstack:
         images = config.data.channels.count(1)
         shape = (config.data.img_size[0], config.data.img_size[1], 1)
 
     for channel in range(images):
-        inputs.append(tf.keras.Input(shape=shape, name='image_'+str(channel)))
+        inputs.append(tf.keras.Input(shape=shape, name="image_" + str(channel)))
 
     return inputs
 
@@ -611,7 +803,7 @@ def get_reco_inputs():
         list[tf.keras.Inputs]: Reco inputs to the model
     """
     inputs = []
-    parameters = ['r_vtxX', 'r_vtxY', 'r_vtxZ', 'r_dirTheta', 'r_dirPhi']
+    parameters = ["r_vtxX", "r_vtxY", "r_vtxZ", "r_dirTheta", "r_dirPhi"]
     for name in parameters:
         inputs.append(tf.keras.Input(shape=(1), name=name))
     return inputs
@@ -638,70 +830,70 @@ def get_outputs(config, x):
     losses, weights, metrics = {}, {}, {}
     for output in config.model.labels:
         if output == data.MAP_NU_TYPE.name:
-            out = Dense(1, name=output+"_logits")(x)
+            out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("sigmoid", dtype="float32", name=output)(out))
             losses[output] = "binary_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_SIGN_TYPE.name:
-            out = Dense(1, name=output+"_logits")(x)
+            out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("sigmoid", dtype="float32", name=output)(out))
             losses[output] = "binary_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_INT_TYPE.name:
-            out = Dense(data.get_map(output).categories, name=output+"_logits")(x)
+            out = Dense(data.get_map(output).categories, name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_ALL_CAT.name:
-            out = Dense(data.get_map(output).categories, name=output+"_logits")(x)
+            out = Dense(data.get_map(output).categories, name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_COSMIC_CAT.name:
-            out = Dense(1, name=output+"_logits")(x)
+            out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("sigmoid", dtype="float32", name=output)(out))
             losses[output] = "binary_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_FULL_COMB_CAT.name:
-            out = Dense(data.get_map(output).categories, name=output+"_logits")(x)
+            out = Dense(data.get_map(output).categories, name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_NU_NC_COMB_CAT.name:
-            out = Dense(data.get_map(output).categories, name=output+"_logits")(x)
+            out = Dense(data.get_map(output).categories, name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_NC_COMB_CAT.name:
-            out = Dense(data.get_map(output).categories, name=output+"_logits")(x)
+            out = Dense(data.get_map(output).categories, name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output in ["t_vtxX", "t_vtxY", "t_vtxZ"]:
-            out = Dense(1, name=output+"_logits")(x)
+            out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("linear", dtype="float32", name=output)(out))
             losses[output] = "mean_squared_error"
             weights[output] = 0.000001
             metrics[output] = "mae"
 
         if output in ["prim_total", "prim_p", "prim_cp", "prim_np", "prim_g"]:
-            out = Dense(4, name=output+"_logits")(x)
+            out = Dense(4, name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
             weights[output] = 1.0
@@ -709,7 +901,7 @@ def get_outputs(config, x):
 
         elif output == "t_nuEnergy":
             out = Dense(config.model.dense_units, name="energy_dense")(x)
-            out = Dense(1, name=output+"_logits")(out)
+            out = Dense(1, name=output + "_logits")(out)
             outputs.append(Activation("linear", dtype="float32", name=output)(out))
             losses[output] = "mean_squared_error"
             weights[output] = 0.0000005
@@ -730,15 +922,17 @@ def add_multitask_loss(config, outputs):
     inputs = []
     for label in config.model.labels:
         inputs.append(tf.keras.Input(shape=(1), name="input_" + label))
-    outputs.append(MultiLossLayer(config, name='multiloss')(inputs + outputs))
+    outputs.append(MultiLossLayer(config, name="multiloss")(inputs + outputs))
     return inputs, outputs
 
 
 class MultiLossLayer(tf.keras.layers.Layer):
     """Weighted multi-loss layer for multitask network
-    A layer to calculate a custom combined loss according to the paper https://arxiv.org/abs/1705.07115
+    A layer to calculate a custom combined loss according to the paper
+    https://arxiv.org/abs/1705.07115
     the implementation at the following link was used for reference
-    https://github.com/yaringal/multi-task-learning-example/blob/master/multi-task-learning-example.ipynb
+    https://github.com/yaringal/multi-task-learning-example/blob/master/ \
+    multi-task-learning-example.ipynb
     """
 
     def __init__(self, config, **kwargs):
@@ -766,11 +960,15 @@ class MultiLossLayer(tf.keras.layers.Layer):
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_INT_TYPE.name:
-                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.loss_funcs.append(
+                    SparseCategoricalCrossentropy(reduction=Reduction.SUM)
+                )
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_ALL_CAT.name:
-                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.loss_funcs.append(
+                    SparseCategoricalCrossentropy(reduction=Reduction.SUM)
+                )
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_COSMIC_CAT.name:
@@ -778,15 +976,21 @@ class MultiLossLayer(tf.keras.layers.Layer):
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_FULL_COMB_CAT.name:
-                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.loss_funcs.append(
+                    SparseCategoricalCrossentropy(reduction=Reduction.SUM)
+                )
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_NU_NC_COMB_CAT.name:
-                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.loss_funcs.append(
+                    SparseCategoricalCrossentropy(reduction=Reduction.SUM)
+                )
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_NC_COMB_CAT.name:
-                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.loss_funcs.append(
+                    SparseCategoricalCrossentropy(reduction=Reduction.SUM)
+                )
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == "t_nuEnergy":
@@ -798,7 +1002,9 @@ class MultiLossLayer(tf.keras.layers.Layer):
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(0.000001)
             if output in ["prim_total", "prim_p", "prim_cp", "prim_np", "prim_g"]:
-                self.loss_funcs.append(SparseCategoricalCrossentropy(reduction=Reduction.SUM))
+                self.loss_funcs.append(
+                    SparseCategoricalCrossentropy(reduction=Reduction.SUM)
+                )
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
 
@@ -811,11 +1017,11 @@ class MultiLossLayer(tf.keras.layers.Layer):
             initial (float): Initial weight value
         """
         return self.add_weight(
-            name=output+'_log_var',
+            name=output + "_log_var",
             shape=(1,),
             dtype=tf.float32,
             initializer=initializers.Constant(initial),
-            trainable=True
+            trainable=True,
         )
 
     def multi_loss(self, ys_true, ys_pred):

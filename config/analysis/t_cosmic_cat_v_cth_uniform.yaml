@@ -6,7 +6,7 @@ exp:
 data:
     input_dirs:
         - "./data/input/chips_1200_all/beam_uniform/"
-        - "./input/chips_1200_all/cosmic/"
+        - "./data/input/chips_1200_all/cosmic/"
     all_chan: True
     unstack: False
     channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]

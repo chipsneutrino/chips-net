@@ -81,7 +81,7 @@ def model_history(config, name):
     model_config.exp.name = config.models[name].path
     model_config.data.channels = config.models[name].channels
     chipsnet.config.setup_dirs(model_config, False)
-    history = pd.read_csv(os.path.join(model_config.exp.exp_dir, 'history.csv'))
+    history = pd.read_csv(os.path.join(model_config.exp.exp_dir, "history.csv"))
     history_dict = {}
     for key in history.keys():
         history_dict[key] = ast.literal_eval(history[key].values[0])
@@ -98,7 +98,7 @@ def process_ds(config, data_name, model_names, verbose=False):
     Returns:
         pandas.DataFrame: Events dataframe fully processed
     """
-    print('Processing {}... '.format(data_name), end='', flush=True)
+    print("Processing {}... ".format(data_name), end="", flush=True)
     start_time = time.time()
 
     # Get the dataframe from the dataset name
@@ -107,7 +107,7 @@ def process_ds(config, data_name, model_names, verbose=False):
     # Run all the required inference
     for model_name in model_names:
         model = model_from_conf(config, model_name)
-        events = run_inference(events, model, prefix=model_name+"_")
+        events = run_inference(events, model, prefix=model_name + "_")
 
     # Apply the event weights
     events = apply_weights(
@@ -118,7 +118,7 @@ def process_ds(config, data_name, model_names, verbose=False):
         numu_frac=config.eval.weights.numu,
         anumu_frac=config.eval.weights.anumu,
         cosmic_frac=config.eval.weights.cosmic,
-        verbose=verbose
+        verbose=verbose,
     )
 
     # Apply the standard cuts
@@ -129,38 +129,57 @@ def process_ds(config, data_name, model_names, verbose=False):
         h_cut=config.eval.cuts.h,
         theta_cut=config.eval.cuts.theta,
         phi_cut=config.eval.cuts.phi,
-        verbose=verbose
+        verbose=verbose,
     )
 
     # Classify into fully combined categories and print the classification reports
-    outputs = {"cuts": [], "sig_effs": [], "bkg_effs": [], "purs": [], "foms": [],
-               "fom_effs": [], "fom_purs": [],
-               "sig_effs_auc": [], "bkg_effs_auc": [], "pur_auc": [], "fom_auc": [], "roc_auc": [],
-               "comb_matrices": [], "all_matrices": [], "report": []}
+    outputs = {
+        "cuts": [],
+        "sig_effs": [],
+        "bkg_effs": [],
+        "purs": [],
+        "foms": [],
+        "fom_effs": [],
+        "fom_purs": [],
+        "sig_effs_auc": [],
+        "bkg_effs_auc": [],
+        "pur_auc": [],
+        "fom_auc": [],
+        "roc_auc": [],
+        "comb_matrices": [],
+        "all_matrices": [],
+        "report": [],
+    }
     for model_name in model_names:
         if "cosmic" in model_name or "cos" in model_name:
             continue
 
         # Combine categories into fully combined ones
-        events = full_comb_combine(events, prefix=model_name+"_")
+        events = full_comb_combine(events, prefix=model_name + "_")
 
         # Run classification and print report
-        class_prefix = model_name+"_" + "pred_t_comb_cat_"
+        class_prefix = model_name + "_" + "pred_t_comb_cat_"
         events[model_name + "_comb_cat_class"] = events.apply(
-            classify, axis=1, args=(3, class_prefix))
-        class_prefix = model_name+"_" + "pred_t_all_cat_"
+            classify, axis=1, args=(3, class_prefix)
+        )
+        class_prefix = model_name + "_" + "pred_t_all_cat_"
         events[model_name + "_all_cat_class"] = events.apply(
-            classify, axis=1, args=(24, class_prefix))
+            classify, axis=1, args=(24, class_prefix)
+        )
 
-        report = classification_report(events["t_comb_cat"],
-                                       events[model_name + "_comb_cat_class"],
-                                       target_names=["nuel-cc", "numu-cc", "nc"])
+        report = classification_report(
+            events["t_comb_cat"],
+            events[model_name + "_comb_cat_class"],
+            target_names=["nuel-cc", "numu-cc", "nc"],
+        )
         outputs["report"].append(report)
         if verbose:
             print(report)
 
         # Run curve calculation
-        curves_output = calculate_curves(events, prefix=model_name+"_", verbose=verbose)
+        curves_output = calculate_curves(
+            events, prefix=model_name + "_", verbose=verbose
+        )
         outputs["cuts"].append(curves_output["cuts"])
         outputs["sig_effs"].append(curves_output["sig_effs"])
         outputs["bkg_effs"].append(curves_output["bkg_effs"])
@@ -177,25 +196,25 @@ def process_ds(config, data_name, model_names, verbose=False):
         matrix_comb = confusion_matrix(
             events["t_comb_cat"],
             events[model_name + "_comb_cat_class"],
-            normalize='true')
+            normalize="true",
+        )
         matrix_comb = np.rot90(matrix_comb, 1)
         matrix_comb = pd.DataFrame(matrix_comb)
         outputs["comb_matrices"].append(matrix_comb)
         matrix_all = confusion_matrix(
-            events["t_all_cat"],
-            events[model_name + "_all_cat_class"],
-            normalize='true')
+            events["t_all_cat"], events[model_name + "_all_cat_class"], normalize="true"
+        )
         matrix_all = np.rot90(matrix_all, 1)
         matrix_all = pd.DataFrame(matrix_all)
         outputs["all_matrices"].append(matrix_all)
 
-    print('took {:.2f} seconds'.format(time.time() - start_time))
+    print("took {:.2f} seconds".format(time.time() - start_time))
 
     # Return everything
     return events, outputs
 
 
-def run_inference(events, model, prefix=''):
+def run_inference(events, model, prefix=""):
     """Run predictions on the input dataset and append outputs to events dataframe.
     Args:
         events (pandas.DataFrame): Events dataframe to append outputs
@@ -210,7 +229,7 @@ def run_inference(events, model, prefix=''):
     # Append the predictions to the events dataframe
     model_outputs = model.model.outputs
     for i, model_output in enumerate(model_outputs):
-        base_key = prefix + 'pred_' + model_output.name.split("/", 1)[0]
+        base_key = prefix + "pred_" + model_output.name.split("/", 1)[0]
         for j in range(10):
             base_key = base_key.split("_" + str(j), 1)[0]
 
@@ -224,7 +243,7 @@ def run_inference(events, model, prefix=''):
             events[base_key] = output
         else:
             for cat in range(output.shape[1]):
-                key = base_key + '_' + str(cat)
+                key = base_key + "_" + str(cat)
                 events[key] = output[:, cat]
 
     return events
@@ -238,6 +257,7 @@ def full_comb_combine(events, prefix=""):
     Returns:
         pandas.DataFrame: Events dataframe with combined category scores
     """
+
     def full_comb_apply(event, apply_prefix):
         nuel_cc_cats = [0, 1, 2, 3, 4, 5]
         nuel_cc_value = 0.0
@@ -268,14 +288,14 @@ def full_comb_combine(events, prefix=""):
 
 def apply_weights(
     events,
-    total_num=1214165.85244438,     # for chips_1200
-    nuel_frac=0.00003202064566,     # for chips_1200
-    anuel_frac=0.00000208200747,    # for chips_1200
-    numu_frac=0.00276174709613,     # for chips_1200
-    anumu_frac=0.00006042213136,    # for chips_1200
-    cosmic_frac=0.99714372811940,   # for chips_1200
-    verbose=False
-        ):
+    total_num=1214165.85244438,  # for chips_1200
+    nuel_frac=0.00003202064566,  # for chips_1200
+    anuel_frac=0.00000208200747,  # for chips_1200
+    numu_frac=0.00276174709613,  # for chips_1200
+    anumu_frac=0.00006042213136,  # for chips_1200
+    cosmic_frac=0.99714372811940,  # for chips_1200
+    verbose=False,
+):
     """Calculate and apply the 'weight' column to scale events to predicted numbers.
     Args:
         events (pandas.DataFrame): Events dataframe to append weights to
@@ -289,6 +309,7 @@ def apply_weights(
     Returns:
         pandas.DataFrame: Events dataframe with weights
     """
+
     def add_weight(event, w_nuel, w_anuel, w_numu, w_anumu, w_cosmic):
         """Add the correct weight to each event.
         Args:
@@ -299,83 +320,112 @@ def apply_weights(
             w_anumu: anumu weight
             w_cosmic: cosmic weight
         """
-        if (event[data.MAP_NU_TYPE.name] == 0 and
-                event[data.MAP_SIGN_TYPE.name] == 0 and
-                event[data.MAP_COSMIC_CAT.name] == 0):
+        if (
+            event[data.MAP_NU_TYPE.name] == 0
+            and event[data.MAP_SIGN_TYPE.name] == 0
+            and event[data.MAP_COSMIC_CAT.name] == 0
+        ):
             return w_nuel
-        elif (event[data.MAP_NU_TYPE.name] == 0 and
-                event[data.MAP_SIGN_TYPE.name] == 1 and
-                event[data.MAP_COSMIC_CAT.name] == 0):
+        elif (
+            event[data.MAP_NU_TYPE.name] == 0
+            and event[data.MAP_SIGN_TYPE.name] == 1
+            and event[data.MAP_COSMIC_CAT.name] == 0
+        ):
             return w_anuel
-        elif (event[data.MAP_NU_TYPE.name] == 1 and
-                event[data.MAP_SIGN_TYPE.name] == 0 and
-                event[data.MAP_COSMIC_CAT.name] == 0):
+        elif (
+            event[data.MAP_NU_TYPE.name] == 1
+            and event[data.MAP_SIGN_TYPE.name] == 0
+            and event[data.MAP_COSMIC_CAT.name] == 0
+        ):
             return w_numu
-        elif (event[data.MAP_NU_TYPE.name] == 1 and
-                event[data.MAP_SIGN_TYPE.name] == 1 and
-                event[data.MAP_COSMIC_CAT.name] == 0):
+        elif (
+            event[data.MAP_NU_TYPE.name] == 1
+            and event[data.MAP_SIGN_TYPE.name] == 1
+            and event[data.MAP_COSMIC_CAT.name] == 0
+        ):
             return w_anumu
-        elif (event[data.MAP_COSMIC_CAT.name] == 1):
+        elif event[data.MAP_COSMIC_CAT.name] == 1:
             return w_cosmic
         else:
             raise NotImplementedError
 
-    tot_nuel = events[(events[data.MAP_NU_TYPE.name] == 0) &
-                      (events[data.MAP_SIGN_TYPE.name] == 0) &
-                      (events[data.MAP_COSMIC_CAT.name] == 0)].shape[0]
-    tot_anuel = events[(events[data.MAP_NU_TYPE.name] == 0) &
-                       (events[data.MAP_SIGN_TYPE.name] == 1) &
-                       (events[data.MAP_COSMIC_CAT.name] == 0)].shape[0]
-    tot_numu = events[(events[data.MAP_NU_TYPE.name] == 1) &
-                      (events[data.MAP_SIGN_TYPE.name] == 0) &
-                      (events[data.MAP_COSMIC_CAT.name] == 0)].shape[0]
-    tot_anumu = events[(events[data.MAP_NU_TYPE.name] == 1) &
-                       (events[data.MAP_SIGN_TYPE.name] == 1) &
-                       (events[data.MAP_COSMIC_CAT.name] == 0)].shape[0]
+    tot_nuel = events[
+        (events[data.MAP_NU_TYPE.name] == 0)
+        & (events[data.MAP_SIGN_TYPE.name] == 0)
+        & (events[data.MAP_COSMIC_CAT.name] == 0)
+    ].shape[0]
+    tot_anuel = events[
+        (events[data.MAP_NU_TYPE.name] == 0)
+        & (events[data.MAP_SIGN_TYPE.name] == 1)
+        & (events[data.MAP_COSMIC_CAT.name] == 0)
+    ].shape[0]
+    tot_numu = events[
+        (events[data.MAP_NU_TYPE.name] == 1)
+        & (events[data.MAP_SIGN_TYPE.name] == 0)
+        & (events[data.MAP_COSMIC_CAT.name] == 0)
+    ].shape[0]
+    tot_anumu = events[
+        (events[data.MAP_NU_TYPE.name] == 1)
+        & (events[data.MAP_SIGN_TYPE.name] == 1)
+        & (events[data.MAP_COSMIC_CAT.name] == 0)
+    ].shape[0]
     tot_cosmic = events[events[data.MAP_COSMIC_CAT.name] == 1].shape[0]
 
     if tot_nuel == 0:
         w_nuel = 0.0
     else:
-        w_nuel = (1.0/tot_nuel)*(nuel_frac * total_num)
+        w_nuel = (1.0 / tot_nuel) * (nuel_frac * total_num)
 
     if tot_anuel == 0:
         w_anuel = 0.0
     else:
-        w_anuel = (1.0/tot_anuel)*(anuel_frac * total_num)
+        w_anuel = (1.0 / tot_anuel) * (anuel_frac * total_num)
 
     if tot_numu == 0:
         w_numu = 0.0
     else:
-        w_numu = (1.0/tot_numu)*(numu_frac * total_num)
+        w_numu = (1.0 / tot_numu) * (numu_frac * total_num)
 
     if tot_anumu == 0:
         w_anumu = 0.0
     else:
-        w_anumu = (1.0/tot_anumu)*(anumu_frac * total_num)
+        w_anumu = (1.0 / tot_anumu) * (anumu_frac * total_num)
 
     if tot_cosmic == 0:
         w_cosmic = 0.0
     else:
-        w_cosmic = (1.0/tot_cosmic)*(cosmic_frac * total_num)
+        w_cosmic = (1.0 / tot_cosmic) * (cosmic_frac * total_num)
 
-    events['w'] = events.apply(
-        add_weight,
-        axis=1,
-        args=(w_nuel, w_anuel, w_numu, w_anumu, w_cosmic)
+    events["w"] = events.apply(
+        add_weight, axis=1, args=(w_nuel, w_anuel, w_numu, w_anumu, w_cosmic)
     )
 
     if verbose:
-        print("Nuel:   {}, weight: {:.5f}, actual: {:.2f}".format(
-            tot_nuel, w_nuel, total_num*nuel_frac))
-        print("Anuel:  {}, weight: {:.5f}, actual: {:.2f}".format(
-            tot_anuel, w_anuel, total_num*anuel_frac))
-        print("Numu:   {}, weight: {:.5f}, actual: {:.2f}".format(
-            tot_numu, w_numu, total_num*numu_frac))
-        print("Anumu:  {}, weight: {:.5f}, actual: {:.2f}".format(
-            tot_anumu, w_anumu, total_num*anumu_frac))
-        print("Cosmic: {}, weight: {:.3f}, actual: {:.2f}".format(
-            tot_cosmic, w_cosmic, total_num*cosmic_frac))
+        print(
+            "Nuel:   {}, weight: {:.5f}, actual: {:.2f}".format(
+                tot_nuel, w_nuel, total_num * nuel_frac
+            )
+        )
+        print(
+            "Anuel:  {}, weight: {:.5f}, actual: {:.2f}".format(
+                tot_anuel, w_anuel, total_num * anuel_frac
+            )
+        )
+        print(
+            "Numu:   {}, weight: {:.5f}, actual: {:.2f}".format(
+                tot_numu, w_numu, total_num * numu_frac
+            )
+        )
+        print(
+            "Anumu:  {}, weight: {:.5f}, actual: {:.2f}".format(
+                tot_anumu, w_anumu, total_num * anumu_frac
+            )
+        )
+        print(
+            "Cosmic: {}, weight: {:.3f}, actual: {:.2f}".format(
+                tot_cosmic, w_cosmic, total_num * cosmic_frac
+            )
+        )
     return events
 
 
@@ -386,8 +436,8 @@ def apply_standard_cuts(
     h_cut=600.0,
     theta_cut=0.65,
     phi_cut=0.25,
-    verbose=False
-        ):
+    verbose=False,
+):
     """Calculate and apply the standard cuts to the events dataframe.
     Args:
         events (pandas.DataFrame): Events dataframe to append weights to
@@ -401,31 +451,39 @@ def apply_standard_cuts(
         events (pandas.DataFrame): Events with cuts applied
     """
     cosmic_cuts = np.zeros(len(events), dtype=bool)
-    if 'pred_t_cosmic_cat' in events.columns:
-        cosmic_cut_func = cut_apply("pred_t_cosmic_cat", cosmic_cut, type='greater')
+    if "pred_t_cosmic_cat" in events.columns:
+        cosmic_cut_func = cut_apply("pred_t_cosmic_cat", cosmic_cut, type="greater")
         cosmic_cuts = events.apply(cosmic_cut_func, axis=1)
 
-    q_cut_func = cut_apply('r_raw_total_digi_q', q_cut, type='lower')
+    q_cut_func = cut_apply("r_raw_total_digi_q", q_cut, type="lower")
     q_cuts = events.apply(q_cut_func, axis=1)
 
-    h_cut_func = cut_apply('r_first_ring_height', h_cut, type='lower')
+    h_cut_func = cut_apply("r_first_ring_height", h_cut, type="lower")
     h_cuts = events.apply(h_cut_func, axis=1)
 
-    theta_low_cut_func = cut_apply('r_dirTheta', -theta_cut, type='lower')
+    theta_low_cut_func = cut_apply("r_dirTheta", -theta_cut, type="lower")
     theta_low_cuts = events.apply(theta_low_cut_func, axis=1)
 
-    theta_high_cut_func = cut_apply('r_dirTheta', theta_cut, type='greater')
+    theta_high_cut_func = cut_apply("r_dirTheta", theta_cut, type="greater")
     theta_high_cuts = events.apply(theta_high_cut_func, axis=1)
 
-    phi_low_cut_func = cut_apply('r_dirPhi', -phi_cut, type='lower')
+    phi_low_cut_func = cut_apply("r_dirPhi", -phi_cut, type="lower")
     phi_low_cuts = events.apply(phi_low_cut_func, axis=1)
 
-    phi_high_cut_func = cut_apply('r_dirPhi', phi_cut, type='greater')
+    phi_high_cut_func = cut_apply("r_dirPhi", phi_cut, type="greater")
     phi_high_cuts = events.apply(phi_high_cut_func, axis=1)
 
-    events["cut"] = np.logical_or.reduce((cosmic_cuts, q_cuts, h_cuts,
-                                          theta_low_cuts, theta_high_cuts,
-                                          phi_low_cuts, phi_high_cuts))
+    events["cut"] = np.logical_or.reduce(
+        (
+            cosmic_cuts,
+            q_cuts,
+            h_cuts,
+            theta_low_cuts,
+            theta_high_cuts,
+            phi_low_cuts,
+            phi_high_cuts,
+        )
+    )
 
     if verbose:
         for i in range(len(data.MAP_FULL_COMB_CAT.labels)):
@@ -433,10 +491,12 @@ def apply_standard_cuts(
             survived_events = cat_events[cat_events["cut"] == 0]
             if cat_events.shape[0] == 0:
                 continue
-            print("{}: total {}, survived: {}".format(
-                data.MAP_FULL_COMB_CAT.labels[i],
-                cat_events.shape[0],
-                survived_events.shape[0]/cat_events.shape[0])
+            print(
+                "{}: total {}, survived: {}".format(
+                    data.MAP_FULL_COMB_CAT.labels[i],
+                    cat_events.shape[0],
+                    survived_events.shape[0] / cat_events.shape[0],
+                )
             )
 
     return events
@@ -451,17 +511,21 @@ def cut_apply(variable, value, type):
     Returns:
         function: Function to apply the cut to the dataframe
     """
+
     def cut_func(event):
-        if type == 'greater':
-            return (event[variable] >= value)
-        elif type == 'lower':
-            return (event[variable] <= value)
+        if type == "greater":
+            return event[variable] >= value
+        elif type == "lower":
+            return event[variable] <= value
         else:
             raise NotImplementedError
+
     return cut_func
 
 
-def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix="", verbose=False):
+def calculate_curves(
+    events, cat_name="t_comb_cat", thresholds=200, prefix="", verbose=False
+):
     """Calculate efficiency, purity and figure of merit across the full range of cut values
     Args:
         events (pandas.DataFrame): Events dataframe to use
@@ -482,49 +546,58 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix="", v
     cuts, totals, max_foms, max_fom_cuts = [], [], [], []
     sig_effs, bkg_effs, purities, foms = [], [], [], []
     for cat in range(num_cats):
-        totals.append(events[events[cat_name] == cat]['w'].sum())
+        totals.append(events[events[cat_name] == cat]["w"].sum())
         max_foms.append(0.0)
         max_fom_cuts.append(0.0)
 
     for cat in range(num_cats):
         sig_effs.append([1.0])
         bkg_effs.append([1.0])
-        purities.append([totals[cat]/sum(totals)])
-        foms.append([sig_effs[cat][0]*purities[cat][0]])
+        purities.append([totals[cat] / sum(totals)])
+        foms.append([sig_effs[cat][0] * purities[cat][0]])
 
     cuts.append(0.0)
-    inc = float(1.0/thresholds)
+    inc = float(1.0 / thresholds)
     for cut in range(thresholds):
         cuts.append((cut * inc) + inc)
         for count_cat in range(num_cats):
             passed = []
             for cut_cat in range(num_cats):
-                passed.append(events[(events["cut"] == 0) &
-                                     (events[cat_name] == cut_cat) &
-                                     (events[prefix + str(count_cat)] > cuts[cut+1])]['w'].sum())
+                passed.append(
+                    events[
+                        (events["cut"] == 0)
+                        & (events[cat_name] == cut_cat)
+                        & (events[prefix + str(count_cat)] > cuts[cut + 1])
+                    ]["w"].sum()
+                )
 
             # Calculate the signal and background efficiencies for this category
             if passed[count_cat] == 0.0 or totals[count_cat] == 0.0:
                 sig_effs[count_cat].append(0.0)
             else:
-                sig_effs[count_cat].append(passed[count_cat]/totals[count_cat])
-            bkg_passed = sum(passed[:count_cat]+passed[count_cat+1:])
-            bkg_total = sum(totals[:count_cat]+totals[count_cat+1:])
+                sig_effs[count_cat].append(passed[count_cat] / totals[count_cat])
+            bkg_passed = sum(passed[:count_cat] + passed[count_cat + 1 :])
+            bkg_total = sum(totals[:count_cat] + totals[count_cat + 1 :])
             if bkg_passed == 0.0 or bkg_total == 0.0:
                 bkg_effs[count_cat].append(0.0)
             else:
-                bkg_effs[count_cat].append(bkg_passed/bkg_total)
+                bkg_effs[count_cat].append(bkg_passed / bkg_total)
 
-            if sig_effs[count_cat][cut+1] == 0.0 or bkg_effs[count_cat][cut+1] == 0.0:
+            if (
+                sig_effs[count_cat][cut + 1] == 0.0
+                or bkg_effs[count_cat][cut + 1] == 0.0
+            ):
                 purities[count_cat].append(0.0)
                 foms[count_cat].append(0.0)
             else:
-                purities[count_cat].append(passed[count_cat]/sum(passed))
-                foms[count_cat].append(sig_effs[count_cat][cut+1]*purities[count_cat][cut+1])
+                purities[count_cat].append(passed[count_cat] / sum(passed))
+                foms[count_cat].append(
+                    sig_effs[count_cat][cut + 1] * purities[count_cat][cut + 1]
+                )
 
-            if foms[count_cat][cut+1] > max_foms[count_cat]:
-                max_foms[count_cat] = foms[count_cat][cut+1]
-                max_fom_cuts[count_cat] = cuts[cut+1]
+            if foms[count_cat][cut + 1] > max_foms[count_cat]:
+                max_foms[count_cat] = foms[count_cat][cut + 1]
+                max_fom_cuts[count_cat] = cuts[cut + 1]
 
     # Convert the lists to numpy arrays
     cuts = np.asarray(cuts)
@@ -570,14 +643,18 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix="", v
         eff_hists = []
         for cut_cat in range(num_cats):
             total = events[events[cat_name] == cut_cat]
-            passed = events[(events[cat_name] == cut_cat) &
-                            (events["cut"] == 0) &
-                            (events[prefix + str(count_cat)] > max_fom_cuts[count_cat])]
+            passed = events[
+                (events[cat_name] == cut_cat)
+                & (events["cut"] == 0)
+                & (events[prefix + str(count_cat)] > max_fom_cuts[count_cat])
+            ]
 
-            total_h = np.histogram(total["t_nuEnergy"], bins=e_bins,
-                                   range=e_range, weights=total["w"])
-            passed_h = np.histogram(passed["t_nuEnergy"], bins=e_bins,
-                                    range=e_range, weights=passed["w"])
+            total_h = np.histogram(
+                total["t_nuEnergy"], bins=e_bins, range=e_range, weights=total["w"]
+            )
+            passed_h = np.histogram(
+                passed["t_nuEnergy"], bins=e_bins, range=e_range, weights=passed["w"]
+            )
             eff_h = np.divide(passed_h, total_h)
             eff_hists.append(eff_h[0])
 
@@ -587,8 +664,14 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix="", v
                 bkg_h = np.add(bkg_h, passed_h[0])
 
         fom_effs.append(eff_hists)
-        fom_purs.append(np.divide(signal_h, np.add(signal_h, bkg_h),
-                        out=np.zeros_like(bkg_h), where=(bkg_h != 0)))
+        fom_purs.append(
+            np.divide(
+                signal_h,
+                np.add(signal_h, bkg_h),
+                out=np.zeros_like(bkg_h),
+                where=(bkg_h != 0),
+            )
+        )
 
     output = {
         "cuts": cuts,
@@ -602,7 +685,7 @@ def calculate_curves(events, cat_name='t_comb_cat', thresholds=200, prefix="", v
         "bkg_effs_auc": bkg_effs_auc,
         "pur_auc": pur_auc,
         "fom_auc": fom_auc,
-        "roc_auc": roc_auc
+        "roc_auc": roc_auc,
     }
 
     return output
@@ -624,8 +707,14 @@ def classify(event, categories, prefix):
         return np.asarray(x).argmax()
 
 
-def run_pca(events, model, layer_name="dense_final",
-            standardise=True, components=3, verbose=False):
+def run_pca(
+    events,
+    model,
+    layer_name="dense_final",
+    standardise=True,
+    components=3,
+    verbose=False,
+):
     """Run PCA on the final dense layer outputs and append results to events dataframe.
     Args:
         events (pandas.DataFrame): Events dataframe to append outputs
@@ -639,8 +728,7 @@ def run_pca(events, model, layer_name="dense_final",
     """
     # Create model that outputs the dense layer outputs
     dense_model = Model(
-        inputs=model.model.input,
-        outputs=model.model.get_layer(layer_name).output
+        inputs=model.model.input, outputs=model.model.get_layer(layer_name).output
     )
 
     # Make the predictions
@@ -660,14 +748,23 @@ def run_pca(events, model, layer_name="dense_final",
         events["pca_" + str(component)] = pca_result[component]
 
     if verbose:
-        print('Explained variation per principal component: {}'.format(
-            pca.explained_variance_ratio_))
+        print(
+            "Explained variation per principal component: {}".format(
+                pca.explained_variance_ratio_
+            )
+        )
 
     return events
 
 
-def run_tsne(events, model, layer_name="dense_final", standardise=True,
-             components=3, max_events=10000):
+def run_tsne(
+    events,
+    model,
+    layer_name="dense_final",
+    standardise=True,
+    components=3,
+    max_events=10000,
+):
     """Run t-SNE on the final dense layer outputs and append results to events dataframe.
     Args:
         events (pandas.DataFrame): Events dataframe to append outputs
@@ -681,8 +778,7 @@ def run_tsne(events, model, layer_name="dense_final", standardise=True,
     """
     # Create model that outputs the dense layer outputs
     dense_model = Model(
-        inputs=model.model.input,
-        outputs=model.model.get_layer(layer_name).output
+        inputs=model.model.input, outputs=model.model.get_layer(layer_name).output
     )
 
     # Make the predictions
@@ -704,8 +800,9 @@ def run_tsne(events, model, layer_name="dense_final", standardise=True,
     return events
 
 
-def explain_gradcam(events, model, num_events, output="t_all_cat",
-                    layer_name="path0_block1"):
+def explain_gradcam(
+    events, model, num_events, output="t_all_cat", layer_name="path0_block1"
+):
     """Run GradCAM on the given model using the events.
     Args:
         events (pandas.DataFrame): Events dataframe to append outputs
@@ -716,13 +813,21 @@ def explain_gradcam(events, model, num_events, output="t_all_cat",
     Returns:
         list[event_outputs]: List of GradCAM outputs
     """
-    explain_m = Model(inputs=model.model.input, outputs=model.model.get_layer(output).output)
+    explain_m = Model(
+        inputs=model.model.input, outputs=model.model.get_layer(output).output
+    )
     outputs = []
     for event in range(num_events):
-        category = int(events['t_all_cat'][event])
-        image = tf.expand_dims(events['image_0'][event], axis=0).numpy()
-        outputs.append(GradCAM().explain(
-            (image, category), explain_m, class_index=category, layer_name=layer_name))
+        category = int(events["t_all_cat"][event])
+        image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
+        outputs.append(
+            GradCAM().explain(
+                (image, category),
+                explain_m,
+                class_index=category,
+                layer_name=layer_name,
+            )
+        )
     return outputs
 
 
@@ -736,18 +841,24 @@ def explain_occlusion(events, model, num_events, output="t_all_cat"):
     Returns:
         list[event_outputs]: List of OcclusionSensitivity outputs
     """
-    explain_m = Model(inputs=model.model.input, outputs=model.model.get_layer(output).output)
+    explain_m = Model(
+        inputs=model.model.input, outputs=model.model.get_layer(output).output
+    )
     outputs = []
     for event in range(num_events):
-        category = int(events['t_all_cat'][event])
-        image = tf.expand_dims(events['image_0'][event], axis=0).numpy()
-        outputs.append(OcclusionSensitivity().explain(
-            (image, category), explain_m, class_index=category, patch_size=3))
+        category = int(events["t_all_cat"][event])
+        image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
+        outputs.append(
+            OcclusionSensitivity().explain(
+                (image, category), explain_m, class_index=category, patch_size=3
+            )
+        )
     return outputs
 
 
-def explain_activation(events, model, num_events, output="t_all_cat",
-                       layer_name="path0_block1_conv0"):
+def explain_activation(
+    events, model, num_events, output="t_all_cat", layer_name="path0_block1_conv0"
+):
     """Run ExtractActivations on the given model using the events.
     Args:
         events (pandas.DataFrame): Events dataframe to append outputs
@@ -758,13 +869,18 @@ def explain_activation(events, model, num_events, output="t_all_cat",
     Returns:
         list[event_outputs]: List of ExtractActivations outputs
     """
-    explain_m = Model(inputs=model.model.input, outputs=model.model.get_layer(output).output)
+    explain_m = Model(
+        inputs=model.model.input, outputs=model.model.get_layer(output).output
+    )
     outputs = []
     for event in range(num_events):
-        category = int(events['t_all_cat'][event])
-        image = tf.expand_dims(events['image_0'][event], axis=0).numpy()
-        outputs.append(ExtractActivations().explain(
-            (image, category), explain_m, layers_name=layer_name))
+        category = int(events["t_all_cat"][event])
+        image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
+        outputs.append(
+            ExtractActivations().explain(
+                (image, category), explain_m, layers_name=layer_name
+            )
+        )
     return outputs
 
 
@@ -778,24 +894,31 @@ def explain_grads(events, model, num_events, output="t_all_cat"):
     Returns:
         dict: Dictionary of gradient outputs
     """
-    explain_m = Model(inputs=model.model.input, outputs=model.model.get_layer(output).output)
-    outputs = {
-        "vanilla": [],
-        "smooth": [],
-        "integrated": [],
-        "inputs": []
-    }
+    explain_m = Model(
+        inputs=model.model.input, outputs=model.model.get_layer(output).output
+    )
+    outputs = {"vanilla": [], "smooth": [], "integrated": [], "inputs": []}
     for event in range(num_events):
-        category = int(events['t_all_cat'][event])
-        image = tf.expand_dims(events['image_0'][event], axis=0).numpy()
-        outputs["vanilla"].append(VanillaGradients().explain(
-            (image, category), explain_m, class_index=category))
-        outputs["smooth"].append(SmoothGrad().explain(
-            (image, category), explain_m, class_index=category))
-        outputs["integrated"].append(IntegratedGradients().explain(
-            (image, category), explain_m, class_index=category))
-        outputs["inputs"].append(GradientsInputs().explain(
-            (image, category), explain_m, class_index=category))
+        category = int(events["t_all_cat"][event])
+        image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
+        outputs["vanilla"].append(
+            VanillaGradients().explain(
+                (image, category), explain_m, class_index=category
+            )
+        )
+        outputs["smooth"].append(
+            SmoothGrad().explain((image, category), explain_m, class_index=category)
+        )
+        outputs["integrated"].append(
+            IntegratedGradients().explain(
+                (image, category), explain_m, class_index=category
+            )
+        )
+        outputs["inputs"].append(
+            GradientsInputs().explain(
+                (image, category), explain_m, class_index=category
+            )
+        )
     return outputs
 
 
@@ -803,17 +926,19 @@ def predict_energies(self):
     """Estimate the event energy using the true category model
     """
     estimations = []
-    for i in tqdm(range(self.beam_model.categories+1), desc='--- predicting energies'):
+    for i in tqdm(
+        range(self.beam_model.categories + 1), desc="--- predicting energies"
+    ):
         estimations.append(self.energy_models[i].model.predict(self.data))
 
     true_cat_energies = []
     pred_cat_energies = []
     for i in range(self.events.shape[0]):
-        true_cat_energies.append(estimations[self.events['t_cat'][i]][i])
-        pred_cat_energies.append(estimations[self.events['classification'][i]][i])
+        true_cat_energies.append(estimations[self.events["t_cat"][i]][i])
+        pred_cat_energies.append(estimations[self.events["classification"][i]][i])
 
-    self.events['true_cat_pred_e'] = np.array(true_cat_energies)
-    self.events['pred_cat_pred_e'] = np.array(pred_cat_energies)
+    self.events["true_cat_pred_e"] = np.array(true_cat_energies)
+    self.events["pred_cat_pred_e"] = np.array(pred_cat_energies)
 
 
 def globes_smearing_file(hists, names):
@@ -823,15 +948,15 @@ def globes_smearing_file(hists, names):
         names (list[str]): Event type name
     """
     for hist, name in zip(hists, names):
-        with open("smearing/" + name + ".dat", 'w', encoding='utf-8') as f:
+        with open("smearing/" + name + ".dat", "w", encoding="utf-8") as f:
             f.write("energy(#" + name + ")<\n")
             f.write("@energy =\n")
             for i in range(40):
                 f.write("{0, 40, ")
                 for j in range(40):
                     if j == 39:
-                        f.write(str.format('{0:.5f}', hist[j, i]))
+                        f.write(str.format("{0:.5f}", hist[j, i]))
                     else:
-                        f.write(str.format('{0:.5f}, ', hist[j, i]))
+                        f.write(str.format("{0:.5f}, ", hist[j, i]))
                 f.write("}:\n")
             f.write(">\n")
