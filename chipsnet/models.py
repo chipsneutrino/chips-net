@@ -670,7 +670,7 @@ def inception_resnet_model(config):
     paths = []
     for i, image_input in enumerate(inputs):
         # Stem block: 35 x 35 x 192
-        path = conv2d_bn(image_input, 32, 3, padding="valid")
+        path = conv2d_bn(image_input, 32, 3, padding="valid", name="stem" + str(i))
         path = conv2d_bn(path, 64, 3)
         path = MaxPooling2D(3, strides=2)(path)
         # original version
@@ -842,7 +842,7 @@ def get_outputs(config, x):
     Raises:
         ValueError: if labels is not a list with length atleast 1
     """
-    if type(config.model.labels) != list:
+    if not isinstance(config.model.labels, list):
         raise ValueError("Invalid labels type, must be a list")
     elif len(config.model.labels) == 0:
         raise ValueError("Invalid labels length, must be greater than zero")
@@ -1034,6 +1034,8 @@ class MultiLossLayer(tf.keras.layers.Layer):
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
 
+        self.num_losses = len(self.config.model.labels)
+
         super(MultiLossLayer, self).build(input_shape)
 
     def add_var(self, output, initial=0.0):
@@ -1059,7 +1061,7 @@ class MultiLossLayer(tf.keras.layers.Layer):
             ys_pred (list[tf.tensor]): predicted tensors
         """
         loss = 0
-        for i in range(len(ys_true)):
+        for i in range(self.num_losses):
             precision = tf.keras.backend.exp(-self.log_vars[i][0])
             var_loss = self.lw[i] * self.loss_funcs[i](ys_true[i], ys_pred[i])
             loss += tf.keras.backend.sum(precision * var_loss + self.log_vars[i][0])

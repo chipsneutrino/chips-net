@@ -19,6 +19,10 @@ clean:
 	rm -rf ./data/models/*
 	rm -rf ./data/output/*
 
+black:
+	black chipsnet/
+	black tests/
+
 test:
 	pytest --pydocstyle --flake8 --black -v .
 

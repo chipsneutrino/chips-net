@@ -179,47 +179,14 @@ class Reader:
             num_parallel_calls=tf.data.experimental.AUTOTUNE,
         )
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-        ds = ds.map(
-            lambda x: self.parse(x), num_parallel_calls=tf.data.experimental.AUTOTUNE
-        )
+        ds = ds.map(self.parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
         if strip:
-            ds = ds.map(
-                lambda x, y: self.strip(x, y),
-                num_parallel_calls=tf.data.experimental.AUTOTUNE,
-            )
+            ds = ds.map(self.strip, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
         if self.config.data.cat_select != -1:
             ds = ds.filter(self.filter_cats)
 
         return ds
-
-    def df_from_ds(self, ds):
-        """Create a pandas dataframe from a tf dataset.
-
-        Args:
-            ds (tf.dataset): input dataset
-            num_events (int): number of events to include
-
-        Returns:
-            pd.DataFrame: dataFrame generated from the dataset
-        """
-        events = {}
-        for x, y in ds:
-            for name, array in list(x.items()):  # Fill events dict with 'inputs'
-                if name in events.keys():
-                    events[name].extend(array.numpy())
-                else:
-                    events[name] = []
-                    events[name].extend(array.numpy())
-
-            for name, array in list(y.items()):  # Fill events dict with 'labels'
-                if name in events.keys():
-                    events[name].extend(array.numpy())
-                else:
-                    events[name] = []
-                    events[name].extend(array.numpy())
-
-        return pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
 
     def training_ds(self, num_events, batch_size=None, strip=True):
         """Return the training dataset.
@@ -266,7 +233,7 @@ class Reader:
         Returns:
             pd.DataFrame: training sample DataFrame
         """
-        return self.df_from_ds(self.training_ds(num_events, 64))
+        return df_from_ds(self.training_ds(num_events, 64))
 
     def validation_df(self, num_events):
         """Return the validation DataFrame.
@@ -277,7 +244,7 @@ class Reader:
         Returns:
             pd.DataFrame: validation sample DataFrame
         """
-        return self.df_from_ds(self.validation_ds(num_events, 64))
+        return df_from_ds(self.validation_ds(num_events, 64))
 
     def testing_df(self, num_events):
         """Return the testing DataFrame.
@@ -288,7 +255,7 @@ class Reader:
         Returns:
             pd.DataFrame: testing sample DataFrame
         """
-        return self.df_from_ds(self.testing_ds(num_events, 64))
+        return df_from_ds(self.testing_ds(num_events, 64))
 
 
 class Creator:
@@ -562,6 +529,35 @@ NP_THRESHOLD = 20 * Particle.from_pdgid(11).mass
 GAMMA_THRESHOLD = 20 * Particle.from_pdgid(11).mass
 
 
+def df_from_ds(ds):
+    """Create a pandas dataframe from a tf dataset.
+
+    Args:
+        ds (tf.dataset): input dataset
+        num_events (int): number of events to include
+
+    Returns:
+        pd.DataFrame: dataFrame generated from the dataset
+    """
+    events = {}
+    for x, y in ds:
+        for name, array in list(x.items()):  # Fill events dict with 'inputs'
+            if name in events.keys():
+                events[name].extend(array.numpy())
+            else:
+                events[name] = []
+                events[name].extend(array.numpy())
+
+        for name, array in list(y.items()):  # Fill events dict with 'labels'
+            if name in events.keys():
+                events[name].extend(array.numpy())
+            else:
+                events[name] = []
+                events[name].extend(array.numpy())
+
+    return pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
+
+
 def get_map(name):
     """Get category mapping dict from name.
 
@@ -571,7 +567,7 @@ def get_map(name):
     Returns:
         dict: mapping dictionary
     """
-    for map in [
+    for cat_map in [
         MAP_NU_TYPE,
         MAP_INT_TYPE,
         MAP_ALL_CAT,
@@ -580,8 +576,8 @@ def get_map(name):
         MAP_NU_NC_COMB_CAT,
         MAP_NC_COMB_CAT,
     ]:
-        if map["name"] == name:
-            return map
+        if cat_map["name"] == name:
+            return cat_map
     return None
 
 

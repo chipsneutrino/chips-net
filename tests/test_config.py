@@ -1,5 +1,4 @@
 from os import path
-import pytest  # noqa: F401
 import chipsnet.config as config
 
 

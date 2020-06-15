@@ -10,19 +10,40 @@ The docs can be found at [https://chipsneutrino.gitlab.io/chips-net/](https://ch
 To setup the correct version of CUDA and install the conda environment, run... 
 
 ```bash
-$ source setup.sh
+source setup.sh
 ```
 
 Once this is done you can source 'setup.sh' again in the future to activate the environment.
 
 This also sets up the alias 'run' used to execute the run.py script that executes all possible jobs in chipsnet
 
-## To Run
-To run create data, train, study, or evaluate, modify or create a new config file, examples of which are in ./config/ and call...
+## Usage
+To run the example create, train and study configurations in ./config/ call...
 
 ```bash
-$ run [config_path]
+make create
 ```
+
+```bash
+make train
+```
+
+```bash
+make study
+```
+
+To run a new configuration task use the following...
+
+```bash
+python chipsnet/run.py [config_path]
+```
+
+To run all the tests call...
+
+```bash
+make test
+```
+
 
 ## Tips
 It's important to first copy data to the local GPU machine or the training rate is reduced significantly due to the network bottleneck.
@@ -33,14 +54,14 @@ To use the notebooks in ./notebooks/ run the following and navigate to the url g
 You will need to forward the port to your local machine if working remotely.
 
 ```bash
-$ jupyter-notebook
+jupyter-notebook
 ```
 
 ## Tensorboard
 To run tensorboard on the outputs from a model use...
 
 ```bash
-$ tensorboard --logdir [model_dir]/tensorboard
+tensorboard --logdir [model_dir]/tensorboard
 ```
 
 Again you will need to forward the port to your local machine if working remotely.
@@ -51,7 +72,7 @@ To serve a jupyter notebook as a slideshow run...
 Again you will need to forward the port to your local machine if working remotely.
 
 ```bash
-$ jupyter nbconvert [notebook] --to slides --post serve
+jupyter nbconvert [notebook] --to slides --post serve
 ```
 
 ## Comet Integration
