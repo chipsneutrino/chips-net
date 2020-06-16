@@ -65,7 +65,7 @@ def model_from_conf(config, name):
     model_config.exp.name = config.models[name].path
     model_config.data.channels = config.models[name].channels
     chipsnet.config.setup_dirs(model_config, False)
-    model = chipsnet.models.get_model(model_config)
+    model = chipsnet.models.Model(model_config)
     model.load()
     return model
 
@@ -335,55 +335,55 @@ def apply_weights(
             w_cosmic: cosmic weight
         """
         if (
-            event[data.MAP_NU_TYPE.name] == 0
-            and event[data.MAP_SIGN_TYPE.name] == 0
-            and event[data.MAP_COSMIC_CAT.name] == 0
+            event[data.MAP_NU_TYPE["name"]] == 0
+            and event[data.MAP_SIGN_TYPE["name"]] == 0
+            and event[data.MAP_COSMIC_CAT["name"]] == 0
         ):
             return w_nuel
         elif (
-            event[data.MAP_NU_TYPE.name] == 0
-            and event[data.MAP_SIGN_TYPE.name] == 1
-            and event[data.MAP_COSMIC_CAT.name] == 0
+            event[data.MAP_NU_TYPE["name"]] == 0
+            and event[data.MAP_SIGN_TYPE["name"]] == 1
+            and event[data.MAP_COSMIC_CAT["name"]] == 0
         ):
             return w_anuel
         elif (
-            event[data.MAP_NU_TYPE.name] == 1
-            and event[data.MAP_SIGN_TYPE.name] == 0
-            and event[data.MAP_COSMIC_CAT.name] == 0
+            event[data.MAP_NU_TYPE["name"]] == 1
+            and event[data.MAP_SIGN_TYPE["name"]] == 0
+            and event[data.MAP_COSMIC_CAT["name"]] == 0
         ):
             return w_numu
         elif (
-            event[data.MAP_NU_TYPE.name] == 1
-            and event[data.MAP_SIGN_TYPE.name] == 1
-            and event[data.MAP_COSMIC_CAT.name] == 0
+            event[data.MAP_NU_TYPE["name"]] == 1
+            and event[data.MAP_SIGN_TYPE["name"]] == 1
+            and event[data.MAP_COSMIC_CAT["name"]] == 0
         ):
             return w_anumu
-        elif event[data.MAP_COSMIC_CAT.name] == 1:
+        elif event[data.MAP_COSMIC_CAT["name"]] == 1:
             return w_cosmic
         else:
             raise NotImplementedError
 
     tot_nuel = events[
-        (events[data.MAP_NU_TYPE.name] == 0)
-        & (events[data.MAP_SIGN_TYPE.name] == 0)
-        & (events[data.MAP_COSMIC_CAT.name] == 0)
+        (events[data.MAP_NU_TYPE["name"]] == 0)
+        & (events[data.MAP_SIGN_TYPE["name"]] == 0)
+        & (events[data.MAP_COSMIC_CAT["name"]] == 0)
     ].shape[0]
     tot_anuel = events[
-        (events[data.MAP_NU_TYPE.name] == 0)
-        & (events[data.MAP_SIGN_TYPE.name] == 1)
-        & (events[data.MAP_COSMIC_CAT.name] == 0)
+        (events[data.MAP_NU_TYPE["name"]] == 0)
+        & (events[data.MAP_SIGN_TYPE["name"]] == 1)
+        & (events[data.MAP_COSMIC_CAT["name"]] == 0)
     ].shape[0]
     tot_numu = events[
-        (events[data.MAP_NU_TYPE.name] == 1)
-        & (events[data.MAP_SIGN_TYPE.name] == 0)
-        & (events[data.MAP_COSMIC_CAT.name] == 0)
+        (events[data.MAP_NU_TYPE["name"]] == 1)
+        & (events[data.MAP_SIGN_TYPE["name"]] == 0)
+        & (events[data.MAP_COSMIC_CAT["name"]] == 0)
     ].shape[0]
     tot_anumu = events[
-        (events[data.MAP_NU_TYPE.name] == 1)
-        & (events[data.MAP_SIGN_TYPE.name] == 1)
-        & (events[data.MAP_COSMIC_CAT.name] == 0)
+        (events[data.MAP_NU_TYPE["name"]] == 1)
+        & (events[data.MAP_SIGN_TYPE["name"]] == 1)
+        & (events[data.MAP_COSMIC_CAT["name"]] == 0)
     ].shape[0]
-    tot_cosmic = events[events[data.MAP_COSMIC_CAT.name] == 1].shape[0]
+    tot_cosmic = events[events[data.MAP_COSMIC_CAT["name"]] == 1].shape[0]
 
     if tot_nuel == 0:
         w_nuel = 0.0
@@ -468,25 +468,25 @@ def apply_standard_cuts(
     """
     cosmic_cuts = np.zeros(len(events), dtype=bool)
     if "pred_t_cosmic_cat" in events.columns:
-        cosmic_cut_func = cut_apply("pred_t_cosmic_cat", cosmic_cut, type="greater")
+        cosmic_cut_func = cut_apply("pred_t_cosmic_cat", cosmic_cut, cut_type="greater")
         cosmic_cuts = events.apply(cosmic_cut_func, axis=1)
 
-    q_cut_func = cut_apply("r_raw_total_digi_q", q_cut, type="lower")
+    q_cut_func = cut_apply("r_raw_total_digi_q", q_cut, cut_type="lower")
     q_cuts = events.apply(q_cut_func, axis=1)
 
-    h_cut_func = cut_apply("r_first_ring_height", h_cut, type="lower")
+    h_cut_func = cut_apply("r_first_ring_height", h_cut, cut_type="lower")
     h_cuts = events.apply(h_cut_func, axis=1)
 
-    theta_low_cut_func = cut_apply("r_dirTheta", -theta_cut, type="lower")
+    theta_low_cut_func = cut_apply("r_dirTheta", -theta_cut, cut_type="lower")
     theta_low_cuts = events.apply(theta_low_cut_func, axis=1)
 
-    theta_high_cut_func = cut_apply("r_dirTheta", theta_cut, type="greater")
+    theta_high_cut_func = cut_apply("r_dirTheta", theta_cut, cut_type="greater")
     theta_high_cuts = events.apply(theta_high_cut_func, axis=1)
 
-    phi_low_cut_func = cut_apply("r_dirPhi", -phi_cut, type="lower")
+    phi_low_cut_func = cut_apply("r_dirPhi", -phi_cut, cut_type="lower")
     phi_low_cuts = events.apply(phi_low_cut_func, axis=1)
 
-    phi_high_cut_func = cut_apply("r_dirPhi", phi_cut, type="greater")
+    phi_high_cut_func = cut_apply("r_dirPhi", phi_cut, cut_type="greater")
     phi_high_cuts = events.apply(phi_high_cut_func, axis=1)
 
     events["cut"] = np.logical_or.reduce(
@@ -502,14 +502,14 @@ def apply_standard_cuts(
     )
 
     if verbose:
-        for i in range(len(data.MAP_FULL_COMB_CAT.labels)):
-            cat_events = events[events[data.MAP_FULL_COMB_CAT.name] == i]
+        for i in range(len(data.MAP_FULL_COMB_CAT["labels"])):
+            cat_events = events[events[data.MAP_FULL_COMB_CAT["name"]] == i]
             survived_events = cat_events[cat_events["cut"] == 0]
             if cat_events.shape[0] == 0:
                 continue
             print(
                 "{}: total {}, survived: {}".format(
-                    data.MAP_FULL_COMB_CAT.labels[i],
+                    data.MAP_FULL_COMB_CAT["labels"][i],
                     cat_events.shape[0],
                     survived_events.shape[0] / cat_events.shape[0],
                 )
@@ -518,7 +518,7 @@ def apply_standard_cuts(
     return events
 
 
-def cut_apply(variable, value, type):
+def cut_apply(variable, value, cut_type):
     """Create a function to apply a cut on a variable within the events dataframe.
 
     Args:
@@ -531,9 +531,9 @@ def cut_apply(variable, value, type):
     """
 
     def cut_func(event):
-        if type == "greater":
+        if cut_type == "greater":
             return event[variable] >= value
-        elif type == "lower":
+        elif cut_type == "lower":
             return event[variable] <= value
         else:
             raise NotImplementedError

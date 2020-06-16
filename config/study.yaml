@@ -8,7 +8,6 @@ data:
         #- "./data/input/chips_1200_all/beam_flux/"
         - "./data/input/chips_1200_all/beam_uniform/"
         #- "./data/input/chips_1200_all/cosmic/"
-    all_chan: True  # Does the input data contain all possible channels?
     unstack: False  # Should we split the channels into seperate images?
     channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # Active channels
     augment: False  # Should we enable random and shifting augmentation to the images?

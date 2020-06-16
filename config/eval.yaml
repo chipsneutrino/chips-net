@@ -1,272 +1,264 @@
----
-# Evaluation configuration, different to the others mainly listing the various trained models
-# and input datasets etc...
-
 data:
     img_size: [64, 64]
-
+model:
+    learn_weights: False
 samples:
     v_c_flux:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
-        all_chan: True
         unstack: False
         channels: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
         rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
         shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
         img_size: [64, 64]
-        labels_to_inputs: False
+        cat_select: -1
     v_ct_flux:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
-        all_chan: True
         unstack: False
         channels: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
         rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
         shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
         img_size: [64, 64]
-        labels_to_inputs: False
+        cat_select: -1
     o_ct_flux:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
-        all_chan: True
         unstack: False
         channels: [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
         rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
         shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
         img_size: [64, 64]
-        labels_to_inputs: False
+        cat_select: -1
     i_ct_flux:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
-        all_chan: True
         unstack: False
         channels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
         augment: False
         rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
         shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
         img_size: [64, 64]
-        labels_to_inputs: False
+        cat_select: -1
     v_cth_flux:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
-        all_chan: True
         unstack: False
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
         rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
         shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
         img_size: [64, 64]
-        labels_to_inputs: False
+        cat_select: -1
     v_cth_uniform:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_uniform/"
-        all_chan: True
         unstack: False
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
         rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
         shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
         img_size: [64, 64]
-        labels_to_inputs: False
+        cat_select: -1
     v_cth_uniform_cos:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_uniform/"
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/cosmic/"
-        all_chan: True
         unstack: False
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
         rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
         shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
         img_size: [64, 64]
-        labels_to_inputs: False
+        cat_select: -1
     v_cth_flux_cos:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/cosmic/"
-        all_chan: True
         unstack: False
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
         rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
         shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
         img_size: [64, 64]
-        labels_to_inputs: False
-
+        cat_select: -1
 models:
     t_all_cat_v_c_uniform:
         channels: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_v_c_uniform" 
-        name: "beam"  
+        type: "vgg"  
         labels: ["t_all_cat"]  
-        reco_pars: False
         lr: 0.0002
-        lr_decay: 0.0
+        lr_decay: 0.5
         dense_units: 512
         dropout: 0.2
-        kernel_size: 3
         filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
         precision_policy: "float32"
-        summarise: False
+        summarise: False  
     t_all_cat_v_ct_uniform:
         channels: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_v_ct_uniform" 
-        name: "beam"  
+        type: "vgg"  
         labels: ["t_all_cat"]  
-        reco_pars: False
         lr: 0.0002
-        lr_decay: 0.0
+        lr_decay: 0.5
         dense_units: 512
         dropout: 0.2
-        kernel_size: 3
         filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
         precision_policy: "float32"
-        summarise: False
+        summarise: False  
     t_all_cat_o_ct_uniform:
         channels: [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_o_ct_uniform" 
-        name: "beam"  
+        type: "vgg"  
         labels: ["t_all_cat"]  
-        reco_pars: False
         lr: 0.0002
-        lr_decay: 0.0
+        lr_decay: 0.5
         dense_units: 512
         dropout: 0.2
-        kernel_size: 3
         filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
         precision_policy: "float32"
-        summarise: False
+        summarise: False  
     t_all_cat_i_ct_uniform:
         channels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_i_ct_uniform" 
-        name: "beam"  
+        type: "vgg"  
         labels: ["t_all_cat"]  
-        reco_pars: False
         lr: 0.0002
-        lr_decay: 0.0
+        lr_decay: 0.5
         dense_units: 512
         dropout: 0.2
-        kernel_size: 3
         filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
         precision_policy: "float32"
-        summarise: False
+        summarise: False  
     t_all_cat_v_cth_uniform:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_v_cth_uniform" 
-        name: "beam"  
+        type: "vgg"  
         labels: ["t_all_cat"]  
-        reco_pars: False
         lr: 0.0002
-        lr_decay: 0.0
+        lr_decay: 0.5
         dense_units: 512
         dropout: 0.2
-        kernel_size: 3
         filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
         precision_policy: "float32"
-        summarise: False
+        summarise: False  
     t_all_cat_v_cth_flux:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_all_cat_v_cth_flux" 
-        name: "beam"  
+        type: "vgg"  
         labels: ["t_all_cat"]  
-        reco_pars: False
         lr: 0.0002
-        lr_decay: 0.0
+        lr_decay: 0.5
         dense_units: 512
         dropout: 0.2
-        kernel_size: 3
         filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
         precision_policy: "float32"
-        summarise: False
+        summarise: False  
     t_cos_cat_v_cth_flux:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_cosmic_cat_v_cth_flux"
-        name: "cosmic"
+        type: "vgg"
         labels: ["t_cosmic_cat"]  
-        reco_pars: False
         lr: 0.0002
-        lr_decay: 0.0
+        lr_decay: 0.5
         dense_units: 512
         dropout: 0.2
-        kernel_size: 3
         filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
         precision_policy: "float32"
-        summarise: False
+        summarise: False  
     t_cos_cat_v_cth_uniform:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_cosmic_cat_v_cth_uniform"
-        name: "cosmic"
+        type: "vgg"
         labels: ["t_cosmic_cat"]  
-        reco_pars: False
         lr: 0.0002
-        lr_decay: 0.0
+        lr_decay: 0.5
         dense_units: 512
         dropout: 0.2
-        kernel_size: 3
         filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
         precision_policy: "float32"
-        summarise: False
+        summarise: False  
     multi_v_cth_flux:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
-        path: "multi_simple_v_cth_flux"
-        name: "multi_simple"   
+        path: "multi_v_cth_flux"
+        type: "vgg"
         labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"] 
-        reco_pars: False
         lr: 0.0002
-        lr_decay: 0.0
+        lr_decay: 0.5
         dense_units: 512
         dropout: 0.2
-        kernel_size: 3
         filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: True
         precision_policy: "float32"
-        summarise: False
+        summarise: False  
     multi_v_cth_uniform:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
-        path: "multi_simple_v_cth_uniform"
-        name: "multi_simple"   
+        path: "multi_v_cth_uniform"
+        type: "vgg" 
         labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"] 
-        reco_pars: False
         lr: 0.0002
-        lr_decay: 0.0
+        lr_decay: 0.5
         dense_units: 512
         dropout: 0.2
-        kernel_size: 3
         filters: 64
-        precision_policy: "float32"
-        summarise: False
-    multi_energy_v_cth_uniform:
-        channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        dir: "/mnt/storage/jtingey/chips-net/data/models/"
-        path: "multi_simple_energy_v_cth_uniform"
-        name: "multi_simple"   
-        labels: ["t_all_cat", "t_nuEnergy", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"] 
         reco_pars: False
-        lr: 0.0002
-        lr_decay: 0.0
-        dense_units: 512
-        dropout: 0.2
-        kernel_size: 3
-        filters: 64
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: True
         precision_policy: "float32"
-        summarise: False
-
+        summarise: False  
 eval:
     output: "./data/output/analysis_output.root"
-    examples: 64000
+    examples: 32000
     cuts:
         cosmic: 0.001   # Cosmic classifier cut
         q:      600.0   # r_raw_total_digi_q cut

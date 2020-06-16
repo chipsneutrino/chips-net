@@ -44,6 +44,13 @@ To run all the tests call...
 make test
 ```
 
+You can run the full analysis notebook using [papermill](https://papermill.readthedocs.io/en/latest/index.html) with the following command...
+
+```bash
+papermill notebooks/analysis.ipynb notebooks/analysis_complete.ipynb \
+    -p config_path "/mnt/storage/jtingey/chips-net/config/eval.yaml" \
+    -p save_path "/mnt/storage/jtingey/chips-net/data/output/"
+```
 
 ## Tips
 It's important to first copy data to the local GPU machine or the training rate is reduced significantly due to the network bottleneck.
@@ -54,7 +61,7 @@ To use the notebooks in ./notebooks/ run the following and navigate to the url g
 You will need to forward the port to your local machine if working remotely.
 
 ```bash
-jupyter-notebook
+jupyter-lab
 ```
 
 ## Tensorboard

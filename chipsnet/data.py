@@ -132,8 +132,9 @@ class Reader:
         labels["t_nuEnergy"] = labels_f[3]
 
         # Append labels to inputs if needed for multitask network
-        for label in self.config.model.labels:
-            inputs["input_" + label] = labels[label]
+        if self.config.model.learn_weights:
+            for label in self.config.model.labels:
+                inputs["input_" + label] = labels[label]
 
         return inputs, labels
 
@@ -233,7 +234,7 @@ class Reader:
         Returns:
             pd.DataFrame: training sample DataFrame
         """
-        return df_from_ds(self.training_ds(num_events, 64))
+        return df_from_ds(self.training_ds(num_events, 128))
 
     def validation_df(self, num_events):
         """Return the validation DataFrame.
@@ -244,7 +245,7 @@ class Reader:
         Returns:
             pd.DataFrame: validation sample DataFrame
         """
-        return df_from_ds(self.validation_ds(num_events, 64))
+        return df_from_ds(self.validation_ds(num_events, 128))
 
     def testing_df(self, num_events):
         """Return the testing DataFrame.
@@ -255,7 +256,7 @@ class Reader:
         Returns:
             pd.DataFrame: testing sample DataFrame
         """
-        return df_from_ds(self.testing_ds(num_events, 64))
+        return df_from_ds(self.testing_ds(num_events, 128))
 
 
 class Creator:

@@ -670,7 +670,7 @@ def inception_resnet_model(config):
     paths = []
     for i, image_input in enumerate(inputs):
         # Stem block: 35 x 35 x 192
-        path = conv2d_bn(image_input, 32, 3, padding="valid", name="stem" + str(i))
+        path = conv2d_bn(image_input, 32, 3, padding="valid", prefix="stem" + str(i))
         path = conv2d_bn(path, 64, 3)
         path = MaxPooling2D(3, strides=2)(path)
         # original version
