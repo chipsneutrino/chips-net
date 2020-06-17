@@ -24,11 +24,11 @@ create:
         #- "/unix/chips/jtingey/production/beam_numu/ncres/map/chips_1200/"
         #- "/unix/chips/jtingey/production/beam_numu/ccmec/map/chips_1200/"
         #- "/unix/chips/jtingey/production/cosmic_all/map/chips_1200/"
-    out_dir: "./data/input/chips_1200_all/beam_flux/"  # Output .tfrecords directory
-    #out_dir: "./data/input/chips_1200_all/beam_uniform/"  # Output .tfrecords directory
-    #out_dir: "./data/input/chips_1200_all/cosmic/"  # Output .tfrecords directory
+    out_dir: "./data/input/chips_1200/beam_flux/"  # Output .tfrecords directory
+    #out_dir: "./data/input/chips_1200/beam_uniform/"  # Output .tfrecords directory
+    #out_dir: "./data/input/chips_1200/cosmic/"  # Output .tfrecords directory
     split: 0.1  # Fraction of data to set aside for both validation and testing
     join: 10  # How many input .root map files to join together
-    all_maps: True  # Should all hit maps be passed through to the .tfrecords file?
+    all_maps: False  # Should all hit maps be passed through to the .tfrecords file?
     parallel: True  # Should the creation process be done in parallel, using multiple threads?
     par_scale: [1250.0, 1250.0, 600.0, 1.0, 3.14159]  # Reco parameter scales [vtxX, vtxY, vtxZ, dirTheta, dirPhi]

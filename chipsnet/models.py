@@ -548,7 +548,12 @@ def resnet_model(config):
         tf.keras.Model: Resnet keras model
     """
     depths = [3, 4, 6, 3]
-    filters = [64, 128, 256, 512]
+    filters = [
+        config.model.filters,
+        config.model.filters * 2,
+        config.model.filters * 4,
+        config.model.filters * 8,
+    ]
 
     # Get the image inputs
     inputs = []
@@ -699,10 +704,15 @@ def inception_resnet_model(config):
     branches = [branch_0, branch_1, branch_2, branch_pool]
     x = Concatenate(axis=3, name="mixed_5b")(branches)
 
-    # 10x block35 (Inception-ResNet-A block): 35 x 35 x 320
+    # block35 (Inception-ResNet-A block): 35 x 35 x 320
     for block_idx in range(1, blocks[0]):
         x = inception_resnet_block(
-            x, scale=scales[0], block_type="block35", prefix="block35_" + str(block_idx)
+            x,
+            scale=scales[0],
+            block_type="block35",
+            se_ratio=config.model.se_ratio,
+            dropout=config.model.dropout,
+            prefix="block35_" + str(block_idx),
         )
 
     # Mixed 6a (Reduction-A block): 17 x 17 x 1088
@@ -714,10 +724,15 @@ def inception_resnet_model(config):
     branches = [branch_0, branch_1, branch_pool]
     x = Concatenate(axis=3, name="mixed_6a")(branches)
 
-    # 20x block17 (Inception-ResNet-B block): 17 x 17 x 1088
+    # block17 (Inception-ResNet-B block): 17 x 17 x 1088
     for block_idx in range(1, blocks[1]):
         x = inception_resnet_block(
-            x, scale=scales[1], block_type="block17", prefix="block17_" + str(block_idx)
+            x,
+            scale=scales[1],
+            block_type="block17",
+            se_ratio=config.model.se_ratio,
+            dropout=config.model.dropout,
+            prefix="block17_" + str(block_idx),
         )
 
     # Mixed 7a (Reduction-B block): 8 x 8 x 2080
@@ -732,16 +747,23 @@ def inception_resnet_model(config):
     branches = [branch_0, branch_1, branch_2, branch_pool]
     x = Concatenate(axis=3, name="mixed_7a")(branches)
 
-    # 10x block8 (Inception-ResNet-C block): 8 x 8 x 2080
+    # block8 (Inception-ResNet-C block): 8 x 8 x 2080
     for block_idx in range(1, blocks[2]):
         x = inception_resnet_block(
-            x, scale=scales[2], block_type="block8", prefix="block8_" + str(block_idx)
+            x,
+            scale=scales[2],
+            block_type="block8",
+            se_ratio=config.model.se_ratio,
+            dropout=config.model.dropout,
+            prefix="block8_" + str(block_idx),
         )
     x = inception_resnet_block(
         x,
         scale=1.0,
         activation=None,
         block_type="block8",
+        se_ratio=config.model.se_ratio,
+        dropout=config.model.dropout,
         prefix="block8_" + str(blocks[2]),
     )
 

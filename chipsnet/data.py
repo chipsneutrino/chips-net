@@ -234,7 +234,7 @@ class Reader:
         Returns:
             pd.DataFrame: training sample DataFrame
         """
-        return df_from_ds(self.training_ds(num_events, 128))
+        return df_from_ds(self.training_ds(num_events, 256))
 
     def validation_df(self, num_events):
         """Return the validation DataFrame.
@@ -245,7 +245,7 @@ class Reader:
         Returns:
             pd.DataFrame: validation sample DataFrame
         """
-        return df_from_ds(self.validation_ds(num_events, 128))
+        return df_from_ds(self.validation_ds(num_events, 256))
 
     def testing_df(self, num_events):
         """Return the testing DataFrame.
@@ -256,7 +256,7 @@ class Reader:
         Returns:
             pd.DataFrame: testing sample DataFrame
         """
-        return df_from_ds(self.testing_ds(num_events, 128))
+        return df_from_ds(self.testing_ds(num_events, 256))
 
 
 class Creator:
