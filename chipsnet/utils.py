@@ -93,7 +93,7 @@ def model_history(config, name):
     return pd.DataFrame.from_dict(history_dict)
 
 
-def process_ds(config, data_name, model_names, verbose=False):
+def process_ds(config, data_name, model_names=[], verbose=False):
     """Fully process a dataset through a list of models and run a standard evaluation.
 
     Args:
@@ -106,6 +106,8 @@ def process_ds(config, data_name, model_names, verbose=False):
         pd.DataFrame: fully processed events dataframe
     """
     print("Processing {}... ".format(data_name), end="", flush=True)
+    if verbose:
+        print("\n")
     start_time = time.time()
 
     # Get the dataframe from the dataset name
@@ -660,6 +662,7 @@ def calculate_curves(
     for count_cat in range(num_cats):
         signal_h = None
         bkg_h = np.zeros(e_bins)
+        bkg_err = np.zeros(e_bins)
         eff_hists = []
         for cut_cat in range(num_cats):
             total = events[events[cat_name] == cut_cat]
@@ -669,29 +672,63 @@ def calculate_curves(
                 & (events[prefix + str(count_cat)] > max_fom_cuts[count_cat])
             ]
 
-            total_h = np.histogram(
-                total["t_nuEnergy"], bins=e_bins, range=e_range, weights=total["w"]
+            tot_h, tot_err, centers, edges = extended_hist(
+                total["t_nuEnergy"].to_numpy(),
+                e_range[0],
+                e_range[1],
+                e_bins,
+                weights=total["w"].to_numpy(),
             )
-            passed_h = np.histogram(
-                passed["t_nuEnergy"], bins=e_bins, range=e_range, weights=passed["w"]
+
+            pass_h, pass_err, centers, edges = extended_hist(
+                passed["t_nuEnergy"].to_numpy(),
+                e_range[0],
+                e_range[1],
+                e_bins,
+                weights=passed["w"].to_numpy(),
             )
-            eff_h = np.divide(passed_h, total_h)
-            eff_hists.append(eff_h[0])
+
+            eff_h = np.divide(pass_h, tot_h)
+            eff_err = np.multiply(
+                np.sqrt(
+                    np.add(
+                        np.square(np.divide(pass_err, pass_h)),
+                        np.square(np.divide(tot_err, tot_h)),
+                    )
+                ),
+                eff_h,
+            )
+            eff_hists.append((eff_h, eff_err))
 
             if cut_cat == count_cat:
-                signal_h = passed_h[0]
+                signal_h = (pass_h, pass_err)
             else:
-                bkg_h = np.add(bkg_h, passed_h[0])
+                bkg_h = np.add(bkg_h, pass_h)
+                bkg_err = np.add(bkg_err, pass_err)
 
         fom_effs.append(eff_hists)
-        fom_purs.append(
-            np.divide(
-                signal_h,
-                np.add(signal_h, bkg_h),
-                out=np.zeros_like(bkg_h),
-                where=(bkg_h != 0),
-            )
+
+        pur_h = np.divide(
+            signal_h[0],
+            np.add(signal_h[0], bkg_h),
+            out=np.zeros_like(bkg_h),
+            where=(bkg_h != 0),
         )
+        pur_err = np.multiply(
+            np.sqrt(
+                np.add(
+                    np.square(np.divide(signal_h[1], signal_h[0])),
+                    np.square(
+                        np.divide(
+                            np.add(bkg_err, signal_h[1]), np.add(bkg_h, signal_h[0])
+                        )
+                    ),
+                )
+            ),
+            eff_h,
+        )
+
+        fom_purs.append((pur_h, pur_err))
 
     output = {
         "cuts": cuts,
@@ -994,3 +1031,55 @@ def globes_smearing_file(hists, names):
                         f.write(str.format("{0:.5f}, ", hist[j, i]))
                 f.write("}:\n")
             f.write(">\n")
+
+
+def print_output_comparison(outputs):
+    for output in outputs:
+        print(output["sig_effs_auc"][0])
+        print(output["bkg_effs_auc"][0])
+        print(output["pur_auc"][0])
+        print(output["fom_auc"][0])
+        print(output["roc_auc"][0])
+        print(output["report"][0])
+        print("-----------------------------------------------------------------")
+
+
+def extended_hist(
+    data, xmin, xmax, nbins, underflow=False, overflow=False, weights=None
+):
+    if weights is not None:
+        if weights.shape != data.shape:
+            raise ValueError(
+                "Unequal shapes data: {}; weights: {}".format(data.shape, weights.shape)
+            )
+    edges = np.linspace(xmin, xmax, nbins + 1)
+    neginf = np.array([-np.inf], dtype=np.float32)
+    posinf = np.array([np.inf], dtype=np.float32)
+    uselsp = np.concatenate([neginf, edges, posinf])
+    if weights is None:
+        hist, bin_edges = np.histogram(data, bins=uselsp)
+    else:
+        hist, bin_edges = np.histogram(data, bins=uselsp, weights=weights)
+
+    n = hist[1:-1]
+    if underflow:
+        n[0] += hist[0]
+    if overflow:
+        n[-1] += hist[-1]
+
+    if weights is None:
+        w = np.sqrt(n)
+    else:
+        bin_sumw2 = np.zeros(nbins + 2, dtype=np.float32)
+        digits = np.digitize(data, edges)
+        for i in range(nbins + 2):
+            bin_sumw2[i] = np.sum(np.power(weights[np.where(digits == i)[0]], 2))
+        w = bin_sumw2[1:-1]
+        if underflow:
+            w[0] += bin_sumw2[0]
+        if overflow:
+            w[-1] += bin_sumw2[-1]
+        w = np.sqrt(w)
+
+    centers = np.delete(edges, [0]) - (np.ediff1d(edges) / 2.0)
+    return n, w, centers, edges

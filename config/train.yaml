@@ -9,7 +9,7 @@ data:
         - "./data/input/chips_1200_all/beam_uniform/"
         #- "./data/input/chips_1200_all/cosmic/"
     unstack: True  # Should we split the channels into seperate images?
-    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # Active channels
+    channels: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # Active channels
     # channels: [1, 1, 1]  # Active channels
     augment: False  # Should we enable random and shifting augmentation to the images?
     rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
@@ -26,6 +26,7 @@ model:
     #labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"]  # Multi-task
     #labels: ["t_nuEnergy"]  # For energy estimation
     lr: 0.0002  # The initial learning rate
+    #lr: 0.0005  # The initial learning rate
     lr_decay: 0.5  # Learning rate decay coefficient
     dense_units: 512  # Number of units to use in dense layers
     dropout: 0.1  # Dropout rate to use in dropout layers
@@ -35,6 +36,7 @@ model:
     se_ratio: 16  # Ratio for squeeze-exitation blocks, if zero they will not be used
     learn_weights: False  # If training multiple labels, should we use the custom weight learning layer?
     precision_policy: "mixed_float16"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
+    #precision_policy: "float32"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
     summarise: True  # Should we display a summary of the model when it is built?
 trainer:
     train_examples: 1280000  # Number of training examples to use

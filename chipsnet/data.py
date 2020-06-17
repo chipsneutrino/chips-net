@@ -274,17 +274,6 @@ class Creator:
         os.makedirs(os.path.join(config.create.out_dir, "val/"), exist_ok=True)
         os.makedirs(os.path.join(config.create.out_dir, "test/"), exist_ok=True)
 
-    def bytes_feature(self, value):
-        """Return a BytesList feature from a string/byte.
-
-        Args:
-            value (str): raw string format of an array
-
-        Returns:
-            tf.train.Feature: a BytesList feature
-        """
-        return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
-
     def count_primaries(self, pdgs, energies):
         """Count the number of Cherenkov threshold passing primaries for each type in the event.
 
@@ -429,27 +418,16 @@ class Creator:
         examples = []  # Generate examples using a feature dict
         for i in range(len(labels_i)):
             feature_dict = {
-                "inputs_image": self.bytes_feature(inputs_image[i].tostring()),
-                "inputs_other": self.bytes_feature(inputs_other[i].tostring()),
-                "labels_i": self.bytes_feature(labels_i[i].tostring()),
-                "labels_f": self.bytes_feature(labels_f[i].tostring()),
+                "inputs_image": bytes_feature(inputs_image[i].tostring()),
+                "inputs_other": bytes_feature(inputs_other[i].tostring()),
+                "labels_i": bytes_feature(labels_i[i].tostring()),
+                "labels_f": bytes_feature(labels_f[i].tostring()),
             }
             examples.append(
                 tf.train.Example(features=tf.train.Features(feature=feature_dict))
             )
 
         return examples
-
-    def write_examples(self, name, examples):
-        """Write a list of examples to a tfrecords file.
-
-        Args:
-            name (str): uutput .tfrecords file path
-            examples (list[tf.train.Example]): list of examples
-        """
-        with tf.io.TFRecordWriter(name) as writer:
-            for example in examples:
-                writer.write(example.SerializeToString())
 
     def preprocess_files(self, num, files):
         """Preprocess joined .root map files into train, val and test tfrecords files.
@@ -474,19 +452,19 @@ class Creator:
         val_examples = examples[val_split:test_split]
         test_examples = examples[test_split:]
 
-        self.write_examples(
+        write_examples(
             os.path.join(
                 self.config.create.out_dir, "train/", str(num) + "_train.tfrecords"
             ),
             train_examples,
         )
-        self.write_examples(
+        write_examples(
             os.path.join(
                 self.config.create.out_dir, "val/", str(num) + "_val.tfrecords"
             ),
             val_examples,
         )
-        self.write_examples(
+        write_examples(
             os.path.join(
                 self.config.create.out_dir, "test/", str(num) + "_test.tfrecords"
             ),
@@ -557,6 +535,30 @@ def df_from_ds(ds):
                 events[name].extend(array.numpy())
 
     return pd.DataFrame.from_dict(events)  # Convert dict to pandas dataframe
+
+
+def bytes_feature(value):
+    """Return a BytesList feature from a string/byte.
+
+    Args:
+        value (str): raw string format of an array
+
+    Returns:
+        tf.train.Feature: a BytesList feature
+    """
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+
+def write_examples(name, examples):
+    """Write a list of examples to a tfrecords file.
+
+    Args:
+        name (str): uutput .tfrecords file path
+        examples (list[tf.train.Example]): list of examples
+    """
+    with tf.io.TFRecordWriter(name) as writer:
+        for example in examples:
+            writer.write(example.SerializeToString())
 
 
 def get_map(name):
