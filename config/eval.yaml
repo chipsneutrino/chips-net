@@ -193,7 +193,7 @@ models:
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_comb_cat_v_cth_uniform" 
         type: "vgg"  
-        labels: ["t_all_cat"]  
+        labels: ["t_comb_cat"]  
         lr: 0.0002
         lr_decay: 0.5
         dense_units: 512
@@ -210,7 +210,7 @@ models:
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_nu_nc_cat_v_cth_uniform" 
         type: "vgg"  
-        labels: ["t_all_cat"]  
+        labels: ["t_nu_nc_cat"]  
         lr: 0.0002
         lr_decay: 0.5
         dense_units: 512
@@ -227,7 +227,7 @@ models:
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
         path: "t_nc_cat_v_cth_uniform" 
         type: "vgg"  
-        labels: ["t_all_cat"]  
+        labels: ["t_nc_cat"]  
         lr: 0.0002
         lr_decay: 0.5
         dense_units: 512
@@ -306,7 +306,7 @@ models:
         se_ratio: 16
         learn_weights: True
         precision_policy: "float32"
-        summarise: False  
+        summarise: False
 eval:
     output: "./data/output/analysis_output.root"
     examples: 128000

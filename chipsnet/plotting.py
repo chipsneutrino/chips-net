@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Utility module containing lots of helpful methods for evaluation and plotting."""
+"""Plotting module containing lots of plotting methods for the analysis notebook."""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,12 +9,25 @@ import chipsnet.utils
 
 
 def save(name):
+    """Save a matplotlib plot to file as both a pgf and pdf.
+
+    Args:
+        name (str): output path+name
+    """
     plt.savefig("{}.pgf".format(name))
     plt.savefig("{}.pdf".format(name))
     plt.show()
 
 
 def plot_cats(events_u, events_b, cat_map, save_path):
+    """Save a matplotlib plot to file as both a pgf and pdf.
+
+    Args:
+        events_u (pd.DataFrame): uniform events dataframe
+        events_b (pd.DataFrame): beam events dataframe
+        cat_map (dict): category map for this comparison
+        save_path (str): path to save plot to
+    """
     data_u = [
         len(events_u[events_u[cat_map["name"]] == i])
         for i in range(len(cat_map["labels"]))
@@ -41,53 +54,67 @@ def plot_cats(events_u, events_b, cat_map, save_path):
 
 
 def plot_hit_time(images_dict, event, save_path):
+    """Plot hit and time channels for the different image representations.
+
+    Args:
+        images_dict (dict): images dictionary
+        event (int): event to use
+        save_path (str): path to save plot to
+    """
     fig, axs = plt.subplots(2, 3, figsize=(16, 10), gridspec_kw={"hspace": 0.3})
     plt.setp(axs, xticks=[0, 16, 32, 48, 64], yticks=[0, 16, 32, 48, 64])
     axs[0, 0].imshow(
         images_dict["r_raw_charge_map_origin"][event], cmap="Reds", origin="lower"
     )
-    axs[0, 0].set_title("$\phi$ and $\\theta$ from origin")
-    axs[0, 0].set(xlabel="$\phi$ bins", ylabel="$\\theta$ bins")
+    axs[0, 0].set_title(r"$\phi$ and $\\theta$ from origin")
+    axs[0, 0].set(xlabel=r"$\phi$ bins", ylabel=r"$\\theta$ bins")
 
     axs[0, 1].imshow(
         images_dict["r_raw_charge_map_iso"][event], cmap="Reds", origin="lower"
     )
-    axs[0, 1].set_title("$x^{+}$ and $x^{-}$ from origin")
-    axs[0, 1].set(xlabel="$x^{+}$ bins", ylabel="$x^{-}$ bins")
+    axs[0, 1].set_title(r"$x^{+}$ and $x^{-}$ from origin")
+    axs[0, 1].set(xlabel=r"$x^{+}$ bins", ylabel=r"$x^{-}$ bins")
 
     axs[0, 2].imshow(
         images_dict["r_raw_charge_map_vtx"][event], cmap="Reds", origin="lower"
     )
-    axs[0, 2].set_title("$\phi$ and $\\theta$ from vertex")
-    axs[0, 2].set(xlabel="$\phi$ bins", ylabel="$\\theta$ bins")
+    axs[0, 2].set_title(r"$\phi$ and $\\theta$ from vertex")
+    axs[0, 2].set(xlabel=r"$\phi$ bins", ylabel=r"$\\theta$ bins")
     axs[0, 2].text(68, 3, "Desposited charge images", rotation=-90, fontsize=18)
 
     axs[1, 0].imshow(
         images_dict["r_raw_time_map_origin"][event], cmap="Reds", origin="lower"
     )
-    axs[1, 0].set(xlabel="$\phi$ bins", ylabel="$\\theta$ bins")
+    axs[1, 0].set(xlabel=r"$\phi$ bins", ylabel=r"$\\theta$ bins")
 
     axs[1, 1].imshow(
         images_dict["r_raw_time_map_iso"][event], cmap="Reds", origin="lower"
     )
-    axs[1, 1].set(xlabel="$x^{+}$ bins", ylabel="$x^{-}$ bins")
+    axs[1, 1].set(xlabel=r"$x^{+}$ bins", ylabel=r"$x^{-}$ bins")
 
     axs[1, 2].imshow(
         images_dict["r_raw_time_map_vtx"][event], cmap="Reds", origin="lower"
     )
-    axs[1, 2].set(xlabel="$\phi$ bins", ylabel="$\\theta$ bins")
+    axs[1, 2].set(xlabel=r"$\phi$ bins", ylabel=r"$\\theta$ bins")
     axs[1, 2].text(68, 10, "First hit time images", rotation=-90, fontsize=18)
     save("{}example_image_{}".format(save_path, event))
 
 
 def plot_hough(images_dict, event, save_path):
+    """Plot the hough channel representation.
+
+    Args:
+        images_dict (dict): images dictionary
+        event (int): event to use
+        save_path (str): path to save plot to
+    """
     fig, axs = plt.subplots(1, 1, figsize=(5, 5), gridspec_kw={"hspace": 0.3})
     plt.setp(axs, xticks=[0, 16, 32, 48, 64], yticks=[0, 16, 32, 48, 64])
     axs.imshow(
         images_dict["r_raw_hit_hough_map_vtx"][event], cmap="Reds", origin="lower"
     )
-    axs.set_title("$\phi$ and $\\theta$ from vertex")
-    axs.set(xlabel="$\phi$ bins", ylabel="$\\theta$ bins")
+    axs.set_title(r"$\phi$ and $\\theta$ from vertex")
+    axs.set(xlabel=r"$\phi$ bins", ylabel=r"$\\theta$ bins")
     axs.text(68, 13, "Hough space image", rotation=-90, fontsize=18)
     save("{}example_hough_{}".format(save_path, event))
 
@@ -95,6 +122,15 @@ def plot_hough(images_dict, event, save_path):
 def plot_8bit_range(
     images_dict, max_charge=30, max_time=130, max_hough=4000, save_path=""
 ):
+    """Plot the charge, time and hough channel 8-bit distributions.
+
+    Args:
+        images_dict (dict): images dictionary
+        max_charge (float): maximum charge value
+        max_time (float): maximum time value
+        max_hough (float): maximum hough value
+        save_path (str): path to save plot to
+    """
     fig, axs = plt.subplots(1, 3, figsize=(16, 5))
     # plt.setp(axs, xticks=[0, 16, 32, 48, 64], yticks=[0, 16, 32, 48, 64])
 
@@ -137,7 +173,14 @@ def plot_8bit_range(
     save(save_path + "8_bit_range")
 
 
-def plot_combined_values(events, prefix, save_name):
+def plot_combined_values(events, prefix, save_path):
+    """Plot the output combined category values from the network.
+
+    Args:
+        events (pd.DataFrame): events dataframe
+        prefix (str): prefix to choose correct model output
+        save_path (str): path to save plot to
+    """
     bins = 25
     range = (0, 1)
     cat0 = prefix + "pred_t_comb_cat_0"
@@ -228,10 +271,16 @@ def plot_combined_values(events, prefix, save_name):
     )
     axs[2].set_xlabel("Combined nc score", fontsize=17)
     axs[2].set_yscale("log")
-    save(save_name)
+    save(save_path)
 
 
-def plot_curves(events, save_name):
+def plot_curves(events, save_path):
+    """Plot the eff, pur, fom curves.
+
+    Args:
+        events (dict): events output
+        save_path (str): path to save plot to
+    """
     fig, axs = plt.subplots(1, 3, figsize=(16, 5))
     styles = ["solid", "dashed", "dotted", "dashdot"]
     for i in range(len(events)):
@@ -275,10 +324,17 @@ def plot_curves(events, save_name):
         )
     axs[2].set_xlabel("Background efficiency", fontsize=17)
     axs[2].set_ylabel("Signal efficiency", fontsize=17)
-    save(save_name)
+    save(save_path)
 
 
-def plot_e_hists(events, ev, save_name):
+def plot_e_hists(events, ev, save_path):
+    """Plot the eff and pur plot vs neutrino energy.
+
+    Args:
+        events (dict): events output
+        ev (pd.DataFrame): events DataFrame
+        save_path (str): path to save plot to
+    """
     fig, axs = plt.subplots(1, 3, figsize=(16, 5))
     bins = np.arange(1.25, 8.25, 0.5)
     styles = ["solid", "dashed", "dotted", "dashdot"]
@@ -410,10 +466,18 @@ def plot_e_hists(events, ev, save_name):
     axs[2].set_ylim([0, 1])
     axs[2].set_title("nc signal")
 
-    save(save_name)
+    save(save_path)
 
 
-def plot_history_comparison(config, models, save_name, key="accuracy"):
+def plot_history_comparison(config, models, save_path, key="accuracy"):
+    """Plot the training history of a list of models.
+
+    Args:
+        config (dotmap.DotMap): configuration namespace
+        models (list[str]): list of models to plot
+        save_path (str): path to save plot to
+        key (str): Key to use for second metric alongside loss
+    """
     fig, axs = plt.subplots(1, 3, figsize=(16, 5))
     for i, model in enumerate(models):
         history = chipsnet.utils.model_history(config, model)
@@ -431,4 +495,4 @@ def plot_history_comparison(config, models, save_name, key="accuracy"):
         axs_t.plot(epochs, history["val_loss"], color="tab:blue", linestyle="dashed")
         axs_t.tick_params(axis="y", labelcolor="tab:blue")
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    save(save_name)
+    save(save_path)

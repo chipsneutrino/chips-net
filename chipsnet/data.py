@@ -701,8 +701,8 @@ MAP_ALL_CAT = {
         "Numu-NC-COH",  # 21
         "Numu-NC-MEC",  # 22
         "Numu-NC-OTHER",  # 23
-        "Cosmic",
-    ],  # 24
+        "Cosmic",  # 24
+    ],
     "table": {
         (0, 0): 0,
         (0, 1): 1,
@@ -826,8 +826,8 @@ MAP_NU_NC_COMB_CAT = {
         "NC-COH",  # 15
         "NC-MEC",  # 16
         "NC-OTHER",  # 17
-        "Cosmic",
-    ],  # 18
+        "Cosmic",  # 18
+    ],
     "table": {
         (0, 0): 0,
         (0, 1): 1,

@@ -9,7 +9,7 @@ data:
         - "./data/input/chips_1200_all/beam_uniform/"
         #- "./data/input/chips_1200_all/cosmic/"
     unstack: True  # Should we split the channels into seperate images?
-    channels: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # Active channels
+    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # Active channels
     # channels: [1, 1, 1]  # Active channels
     augment: False  # Should we enable random and shifting augmentation to the images?
     rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
@@ -39,14 +39,14 @@ model:
     #precision_policy: "float32"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
     summarise: True  # Should we display a summary of the model when it is built?
 trainer:
-    train_examples: 1280000  # Number of training examples to use
+    train_examples: 2560000  # Number of training examples to use
     val_examples: 128000  # Number of validation examples to use
     test_examples: 128000  # Number of testing examples to use
     batch_size: 256  # Training batch size
-    epochs: 5  # Number of epochs to train for
+    epochs: 10  # Number of epochs to train for
     tb_update: 1000  # How often should tensorboard record values (batches)
     steps_per_epoch: -1  # Number of steps per epoch (-1 default)
     es_monitor: "val_accuracy"  # Metric to monitor for early stopping
-    es_delta: 0.001  # Early stopping minimum delta value
+    es_delta: 0.0001  # Early stopping minimum delta value
     es_epochs: 2  # Early stopping epochs without delta change before stop
     

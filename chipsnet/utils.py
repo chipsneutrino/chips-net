@@ -93,7 +93,9 @@ def model_history(config, name):
     return pd.DataFrame.from_dict(history_dict)
 
 
-def process_ds(config, data_name, model_names=[], verbose=False):
+def process_ds(
+    config, data_name, model_names=[], model_cats=["t_all_cat"], verbose=False
+):
     """Fully process a dataset through a list of models and run a standard evaluation.
 
     Args:
@@ -157,33 +159,42 @@ def process_ds(config, data_name, model_names=[], verbose=False):
         "roc_auc": [],
         "comb_matrices": [],
         "all_matrices": [],
-        "report": [],
+        "comb_report": [],
+        "cat_report": [],
     }
-    for model_name in model_names:
+    for model_name, model_cat in zip(model_names, model_cats):
         if "cosmic" in model_name or "cos" in model_name:
             continue
 
         # Combine categories into fully combined ones
-        events = full_comb_combine(events, prefix=model_name + "_")
+        events = full_comb_combine(events, model_cat, prefix=model_name + "_")
 
         # Run classification and print report
         class_prefix = model_name + "_" + "pred_t_comb_cat_"
         events[model_name + "_comb_cat_class"] = events.apply(
             classify, axis=1, args=(3, class_prefix)
         )
-        class_prefix = model_name + "_" + "pred_t_all_cat_"
-        events[model_name + "_all_cat_class"] = events.apply(
-            classify, axis=1, args=(24, class_prefix)
+        class_prefix = model_name + "_" + "pred_" + model_cat + "_"
+        events[model_name + "_" + model_cat + "_class"] = events.apply(
+            classify,
+            axis=1,
+            args=(chipsnet.data.get_map(model_cat)["categories"], class_prefix),
         )
 
-        report = classification_report(
+        comb_report = classification_report(
             events["t_comb_cat"],
             events[model_name + "_comb_cat_class"],
             target_names=["nuel-cc", "numu-cc", "nc"],
         )
-        outputs["report"].append(report)
+        outputs["comb_report"].append(comb_report)
+
+        cat_report = classification_report(
+            events[model_cat], events[model_name + "_" + model_cat + "_class"]
+        )
+        outputs["cat_report"].append(cat_report)
         if verbose:
-            print(report)
+            print(comb_report)
+            print(cat_report)
 
         # Run curve calculation
         curves_output = calculate_curves(
@@ -211,7 +222,9 @@ def process_ds(config, data_name, model_names=[], verbose=False):
         matrix_comb = pd.DataFrame(matrix_comb)
         outputs["comb_matrices"].append(matrix_comb)
         matrix_all = confusion_matrix(
-            events["t_all_cat"], events[model_name + "_all_cat_class"], normalize="true"
+            events[model_cat],
+            events[model_name + "_" + model_cat + "_class"],
+            normalize="true",
         )
         matrix_all = np.rot90(matrix_all, 1)
         matrix_all = pd.DataFrame(matrix_all)
@@ -260,7 +273,7 @@ def run_inference(events, model, prefix=""):
     return events
 
 
-def full_comb_combine(events, prefix=""):
+def full_comb_combine(events, type, prefix=""):
     """Combine t_all_cat scores into t_comb_cat scores.
 
     Args:
@@ -271,7 +284,7 @@ def full_comb_combine(events, prefix=""):
         pd.DataFrame: events dataframe with combined category scores
     """
 
-    def full_comb_apply(event, apply_prefix):
+    def all_cat_apply(event, apply_prefix):
         nuel_cc_cats = [0, 1, 2, 3, 4, 5]
         nuel_cc_value = 0.0
         for cat in nuel_cc_cats:
@@ -289,9 +302,55 @@ def full_comb_combine(events, prefix=""):
 
         return nuel_cc_value, numu_cc_value, nc_value
 
-    apply_prefix = prefix + "pred_t_all_cat_"
+    def nu_nc_comb_apply(event, apply_prefix):
+        nuel_cc_cats = [0, 1, 2, 3, 4, 5]
+        nuel_cc_value = 0.0
+        for cat in nuel_cc_cats:
+            nuel_cc_value = nuel_cc_value + event[str(apply_prefix) + str(cat)]
+
+        numu_cc_cats = [6, 7, 8, 9, 10, 11]
+        numu_cc_value = 0.0
+        for cat in numu_cc_cats:
+            numu_cc_value = numu_cc_value + event[apply_prefix + str(cat)]
+
+        nc_cats = [12, 13, 14, 15, 16, 17]
+        nc_value = 0.0
+        for cat in nc_cats:
+            nc_value = nc_value + event[apply_prefix + str(cat)]
+
+        return nuel_cc_value, numu_cc_value, nc_value
+
+    def nc_comb_apply(event, apply_prefix):
+        nuel_cc_cats = [0, 1, 2, 3, 4, 5]
+        nuel_cc_value = 0.0
+        for cat in nuel_cc_cats:
+            nuel_cc_value = nuel_cc_value + event[str(apply_prefix) + str(cat)]
+
+        numu_cc_cats = [6, 7, 8, 9, 10, 11]
+        numu_cc_value = 0.0
+        for cat in numu_cc_cats:
+            numu_cc_value = numu_cc_value + event[apply_prefix + str(cat)]
+
+        nc_cats = [12]
+        nc_value = 0.0
+        for cat in nc_cats:
+            nc_value = nc_value + event[apply_prefix + str(cat)]
+
+        return nuel_cc_value, numu_cc_value, nc_value
+
     comb_prefix = prefix + "pred_t_comb_cat_"
-    events["scores"] = events.apply(full_comb_apply, axis=1, args=(apply_prefix,))
+    if type == "t_all_cat":
+        apply_prefix = prefix + "pred_t_all_cat_"
+        events["scores"] = events.apply(all_cat_apply, axis=1, args=(apply_prefix,))
+    elif type == "t_comb_cat":
+        return events
+    elif type == "t_nu_nc_cat":
+        apply_prefix = prefix + "pred_t_nu_nc_cat_"
+        events["scores"] = events.apply(nu_nc_comb_apply, axis=1, args=(apply_prefix,))
+    elif type == "t_nc_cat":
+        apply_prefix = prefix + "pred_t_nc_cat_"
+        events["scores"] = events.apply(nc_comb_apply, axis=1, args=(apply_prefix,))
+
     events[comb_prefix + "0"] = events.scores.map(lambda x: x[0])
     events[comb_prefix + "1"] = events.scores.map(lambda x: x[1])
     events[comb_prefix + "2"] = events.scores.map(lambda x: x[2])
@@ -1034,19 +1093,44 @@ def globes_smearing_file(hists, names):
 
 
 def print_output_comparison(outputs):
+    """Print a comparison of all the classification metrics.
+
+    Args:
+        outputs (list[outputs]): List of output dictionaries
+    """
     for output in outputs:
-        print(output["sig_effs_auc"][0])
-        print(output["bkg_effs_auc"][0])
-        print(output["pur_auc"][0])
-        print(output["fom_auc"][0])
-        print(output["roc_auc"][0])
-        print(output["report"][0])
-        print("-----------------------------------------------------------------")
+        print("Sig eff AUC: " + str(output["sig_effs_auc"][0]))
+        print("Bkg eff AUC: " + str(output["bkg_effs_auc"][0]))
+        print("Purity AUC: " + str(output["pur_auc"][0]))
+        print("FOM AUC: " + str(output["fom_auc"][0]))
+        print("ROC AUC: " + str(output["roc_auc"][0]))
+        print(output["comb_report"][0])
+        print(output["cat_report"][0])
+        print(
+            "---------------------------------------------------------------------------"
+        )
 
 
 def extended_hist(
     data, xmin, xmax, nbins, underflow=False, overflow=False, weights=None
 ):
+    """Create a histogram and associated errors in numpy.
+
+    Args:
+        data (np.array): numpy array of input data
+        xmin (float): minimum value
+        xmax (float): maximum value
+        nbins (int): number of bins
+        underflow (bool): should we include an underflow bin?
+        overflow (bool): should we include an overflow bin?
+        weights (np.array): associated weight values for the data entries
+
+    Returns:
+        np.array: bin values
+        np.array: error values for each bin
+        np.array: bin centers
+        np.array: bin edges
+    """
     if weights is not None:
         if weights.shape != data.shape:
             raise ValueError(
