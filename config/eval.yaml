@@ -239,6 +239,57 @@ models:
         learn_weights: False
         precision_policy: "float32"
         summarise: False  
+    t_comb_cat_v_cth_flux:
+        channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
+        path: "t_comb_cat_v_cth_flux" 
+        type: "vgg"  
+        labels: ["t_comb_cat"]  
+        lr: 0.0002
+        lr_decay: 0.5
+        dense_units: 512
+        dropout: 0.2
+        filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
+        precision_policy: "float32"
+        summarise: False  
+    t_nu_nc_cat_v_cth_flux:
+        channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
+        path: "t_nu_nc_cat_v_cth_flux" 
+        type: "vgg"  
+        labels: ["t_nu_nc_cat"]  
+        lr: 0.0002
+        lr_decay: 0.5
+        dense_units: 512
+        dropout: 0.2
+        filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
+        precision_policy: "float32"
+        summarise: False  
+    t_nc_cat_v_cth_flux:
+        channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
+        path: "t_nc_cat_v_cth_flux" 
+        type: "vgg"  
+        labels: ["t_nc_cat"]  
+        lr: 0.0002
+        lr_decay: 0.5
+        dense_units: 512
+        dropout: 0.2
+        filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
+        precision_policy: "float32"
+        summarise: False  
     t_cos_cat_v_cth_flux:
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         dir: "/mnt/storage/jtingey/chips-net/data/models/"
