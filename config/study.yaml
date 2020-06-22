@@ -1,16 +1,33 @@
 task: "study"  # What is the task? (create, train, study)
 exp:
-    name: "study"  # Name of experiment
+    name: "study_test"  # Name of experiment
     output_dir: "./data/models/"  # Path to model output experiment directory
     comet: False  # Should we use comet to store the experiment online
 data:
     input_dirs:  # The directories from which to take input data
         #- "./data/input/chips_1200_all/beam_flux/"
-        - "./data/input/chips_1200_all/beam_uniform/"
+        - "./data/input/chips_1200_all/nuel_cccoh/"
+        - "./data/input/chips_1200_all/nuel_nccoh/"
+        - "./data/input/chips_1200_all/nuel_ccdis/"
+        - "./data/input/chips_1200_all/nuel_ncdis/"
+        - "./data/input/chips_1200_all/nuel_ccqel/"
+        - "./data/input/chips_1200_all/nuel_ncqel/"
+        - "./data/input/chips_1200_all/nuel_ccres/"
+        - "./data/input/chips_1200_all/nuel_ncres/"
+        - "./data/input/chips_1200_all/nuel_ccmec/"
+        - "./data/input/chips_1200_all/numu_cccoh/"
+        - "./data/input/chips_1200_all/numu_nccoh/"
+        - "./data/input/chips_1200_all/numu_ccdis/"
+        - "./data/input/chips_1200_all/numu_ncdis/"
+        - "./data/input/chips_1200_all/numu_ccqel/"
+        - "./data/input/chips_1200_all/numu_ncqel/"
+        - "./data/input/chips_1200_all/numu_ccres/"
+        - "./data/input/chips_1200_all/numu_ncres/"
+        - "./data/input/chips_1200_all/numu_ccmec/"
         #- "./data/input/chips_1200_all/cosmic/"
     unstack: True  # Should we split the channels into seperate images?
     channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # Active channels
-    # channels: [1, 1, 1]  # Active channels
+    #channels: [1, 1, 1]  # Active channels
     augment: False  # Should we enable random and shifting augmentation to the images?
     rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
     shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
@@ -22,21 +39,22 @@ model:
     # prim_total, prim_p, prim_cp, prim_np, prim_g, t_vtxX, t_vtxY, t_vtxZ, t_nuEnergy)
     # List of label outputs, see above for options
     #labels: ["t_cosmic_cat"]  # For cosmic classifier
-    labels: ["t_all_cat"]  # For beam category classifier
-    #labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"]  # Multi-task
+    #labels: ["t_all_cat"]  # For beam category classifier
+    #labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"]
+    labels: ["t_all_cat", "t_cosmic_cat", "t_int_type", "t_comb_cat", "t_nu_nc_cat"]
     #labels: ["t_nuEnergy"]  # For energy estimation
     lr: 0.0002  # The initial learning rate
     #lr: 0.0005  # The initial learning rate
     lr_decay: 0.5  # Learning rate decay coefficient
     dense_units: 512  # Number of units to use in dense layers
-    dropout: 0.1  # Dropout rate to use in dropout layers
+    dropout: 0.2  # Dropout rate to use in dropout layers
     filters: 64  # Initial number of filters to use
-    reco_pars: True  # Should the reco paramters be appended to final dense layer?
+    reco_pars: False  # Should the reco paramters be appended to final dense layer?
     bottleneck: False  # Should we use the bottleneck resnet variant?
     se_ratio: 16  # Ratio for squeeze-exitation blocks, if zero they will not be used
-    learn_weights: False  # If training multiple labels, should we use the custom weight learning layer?
-    precision_policy: "mixed_float16"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
-    #precision_policy: "float32"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
+    learn_weights: True  # If training multiple labels, should we use the custom weight learning layer?
+    #precision_policy: "mixed_float16"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
+    precision_policy: "float32"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
     summarise: True  # Should we display a summary of the model when it is built?
 trainer:
     train_examples: 1280000  # Number of training examples to use

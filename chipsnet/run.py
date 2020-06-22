@@ -79,10 +79,10 @@ def train_model(config):
             print("\n--- Training model ---")
             trainer = chipsnet.trainer.Trainer(config, model, data)
             trainer.train()
-            print("\n--- Running quick evaluation ---\n")
-            trainer.eval()
             print("\n--- Saving model to {} ---\n".format(config.exp.exp_dir))
             trainer.save()
+            print("\n--- Running quick evaluation ---\n")
+            trainer.eval()
         else:
             print("\n--- Skipping training ---\n")
 

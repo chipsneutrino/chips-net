@@ -1,11 +1,12 @@
 data:
     img_size: [64, 64]
+    unstack: True  # Should we split the channels into seperate images?
 model:
     learn_weights: False
 samples:
     v_c_flux:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/flux/"
         unstack: False
         channels: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
@@ -15,7 +16,7 @@ samples:
         cat_select: -1
     v_ct_flux:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/flux/"
         unstack: False
         channels: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
@@ -25,7 +26,7 @@ samples:
         cat_select: -1
     o_ct_flux:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/flux/"
         unstack: False
         channels: [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
@@ -35,7 +36,7 @@ samples:
         cat_select: -1
     i_ct_flux:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/flux/"
         unstack: False
         channels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
         augment: False
@@ -45,8 +46,8 @@ samples:
         cat_select: -1
     v_cth_flux:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
-        unstack: False
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/flux/"
+        unstack: True
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
         rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
@@ -55,7 +56,24 @@ samples:
         cat_select: -1
     v_cth_uniform:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_uniform/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_cccoh/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_nccoh/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ccdis/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ncdis/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ccqel/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ncqel/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ccres/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ncres/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ccmec/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_cccoh/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_nccoh/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ccdis/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ncdis/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ccqel/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ncqel/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ccres/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ncres/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ccmec/"
         unstack: False
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         augment: False
@@ -65,7 +83,24 @@ samples:
         cat_select: -1
     v_cth_uniform_cos:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_uniform/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_cccoh/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_nccoh/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ccdis/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ncdis/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ccqel/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ncqel/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ccres/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ncres/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/nuel_ccmec/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_cccoh/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_nccoh/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ccdis/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ncdis/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ccqel/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ncqel/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ccres/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ncres/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/numu_ccmec/"
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/cosmic/"
         unstack: False
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -76,7 +111,7 @@ samples:
         cat_select: -1
     v_cth_flux_cos:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/beam_flux/"
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/flux/"
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/cosmic/"
         unstack: False
         channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -358,9 +393,26 @@ models:
         learn_weights: True
         precision_policy: "float32"
         summarise: False
+    mult_test:
+        channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        dir: "/mnt/storage/jtingey/chips-net/data/models/"
+        path: "train_thisisit"
+        type: "vgg"
+        labels: ["t_all_cat", "t_cosmic_cat", "t_int_type", "t_comb_cat", "t_nu_nc_cat"]
+        lr: 0.0002
+        lr_decay: 0.5
+        dense_units: 512
+        dropout: 0.1
+        filters: 64
+        reco_pars: False
+        bottleneck: False
+        se_ratio: 16
+        learn_weights: False
+        precision_policy: "float32"
+        summarise: True
 eval:
     output: "./data/output/analysis_output.root"
-    examples: 128000
+    examples: 32000
     cuts:
         cosmic: 0.001   # Cosmic classifier cut
         q:      600.0   # r_raw_total_digi_q cut

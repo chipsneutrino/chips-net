@@ -181,11 +181,12 @@ class Reader:
         )
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
         ds = ds.map(self.parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        if strip:
-            ds = ds.map(self.strip, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
         if self.config.data.cat_select != -1:
             ds = ds.filter(self.filter_cats)
+
+        if strip:
+            ds = ds.map(self.strip, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
         return ds
 
@@ -584,10 +585,24 @@ def get_map(name):
     return None
 
 
+def binary_crossentropy(y_true, y_pred):
+    """Return a standard binary crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: binary cross entropy function
+    """
+    return tf.keras.losses.binary_crossentropy(y_true, y_pred)
+
+
 """Map to electron or muon types (Total = 2) (cosmic muons are included in this)"""
 MAP_NU_TYPE = {
     "name": "t_nu_type",
     "categories": 1,
+    "loss": binary_crossentropy,
     "labels": ["Nuel", "Numu"],  # 0  # 1
     "table": {
         11: 0,  # el-
@@ -605,6 +620,7 @@ MAP_NU_TYPE = {
 MAP_SIGN_TYPE = {
     "name": "t_sign_type",
     "categories": 1,
+    "loss": binary_crossentropy,
     "labels": ["Nu", "Anu"],  # 0  # 1
     "table": {
         11: 0,  # el-
@@ -619,11 +635,26 @@ MAP_SIGN_TYPE = {
 }
 
 
+def int_type_loss(y_true, y_pred):
+    """Return a masked sparse categorical crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: sparse categorical crossentropy function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, 12), tf.float32)
+    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
+
+
 """Map interaction types (Total = 13)
 We put IMD, ElasticScattering and InverseMuDecay into 'NC-OTHER' for simplicity"""
 MAP_INT_TYPE = {
     "name": "t_int_type",
     "categories": 12,
+    "loss": int_type_loss,
     "labels": [
         "CC-QEL",  # 0
         "CC-RES",  # 1
@@ -637,8 +668,8 @@ MAP_INT_TYPE = {
         "NC-COH",  # 9
         "NC-MEC",  # 10
         "NC-OTHER",  # 11
-        "Cosmic",
-    ],  # 12
+        "Cosmic",  # 12
+    ],
     "table": {
         0: 11,  # Other
         1: 0,  # CCQEL
@@ -672,10 +703,26 @@ MAP_INT_TYPE = {
     },
 }
 
+
+def all_cat_loss(y_true, y_pred):
+    """Return a masked sparse categorical crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: sparse categorical crossentropy function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, 24), tf.float32)
+    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
+
+
 """Map to all categories (Total = 19)"""
 MAP_ALL_CAT = {
     "name": "t_all_cat",
     "categories": 24,
+    "loss": all_cat_loss,
     "labels": [
         "Nuel-CC-QEL",  # 0
         "Nuel-CC-RES",  # 1
@@ -733,10 +780,12 @@ MAP_ALL_CAT = {
     },
 }
 
+
 """Map a cosmic flag (Total = 2)"""
 MAP_COSMIC_CAT = {
     "name": "t_cosmic_cat",
     "categories": 1,
+    "loss": binary_crossentropy,
     "labels": ["Cosmic", "Beam"],  # 0  # 1
     "table": {
         (0, 0): 0,
@@ -768,10 +817,26 @@ MAP_COSMIC_CAT = {
     },
 }
 
+
+def full_comb_loss(y_true, y_pred):
+    """Return a masked sparse categorical crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: sparse categorical crossentropy function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, 3), tf.float32)
+    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
+
+
 """Map to full_combined categories (Total = 5)"""
 MAP_FULL_COMB_CAT = {
     "name": "t_comb_cat",
     "categories": 3,
+    "loss": full_comb_loss,
     "labels": ["Nuel-CC", "Numu-CC", "NC", "Cosmic"],  # 0  # 1  # 2  # 3
     "table": {
         (0, 0): 0,
@@ -803,10 +868,26 @@ MAP_FULL_COMB_CAT = {
     },
 }
 
+
+def nu_nc_comb_loss(y_true, y_pred):
+    """Return a masked sparse categorical crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: sparse categorical crossentropy function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, 18), tf.float32)
+    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
+
+
 """Map to nc_nu_combined categories (Total = 14)"""
 MAP_NU_NC_COMB_CAT = {
     "name": "t_nu_nc_cat",
     "categories": 18,
+    "loss": nu_nc_comb_loss,
     "labels": [
         "Nuel-CC-QEL",  # 0
         "Nuel-CC-RES",  # 1
@@ -858,10 +939,26 @@ MAP_NU_NC_COMB_CAT = {
     },
 }
 
+
+def nu_nc_comb_loss(y_true, y_pred):
+    """Return a masked sparse categorical crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: sparse categorical crossentropy function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, 13), tf.float32)
+    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
+
+
 """Map to nc_combined categories (Total = 11)"""
 MAP_NC_COMB_CAT = {
     "name": "t_nc_cat",
     "categories": 13,
+    "loss": nu_nc_comb_loss,
     "labels": [
         "Nuel-CC-QEL",  # 0
         "Nuel-CC-RES",  # 1
@@ -876,8 +973,8 @@ MAP_NC_COMB_CAT = {
         "Numu-CC-MEC",  # 10
         "Numu-CC-OTHER",  # 11
         "NC",  # 12
-        "Cosmic",
-    ],  # 13
+        "Cosmic",  # 13
+    ],
     "table": {
         (0, 0): 0,
         (0, 1): 1,

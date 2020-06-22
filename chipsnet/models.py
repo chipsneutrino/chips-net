@@ -37,7 +37,6 @@ from tensorflow.keras.layers import (
 from tensorflow.keras.losses import (
     SparseCategoricalCrossentropy,
     MeanSquaredError,
-    BinaryCrossentropy,
     Reduction,
 )
 
@@ -875,56 +874,56 @@ def get_outputs(config, x):
         if output == data.MAP_NU_TYPE["name"]:
             out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("sigmoid", dtype="float32", name=output)(out))
-            losses[output] = "binary_crossentropy"
+            losses[output] = data.MAP_NU_TYPE["loss"]
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_SIGN_TYPE["name"]:
             out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("sigmoid", dtype="float32", name=output)(out))
-            losses[output] = "binary_crossentropy"
+            losses[output] = data.MAP_SIGN_TYPE["loss"]
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_INT_TYPE["name"]:
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
-            losses[output] = "sparse_categorical_crossentropy"
+            losses[output] = data.MAP_INT_TYPE["loss"]
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_ALL_CAT["name"]:
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
-            losses[output] = "sparse_categorical_crossentropy"
+            losses[output] = data.MAP_ALL_CAT["loss"]
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_COSMIC_CAT["name"]:
             out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("sigmoid", dtype="float32", name=output)(out))
-            losses[output] = "binary_crossentropy"
+            losses[output] = data.MAP_COSMIC_CAT["loss"]
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_FULL_COMB_CAT["name"]:
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
-            losses[output] = "sparse_categorical_crossentropy"
+            losses[output] = data.MAP_FULL_COMB_CAT["loss"]
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_NU_NC_COMB_CAT["name"]:
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
-            losses[output] = "sparse_categorical_crossentropy"
+            losses[output] = data.MAP_NU_NC_COMB_CAT["loss"]
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
         elif output == data.MAP_NC_COMB_CAT["name"]:
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
-            losses[output] = "sparse_categorical_crossentropy"
+            losses[output] = data.MAP_NC_COMB_CAT["loss"]
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
@@ -943,8 +942,7 @@ def get_outputs(config, x):
             metrics[output] = "accuracy"
 
         elif output == "t_nuEnergy":
-            out = Dense(config.model.dense_units, name="energy_dense")(x)
-            out = Dense(1, name=output + "_logits")(out)
+            out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("linear", dtype="float32", name=output)(out))
             losses[output] = "mean_squared_error"
             weights[output] = 0.0000005
@@ -1000,45 +998,35 @@ class MultiLossLayer(tf.keras.layers.Layer):
         self.loss_funcs, self.lw, self.log_vars = [], [], []
         for output in self.config.model.labels:
             if output == data.MAP_NU_TYPE["name"]:
-                self.loss_funcs.append(BinaryCrossentropy(reduction=Reduction.SUM))
+                self.loss_funcs.append(data.MAP_NU_TYPE["loss"])
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_SIGN_TYPE["name"]:
-                self.loss_funcs.append(BinaryCrossentropy(reduction=Reduction.SUM))
+                self.loss_funcs.append(data.MAP_SIGN_TYPE["loss"])
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_INT_TYPE["name"]:
-                self.loss_funcs.append(
-                    SparseCategoricalCrossentropy(reduction=Reduction.SUM)
-                )
+                self.loss_funcs.append(data.MAP_INT_TYPE["loss"])
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_ALL_CAT["name"]:
-                self.loss_funcs.append(
-                    SparseCategoricalCrossentropy(reduction=Reduction.SUM)
-                )
+                self.loss_funcs.append(data.MAP_ALL_CAT["loss"])
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_COSMIC_CAT["name"]:
-                self.loss_funcs.append(BinaryCrossentropy(reduction=Reduction.SUM))
+                self.loss_funcs.append(data.MAP_COSMIC_CAT["loss"])
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_FULL_COMB_CAT["name"]:
-                self.loss_funcs.append(
-                    SparseCategoricalCrossentropy(reduction=Reduction.SUM)
-                )
+                self.loss_funcs.append(data.MAP_FULL_COMB_CAT["loss"])
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_NU_NC_COMB_CAT["name"]:
-                self.loss_funcs.append(
-                    SparseCategoricalCrossentropy(reduction=Reduction.SUM)
-                )
+                self.loss_funcs.append(data.MAP_NU_NC_COMB_CAT["loss"])
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_NC_COMB_CAT["name"]:
-                self.loss_funcs.append(
-                    SparseCategoricalCrossentropy(reduction=Reduction.SUM)
-                )
+                self.loss_funcs.append(data.MAP_NC_COMB_CAT["loss"])
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == "t_nuEnergy":

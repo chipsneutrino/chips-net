@@ -118,7 +118,13 @@ def process_ds(
     # Run all the required inference
     for model_name in model_names:
         model = model_from_conf(config, model_name)
-        events = run_inference(events, model, prefix=model_name + "_")
+        events = run_inference(
+            events,
+            model,
+            unstack=config.data.unstack,
+            reco_pars=config.model.reco_pars,
+            prefix=model_name + "_",
+        )
 
     # Apply the event weights
     events = apply_weights(
@@ -236,19 +242,32 @@ def process_ds(
     return events, outputs
 
 
-def run_inference(events, model, prefix=""):
+def run_inference(events, model, unstack=False, reco_pars=False, prefix=""):
     """Run predictions on the input dataset and append outputs to events dataframe.
 
     Args:
         events (pd.DataFrame): events dataframe to append outputs
         model (chipsnet.Model): model to use for prediction
+        unstack (bool): append unstacked inputs
+        reco_pars (bool): append reco_pars inputs
         prefix (str): prefix to append to column name
 
     Returns:
         pd.DataFrame: events dataframe with model predictions
     """
+    inputs = [np.stack(events["image_0"].to_numpy())]
+    if unstack:
+        inputs.append(np.stack(events["image_1"].to_numpy()))
+        inputs.append(np.stack(events["image_2"].to_numpy()))
+    if reco_pars:
+        inputs.append(np.stack(events["r_vtxX"].to_numpy()))
+        inputs.append(np.stack(events["r_vtxY"].to_numpy()))
+        inputs.append(np.stack(events["r_vtxZ"].to_numpy()))
+        inputs.append(np.stack(events["r_dirTheta"].to_numpy()))
+        inputs.append(np.stack(events["r_dirPhi"].to_numpy()))
+
     # Make the predictions
-    outputs = model.model.predict(np.stack(events["image_0"].to_numpy()))
+    outputs = model.model.predict(inputs)
 
     # Append the predictions to the events dataframe
     model_outputs = model.model.outputs
