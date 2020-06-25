@@ -452,6 +452,14 @@ def vgg_model(config):
             config.model.filters,
             config.model.se_ratio,
             config.model.dropout,
+            prefix="block0_path" + str(i),
+        )
+        path = vgg_block(
+            path,
+            2,
+            config.model.filters * 2,
+            config.model.se_ratio,
+            config.model.dropout,
             prefix="block1_path" + str(i),
         )
         paths.append(path)
@@ -462,8 +470,8 @@ def vgg_model(config):
 
     x = vgg_block(
         x,
-        2,
-        config.model.filters * 2,
+        3,
+        config.model.filters * 4,
         config.model.se_ratio,
         config.model.dropout,
         prefix="block2",
@@ -471,7 +479,7 @@ def vgg_model(config):
     x = vgg_block(
         x,
         3,
-        config.model.filters * 4,
+        config.model.filters * 8,
         config.model.se_ratio,
         config.model.dropout,
         prefix="block3",
@@ -483,14 +491,6 @@ def vgg_model(config):
         config.model.se_ratio,
         config.model.dropout,
         prefix="block4",
-    )
-    x = vgg_block(
-        x,
-        3,
-        config.model.filters * 8,
-        config.model.se_ratio,
-        config.model.dropout,
-        prefix="block5",
     )
     x = Flatten(name="flatten")(x)
 
@@ -561,18 +561,14 @@ def resnet_model(config):
     # Build the core of the model
     paths = []
     for i, image_input in enumerate(inputs):
-        path = Conv2D(
-            filters[0],
-            (3, 3),
-            padding="same",
-            use_bias=False,
-            strides=(2, 2),
-            kernel_initializer=CONV_INITIALISER,
-            kernel_regularizer=regularizers.l2(1e-4),
-            name="conv1_path" + str(i),
-        )(image_input)
-        # path = MaxPooling2D((3, 3), strides=(2, 2), padding='same',
-        #                           name="pool1_path" + str(i))(path)
+        path = vgg_block(
+            image_input,
+            2,
+            config.model.filters,
+            config.model.se_ratio,
+            config.model.dropout,
+            prefix="stem_path" + str(i),
+        )
         for j in range(depths[0]):
             path = resnet_block(
                 path,
@@ -582,7 +578,7 @@ def resnet_model(config):
                 bottleneck=config.model.bottleneck,
                 se_ratio=config.model.se_ratio,
                 dropout=config.model.dropout,
-                prefix="path" + str(i) + "_block0_" + str(j),
+                prefix="block0_path" + str(i) + "_" + str(j),
             )
         paths.append(path)
 
@@ -616,12 +612,6 @@ def resnet_model(config):
     x = BatchNormalization(axis=3)(x)
     x = Activation("relu")(x)
     x = GlobalAveragePooling2D()(x)
-    x = Dense(
-        config.model.dense_units,
-        activation="relu",
-        kernel_initializer=DENSE_INITIALISER,
-        name="dense_final",
-    )(x)
 
     # Add the reco parameters as inputs if required
     if config.model.reco_pars:
@@ -630,6 +620,18 @@ def resnet_model(config):
         reco_concat = concatenate(reco_inputs)
         x = concatenate([x, reco_concat])
 
+    x = Dense(
+        config.model.dense_units,
+        activation="relu",
+        kernel_initializer=DENSE_INITIALISER,
+        name="dense1",
+    )(x)
+    x = Dense(
+        config.model.dense_units,
+        activation="relu",
+        kernel_initializer=DENSE_INITIALISER,
+        name="dense_final",
+    )(x)
     x = Dropout(config.model.dropout, name="dropout_final")(x)
 
     # Get the model outputs
@@ -663,7 +665,7 @@ def inception_resnet_model(config):
     Returns:
         tf.keras.Model: Inception-Resnet-v2 keras model
     """
-    blocks = [5, 5, 5]  # [11, 21, 10]
+    blocks = [3, 6, 3]  # [11, 21, 10]
     scales = [0.17, 0.1, 0.2]
 
     # Get the image inputs
@@ -673,35 +675,30 @@ def inception_resnet_model(config):
     # Build the core of the model
     paths = []
     for i, image_input in enumerate(inputs):
-        # Stem block: 35 x 35 x 192
-        path = conv2d_bn(image_input, 32, 3, padding="valid", prefix="stem" + str(i))
-        path = conv2d_bn(path, 64, 3)
-        path = MaxPooling2D(3, strides=2)(path)
-        # original version
-        # path = conv2d_bn(image_input, 32, 3, strides=2, padding='valid')
-        # path = conv2d_bn(path, 32, 3, padding='valid')
-        # path = conv2d_bn(path, 64, 3)
-        # path = MaxPooling2D(3, strides=2)(path)
-        # path = conv2d_bn(path, 80, 1, padding='valid')
-        # path = conv2d_bn(path, 192, 3, padding='valid')
-        # path = MaxPooling2D(3, strides=2)(path)
+        path = vgg_block(
+            image_input,
+            2,
+            config.model.filters,
+            config.model.se_ratio,
+            config.model.dropout,
+            prefix="stem_path" + str(i),
+        )
+        # Mixed 5b (Inception-A block): 35 x 35 x 320
+        branch_0 = conv2d_bn(path, 96, 1)
+        branch_1 = conv2d_bn(path, 48, 1)
+        branch_1 = conv2d_bn(branch_1, 64, 5)
+        branch_2 = conv2d_bn(path, 64, 1)
+        branch_2 = conv2d_bn(branch_2, 96, 3)
+        branch_2 = conv2d_bn(branch_2, 96, 3)
+        branch_pool = AveragePooling2D(3, strides=1, padding="same")(path)
+        branch_pool = conv2d_bn(branch_pool, 64, 1)
+        branches = [branch_0, branch_1, branch_2, branch_pool]
+        path = Concatenate(axis=3, name="mixed_5b_path" + str(i))(branches)
         paths.append(path)
 
     x = paths[0]
     if len(paths) > 1:
         x = concatenate(paths)
-
-    # Mixed 5b (Inception-A block): 35 x 35 x 320
-    branch_0 = conv2d_bn(x, 96, 1)
-    branch_1 = conv2d_bn(x, 48, 1)
-    branch_1 = conv2d_bn(branch_1, 64, 5)
-    branch_2 = conv2d_bn(x, 64, 1)
-    branch_2 = conv2d_bn(branch_2, 96, 3)
-    branch_2 = conv2d_bn(branch_2, 96, 3)
-    branch_pool = AveragePooling2D(3, strides=1, padding="same")(x)
-    branch_pool = conv2d_bn(branch_pool, 64, 1)
-    branches = [branch_0, branch_1, branch_2, branch_pool]
-    x = Concatenate(axis=3, name="mixed_5b")(branches)
 
     # block35 (Inception-ResNet-A block): 35 x 35 x 320
     for block_idx in range(1, blocks[0]):
@@ -768,8 +765,14 @@ def inception_resnet_model(config):
 
     # Final convolution block: 8 x 8 x 1536
     x = conv2d_bn(x, 1536, 1, prefix="conv_7b")
-
     x = GlobalAveragePooling2D(name="avg_pool")(x)
+
+    # Add the reco parameters as inputs if required
+    if config.model.reco_pars:
+        reco_inputs = get_reco_inputs()
+        inputs.extend(reco_inputs)
+        reco_concat = concatenate(reco_inputs)
+        x = concatenate([x, reco_concat])
 
     x = Dense(
         config.model.dense_units,
@@ -987,7 +990,7 @@ class MultiLossLayer(tf.keras.layers.Layer):
         """
         self.config = config
         self.is_placeholder = True
-        super(MultiLossLayer, self).__init__(**kwargs)
+        super(MultiLossLayer, self).__init__(dtype="float32", **kwargs)
 
     def build(self, input_shape=None):
         """Initialise the self.log_vars.
@@ -1052,7 +1055,7 @@ class MultiLossLayer(tf.keras.layers.Layer):
         """Add loss weight variable.
 
         Args:
-            output (str): uutput name
+            output (str): output name
             initial (float): initial weight value
         """
         return self.add_weight(
@@ -1070,10 +1073,10 @@ class MultiLossLayer(tf.keras.layers.Layer):
             ys_true (list[tf.tensor]): true tensors
             ys_pred (list[tf.tensor]): predicted tensors
         """
-        loss = 0
+        loss = 0.0
         for i in range(self.num_losses):
-            precision = tf.keras.backend.exp(-self.log_vars[i][0])
             var_loss = self.lw[i] * self.loss_funcs[i](ys_true[i], ys_pred[i])
+            precision = tf.keras.backend.exp(-self.log_vars[i][0])
             loss += tf.keras.backend.sum(precision * var_loss + self.log_vars[i][0])
         return tf.keras.backend.mean(loss)
 

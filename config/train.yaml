@@ -5,43 +5,42 @@ exp:
     comet: False  # Should we use comet to store the experiment online
 data:
     input_dirs:  # The directories from which to take input data
-        #- "./data/input/chips_1200_all/beam_flux/"
-        - "./data/input/chips_1200_all/nuel_cccoh/"
-        - "./data/input/chips_1200_all/nuel_nccoh/"
-        - "./data/input/chips_1200_all/nuel_ccdis/"
-        - "./data/input/chips_1200_all/nuel_ncdis/"
-        - "./data/input/chips_1200_all/nuel_ccqel/"
-        - "./data/input/chips_1200_all/nuel_ncqel/"
-        - "./data/input/chips_1200_all/nuel_ccres/"
-        - "./data/input/chips_1200_all/nuel_ncres/"
-        - "./data/input/chips_1200_all/nuel_ccmec/"
-        - "./data/input/chips_1200_all/numu_cccoh/"
-        - "./data/input/chips_1200_all/numu_nccoh/"
-        - "./data/input/chips_1200_all/numu_ccdis/"
-        - "./data/input/chips_1200_all/numu_ncdis/"
-        - "./data/input/chips_1200_all/numu_ccqel/"
-        - "./data/input/chips_1200_all/numu_ncqel/"
-        - "./data/input/chips_1200_all/numu_ccres/"
-        - "./data/input/chips_1200_all/numu_ncres/"
-        - "./data/input/chips_1200_all/numu_ccmec/"
-        #- "./data/input/chips_1200_all/cosmic/"
+        - "./data/input/chips_1200/flux/"
+        - "./data/input/chips_1200/nuel_cccoh/"
+        - "./data/input/chips_1200/nuel_nccoh/"
+        - "./data/input/chips_1200/nuel_ccdis/"
+        - "./data/input/chips_1200/nuel_ncdis/"
+        - "./data/input/chips_1200/nuel_ccqel/"
+        - "./data/input/chips_1200/nuel_ncqel/"
+        - "./data/input/chips_1200/nuel_ccres/"
+        - "./data/input/chips_1200/nuel_ncres/"
+        - "./data/input/chips_1200/nuel_ccmec/"
+        - "./data/input/chips_1200/numu_cccoh/"
+        - "./data/input/chips_1200/numu_nccoh/"
+        - "./data/input/chips_1200/numu_ccdis/"
+        - "./data/input/chips_1200/numu_ncdis/"
+        - "./data/input/chips_1200/numu_ccqel/"
+        - "./data/input/chips_1200/numu_ncqel/"
+        - "./data/input/chips_1200/numu_ccres/"
+        - "./data/input/chips_1200/numu_ncres/"
+        - "./data/input/chips_1200/numu_ccmec/"
+        #- "./data/input/chips_1200/cosmic/"
     unstack: True  # Should we split the channels into seperate images?
-    channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # Active channels
-    #channels: [1, 1, 1]  # Active channels
-    augment: False  # Should we enable random and shifting augmentation to the images?
-    rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
+    #channels: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # Active channels
+    channels: [1, 1, 1]  # Active channels
+    augment: True  # Should we enable random and shifting augmentation to the images?
+    rand: [.02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02]
     shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
     cat_select: -1  # Choose a singular t_all_cat category to train on, used for energy networks (-1 = don't choose)
     img_size: [64, 64]  # The input image size
 model: 
-    type: "vgg"  # (vgg, resnet, inception)
+    type: "inception"  # (vgg, resnet, inception)
     # (t_nu_type, t_sign_type, t_int_type, t_all_cat, t_cosmic_cat, t_comb_cat, t_nu_nc_cat, t_nc_cat
     # prim_total, prim_p, prim_cp, prim_np, prim_g, t_vtxX, t_vtxY, t_vtxZ, t_nuEnergy)
     # List of label outputs, see above for options
     #labels: ["t_cosmic_cat"]  # For cosmic classifier
-    #labels: ["t_all_cat"]  # For beam category classifier
-    #labels: ["t_all_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"]
-    labels: ["t_all_cat", "t_cosmic_cat", "t_int_type", "t_comb_cat", "t_nu_nc_cat"]
+    labels: ["t_nu_nc_cat"]  # For beam category classifier
+    #labels: ["t_nu_nc_cat", "prim_p", "prim_cp", "prim_np", "t_vtxX", "t_vtxY", "t_vtxZ"]  # For multi classifier
     #labels: ["t_nuEnergy"]  # For energy estimation
     lr: 0.0002  # The initial learning rate
     #lr: 0.0005  # The initial learning rate
@@ -49,19 +48,19 @@ model:
     dense_units: 512  # Number of units to use in dense layers
     dropout: 0.2  # Dropout rate to use in dropout layers
     filters: 64  # Initial number of filters to use
-    reco_pars: False  # Should the reco paramters be appended to final dense layer?
+    reco_pars: True  # Should the reco paramters be appended to final dense layer?
     bottleneck: False  # Should we use the bottleneck resnet variant?
     se_ratio: 16  # Ratio for squeeze-exitation blocks, if zero they will not be used
-    learn_weights: True  # If training multiple labels, should we use the custom weight learning layer?
-    #precision_policy: "mixed_float16"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
-    precision_policy: "float32"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
+    learn_weights: False  # If training multiple labels, should we use the custom weight learning layer?
+    precision_policy: "mixed_float16"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
+    #precision_policy: "float32"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
     summarise: True  # Should we display a summary of the model when it is built?
 trainer:
-    train_examples: 960000  # Number of training examples to use
-    val_examples: 160000  # Number of validation examples to use
-    test_examples: 160000  # Number of testing examples to use
-    batch_size: 64  # Training batch size
-    epochs: 1  # Number of epochs to train for
+    train_examples: 4000000  # Number of training examples to use
+    val_examples: 360000  # Number of validation examples to use
+    test_examples: 360000  # Number of testing examples to use
+    batch_size: 128  # Training batch size
+    epochs: 20  # Number of epochs to train for
     tb_update: 1000  # How often should tensorboard record values (batches)
     steps_per_epoch: -1  # Number of steps per epoch (-1 default)
     es_monitor: "val_accuracy"  # Metric to monitor for early stopping
