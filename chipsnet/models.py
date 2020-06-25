@@ -13,7 +13,6 @@ https://towardsdatascience.com/illustrated-10-cnn-architectures-95d78ace614d
 import os
 
 import tensorflow as tf
-import tensorflow.keras.regularizers as regularizers
 import tensorflow.keras.initializers as initializers
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 
