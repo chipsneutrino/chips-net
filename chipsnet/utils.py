@@ -94,7 +94,7 @@ def model_history(config, name):
 
 
 def process_ds(
-    config, data_name, model_names=[], model_cats=["t_all_cat"], verbose=False
+    config, data_name, model_names, model_cats=["t_all_cat"], verbose=False
 ):
     """Fully process a dataset through a list of models and run a standard evaluation.
 
@@ -292,7 +292,7 @@ def run_inference(events, model, unstack=False, reco_pars=False, prefix=""):
     return events
 
 
-def full_comb_combine(events, type, prefix=""):
+def full_comb_combine(events, map_type, prefix=""):
     """Combine t_all_cat scores into t_comb_cat scores.
 
     Args:
@@ -358,15 +358,15 @@ def full_comb_combine(events, type, prefix=""):
         return nuel_cc_value, numu_cc_value, nc_value
 
     comb_prefix = prefix + "pred_t_comb_cat_"
-    if type == "t_all_cat":
+    if map_type == "t_all_cat":
         apply_prefix = prefix + "pred_t_all_cat_"
         events["scores"] = events.apply(all_cat_apply, axis=1, args=(apply_prefix,))
-    elif type == "t_comb_cat":
+    elif map_type == "t_comb_cat":
         return events
-    elif type == "t_nu_nc_cat":
+    elif map_type == "t_nu_nc_cat":
         apply_prefix = prefix + "pred_t_nu_nc_cat_"
         events["scores"] = events.apply(nu_nc_comb_apply, axis=1, args=(apply_prefix,))
-    elif type == "t_nc_cat":
+    elif map_type == "t_nc_cat":
         apply_prefix = prefix + "pred_t_nc_cat_"
         events["scores"] = events.apply(nc_comb_apply, axis=1, args=(apply_prefix,))
 

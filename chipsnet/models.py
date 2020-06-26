@@ -22,6 +22,7 @@ from tensorflow.keras.layers import (
     Activation,
     MaxPooling2D,
     Dropout,
+    SpatialDropout2D,
     GlobalAveragePooling2D,
     Reshape,
     add,
@@ -190,7 +191,7 @@ def vgg_block(x, num_conv=2, filters=64, se_ratio=0, dropout=0.0, prefix=""):
     x = MaxPooling2D((2, 2), strides=(2, 2), name=prefix + "_pool")(x)
 
     x = squeeze_excite_block(x, se_ratio, prefix=prefix) if se_ratio > 0 else x
-    x = Dropout(dropout, name=prefix + "_drop")(x) if dropout > 0.0 else x
+    x = SpatialDropout2D(dropout, name=prefix + "_drop")(x) if dropout > 0.0 else x
     return x
 
 
@@ -304,7 +305,7 @@ def resnet_block(
         )(x)
 
     x = squeeze_excite_block(x, se_ratio, prefix=prefix) if se_ratio > 0 else x
-    x = Dropout(dropout, name=prefix + "_drop")(x) if dropout > 0.0 else x
+    x = SpatialDropout2D(dropout, name=prefix + "_drop")(x) if dropout > 0.0 else x
     x = add([x, init])  # Add the residual and shortcut together
     return x
 
@@ -386,7 +387,7 @@ def inception_resnet_block(
         x = Activation(activation, name=prefix + "_ac")(x)
 
     x = squeeze_excite_block(x, se_ratio, prefix=prefix) if se_ratio > 0 else x
-    x = Dropout(dropout, name=prefix + "_drop")(x) if dropout > 0.0 else x
+    x = SpatialDropout2D(dropout, name=prefix + "_drop")(x) if dropout > 0.0 else x
     return x
 
 

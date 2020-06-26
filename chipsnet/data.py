@@ -940,7 +940,7 @@ MAP_NU_NC_COMB_CAT = {
 }
 
 
-def nu_nc_comb_loss(y_true, y_pred):
+def nc_comb_loss(y_true, y_pred):
     """Return a masked sparse categorical crossentropy loss.
 
     Args:
@@ -958,7 +958,7 @@ def nu_nc_comb_loss(y_true, y_pred):
 MAP_NC_COMB_CAT = {
     "name": "t_nc_cat",
     "categories": 13,
-    "loss": nu_nc_comb_loss,
+    "loss": nc_comb_loss,
     "labels": [
         "Nuel-CC-QEL",  # 0
         "Nuel-CC-RES",  # 1

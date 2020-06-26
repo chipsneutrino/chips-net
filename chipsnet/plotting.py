@@ -182,7 +182,7 @@ def plot_combined_values(events, prefix, save_path):
         save_path (str): path to save plot to
     """
     bins = 25
-    range = (0, 1)
+    hist_range = (0, 1)
     cat0 = prefix + "pred_t_comb_cat_0"
     cat1 = prefix + "pred_t_comb_cat_1"
     cat2 = prefix + "pred_t_comb_cat_2"
@@ -194,7 +194,7 @@ def plot_combined_values(events, prefix, save_path):
     axs[0].hist(
         nuel_cc_events[cat0],
         weights=nuel_cc_events["w"],
-        range=range,
+        range=hist_range,
         bins=bins,
         color="green",
         histtype="step",
@@ -202,7 +202,7 @@ def plot_combined_values(events, prefix, save_path):
     axs[0].hist(
         numu_cc_events[cat0],
         weights=numu_cc_events["w"],
-        range=range,
+        range=hist_range,
         bins=bins,
         color="blue",
         histtype="step",
@@ -210,7 +210,7 @@ def plot_combined_values(events, prefix, save_path):
     axs[0].hist(
         nc_events[cat0],
         weights=nc_events["w"],
-        range=range,
+        range=hist_range,
         bins=bins,
         color="red",
         histtype="step",
@@ -221,7 +221,7 @@ def plot_combined_values(events, prefix, save_path):
     axs[1].hist(
         nuel_cc_events[cat1],
         weights=nuel_cc_events["w"],
-        range=range,
+        range=hist_range,
         bins=bins,
         color="green",
         histtype="step",
@@ -229,7 +229,7 @@ def plot_combined_values(events, prefix, save_path):
     axs[1].hist(
         numu_cc_events[cat1],
         weights=numu_cc_events["w"],
-        range=range,
+        range=hist_range,
         bins=bins,
         color="blue",
         histtype="step",
@@ -237,7 +237,7 @@ def plot_combined_values(events, prefix, save_path):
     axs[1].hist(
         nc_events[cat1],
         weights=nc_events["w"],
-        range=range,
+        range=hist_range,
         bins=bins,
         color="red",
         histtype="step",
@@ -248,7 +248,7 @@ def plot_combined_values(events, prefix, save_path):
     axs[2].hist(
         nuel_cc_events[cat2],
         weights=nuel_cc_events["w"],
-        range=range,
+        range=hist_range,
         bins=bins,
         color="green",
         histtype="step",
@@ -256,7 +256,7 @@ def plot_combined_values(events, prefix, save_path):
     axs[2].hist(
         numu_cc_events[cat2],
         weights=numu_cc_events["w"],
-        range=range,
+        range=hist_range,
         bins=bins,
         color="blue",
         histtype="step",
@@ -264,7 +264,7 @@ def plot_combined_values(events, prefix, save_path):
     axs[2].hist(
         nc_events[cat2],
         weights=nc_events["w"],
-        range=range,
+        range=hist_range,
         bins=bins,
         color="red",
         histtype="step",
