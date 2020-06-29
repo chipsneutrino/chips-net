@@ -311,7 +311,7 @@ def resnet_block(
 
 
 def inception_resnet_block(
-    x, scale, block_type, activation="relu", se_ratio=0, dropout=0.0, prefix=""
+    x, scale, block_type, filter_r=1, activation="relu", se_ratio=0, dropout=0.0, prefix=""
 ):
     """Build an Inception-ResNet block.
 
@@ -341,24 +341,24 @@ def inception_resnet_block(
         ValueError: if 'block_type' is not one of 'block35', 'block17' or 'block8'.
     """
     if block_type == "block35":
-        branch_0 = conv2d_bn(x, 32, 1)
-        branch_1 = conv2d_bn(x, 32, 1)
-        branch_1 = conv2d_bn(branch_1, 32, 3)
-        branch_2 = conv2d_bn(x, 32, 1)
-        branch_2 = conv2d_bn(branch_2, 48, 3)
-        branch_2 = conv2d_bn(branch_2, 64, 3)
+        branch_0 = conv2d_bn(x, 32 * filter_r, 1)
+        branch_1 = conv2d_bn(x, 32 * filter_r, 1)
+        branch_1 = conv2d_bn(branch_1, 32 * filter_r, 3)
+        branch_2 = conv2d_bn(x, 32 * filter_r, 1)
+        branch_2 = conv2d_bn(branch_2, 48 * filter_r, 3)
+        branch_2 = conv2d_bn(branch_2, 64 * filter_r, 3)
         branches = [branch_0, branch_1, branch_2]
     elif block_type == "block17":
-        branch_0 = conv2d_bn(x, 192, 1)
-        branch_1 = conv2d_bn(x, 128, 1)
-        branch_1 = conv2d_bn(branch_1, 160, [1, 7])
-        branch_1 = conv2d_bn(branch_1, 192, [7, 1])
+        branch_0 = conv2d_bn(x, 192 * filter_r, 1)
+        branch_1 = conv2d_bn(x, 128 * filter_r, 1)
+        branch_1 = conv2d_bn(branch_1, 160 * filter_r, [1, 7])
+        branch_1 = conv2d_bn(branch_1, 192 * filter_r, [7, 1])
         branches = [branch_0, branch_1]
     elif block_type == "block8":
-        branch_0 = conv2d_bn(x, 192, 1)
-        branch_1 = conv2d_bn(x, 192, 1)
-        branch_1 = conv2d_bn(branch_1, 224, [1, 3])
-        branch_1 = conv2d_bn(branch_1, 256, [3, 1])
+        branch_0 = conv2d_bn(x, 192 * filter_r, 1)
+        branch_1 = conv2d_bn(x, 192 * filter_r, 1)
+        branch_1 = conv2d_bn(branch_1, 224 * filter_r, [1, 3])
+        branch_1 = conv2d_bn(branch_1, 256 * filter_r, [3, 1])
         branches = [branch_0, branch_1]
     else:
         raise ValueError(
@@ -665,8 +665,9 @@ def inception_resnet_model(config):
     Returns:
         tf.keras.Model: Inception-Resnet-v2 keras model
     """
-    blocks = [3, 6, 3]  # [11, 21, 10]
+    blocks = [3, 5, 3]  # [11, 21, 10]
     scales = [0.17, 0.1, 0.2]
+    filter_r = 0.7
 
     # Get the image inputs
     inputs = []
@@ -684,14 +685,14 @@ def inception_resnet_model(config):
             prefix="stem_path" + str(i),
         )
         # Mixed 5b (Inception-A block): 35 x 35 x 320
-        branch_0 = conv2d_bn(path, 96, 1)
-        branch_1 = conv2d_bn(path, 48, 1)
-        branch_1 = conv2d_bn(branch_1, 64, 5)
-        branch_2 = conv2d_bn(path, 64, 1)
-        branch_2 = conv2d_bn(branch_2, 96, 3)
-        branch_2 = conv2d_bn(branch_2, 96, 3)
+        branch_0 = conv2d_bn(path, 96 * filter_r, 1)
+        branch_1 = conv2d_bn(path, 48 * filter_r, 1)
+        branch_1 = conv2d_bn(branch_1, 64 * filter_r, 5)
+        branch_2 = conv2d_bn(path, 64 * filter_r, 1)
+        branch_2 = conv2d_bn(branch_2, 96 * filter_r, 3)
+        branch_2 = conv2d_bn(branch_2, 96 * filter_r, 3)
         branch_pool = AveragePooling2D(3, strides=1, padding="same")(path)
-        branch_pool = conv2d_bn(branch_pool, 64, 1)
+        branch_pool = conv2d_bn(branch_pool, 64 * filter_r, 1)
         branches = [branch_0, branch_1, branch_2, branch_pool]
         path = Concatenate(axis=3, name="mixed_5b_path" + str(i))(branches)
         paths.append(path)
@@ -706,16 +707,17 @@ def inception_resnet_model(config):
             x,
             scale=scales[0],
             block_type="block35",
+            filter_r=filter_r,
             se_ratio=config.model.se_ratio,
             dropout=config.model.dropout,
             prefix="block35_" + str(block_idx),
         )
 
     # Mixed 6a (Reduction-A block): 17 x 17 x 1088
-    branch_0 = conv2d_bn(x, 384, 3, strides=2, padding="valid")
-    branch_1 = conv2d_bn(x, 256, 1)
-    branch_1 = conv2d_bn(branch_1, 256, 3)
-    branch_1 = conv2d_bn(branch_1, 384, 3, strides=2, padding="valid")
+    branch_0 = conv2d_bn(x, 384 * filter_r, 3, strides=2, padding="valid")
+    branch_1 = conv2d_bn(x, 256 * filter_r, 1)
+    branch_1 = conv2d_bn(branch_1, 256 * filter_r, 3)
+    branch_1 = conv2d_bn(branch_1, 384 * filter_r, 3, strides=2, padding="valid")
     branch_pool = MaxPooling2D(3, strides=2, padding="valid")(x)
     branches = [branch_0, branch_1, branch_pool]
     x = Concatenate(axis=3, name="mixed_6a")(branches)
@@ -726,19 +728,20 @@ def inception_resnet_model(config):
             x,
             scale=scales[1],
             block_type="block17",
+            filter_r=filter_r,
             se_ratio=config.model.se_ratio,
             dropout=config.model.dropout,
             prefix="block17_" + str(block_idx),
         )
 
     # Mixed 7a (Reduction-B block): 8 x 8 x 2080
-    branch_0 = conv2d_bn(x, 256, 1)
-    branch_0 = conv2d_bn(branch_0, 384, 3, strides=2, padding="valid")
-    branch_1 = conv2d_bn(x, 256, 1)
-    branch_1 = conv2d_bn(branch_1, 288, 3, strides=2, padding="valid")
-    branch_2 = conv2d_bn(x, 256, 1)
-    branch_2 = conv2d_bn(branch_2, 288, 3)
-    branch_2 = conv2d_bn(branch_2, 320, 3, strides=2, padding="valid")
+    branch_0 = conv2d_bn(x, 256 * filter_r, 1)
+    branch_0 = conv2d_bn(branch_0, 384 * filter_r, 3, strides=2, padding="valid")
+    branch_1 = conv2d_bn(x, 256 * filter_r, 1)
+    branch_1 = conv2d_bn(branch_1, 288 * filter_r, 3, strides=2, padding="valid")
+    branch_2 = conv2d_bn(x, 256 * filter_r, 1)
+    branch_2 = conv2d_bn(branch_2, 288 * filter_r, 3)
+    branch_2 = conv2d_bn(branch_2, 320 * filter_r, 3, strides=2, padding="valid")
     branch_pool = MaxPooling2D(3, strides=2, padding="valid")(x)
     branches = [branch_0, branch_1, branch_2, branch_pool]
     x = Concatenate(axis=3, name="mixed_7a")(branches)
@@ -749,6 +752,7 @@ def inception_resnet_model(config):
             x,
             scale=scales[2],
             block_type="block8",
+            filter_r=filter_r,
             se_ratio=config.model.se_ratio,
             dropout=config.model.dropout,
             prefix="block8_" + str(block_idx),
@@ -758,13 +762,14 @@ def inception_resnet_model(config):
         scale=1.0,
         activation=None,
         block_type="block8",
+        filter_r=filter_r,
         se_ratio=config.model.se_ratio,
         dropout=config.model.dropout,
         prefix="block8_" + str(blocks[2]),
     )
 
     # Final convolution block: 8 x 8 x 1536
-    x = conv2d_bn(x, 1536, 1, prefix="conv_7b")
+    x = conv2d_bn(x, 1536 * filter_r, 1, prefix="conv_7b")
     x = GlobalAveragePooling2D(name="avg_pool")(x)
 
     # Add the reco parameters as inputs if required
