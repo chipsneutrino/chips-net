@@ -43,7 +43,8 @@ def data_from_conf(config, name):
     """
     # We copy the configuration so we don't modify it
     data_config = copy.copy(config)
-    data_config.data = config.samples[name]
+    data_config.data.input_dirs = config.samples[name].input_dirs
+    data_config.data.channels = config.samples[name].channels
     data = chipsnet.data.Reader(data_config)
     return data
 
@@ -60,8 +61,8 @@ def model_from_conf(config, name):
     """
     # We copy the configuration so we don't modify it
     model_config = copy.copy(config)
-    model_config.model = config.models[name]
-    model_config.exp.output_dir = config.models[name].dir
+    model_config.model.type = config.models[name].type
+    model_config.model.labels = config.models[name].labels
     model_config.exp.name = config.models[name].path
     model_config.data.channels = config.models[name].channels
     chipsnet.config.setup_dirs(model_config, False)
@@ -93,9 +94,7 @@ def model_history(config, name):
     return pd.DataFrame.from_dict(history_dict)
 
 
-def process_ds(
-    config, data_name, model_names, model_cats=["t_all_cat"], verbose=False
-):
+def process_ds(config, data_name, model_names=[], model_cats=["t_nu_nc_cat"], verbose=False):
     """Fully process a dataset through a list of models and run a standard evaluation.
 
     Args:
@@ -293,7 +292,7 @@ def run_inference(events, model, unstack=False, reco_pars=False, prefix=""):
 
 
 def full_comb_combine(events, map_type, prefix=""):
-    """Combine t_all_cat scores into t_comb_cat scores.
+    """Combine output scores into t_comb_cat scores.
 
     Args:
         events (pd.DataFrame): events dataframe to calculate combined category scores
@@ -942,7 +941,7 @@ def run_tsne(
 
 
 def explain_gradcam(
-    events, model, num_events, output="t_all_cat", layer_name="path0_block1"
+    events, model, num_events, output="t_nu_nc_cat", layer_name="path0_block1"
 ):
     """Run GradCAM on the given model using the events.
 
@@ -961,7 +960,7 @@ def explain_gradcam(
     )
     outputs = []
     for event in range(num_events):
-        category = int(events["t_all_cat"][event])
+        category = int(events["t_nu_nc_cat"][event])
         image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
         outputs.append(
             GradCAM().explain(
@@ -974,7 +973,7 @@ def explain_gradcam(
     return outputs
 
 
-def explain_occlusion(events, model, num_events, output="t_all_cat"):
+def explain_occlusion(events, model, num_events, output="t_nu_nc_cat"):
     """Run OcclusionSensitivity on the given model using the events.
 
     Args:
@@ -991,7 +990,7 @@ def explain_occlusion(events, model, num_events, output="t_all_cat"):
     )
     outputs = []
     for event in range(num_events):
-        category = int(events["t_all_cat"][event])
+        category = int(events["t_nu_nc_cat"][event])
         image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
         outputs.append(
             OcclusionSensitivity().explain(
@@ -1002,7 +1001,7 @@ def explain_occlusion(events, model, num_events, output="t_all_cat"):
 
 
 def explain_activation(
-    events, model, num_events, output="t_all_cat", layer_name="path0_block1_conv0"
+    events, model, num_events, output="t_nu_nc_cat", layer_name="path0_block1_conv0"
 ):
     """Run ExtractActivations on the given model using the events.
 
@@ -1021,7 +1020,7 @@ def explain_activation(
     )
     outputs = []
     for event in range(num_events):
-        category = int(events["t_all_cat"][event])
+        category = int(events["t_nu_nc_cat"][event])
         image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
         outputs.append(
             ExtractActivations().explain(
@@ -1031,7 +1030,7 @@ def explain_activation(
     return outputs
 
 
-def explain_grads(events, model, num_events, output="t_all_cat"):
+def explain_grads(events, model, num_events, output="t_nu_nc_cat"):
     """Run various gradient explain methods on the given model using the events.
 
     Args:
@@ -1048,7 +1047,7 @@ def explain_grads(events, model, num_events, output="t_all_cat"):
     )
     outputs = {"vanilla": [], "smooth": [], "integrated": [], "inputs": []}
     for event in range(num_events):
-        category = int(events["t_all_cat"][event])
+        category = int(events["t_nu_nc_cat"][event])
         image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
         outputs["vanilla"].append(
             VanillaGradients().explain(

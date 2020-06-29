@@ -6,8 +6,14 @@ default: train
 create:
 	python chipsnet/run.py ./config/create.yaml
 
-train:
-	python chipsnet/run.py ./config/train.yaml
+train_cosmic:
+	python chipsnet/run.py ./config/train_cosmic.yaml
+
+train_beam:
+	python chipsnet/run.py ./config/train_beam.yaml
+
+train_energy:
+	python chipsnet/run.py ./config/train_energy.yaml
 
 study:
 	python chipsnet/run.py ./config/study.yaml
