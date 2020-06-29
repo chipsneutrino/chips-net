@@ -311,7 +311,14 @@ def resnet_block(
 
 
 def inception_resnet_block(
-    x, scale, block_type, filter_r=1, activation="relu", se_ratio=0, dropout=0.0, prefix=""
+    x,
+    scale,
+    block_type,
+    filter_r=1,
+    activation="relu",
+    se_ratio=0,
+    dropout=0.0,
+    prefix="",
 ):
     """Build an Inception-ResNet block.
 
