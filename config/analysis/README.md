@@ -32,7 +32,19 @@
 *   multi_beam_vertex_v_cth.yaml
 
 ## Energy estimation
-*   Need to add 
+*   nuel_cccoh_energy.yaml
+*   nuel_ccdis_energy.yaml
+*   nuel_ccqel_energy.yaml
+*   nuel_ccres_energy.yaml
+*   nuel_ccmec_energy.yaml
+*   numu_cccoh_energy.yaml
+*   numu_ccdis_energy.yaml
+*   numu_ccqel_energy.yaml
+*   numu_ccres_energy.yaml
+*   numu_ccmec_energy.yaml
+*   nuel_cc_energy.yaml
+*   numu_cc_energy.yaml
+*   nc_energy.yaml
 
 ## Studies
 *   We really need to run a study on all of these

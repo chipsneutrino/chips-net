@@ -24,3 +24,17 @@ rm -rf data/models/multi_beam_v_cth
 rm -rf data/models/multi_beam_cosmic_v_cth
 rm -rf data/models/multi_beam_energy_v_cth
 rm -rf data/models/multi_beam_vertex_v_cth
+
+rm -rf data/models/nuel_cccoh_energy
+rm -rf data/models/nuel_ccdis_energy
+rm -rf data/models/nuel_ccqel_energy
+rm -rf data/models/nuel_ccres_energy
+rm -rf data/models/nuel_ccmec_energy
+rm -rf data/models/numu_cccoh_energy
+rm -rf data/models/numu_ccdis_energy
+rm -rf data/models/numu_ccqel_energy
+rm -rf data/models/numu_ccres_energy
+rm -rf data/models/numu_ccmec_energy
+rm -rf data/models/nuel_cc_energy
+rm -rf data/models/numu_cc_energy
+rm -rf data/models/nc_energy
