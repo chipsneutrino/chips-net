@@ -45,6 +45,12 @@ def data_from_conf(config, name):
     data_config = copy.copy(config)
     data_config.data.input_dirs = config.samples[name].input_dirs
     data_config.data.channels = config.samples[name].channels
+    if config.samples[name].augment is True:
+        data_config.data.augment = True
+        data_config.data.rand = config.samples[name].rand
+        data_config.data.shift = config.samples[name].shift
+    if config.samples[name].unstack is False:
+        data_config.data.unstack = False
     data = chipsnet.data.Reader(data_config)
     return data
 
@@ -65,6 +71,10 @@ def model_from_conf(config, name):
     model_config.model.labels = config.models[name].labels
     model_config.exp.name = config.models[name].path
     model_config.data.channels = config.models[name].channels
+    if config.models[name].reco_pars is False:
+        model_config.model.reco_pars = False
+    if config.models[name].unstack is False:
+        model_config.data.unstack = False
     chipsnet.config.setup_dirs(model_config, False)
     model = chipsnet.models.Model(model_config)
     model.load()
@@ -83,7 +93,6 @@ def model_history(config, name):
     """
     model_config = copy.copy(config)
     model_config.model = config.models[name]
-    model_config.exp.output_dir = config.models[name].dir
     model_config.exp.name = config.models[name].path
     model_config.data.channels = config.models[name].channels
     chipsnet.config.setup_dirs(model_config, False)
@@ -168,7 +177,7 @@ def process_ds(config, data_name, model_names=[], model_cats=["t_nu_nc_cat"], ve
         "cat_report": [],
     }
     for model_name, model_cat in zip(model_names, model_cats):
-        if "cosmic" in model_name or "cos" in model_name:
+        if "cosmic_model" in model_name:
             continue
 
         # Combine categories into fully combined ones
@@ -190,11 +199,14 @@ def process_ds(config, data_name, model_names=[], model_cats=["t_nu_nc_cat"], ve
             events["t_comb_cat"],
             events[model_name + "_comb_cat_class"],
             target_names=["nuel-cc", "numu-cc", "nc"],
+            zero_division=0
         )
         outputs["comb_report"].append(comb_report)
 
         cat_report = classification_report(
-            events[model_cat], events[model_name + "_" + model_cat + "_class"]
+            events[model_cat], 
+            events[model_name + "_" + model_cat + "_class"],
+            zero_division=0
         )
         outputs["cat_report"].append(cat_report)
         if verbose:
@@ -241,7 +253,7 @@ def process_ds(config, data_name, model_names=[], model_cats=["t_nu_nc_cat"], ve
     return events, outputs
 
 
-def run_inference(events, model, unstack=False, reco_pars=False, prefix=""):
+def run_inference(events, model, unstack=True, reco_pars=True, prefix=""):
     """Run predictions on the input dataset and append outputs to events dataframe.
 
     Args:
@@ -256,8 +268,15 @@ def run_inference(events, model, unstack=False, reco_pars=False, prefix=""):
     """
     inputs = [np.stack(events["image_0"].to_numpy())]
     if unstack:
-        inputs.append(np.stack(events["image_1"].to_numpy()))
-        inputs.append(np.stack(events["image_2"].to_numpy()))
+        try:
+            inputs.append(np.stack(events["image_1"].to_numpy()))
+        except Exception as e:
+            print("found no image_1... ", end="", flush=True)
+
+        try:
+            inputs.append(np.stack(events["image_2"].to_numpy()))
+        except Exception as e:
+            print("found no image_2... ", end="", flush=True)
     if reco_pars:
         inputs.append(np.stack(events["r_vtxX"].to_numpy()))
         inputs.append(np.stack(events["r_vtxY"].to_numpy()))
@@ -639,6 +658,7 @@ def calculate_curves(
         purities (np.array): array of purities
         foms (np.array): array of figure-of-merits (efficiency*purity)
     """
+    np.seterr(divide='ignore', invalid='ignore')
     num_cats = chipsnet.data.get_map(cat_name)["categories"]
     prefix = prefix + "pred_" + cat_name + "_"
 
@@ -846,6 +866,8 @@ def classify(event, categories, prefix):
 def run_pca(
     events,
     model,
+    unstack=True,
+    reco_pars=True,
     layer_name="dense_final",
     standardise=True,
     components=3,
@@ -868,9 +890,27 @@ def run_pca(
     dense_model = Model(
         inputs=model.model.input, outputs=model.model.get_layer(layer_name).output
     )
+    
+    inputs = [np.stack(events["image_0"].to_numpy())]
+    if unstack:
+        try:
+            inputs.append(np.stack(events["image_1"].to_numpy()))
+        except Exception as e:
+            print("found no image_1... ", end="", flush=True)
+
+        try:
+            inputs.append(np.stack(events["image_2"].to_numpy()))
+        except Exception as e:
+            print("found no image_2... ", end="", flush=True)
+    if reco_pars:
+        inputs.append(np.stack(events["r_vtxX"].to_numpy()))
+        inputs.append(np.stack(events["r_vtxY"].to_numpy()))
+        inputs.append(np.stack(events["r_vtxZ"].to_numpy()))
+        inputs.append(np.stack(events["r_dirTheta"].to_numpy()))
+        inputs.append(np.stack(events["r_dirPhi"].to_numpy()))
 
     # Make the predictions
-    dense_outputs = dense_model.predict(np.stack(events["image_0"].to_numpy()))
+    dense_outputs = dense_model.predict(inputs)
 
     # Run a standard scalar on the dense outputs if needed
     if standardise:
@@ -898,6 +938,8 @@ def run_pca(
 def run_tsne(
     events,
     model,
+    unstack=True,
+    reco_pars=True,
     layer_name="dense_final",
     standardise=True,
     components=3,
@@ -921,8 +963,26 @@ def run_tsne(
         inputs=model.model.input, outputs=model.model.get_layer(layer_name).output
     )
 
+    inputs = [np.stack(events["image_0"].to_numpy())]
+    if unstack:
+        try:
+            inputs.append(np.stack(events["image_1"].to_numpy()))
+        except Exception as e:
+            print("found no image_1... ", end="", flush=True)
+
+        try:
+            inputs.append(np.stack(events["image_2"].to_numpy()))
+        except Exception as e:
+            print("found no image_2... ", end="", flush=True)
+    if reco_pars:
+        inputs.append(np.stack(events["r_vtxX"].to_numpy()))
+        inputs.append(np.stack(events["r_vtxY"].to_numpy()))
+        inputs.append(np.stack(events["r_vtxZ"].to_numpy()))
+        inputs.append(np.stack(events["r_dirTheta"].to_numpy()))
+        inputs.append(np.stack(events["r_dirPhi"].to_numpy()))
+
     # Make the predictions
-    dense_outputs = dense_model.predict(np.stack(events["image_0"].to_numpy()))
+    dense_outputs = dense_model.predict(inputs)
 
     # Run a standard scalar on the dense outputs if needed
     if standardise:

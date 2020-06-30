@@ -38,3 +38,5 @@ rm -rf data/models/numu_ccmec_energy
 rm -rf data/models/nuel_cc_energy
 rm -rf data/models/numu_cc_energy
 rm -rf data/models/nc_energy
+
+rm -rf data/models/beam_v_cth_stacked_noreco

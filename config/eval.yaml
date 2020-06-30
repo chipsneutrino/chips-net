@@ -6,8 +6,6 @@ data:
     img_size: [64, 64]
     cat_select: -1
     augment: False
-    rand: [.05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05, .05]
-    shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
 model:
     lr: 0.0002
     lr_decay: 0.5
@@ -113,6 +111,27 @@ samples:
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccmec/"
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/cosmic/"
         channels: [1, 1, 1]
+    v_cth_flux_5:
+        input_dirs: 
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
+        channels: [1, 1, 1]
+        augment: True
+        rand: [.02, .02, .02]
+        shift: [.05, .05, .05]
+    v_cth_flux_10:
+        input_dirs: 
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
+        channels: [1, 1, 1]
+        augment: True
+        rand: [.02, .02, .02]
+        shift: [.1, .1, .1]
+    v_cth_flux_20:
+        input_dirs: 
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
+        channels: [1, 1, 1]
+        augment: True
+        rand: [.02, .02, .02]
+        shift: [.2, .2, .2]
     v_cth_nuel_cccoh:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_cccoh/"
@@ -153,7 +172,11 @@ samples:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccmec/"
         channels: [1, 1, 1]
-        
+    v_cth_flux_stacked_noreco:
+        input_dirs: 
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
+        channels: [1, 1, 1]
+        unstack: False
 models:
     beam_v_c:
         path: "beam_v_c" 
@@ -315,8 +338,15 @@ models:
         type: "vgg"
         labels: ["t_nuEnergy"]
         channels: [1, 1, 1]
+    beam_v_cth_stacked_noreco:
+        path: "beam_v_cth_stacked_noreco" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+        unstack: False
+        reco_pars: False
 eval:
-    examples: 32000
+    examples: 128000
     cuts:
         cosmic: 0.001   # Cosmic classifier cut
         q:      600.0   # r_raw_total_digi_q cut

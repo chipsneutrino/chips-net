@@ -1,6 +1,6 @@
 task: "train"
 exp:
-    name: "beam_v_cth"
+    name: "beam_v_cth_stacked_noreco"
     output_dir: "./data/models/"
     comet: False
 data:
@@ -24,7 +24,7 @@ data:
         - "./data/input/chips_1200/numu_ccres/"
         - "./data/input/chips_1200/numu_ncres/"
         - "./data/input/chips_1200/numu_ccmec/"
-    unstack: True
+    unstack: False
     channels: [1, 1, 1]
     augment: True
     rand: [.02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02]
@@ -39,7 +39,7 @@ model:
     dense_units: 512
     dropout: 0.2
     filters: 64
-    reco_pars: True
+    reco_pars: False
     bottleneck: False
     se_ratio: 16
     learn_weights: False
@@ -56,3 +56,4 @@ trainer:
     es_monitor: "val_accuracy"
     es_delta: 0.0001
     es_epochs: 2
+    

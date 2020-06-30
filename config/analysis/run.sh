@@ -38,3 +38,5 @@ python chipsnet/run.py config/analysis/energy/numu_ccmec_energy.yaml
 python chipsnet/run.py config/analysis/energy/nuel_cc_energy.yaml
 python chipsnet/run.py config/analysis/energy/numu_cc_energy.yaml
 python chipsnet/run.py config/analysis/energy/nc_energy.yaml
+
+python chipsnet/run.py config/analysis/beam_v_cth_stacked_noreco.yaml
