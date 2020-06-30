@@ -103,7 +103,9 @@ def model_history(config, name):
     return pd.DataFrame.from_dict(history_dict)
 
 
-def process_ds(config, data_name, model_names=[], model_cats=["t_nu_nc_cat"], verbose=False):
+def process_ds(
+    config, data_name, model_names=[], model_cats=["t_nu_nc_cat"], verbose=False
+):
     """Fully process a dataset through a list of models and run a standard evaluation.
 
     Args:
