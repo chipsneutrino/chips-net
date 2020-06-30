@@ -201,14 +201,14 @@ def process_ds(
             events["t_comb_cat"],
             events[model_name + "_comb_cat_class"],
             target_names=["nuel-cc", "numu-cc", "nc"],
-            zero_division=0
+            zero_division=0,
         )
         outputs["comb_report"].append(comb_report)
 
         cat_report = classification_report(
-            events[model_cat], 
+            events[model_cat],
             events[model_name + "_" + model_cat + "_class"],
-            zero_division=0
+            zero_division=0,
         )
         outputs["cat_report"].append(cat_report)
         if verbose:
@@ -273,12 +273,14 @@ def run_inference(events, model, unstack=True, reco_pars=True, prefix=""):
         try:
             inputs.append(np.stack(events["image_1"].to_numpy()))
         except Exception as e:
-            print("found no image_1... ", end="", flush=True)
+            if e:
+                print("found no image_1... ", end="", flush=True)
 
         try:
             inputs.append(np.stack(events["image_2"].to_numpy()))
         except Exception as e:
-            print("found no image_2... ", end="", flush=True)
+            if e:
+                print("found no image_2... ", end="", flush=True)
     if reco_pars:
         inputs.append(np.stack(events["r_vtxX"].to_numpy()))
         inputs.append(np.stack(events["r_vtxY"].to_numpy()))
@@ -660,7 +662,7 @@ def calculate_curves(
         purities (np.array): array of purities
         foms (np.array): array of figure-of-merits (efficiency*purity)
     """
-    np.seterr(divide='ignore', invalid='ignore')
+    np.seterr(divide="ignore", invalid="ignore")
     num_cats = chipsnet.data.get_map(cat_name)["categories"]
     prefix = prefix + "pred_" + cat_name + "_"
 
@@ -892,18 +894,20 @@ def run_pca(
     dense_model = Model(
         inputs=model.model.input, outputs=model.model.get_layer(layer_name).output
     )
-    
+
     inputs = [np.stack(events["image_0"].to_numpy())]
     if unstack:
         try:
             inputs.append(np.stack(events["image_1"].to_numpy()))
         except Exception as e:
-            print("found no image_1... ", end="", flush=True)
+            if e:
+                print("found no image_1... ", end="", flush=True)
 
         try:
             inputs.append(np.stack(events["image_2"].to_numpy()))
         except Exception as e:
-            print("found no image_2... ", end="", flush=True)
+            if e:
+                print("found no image_2... ", end="", flush=True)
     if reco_pars:
         inputs.append(np.stack(events["r_vtxX"].to_numpy()))
         inputs.append(np.stack(events["r_vtxY"].to_numpy()))
@@ -970,12 +974,14 @@ def run_tsne(
         try:
             inputs.append(np.stack(events["image_1"].to_numpy()))
         except Exception as e:
-            print("found no image_1... ", end="", flush=True)
+            if e:
+                print("found no image_1... ", end="", flush=True)
 
         try:
             inputs.append(np.stack(events["image_2"].to_numpy()))
         except Exception as e:
-            print("found no image_2... ", end="", flush=True)
+            if e:
+                print("found no image_2... ", end="", flush=True)
     if reco_pars:
         inputs.append(np.stack(events["r_vtxX"].to_numpy()))
         inputs.append(np.stack(events["r_vtxY"].to_numpy()))
