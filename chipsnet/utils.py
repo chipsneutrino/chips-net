@@ -11,7 +11,6 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Model
-from tqdm import tqdm
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import auc
@@ -1138,14 +1137,61 @@ def explain_grads(events, model, num_events, output="t_nu_nc_cat"):
     return outputs
 
 
-def predict_energies(self):
-    """Estimate the event energy using the true category model."""
-    estimations = []
-    for i in tqdm(
-        range(self.beam_model.categories + 1), desc="--- predicting energies"
-    ):
-        estimations.append(self.energy_models[i].model.predict(self.data))
+def predict_energies(config, data_name, model_names=[], verbose=False):
+    """Fully process a dataset through a list of models and run a standard evaluation.
 
+    Args:
+        config (dotmap.DotMap): configuration namespace
+        data_name (str): data name
+        model_names (List[str]): model names
+        verbose (bool): should we print summaries?
+
+    Returns:
+        pd.DataFrame: fully processed events dataframe
+    """
+    print("Processing {}... ".format(data_name), end="", flush=True)
+    if verbose:
+        print("\n")
+    start_time = time.time()
+
+    # Get the dataframe from the dataset name
+    events = data_from_conf(config, data_name).testing_df(config.eval.examples)
+
+    # Run all the required inference
+    for model_name in model_names:
+        model = model_from_conf(config, model_name)
+        events = run_inference(
+            events,
+            model,
+            unstack=config.data.unstack,
+            reco_pars=config.model.reco_pars,
+            prefix=model_name + "_",
+        )
+
+    # Apply the event weights
+    events = apply_weights(
+        events,
+        total_num=config.eval.weights.total,
+        nuel_frac=config.eval.weights.nuel,
+        anuel_frac=config.eval.weights.anuel,
+        numu_frac=config.eval.weights.numu,
+        anumu_frac=config.eval.weights.anumu,
+        cosmic_frac=config.eval.weights.cosmic,
+        verbose=verbose,
+    )
+
+    # Apply the standard cuts
+    events = apply_standard_cuts(
+        events,
+        cosmic_cut=config.eval.cuts.cosmic,
+        q_cut=config.eval.cuts.q,
+        h_cut=config.eval.cuts.h,
+        theta_cut=config.eval.cuts.theta,
+        phi_cut=config.eval.cuts.phi,
+        verbose=verbose,
+    )
+
+    """
     true_cat_energies = []
     pred_cat_energies = []
     for i in range(self.events.shape[0]):
@@ -1154,6 +1200,12 @@ def predict_energies(self):
 
     self.events["true_cat_pred_e"] = np.array(true_cat_energies)
     self.events["pred_cat_pred_e"] = np.array(pred_cat_energies)
+    """
+
+    print("took {:.2f} seconds".format(time.time() - start_time))
+
+    # Return everything
+    return events
 
 
 def globes_smearing_file(hists, names):

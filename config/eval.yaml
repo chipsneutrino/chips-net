@@ -198,10 +198,30 @@ models:
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
+    cosmic_v_ct:
+        path: "cosmic_v_ct" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [1, 1, 0]
+    cosmic_o_ct:
+        path: "cosmic_o_ct" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    cosmic_i_ct:
+        path: "cosmic_i_ct" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
     beam_v_cth:
         path: "beam_v_cth" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+    cosmic_v_cth:
+        path: "cosmic_v_cth" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
         channels: [1, 1, 1]
     beam_v_cth_just_flux:
         path: "beam_v_cth_just_flux" 
@@ -237,21 +257,6 @@ models:
         path: "beam_v_cth_inception" 
         type: "inception"
         labels: ["t_nu_nc_cat"]
-        channels: [1, 1, 1]
-    cosmic_v_ct:
-        path: "cosmic_v_ct" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [1, 1, 1]
-    cosmic_o_ct:
-        path: "cosmic_o_ct" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [1, 1, 1]
-    cosmic_i_ct:
-        path: "cosmic_i_ct" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
         channels: [1, 1, 1]
     multi_beam_v_cth:
         path: "multi_beam_v_cth" 
@@ -346,7 +351,7 @@ models:
         unstack: False
         reco_pars: False
 eval:
-    examples: 128000
+    examples: 32000
     cuts:
         cosmic: 0.001   # Cosmic classifier cut
         q:      600.0   # r_raw_total_digi_q cut

@@ -19,6 +19,7 @@ rm -rf data/models/beam_v_cth_inception
 rm -rf data/models/cosmic_v_ct
 rm -rf data/models/cosmic_o_ct
 rm -rf data/models/cosmic_i_ct
+rm -rf data/models/cosmic_i_cth
 
 rm -rf data/models/multi_beam_v_cth
 rm -rf data/models/multi_beam_cosmic_v_cth
