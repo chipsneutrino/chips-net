@@ -178,7 +178,7 @@ def process_ds(
         "cat_report": [],
     }
     for model_name, model_cat in zip(model_names, model_cats):
-        if "cosmic_model" in model_name:
+        if model_name.startswith("cosmic"):
             continue
 
         # Combine categories into fully combined ones
@@ -199,7 +199,6 @@ def process_ds(
         comb_report = classification_report(
             events["t_comb_cat"],
             events[model_name + "_comb_cat_class"],
-            target_names=["nuel-cc", "numu-cc", "nc"],
             zero_division=0,
         )
         outputs["comb_report"].append(comb_report)
@@ -571,6 +570,7 @@ def apply_standard_cuts(
     if "pred_t_cosmic_cat" in events.columns:
         cosmic_cut_func = cut_apply("pred_t_cosmic_cat", cosmic_cut, cut_type="greater")
         cosmic_cuts = events.apply(cosmic_cut_func, axis=1)
+        events["cosmic_cut"] = cosmic_cuts
 
     q_cut_func = cut_apply("r_raw_total_digi_q", q_cut, cut_type="lower")
     q_cuts = events.apply(q_cut_func, axis=1)
@@ -861,6 +861,8 @@ def classify(event, categories, prefix):
     """
     if categories == 1:
         return round(event[prefix])
+    elif event["cosmic_cut"]:
+        return categories
     else:
         x = [event[prefix + str(i)] for i in range(categories)]
         return np.asarray(x).argmax()

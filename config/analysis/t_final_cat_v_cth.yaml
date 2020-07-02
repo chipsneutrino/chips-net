@@ -1,0 +1,59 @@
+task: "train"
+exp:
+    name: "t_final_cat_v_cth"
+    output_dir: "./data/models/"
+    comet: False
+data:
+    input_dirs:
+        - "./data/input/chips_1200/flux/"
+        - "./data/input/chips_1200/nuel_cccoh/"
+        - "./data/input/chips_1200/nuel_nccoh/"
+        - "./data/input/chips_1200/nuel_ccdis/"
+        - "./data/input/chips_1200/nuel_ncdis/"
+        - "./data/input/chips_1200/nuel_ccqel/"
+        - "./data/input/chips_1200/nuel_ncqel/"
+        - "./data/input/chips_1200/nuel_ccres/"
+        - "./data/input/chips_1200/nuel_ncres/"
+        - "./data/input/chips_1200/nuel_ccmec/"
+        - "./data/input/chips_1200/numu_cccoh/"
+        - "./data/input/chips_1200/numu_nccoh/"
+        - "./data/input/chips_1200/numu_ccdis/"
+        - "./data/input/chips_1200/numu_ncdis/"
+        - "./data/input/chips_1200/numu_ccqel/"
+        - "./data/input/chips_1200/numu_ncqel/"
+        - "./data/input/chips_1200/numu_ccres/"
+        - "./data/input/chips_1200/numu_ncres/"
+        - "./data/input/chips_1200/numu_ccmec/"
+    unstack: True
+    channels: [1, 1, 1]
+    augment: True
+    rand: [.02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02]
+    shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
+    cat_select: -1
+    img_size: [64, 64]
+model:
+    type: "vgg"
+    labels: ["t_final_cat"]
+    lr: 0.0002
+    lr_decay: 0.5
+    dense_units: 512
+    dropout: 0.2
+    filters: 64
+    reco_pars: True
+    bottleneck: False
+    se_ratio: 16
+    learn_weights: False
+    precision_policy: "float32"
+    summarise: True
+trainer:
+    train_examples: 1280000
+    val_examples: 64000
+    test_examples: 64000
+    batch_size: 128
+    epochs: 10
+    tb_update: 1000
+    steps_per_epoch: -1
+    es_monitor: "val_accuracy"
+    es_delta: 0.0001
+    es_epochs: 2
+    

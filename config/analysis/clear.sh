@@ -12,6 +12,7 @@ rm -rf data/models/beam_v_cth_just_uniform
 rm -rf data/models/t_all_cat_v_cth
 rm -rf data/models/t_comb_cat_v_cth
 rm -rf data/models/t_nc_cat_v_cth
+rm -rf data/models/t_final_cat_v_cth
 
 rm -rf data/models/beam_v_cth_resnet
 rm -rf data/models/beam_v_cth_inception

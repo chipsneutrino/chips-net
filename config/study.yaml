@@ -44,16 +44,14 @@ model:
     labels: ["t_all_cat", "t_cosmic_cat", "t_int_type", "t_comb_cat", "t_nu_nc_cat"]
     #labels: ["t_nuEnergy"]  # For energy estimation
     lr: 0.0002  # The initial learning rate
-    #lr: 0.0005  # The initial learning rate
     lr_decay: 0.5  # Learning rate decay coefficient
     dense_units: 512  # Number of units to use in dense layers
     dropout: 0.2  # Dropout rate to use in dropout layers
     filters: 64  # Initial number of filters to use
-    reco_pars: False  # Should the reco paramters be appended to final dense layer?
+    reco_pars: True  # Should the reco paramters be appended to final dense layer?
     bottleneck: False  # Should we use the bottleneck resnet variant?
     se_ratio: 16  # Ratio for squeeze-exitation blocks, if zero they will not be used
     learn_weights: True  # If training multiple labels, should we use the custom weight learning layer?
-    #precision_policy: "mixed_float16"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
     precision_policy: "float32"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
     summarise: True  # Should we display a summary of the model when it is built?
 trainer:

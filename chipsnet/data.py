@@ -113,16 +113,19 @@ class Reader:
         labels[MAP_NU_TYPE["name"]] = labels_i[0]
         labels[MAP_SIGN_TYPE["name"]] = labels_i[1]
         labels[MAP_INT_TYPE["name"]] = labels_i[2]
-        labels[MAP_ALL_CAT["name"]] = labels_i[3]
-        labels[MAP_COSMIC_CAT["name"]] = labels_i[4]
-        labels[MAP_FULL_COMB_CAT["name"]] = labels_i[5]
-        labels[MAP_NU_NC_COMB_CAT["name"]] = labels_i[6]
-        labels[MAP_NC_COMB_CAT["name"]] = labels_i[7]
-        labels["prim_total"] = labels_i[8]
-        labels["prim_p"] = labels_i[9]
-        labels["prim_cp"] = labels_i[10]
-        labels["prim_np"] = labels_i[11]
-        labels["prim_g"] = labels_i[12]
+        labels[MAP_CC_CAT["name"]] = labels_i[3]
+        labels[MAP_NC_CAT["name"]] = labels_i[4]
+        labels[MAP_FINAL_CAT["name"]] = labels_i[5]
+        labels[MAP_ALL_CAT["name"]] = labels_i[6]
+        labels[MAP_COSMIC_CAT["name"]] = labels_i[7]
+        labels[MAP_FULL_COMB_CAT["name"]] = labels_i[8]
+        labels[MAP_NU_NC_COMB_CAT["name"]] = labels_i[9]
+        labels[MAP_NC_COMB_CAT["name"]] = labels_i[10]
+        labels["prim_total"] = labels_i[11]
+        labels["prim_p"] = labels_i[12]
+        labels["prim_cp"] = labels_i[13]
+        labels["prim_np"] = labels_i[14]
+        labels["prim_g"] = labels_i[15]
 
         # Decode float labels and append to the labels dictionary
         labels_f = tf.io.decode_raw(example["labels_f"], tf.float32)
@@ -369,6 +372,11 @@ class Creator:
         n_arr = np.vectorize(MAP_NU_TYPE["table"].get)(true.array("t_nu"))
         s_arr = np.vectorize(MAP_SIGN_TYPE["table"].get)(true.array("t_nu"))
         i_arr = np.vectorize(MAP_INT_TYPE["table"].get)(true.array("t_code"))
+        cc_arr = np.array([MAP_CC_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)])
+        nc_arr = np.array([MAP_NC_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)])
+        final_arr = np.array(
+            [MAP_FINAL_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
+        )
         cat_arr = np.array([MAP_ALL_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)])
         cosmic_arr = np.array(
             [MAP_COSMIC_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
@@ -392,6 +400,9 @@ class Creator:
                 n_arr,
                 s_arr,
                 i_arr,
+                cc_arr,
+                nc_arr,
+                final_arr,
                 cat_arr,
                 cosmic_arr,
                 comb_arr,
@@ -574,6 +585,9 @@ def get_map(name):
     for cat_map in [
         MAP_NU_TYPE,
         MAP_INT_TYPE,
+        MAP_CC_CAT,
+        MAP_NC_CAT,
+        MAP_FINAL_CAT,
         MAP_ALL_CAT,
         MAP_COSMIC_CAT,
         MAP_FULL_COMB_CAT,
@@ -603,7 +617,7 @@ MAP_NU_TYPE = {
     "name": "t_nu_type",
     "categories": 1,
     "loss": binary_crossentropy,
-    "labels": ["Nuel", "Numu"],  # 0  # 1
+    "labels": [r"$\nu_{e}$", r"$\nu_{\mu}$"],  # 0  # 1
     "table": {
         11: 0,  # el-
         -11: 0,  # el+
@@ -621,7 +635,7 @@ MAP_SIGN_TYPE = {
     "name": "t_sign_type",
     "categories": 1,
     "loss": binary_crossentropy,
-    "labels": ["Nu", "Anu"],  # 0  # 1
+    "labels": [r"$\nu$", r"$\bar{\nu}$"],  # 0  # 1
     "table": {
         11: 0,  # el-
         -11: 1,  # el+
@@ -704,6 +718,190 @@ MAP_INT_TYPE = {
 }
 
 
+def cc_cat_loss(y_true, y_pred):
+    """Return a masked sparse categorical crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: sparse categorical crossentropy function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, 5), tf.float32)
+    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
+
+
+"""Map cc categories (Total = 5)"""
+MAP_CC_CAT = {
+    "name": "t_cc_cat",
+    "categories": 5,
+    "loss": cc_cat_loss,
+    "labels": [
+        "CC-QEL",  # 0
+        "CC-RES",  # 1
+        "CC-DIS",  # 2
+        "CC-COH",  # 3
+        "CC-OTHER",  # 4
+        "Cosmic-NC",  # 5
+    ],
+    "table": {
+        (0, 0): 0,
+        (0, 1): 1,
+        (0, 2): 2,
+        (0, 3): 3,
+        (0, 4): 0,
+        (0, 5): 4,
+        (0, 6): 5,
+        (0, 7): 5,
+        (0, 8): 5,
+        (0, 9): 5,
+        (0, 10): 5,
+        (0, 11): 5,
+        (0, 12): 5,
+        (1, 0): 0,
+        (1, 1): 1,
+        (1, 2): 2,
+        (1, 3): 3,
+        (1, 4): 0,
+        (1, 5): 4,
+        (1, 6): 5,
+        (1, 7): 5,
+        (1, 8): 5,
+        (1, 9): 5,
+        (1, 10): 5,
+        (1, 11): 5,
+        (1, 12): 5,
+    },
+}
+
+
+def nc_cat_loss(y_true, y_pred):
+    """Return a masked sparse categorical crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: sparse categorical crossentropy function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, 5), tf.float32)
+    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
+
+
+"""Map nc categories (Total = 5)"""
+MAP_NC_CAT = {
+    "name": "t_nc_cat",
+    "categories": 5,
+    "loss": nc_cat_loss,
+    "labels": [
+        "NC-QEL",  # 0
+        "NC-RES",  # 1
+        "NC-DIS",  # 2
+        "NC-COH",  # 3
+        "NC-OTHER",  # 4
+        "Cosmic-CC",  # 5
+    ],
+    "table": {
+        (0, 0): 5,
+        (0, 1): 5,
+        (0, 2): 5,
+        (0, 3): 5,
+        (0, 4): 5,
+        (0, 5): 5,
+        (0, 6): 0,
+        (0, 7): 1,
+        (0, 8): 2,
+        (0, 9): 3,
+        (0, 10): 0,
+        (0, 11): 4,
+        (0, 12): 5,
+        (1, 0): 5,
+        (1, 1): 5,
+        (1, 2): 5,
+        (1, 3): 5,
+        (1, 4): 5,
+        (1, 5): 5,
+        (1, 6): 0,
+        (1, 7): 1,
+        (1, 8): 2,
+        (1, 9): 3,
+        (1, 10): 0,
+        (1, 11): 4,
+        (1, 12): 5,
+    },
+}
+
+
+def final_cat_loss(y_true, y_pred):
+    """Return a masked sparse categorical crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: sparse categorical crossentropy function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, 15), tf.float32)
+    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
+
+
+"""Map final categories (Total = 15)"""
+MAP_FINAL_CAT = {
+    "name": "t_final_cat",
+    "categories": 15,
+    "loss": final_cat_loss,
+    "labels": [
+        r"$\nu_{e}$ CC-QEL",  # 0
+        r"$\nu_{e}$ CC-RES",  # 1
+        r"$\nu_{e}$ CC-DIS",  # 2
+        r"$\nu_{e}$ CC-COH",  # 3
+        r"$\nu_{e}$ CC-OTHER",  # 4
+        r"$\nu_{\mu}$ CC-QEL",  # 5
+        r"$\nu_{\mu}$ CC-RES",  # 6
+        r"$\nu_{\mu}$ CC-DIS",  # 7
+        r"$\nu_{\mu}$ CC-COH",  # 8
+        r"$\nu_{\mu}$ CC-OTHER",  # 9
+        "NC-QEL",  # 10
+        "NC-RES",  # 11
+        "NC-DIS",  # 12
+        "NC-COH",  # 13
+        "NC-OTHER",  # 14
+        "Cosmic",  # 15
+    ],
+    "table": {
+        (0, 0): 0,
+        (0, 1): 1,
+        (0, 2): 2,
+        (0, 3): 3,
+        (0, 4): 0,
+        (0, 5): 4,
+        (0, 6): 10,
+        (0, 7): 11,
+        (0, 8): 12,
+        (0, 9): 13,
+        (0, 10): 10,
+        (0, 11): 14,
+        (0, 12): 15,
+        (1, 0): 5,
+        (1, 1): 6,
+        (1, 2): 7,
+        (1, 3): 8,
+        (1, 4): 5,
+        (1, 5): 9,
+        (1, 6): 10,
+        (1, 7): 11,
+        (1, 8): 12,
+        (1, 9): 13,
+        (1, 10): 10,
+        (1, 11): 14,
+        (1, 12): 15,
+    },
+}
+
+
 def all_cat_loss(y_true, y_pred):
     """Return a masked sparse categorical crossentropy loss.
 
@@ -724,30 +922,30 @@ MAP_ALL_CAT = {
     "categories": 24,
     "loss": all_cat_loss,
     "labels": [
-        "Nuel-CC-QEL",  # 0
-        "Nuel-CC-RES",  # 1
-        "Nuel-CC-DIS",  # 2
-        "Nuel-CC-COH",  # 3
-        "Nuel-CC-MEC",  # 4
-        "Nuel-CC-OTHER",  # 5
-        "Nuel-NC-QEL",  # 6
-        "Nuel-NC-RES",  # 7
-        "Nuel-NC-DIS",  # 8
-        "Nuel-NC-COH",  # 9
-        "Nuel-NC-MEC",  # 10
-        "Nuel-NC-OTHER",  # 11
-        "Numu-CC-QEL",  # 12
-        "Numu-CC-RES",  # 13
-        "Numu-CC-DIS",  # 14
-        "Numu-CC-COH",  # 15
-        "Numu-CC-MEC",  # 16
-        "Numu-CC-OTHER",  # 17
-        "Numu-NC-QEL",  # 18
-        "Numu-NC-RES",  # 19
-        "Numu-NC-DIS",  # 20
-        "Numu-NC-COH",  # 21
-        "Numu-NC-MEC",  # 22
-        "Numu-NC-OTHER",  # 23
+        r"$\nu_{e}$ CC-QEL",  # 0
+        r"$\nu_{e}$ CC-RES",  # 1
+        r"$\nu_{e}$ CC-DIS",  # 2
+        r"$\nu_{e}$ CC-COH",  # 3
+        r"$\nu_{e}$ CC-MEC",  # 4
+        r"$\nu_{e}$ CC-OTHER",  # 5
+        r"$\nu_{e}$ NC-QEL",  # 6
+        r"$\nu_{e}$ NC-RES",  # 7
+        r"$\nu_{e}$ NC-DIS",  # 8
+        r"$\nu_{e}$ NC-COH",  # 9
+        r"$\nu_{e}$ NC-MEC",  # 10
+        r"$\nu_{e}$ NC-OTHER",  # 11
+        r"$\nu_{\mu}$ CC-QEL",  # 12
+        r"$\nu_{\mu}$ CC-RES",  # 13
+        r"$\nu_{\mu}$ CC-DIS",  # 14
+        r"$\nu_{\mu}$ CC-COH",  # 15
+        r"$\nu_{\mu}$ CC-MEC",  # 16
+        r"$\nu_{\mu}$ CC-OTHER",  # 17
+        r"$\nu_{\mu}$ NC-QEL",  # 18
+        r"$\nu_{\mu}$ NC-RES",  # 19
+        r"$\nu_{\mu}$ NC-DIS",  # 20
+        r"$\nu_{\mu}$ NC-COH",  # 21
+        r"$\nu_{\mu}$ NC-MEC",  # 22
+        r"$\nu_{\mu}$ NC-OTHER",  # 23
         "Cosmic",  # 24
     ],
     "table": {
@@ -837,7 +1035,7 @@ MAP_FULL_COMB_CAT = {
     "name": "t_comb_cat",
     "categories": 3,
     "loss": full_comb_loss,
-    "labels": ["Nuel-CC", "Numu-CC", "NC", "Cosmic"],  # 0  # 1  # 2  # 3
+    "labels": [r"$\nu_{e}$ CC", r"$\nu_{\mu}$ CC", "NC", "Cosmic"],  # 0  # 1  # 2  # 3
     "table": {
         (0, 0): 0,
         (0, 1): 0,
@@ -889,18 +1087,18 @@ MAP_NU_NC_COMB_CAT = {
     "categories": 18,
     "loss": nu_nc_comb_loss,
     "labels": [
-        "Nuel-CC-QEL",  # 0
-        "Nuel-CC-RES",  # 1
-        "Nuel-CC-DIS",  # 2
-        "Nuel-CC-COH",  # 3
-        "Nuel-CC-MEC",  # 4
-        "Nuel-CC-OTHER",  # 5
-        "Numu-CC-QEL",  # 6
-        "Numu-CC-RES",  # 7
-        "Numu-CC-DIS",  # 8
-        "Numu-CC-COH",  # 9
-        "Numu-CC-MEC",  # 10
-        "Numu-CC-OTHER",  # 11
+        r"$\nu_{e}$ CC-QEL",  # 0
+        r"$\nu_{e}$ CC-RES",  # 1
+        r"$\nu_{e}$ CC-DIS",  # 2
+        r"$\nu_{e}$ CC-COH",  # 3
+        r"$\nu_{e}$ CC-MEC",  # 4
+        r"$\nu_{e}$ CC-OTHER",  # 5
+        r"$\nu_{\mu}$ CC-QEL",  # 6
+        r"$\nu_{\mu}$ CC-RES",  # 7
+        r"$\nu_{\mu}$ CC-DIS",  # 8
+        r"$\nu_{\mu}$ CC-COH",  # 9
+        r"$\nu_{\mu}$ CC-MEC",  # 10
+        r"$\nu_{\mu}$ CC-OTHER",  # 11
         "NC-QEL",  # 12
         "NC-RES",  # 13
         "NC-DIS",  # 14
@@ -960,18 +1158,18 @@ MAP_NC_COMB_CAT = {
     "categories": 13,
     "loss": nc_comb_loss,
     "labels": [
-        "Nuel-CC-QEL",  # 0
-        "Nuel-CC-RES",  # 1
-        "Nuel-CC-DIS",  # 2
-        "Nuel-CC-COH",  # 3
-        "Nuel-CC-MEC",  # 4
-        "Nuel-CC-OTHER",  # 5
-        "Numu-CC-QEL",  # 6
-        "Numu-CC-RES",  # 7
-        "Numu-CC-DIS",  # 8
-        "Numu-CC-COH",  # 9
-        "Numu-CC-MEC",  # 10
-        "Numu-CC-OTHER",  # 11
+        r"$\nu_{e}$ CC-QEL",  # 0
+        r"$\nu_{e}$ CC-RES",  # 1
+        r"$\nu_{e}$ CC-DIS",  # 2
+        r"$\nu_{e}$ CC-COH",  # 3
+        r"$\nu_{e}$ CC-MEC",  # 4
+        r"$\nu_{e}$ CC-OTHER",  # 5
+        r"$\nu_{mu}$ CC-QEL",  # 6
+        r"$\nu_{mu}$ CC-RES",  # 7
+        r"$\nu_{mu}$ CC-DIS",  # 8
+        r"$\nu_{mu}$ CC-COH",  # 9
+        r"$\nu_{mu}$ CC-MEC",  # 10
+        r"$\nu_{mu}$ CC-OTHER",  # 11
         "NC",  # 12
         "Cosmic",  # 13
     ],
