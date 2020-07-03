@@ -33,7 +33,7 @@ data:
     img_size: [64, 64]
 model:
     type: "vgg"
-    labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat"]
+    labels: ["t_comb_cat", "t_cc_type", "t_nc_type"]
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512

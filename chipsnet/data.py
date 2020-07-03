@@ -734,7 +734,7 @@ def cc_cat_loss(y_true, y_pred):
 
 """Map cc categories (Total = 5)"""
 MAP_CC_CAT = {
-    "name": "t_cc_cat",
+    "name": "t_cc_type",
     "categories": 5,
     "loss": cc_cat_loss,
     "labels": [
@@ -792,7 +792,7 @@ def nc_cat_loss(y_true, y_pred):
 
 """Map nc categories (Total = 5)"""
 MAP_NC_CAT = {
-    "name": "t_nc_cat",
+    "name": "t_nc_type",
     "categories": 5,
     "loss": nc_cat_loss,
     "labels": [
