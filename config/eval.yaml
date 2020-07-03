@@ -132,6 +132,13 @@ samples:
         augment: True
         rand: [.02, .02, .02]
         shift: [.2, .2, .2]
+    v_cth_flux_50:
+        input_dirs: 
+            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
+        channels: [1, 1, 1]
+        augment: True
+        rand: [.02, .02, .02]
+        shift: [.5, .5, .5]
     v_cth_nuel_cccoh:
         input_dirs: 
             - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_cccoh/"
@@ -233,6 +240,11 @@ models:
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [1, 1, 1]
+    t_final_cat_v_cth:
+        path: "t_final_cat_v_cth" 
+        type: "vgg"
+        labels: ["t_final_cat"]
+        channels: [1, 1, 1]
     t_all_cat_v_cth:
         path: "t_all_cat_v_cth" 
         type: "vgg"
@@ -278,6 +290,16 @@ models:
         type: "vgg"
         labels: ["t_nu_nc_cat", "t_all_cat", "t_comb_cat", "t_int_type", "t_vtxX", "t_vtxY", "t_vtxZ"]
         channels: [1, 1, 1]
+    multi_beam_split_v_cth:
+        path: "multi_beam_split_v_cth" 
+        type: "vgg"
+        labels: ["t_comb_cat", "t_cc_type", "t_nc_type"]
+        channels: [1, 1, 1]
+    multi_beam_split_par_v_cth:
+        path: "multi_beam_split_par_v_cth" 
+        type: "vgg"
+        labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "prim_total", "prim_p", "prim_cp", "prim_np"]
+        channels: [1, 1, 1]
     nuel_cccoh_energy:
         path: "nuel_cccoh_energy" 
         type: "vgg"
@@ -303,6 +325,11 @@ models:
         type: "vgg"
         labels: ["t_nuEnergy"]
         channels: [1, 1, 1]
+    nuel_ccqelmec_energy:
+        path: "nuel_ccqelmec_energy" 
+        type: "vgg"
+        labels: ["t_nuEnergy"]
+        channels: [1, 1, 1]
     numu_cccoh_energy:
         path: "numu_cccoh_energy" 
         type: "vgg"
@@ -325,6 +352,11 @@ models:
         channels: [1, 1, 1]
     numu_ccmec_energy:
         path: "numu_ccmec_energy" 
+        type: "vgg"
+        labels: ["t_nuEnergy"]
+        channels: [1, 1, 1]
+    numu_ccqelmec_energy:
+        path: "numu_ccqelmec_energy" 
         type: "vgg"
         labels: ["t_nuEnergy"]
         channels: [1, 1, 1]

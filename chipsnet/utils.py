@@ -323,6 +323,24 @@ def full_comb_combine(events, map_type, prefix=""):
         pd.DataFrame: events dataframe with combined category scores
     """
 
+    def final_cat_apply(event, apply_prefix):
+        nuel_cc_cats = [0, 1, 2, 3, 4]
+        nuel_cc_value = 0.0
+        for cat in nuel_cc_cats:
+            nuel_cc_value = nuel_cc_value + event[str(apply_prefix) + str(cat)]
+
+        numu_cc_cats = [5, 6, 7, 8, 9]
+        numu_cc_value = 0.0
+        for cat in numu_cc_cats:
+            numu_cc_value = numu_cc_value + event[apply_prefix + str(cat)]
+
+        nc_cats = [10, 11, 12, 13, 14]
+        nc_value = 0.0
+        for cat in nc_cats:
+            nc_value = nc_value + event[apply_prefix + str(cat)]
+
+        return nuel_cc_value, numu_cc_value, nc_value
+
     def all_cat_apply(event, apply_prefix):
         nuel_cc_cats = [0, 1, 2, 3, 4, 5]
         nuel_cc_value = 0.0
@@ -378,7 +396,10 @@ def full_comb_combine(events, map_type, prefix=""):
         return nuel_cc_value, numu_cc_value, nc_value
 
     comb_prefix = prefix + "pred_t_comb_cat_"
-    if map_type == "t_all_cat":
+    if map_type == "t_final_cat":
+        apply_prefix = prefix + "pred_t_final_cat_"
+        events["scores"] = events.apply(final_cat_apply, axis=1, args=(apply_prefix,))
+    elif map_type == "t_all_cat":
         apply_prefix = prefix + "pred_t_all_cat_"
         events["scores"] = events.apply(all_cat_apply, axis=1, args=(apply_prefix,))
     elif map_type == "t_comb_cat":
@@ -861,7 +882,7 @@ def classify(event, categories, prefix):
     """
     if categories == 1:
         return round(event[prefix])
-    elif event["cosmic_cut"]:
+    elif "cosmic_cut" in event and event["cosmic_cut"]:
         return categories
     else:
         x = [event[prefix + str(i)] for i in range(categories)]
