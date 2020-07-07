@@ -23,7 +23,10 @@ class SherpaStudy(object):
     def init_study(self):
         """Initialise the SHERPA study, overide in derived model class."""
         pars = [
-            Choice(name="data.unstack", range=self.config.study.data.unstack),
+            Choice(
+                name="data.seperate_channels",
+                range=self.config.study.data.seperate_channels,
+            ),
             Choice(name="data.augment", range=self.config.study.data.augment),
             Continuous(name="model.lr", range=self.config.study.model.lr, scale="log"),
             Continuous(name="model.lr_decay", range=self.config.study.model.lr_decay),
@@ -36,10 +39,6 @@ class SherpaStudy(object):
             Ordinal(name="model.se_ratio", range=self.config.study.model.se_ratio),
             Choice(
                 name="model.learn_weights", range=self.config.study.model.learn_weights
-            ),
-            Choice(
-                name="model.precision_policy",
-                range=self.config.study.model.precision_policy,
             ),
             Ordinal(
                 name="trainer.batch_size", range=self.config.study.trainer.batch_size

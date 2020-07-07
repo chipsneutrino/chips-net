@@ -1,34 +1,36 @@
 task: "train"
 exp:
     name: "numu_ccmec_energy"
-    output_dir: "./data/models/"
+    output_dir: "./data/models/analysis/"
     comet: False
 data:
     input_dirs:
         - "./data/input/chips_1200/numu_ccmec/"
-    unstack: True
     channels: [1, 1, 1]
-    augment: False
-    cat_select: -1
+    seperate_channels: True
     img_size: [64, 64]
+    augment: False
+    aug_factor_mean: [0.0, 0.0, 0.0]
+    aug_factor_sigma: [0.02, 0.02, 0.02]
+    aug_abs_mean: [0.0, 0.0, 0.0]
+    aug_abs_sigma: [0.0, 0.0, 0.0]
 model:
     type: "vgg"
-    labels: ["t_nuEnergy"]
+    labels: ["t_nu_energy"]
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512
-    dropout: 0.2
+    dropout: 0.1
     filters: 64
     reco_pars: True
-    bottleneck: False
     se_ratio: 16
     learn_weights: False
-    precision_policy: "float32"
-    summarise: False
+    precision_policy: "mixed_float16"
+    summarise: True
 trainer:
     train_examples: 256000
-    val_examples: 64000
-    test_examples: 64000
+    val_examples: 32000
+    test_examples: 32000
     batch_size: 128
     epochs: 20
     tb_update: 1000
@@ -36,4 +38,3 @@ trainer:
     es_monitor: "val_mae"
     es_delta: 10
     es_epochs: 3
-    

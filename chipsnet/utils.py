@@ -48,8 +48,8 @@ def data_from_conf(config, name):
         data_config.data.augment = True
         data_config.data.rand = config.samples[name].rand
         data_config.data.shift = config.samples[name].shift
-    if config.samples[name].unstack is False:
-        data_config.data.unstack = False
+    if config.samples[name].seperate_channels is False:
+        data_config.data.seperate_channels = False
     data = chipsnet.data.Reader(data_config)
     return data
 
@@ -72,8 +72,8 @@ def model_from_conf(config, name):
     model_config.data.channels = config.models[name].channels
     if config.models[name].reco_pars is False:
         model_config.model.reco_pars = False
-    if config.models[name].unstack is False:
-        model_config.data.unstack = False
+    if config.models[name].seperate_channels is False:
+        model_config.data.seperate_channels = False
     chipsnet.config.setup_dirs(model_config, False)
     model = chipsnet.models.Model(model_config)
     model.load()
@@ -130,7 +130,7 @@ def process_ds(
         events = run_inference(
             events,
             model,
-            unstack=config.data.unstack,
+            seperate_channels=config.data.seperate_channels,
             reco_pars=config.model.reco_pars,
             prefix=model_name + "_",
         )
@@ -253,13 +253,13 @@ def process_ds(
     return events, outputs
 
 
-def run_inference(events, model, unstack=True, reco_pars=True, prefix=""):
+def run_inference(events, model, seperate_channels=True, reco_pars=True, prefix=""):
     """Run predictions on the input dataset and append outputs to events dataframe.
 
     Args:
         events (pd.DataFrame): events dataframe to append outputs
         model (chipsnet.Model): model to use for prediction
-        unstack (bool): append unstacked inputs
+        seperate_channels (bool): append unstacked inputs
         reco_pars (bool): append reco_pars inputs
         prefix (str): prefix to append to column name
 
@@ -267,7 +267,7 @@ def run_inference(events, model, unstack=True, reco_pars=True, prefix=""):
         pd.DataFrame: events dataframe with model predictions
     """
     inputs = [np.stack(events["image_0"].to_numpy())]
-    if unstack:
+    if seperate_channels:
         try:
             inputs.append(np.stack(events["image_1"].to_numpy()))
         except Exception as e:
@@ -892,7 +892,7 @@ def classify(event, categories, prefix):
 def run_pca(
     events,
     model,
-    unstack=True,
+    seperate_channels=True,
     reco_pars=True,
     layer_name="dense_final",
     standardise=True,
@@ -918,7 +918,7 @@ def run_pca(
     )
 
     inputs = [np.stack(events["image_0"].to_numpy())]
-    if unstack:
+    if seperate_channels:
         try:
             inputs.append(np.stack(events["image_1"].to_numpy()))
         except Exception as e:
@@ -966,7 +966,7 @@ def run_pca(
 def run_tsne(
     events,
     model,
-    unstack=True,
+    seperate_channels=True,
     reco_pars=True,
     layer_name="dense_final",
     standardise=True,
@@ -992,7 +992,7 @@ def run_tsne(
     )
 
     inputs = [np.stack(events["image_0"].to_numpy())]
-    if unstack:
+    if seperate_channels:
         try:
             inputs.append(np.stack(events["image_1"].to_numpy()))
         except Exception as e:
@@ -1186,7 +1186,7 @@ def predict_energies(config, data_name, model_names=[], verbose=False):
         events = run_inference(
             events,
             model,
-            unstack=config.data.unstack,
+            seperate_channels=config.data.seperate_channels,
             reco_pars=config.model.reco_pars,
             prefix=model_name + "_",
         )

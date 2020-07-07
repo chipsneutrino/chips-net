@@ -1,25 +1,25 @@
 #! /bin/bash
 
-python chipsnet/run.py config/create/flux_all.yaml
-python chipsnet/run.py config/create/nuel_cccoh_all.yaml
-python chipsnet/run.py config/create/nuel_nccoh_all.yaml
-python chipsnet/run.py config/create/nuel_ccdis_all.yaml
-python chipsnet/run.py config/create/nuel_ncdis_all.yaml
-python chipsnet/run.py config/create/nuel_ccqel_all.yaml
-python chipsnet/run.py config/create/nuel_ncqel_all.yaml
-python chipsnet/run.py config/create/nuel_ccres_all.yaml
-python chipsnet/run.py config/create/nuel_ncres_all.yaml
-python chipsnet/run.py config/create/nuel_ccmec_all.yaml
-python chipsnet/run.py config/create/numu_cccoh_all.yaml
-python chipsnet/run.py config/create/numu_nccoh_all.yaml
-python chipsnet/run.py config/create/numu_ccdis_all.yaml
-python chipsnet/run.py config/create/numu_ncdis_all.yaml
-python chipsnet/run.py config/create/numu_ccqel_all.yaml
-python chipsnet/run.py config/create/numu_ncqel_all.yaml
-python chipsnet/run.py config/create/numu_ccres_all.yaml
-python chipsnet/run.py config/create/numu_ncres_all.yaml
-python chipsnet/run.py config/create/numu_ccmec_all.yaml
-python chipsnet/run.py config/create/cosmic_all.yaml
+#python chipsnet/run.py config/create/flux_all.yaml
+#python chipsnet/run.py config/create/nuel_cccoh_all.yaml
+#python chipsnet/run.py config/create/nuel_nccoh_all.yaml
+#python chipsnet/run.py config/create/nuel_ccdis_all.yaml
+#python chipsnet/run.py config/create/nuel_ncdis_all.yaml
+#python chipsnet/run.py config/create/nuel_ccqel_all.yaml
+#python chipsnet/run.py config/create/nuel_ncqel_all.yaml
+#python chipsnet/run.py config/create/nuel_ccres_all.yaml
+#python chipsnet/run.py config/create/nuel_ncres_all.yaml
+#python chipsnet/run.py config/create/nuel_ccmec_all.yaml
+#python chipsnet/run.py config/create/numu_cccoh_all.yaml
+#python chipsnet/run.py config/create/numu_nccoh_all.yaml
+#python chipsnet/run.py config/create/numu_ccdis_all.yaml
+#python chipsnet/run.py config/create/numu_ncdis_all.yaml
+#python chipsnet/run.py config/create/numu_ccqel_all.yaml
+#python chipsnet/run.py config/create/numu_ncqel_all.yaml
+#python chipsnet/run.py config/create/numu_ccres_all.yaml
+#python chipsnet/run.py config/create/numu_ncres_all.yaml
+#python chipsnet/run.py config/create/numu_ccmec_all.yaml
+#python chipsnet/run.py config/create/cosmic_all.yaml
 
 python chipsnet/run.py config/create/flux.yaml
 python chipsnet/run.py config/create/nuel_cccoh.yaml
@@ -40,4 +40,4 @@ python chipsnet/run.py config/create/numu_ncqel.yaml
 python chipsnet/run.py config/create/numu_ccres.yaml
 python chipsnet/run.py config/create/numu_ncres.yaml
 python chipsnet/run.py config/create/numu_ccmec.yaml
-python chipsnet/run.py config/create/cosmic.yaml
+#python chipsnet/run.py config/create/cosmic.yaml

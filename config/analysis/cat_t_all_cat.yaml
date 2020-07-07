@@ -1,7 +1,7 @@
 task: "train"
 exp:
-    name: "multi_beam_cosmic_v_cth"
-    output_dir: "./data/models/"
+    name: "cat_t_all_cat"
+    output_dir: "./data/models/analysis/"
     comet: False
 data:
     input_dirs:
@@ -24,37 +24,35 @@ data:
         - "./data/input/chips_1200/numu_ccres/"
         - "./data/input/chips_1200/numu_ncres/"
         - "./data/input/chips_1200/numu_ccmec/"
-        - "./data/input/chips_1200/cosmic/"
-    unstack: True
     channels: [1, 1, 1]
-    augment: True
-    rand: [.02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02, .02]
-    shift: [.0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0, .0]
-    cat_select: -1
+    seperate_channels: True
     img_size: [64, 64]
+    augment: True
+    aug_factor_mean: [0.0, 0.0, 0.0]
+    aug_factor_sigma: [0.02, 0.02, 0.02]
+    aug_abs_mean: [0.0, 0.0, 0.0]
+    aug_abs_sigma: [0.0, 0.0, 0.0]
 model:
     type: "vgg"
-    labels: ["t_nu_nc_cat", "t_all_cat", "t_comb_cat", "t_int_type", "t_cosmic_cat"]
+    labels: ["t_all_cat"]
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512
-    dropout: 0.2
+    dropout: 0.1
     filters: 64
     reco_pars: True
-    bottleneck: False
     se_ratio: 16
-    learn_weights: True
-    precision_policy: "float32"
+    learn_weights: False
+    precision_policy: "mixed_float16"
     summarise: True
 trainer:
     train_examples: 1280000
-    val_examples: 64000
-    test_examples: 64000
+    val_examples: 32000
+    test_examples: 32000
     batch_size: 128
     epochs: 10
     tb_update: 1000
     steps_per_epoch: -1
-    es_monitor: "val_t_nu_nc_cat_accuracy"
+    es_monitor: "val_accuracy"
     es_delta: 0.0001
     es_epochs: 2
-    

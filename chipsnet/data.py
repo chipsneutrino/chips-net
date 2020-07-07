@@ -76,23 +76,35 @@ class Reader:
         image = tf.reshape(image, self.image_shape)
         image = tf.cast(image, tf.float32) / 256.0  # Cast to float and salce to [0,1]
 
-        # Check if we actually need to unstack the image before we do...
+        # Unstack the channels and reassemble if needed later
         unstacked = tf.unstack(image, axis=2)
         channels = []
         for i, enabled in enumerate(self.config.data.channels):
             if enabled:
                 if self.config.data.augment:
-                    rand_shift = tf.random.normal(
+
+                    # Apply the factor scaling of the bin contents
+                    factor_shift = tf.random.normal(
                         shape=self.config.data.img_size,
-                        mean=(1.0 + self.config.data.shift[i]),
-                        stddev=self.config.data.rand[i],
+                        mean=(1.0 + self.config.data.aug_factor_mean[i]),
+                        stddev=self.config.data.aug_factor_sigma[i],
                         dtype=tf.float32,
                     )
-                    unstacked[i] = tf.math.multiply(unstacked[i], rand_shift)
+                    unstacked[i] = tf.math.multiply(unstacked[i], factor_shift)
+
+                    # Apply the absolute shifting of the bin contents
+                    abs_shift = tf.random.normal(
+                        shape=self.config.data.img_size,
+                        mean=(1.0 + self.config.data.aug_abs_mean[i]),
+                        stddev=self.config.data.aug_abs_sigma[i],
+                        dtype=tf.float32,
+                    )
+                    unstacked[i] = tf.math.add(unstacked[i], abs_shift)
+
                 channels.append(unstacked[i])
 
         # Choose to either stack the channels back into a single tensor or keep them seperate
-        if self.config.data.unstack:
+        if self.config.data.seperate_channels:
             for i, input_image in enumerate(channels):
                 inputs["image_" + str(i)] = tf.expand_dims(input_image, 2)
         else:
@@ -100,13 +112,14 @@ class Reader:
 
         # Decode the other inputs and append to inputs dictionary
         inputs_other = tf.io.decode_raw(example["inputs_other"], tf.float32)
-        inputs["r_raw_total_digi_q"] = inputs_other[0]
+        inputs["r_total_digi_q"] = inputs_other[0]
         inputs["r_first_ring_height"] = inputs_other[1]
-        inputs["r_vtxX"] = inputs_other[2]
-        inputs["r_vtxY"] = inputs_other[3]
-        inputs["r_vtxZ"] = inputs_other[4]
-        inputs["r_dirTheta"] = inputs_other[5]
-        inputs["r_dirPhi"] = inputs_other[6]
+        inputs["r_vtx_x"] = inputs_other[2]
+        inputs["r_vtx_y"] = inputs_other[3]
+        inputs["r_vtx_z"] = inputs_other[4]
+        inputs["r_vtx_t"] = inputs_other[5]
+        inputs["r_dir_theta"] = inputs_other[6]
+        inputs["r_dir_phi"] = inputs_other[7]
 
         # Decode integer labels and append to labels dictionary
         labels_i = tf.io.decode_raw(example["labels_i"], tf.int32)
@@ -129,10 +142,12 @@ class Reader:
 
         # Decode float labels and append to the labels dictionary
         labels_f = tf.io.decode_raw(example["labels_f"], tf.float32)
-        labels["t_vtxX"] = labels_f[0]
-        labels["t_vtxY"] = labels_f[1]
-        labels["t_vtxZ"] = labels_f[2]
-        labels["t_nuEnergy"] = labels_f[3]
+        labels["t_vtx_x"] = labels_f[0]
+        labels["t_vtx_y"] = labels_f[1]
+        labels["t_vtx_z"] = labels_f[2]
+        labels["t_vtx_t"] = labels_f[3]
+        labels["t_nu_energy"] = labels_f[4]
+        labels["t_lep_energy"] = labels_f[5]
 
         # Append labels to inputs if needed for multitask network
         if self.config.model.learn_weights:
@@ -153,10 +168,6 @@ class Reader:
         """
         labels = {k: labels[k] for k in self.config.model.labels}
         return inputs, labels
-
-    def filter_cats(self, inputs, labels):
-        """Filter out all events except those in cat_select category."""
-        return tf.math.equal(labels["t_all_cat"], self.config.data.cat_select)
 
     def dataset(self, dirs, strip=True):
         """Return a dataset formed from all the files in the input directories.
@@ -184,9 +195,6 @@ class Reader:
         )
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
         ds = ds.map(self.parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-
-        if self.config.data.cat_select != -1:
-            ds = ds.filter(self.filter_cats)
 
         if strip:
             ds = ds.map(self.strip, num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -318,6 +326,26 @@ class Creator:
             events.append(counts)
         return np.stack(events, axis=0)
 
+    def lepton_energies(self, pdgs, energies):
+        """Get the leading lepton energies for the events.
+
+        Args:
+            pdgs (np.array): primary particle pdgs
+            energies (np.array): primary particle energies
+
+        Returns:
+            np.array: array of leading lepton energies
+        """
+        energies = []
+        for ev_pdgs, ev_energies in zip(pdgs, energies):  # loop through all events
+            energy = 0.0
+            for i, pdg in enumerate(ev_pdgs):
+                if pdg in [11, 13] and ev_energies[i] > energy:
+                    energy = ev_energies[i]
+
+            energies.append(energy)
+        return np.asarray(energies)
+
     def gen_examples(self, true, reco):
         """Generate a list of examples from the input .root map file.
 
@@ -330,38 +358,27 @@ class Creator:
         """
         # First setup the input image
         channels = [
-            "r_raw_charge_map_vtx",
-            "r_raw_time_map_vtx",
-            "r_raw_hit_hough_map_vtx",
+            "r_charge_map_vtx",
+            "r_time_map_vtx",
+            "r_hough_map_vtx",
         ]
         if self.config.create.all_maps:
-            channels.append("r_raw_hit_map_origin")
-            channels.append("r_raw_charge_map_origin")
-            channels.append("r_raw_time_map_origin")
-            channels.append("r_filtered_hit_map_origin")
-            channels.append("r_filtered_charge_map_origin")
-            channels.append("r_filtered_time_map_origin")
-            channels.append("r_raw_hit_map_vtx")
-            channels.append("r_filtered_hit_map_vtx")
-            channels.append("r_filtered_charge_map_vtx")
-            channels.append("r_filtered_time_map_vtx")
-            channels.append("r_raw_hit_map_iso")
-            channels.append("r_raw_charge_map_iso")
-            channels.append("r_raw_time_map_iso")
-            channels.append("r_filtered_hit_map_iso")
-            channels.append("r_filtered_charge_map_iso")
-            channels.append("r_filtered_time_map_iso")
+            channels.append("r_charge_map_origin")
+            channels.append("r_time_map_origin")
+            channels.append("r_charge_map_iso")
+            channels.append("r_time_map_iso")
         channel_images = [reco.array(channel) for channel in channels]
         inputs_image = np.stack(channel_images, axis=3)
 
         # Next setup the other inputs, mainly reconstructed variables
         inputs_other = np.stack(
             (  # Reco Parameters (floats)
-                reco.array("r_raw_total_digi_q"),
+                reco.array("r_total_digi_q"),
                 reco.array("r_first_ring_height"),
                 reco.array("r_vtxX") / self.config.create.par_scale[0],
                 reco.array("r_vtxY") / self.config.create.par_scale[1],
                 reco.array("r_vtxZ") / self.config.create.par_scale[2],
+                reco.array("r_vtxT"),
                 reco.array("r_dirTheta") / self.config.create.par_scale[3],
                 reco.array("r_dirPhi") / self.config.create.par_scale[4],
             ),
@@ -417,12 +434,18 @@ class Creator:
             axis=1,
         ).astype(np.int32)
 
+        lepton_energies = self.lepton_energies(
+            true.array("t_p_pdgs"), true.array("t_p_energies")
+        )
+
         labels_f = np.stack(
             (  # True Parameters (floats)
-                true.array("t_vtxX"),
-                true.array("t_vtxY"),
-                true.array("t_vtxZ"),
+                true.array("t_vtxX") / self.config.create.par_scale[0],
+                true.array("t_vtxY") / self.config.create.par_scale[1],
+                true.array("t_vtxZ") / self.config.create.par_scale[2],
+                true.array("t_vtxT"),
                 true.array("t_nuEnergy"),
+                lepton_energies,
             ),
             axis=1,
         )

@@ -1,31 +1,37 @@
 #! /bin/bash
 
-python chipsnet/run.py config/analysis/beam_v_c.yaml
-python chipsnet/run.py config/analysis/beam_v_ct.yaml
-python chipsnet/run.py config/analysis/beam_o_ct.yaml
-python chipsnet/run.py config/analysis/beam_i_ct.yaml
-python chipsnet/run.py config/analysis/beam_v_cth.yaml
+# Which representation and channels are best analysis (repr)
+python chipsnet/run.py config/analysis/repr_v_c.yaml
+python chipsnet/run.py config/analysis/repr_v_ct.yaml
+python chipsnet/run.py config/analysis/repr_o_ct.yaml
+python chipsnet/run.py config/analysis/repr_i_ct.yaml
+python chipsnet/run.py config/analysis/repr_v_cth.yaml
 
-python chipsnet/run.py config/analysis/beam_v_cth_just_flux.yaml
-python chipsnet/run.py config/analysis/beam_v_cth_just_uniform.yaml
+# Which training sample is best analysis (sample)
+python chipsnet/run.py config/analysis/sample_flux.yaml
+python chipsnet/run.py config/analysis/sample_uniform.yaml
 
-python chipsnet/run.py config/analysis/t_final_cat_v_cth.yaml
-python chipsnet/run.py config/analysis/t_all_cat_v_cth.yaml
-python chipsnet/run.py config/analysis/t_comb_cat_v_cth.yaml
-python chipsnet/run.py config/analysis/t_nc_cat_v_cth.yaml
+# Which categorisation is best analysis (cat)
+python chipsnet/run.py config/analysis/cat_t_final_cat.yaml
+python chipsnet/run.py config/analysis/cat_t_all_cat.yaml
+python chipsnet/run.py config/analysis/cat_t_comb_cat.yaml
+python chipsnet/run.py config/analysis/cat_t_nc_cat.yaml
+python chipsnet/run.py config/analysis/cat_split.yaml
 
-python chipsnet/run.py config/analysis/beam_v_cth_resnet.yaml
-python chipsnet/run.py config/analysis/beam_v_cth_inception.yaml
+# Cosmic classification analysis (cosmic)
+python chipsnet/run.py config/analysis/cosmic.yaml
+python chipsnet/run.py config/analysis/cosmic_vtx.yaml
 
-python chipsnet/run.py config/analysis/cosmic_v_cth.yaml
+# Explanation model (stacked/no_reco)
+python chipsnet/run.py config/analysis/explain.yaml
 
-python chipsnet/run.py config/analysis/multi_beam_v_cth.yaml
-python chipsnet/run.py config/analysis/multi_beam_cosmic_v_cth.yaml
-python chipsnet/run.py config/analysis/multi_beam_energy_v_cth.yaml
-python chipsnet/run.py config/analysis/multi_beam_vertex_v_cth.yaml
-python chipsnet/run.py config/analysis/multi_beam_split_v_cth.yaml
-python chipsnet/run.py config/analysis/multi_beam_split_par_v_cth.yaml
+# Different height detector analysis (height)
+python chipsnet/run.py config/analysis/height_chips_1000.yaml
+python chipsnet/run.py config/analysis/height_chips_800.yaml
+python chipsnet/run.py config/analysis/height_chips_600.yaml
+python chipsnet/run.py config/analysis/height_chips_400.yaml
 
+# Energy estimation analysis (energy)
 python chipsnet/run.py config/analysis/energy/nuel_cccoh_energy.yaml
 python chipsnet/run.py config/analysis/energy/nuel_ccdis_energy.yaml
 python chipsnet/run.py config/analysis/energy/nuel_ccqel_energy.yaml
@@ -41,5 +47,3 @@ python chipsnet/run.py config/analysis/energy/numu_ccqelmec_energy.yaml
 python chipsnet/run.py config/analysis/energy/nuel_cc_energy.yaml
 python chipsnet/run.py config/analysis/energy/numu_cc_energy.yaml
 python chipsnet/run.py config/analysis/energy/nc_energy.yaml
-
-python chipsnet/run.py config/analysis/beam_v_cth_stacked_noreco.yaml

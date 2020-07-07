@@ -196,22 +196,14 @@ def vgg_block(x, num_conv=2, filters=64, se_ratio=0, dropout=0.0, prefix=""):
 
 
 def resnet_block(
-    x,
-    filters,
-    k=1,
-    strides=(1, 1),
-    bottleneck=False,
-    se_ratio=0,
-    dropout=0.0,
-    prefix="",
+    x, filters, k=1, strides=(1, 1), se_ratio=0, dropout=0.0, prefix="",
 ):
     """Build a resnet block.
 
     This function builds pre-activation resnet block using the improved structure layed
     out in https://arxiv.org/abs/1603.05027. Optionally, a squeeze-exitation block as first set
-    out in https://arxiv.org/abs/1709.01507 can be added, as well as a dropout layer. The option
-    of using the bottleneck implementation instead is also an option. The following proved
-    helpful in the implementation...
+    out in https://arxiv.org/abs/1709.01507 can be added, as well as a dropout layer. The following
+    proved helpful in the implementation...
         - https://github.com/titu1994/keras-squeeze-excite-network/blob/master/ \
             keras_squeeze_excite_network/se_resnet.py
         - https://github.com/keras-team/keras-applications/blob/master/ \
@@ -223,7 +215,6 @@ def resnet_block(
         filters (int): number of output filters
         k (int): width factor
         strides (int): strides of the convolution layer
-        bottleneck (bool): should we use the bottleneck variant?
         se_ratio (int): squeeze-exitation ratio if '0' will not be used
         dropout (float): what should the dropout rate be?
         prefix (str): prefix to prepend to all layer names
@@ -238,7 +229,7 @@ def resnet_block(
     x = Activation("relu", name=prefix + "_preact_ac")(x)
 
     # Apply a convolution to the shortcut if required
-    shortcut_f = filters * k * 4 if bottleneck else filters * k
+    shortcut_f = filters * k
     if strides != (1, 1) or init.shape[3] != shortcut_f:
         init = Conv2D(
             shortcut_f,
@@ -250,59 +241,26 @@ def resnet_block(
             name=prefix + "_conv0",
         )(x)
 
-    if bottleneck:
-        x = Conv2D(
-            filters * k,
-            (1, 1),
-            padding="same",
-            kernel_initializer=CONV_INITIALISER,
-            use_bias=False,
-            name=prefix + "_conv1",
-        )(x)
-        x = BatchNormalization(axis=3, name=prefix + "_bn1")(x)
-        x = Activation("relu", name=prefix + "_ac1")(x)
+    x = Conv2D(
+        filters * k,
+        (3, 3),
+        padding="same",
+        kernel_initializer=CONV_INITIALISER,
+        use_bias=False,
+        strides=strides,
+        name=prefix + "_conv1",
+    )(x)
+    x = BatchNormalization(axis=3, name=prefix + "_bn1")(x)
+    x = Activation("relu", name=prefix + "_ac1")(x)
 
-        x = Conv2D(
-            filters * k,
-            (3, 3),
-            padding="same",
-            kernel_initializer=CONV_INITIALISER,
-            use_bias=False,
-            strides=strides,
-            name=prefix + "_conv2",
-        )(x)
-        x = BatchNormalization(axis=3, name=prefix + "_bn2")(x)
-        x = Activation("relu", name=prefix + "_ac2")(x)
-
-        x = Conv2D(
-            shortcut_f,
-            (1, 1),
-            padding="same",
-            kernel_initializer=CONV_INITIALISER,
-            use_bias=False,
-            name=prefix + "_conv3",
-        )(x)
-    else:
-        x = Conv2D(
-            filters * k,
-            (3, 3),
-            padding="same",
-            kernel_initializer=CONV_INITIALISER,
-            use_bias=False,
-            strides=strides,
-            name=prefix + "_conv1",
-        )(x)
-        x = BatchNormalization(axis=3, name=prefix + "_bn1")(x)
-        x = Activation("relu", name=prefix + "_ac1")(x)
-
-        x = Conv2D(
-            filters * k,
-            (3, 3),
-            padding="same",
-            kernel_initializer=CONV_INITIALISER,
-            use_bias=False,
-            name=prefix + "_conv2",
-        )(x)
+    x = Conv2D(
+        filters * k,
+        (3, 3),
+        padding="same",
+        kernel_initializer=CONV_INITIALISER,
+        use_bias=False,
+        name=prefix + "_conv2",
+    )(x)
 
     x = squeeze_excite_block(x, se_ratio, prefix=prefix) if se_ratio > 0 else x
     x = SpatialDropout2D(dropout, name=prefix + "_drop")(x) if dropout > 0.0 else x
@@ -582,7 +540,6 @@ def resnet_model(config):
                 filters[0],
                 k=1,
                 strides=(1, 1),
-                bottleneck=config.model.bottleneck,
                 se_ratio=config.model.se_ratio,
                 dropout=config.model.dropout,
                 prefix="block0_path" + str(i) + "_" + str(j),
@@ -599,7 +556,6 @@ def resnet_model(config):
             filters[k],
             k=1,
             strides=(2, 2),
-            bottleneck=config.model.bottleneck,
             se_ratio=config.model.se_ratio,
             dropout=config.model.dropout,
             prefix="block" + str(k) + "_0",
@@ -610,7 +566,6 @@ def resnet_model(config):
                 filters[k],
                 k=1,
                 strides=(1, 1),
-                bottleneck=config.model.bottleneck,
                 se_ratio=config.model.se_ratio,
                 dropout=config.model.dropout,
                 prefix="block" + str(k) + "_" + str(i + 1),
@@ -838,7 +793,7 @@ def get_image_inputs(config):
         config.data.img_size[1],
         config.data.channels.count(1),
     )
-    if config.data.unstack:
+    if config.data.seperate_channels:
         images = config.data.channels.count(1)
         shape = (config.data.img_size[0], config.data.img_size[1], 1)
 
