@@ -813,7 +813,7 @@ def get_reco_inputs():
         list[tf.keras.Inputs]: reco inputs to the model
     """
     inputs = []
-    parameters = ["r_vtxX", "r_vtxY", "r_vtxZ", "r_dirTheta", "r_dirPhi"]
+    parameters = ["r_vtx_x", "r_vtx_y", "r_vtx_z", "r_dir_theta", "r_dir_phi"]
     for name in parameters:
         inputs.append(tf.keras.Input(shape=(1), name=name))
     return inputs
@@ -918,21 +918,28 @@ def get_outputs(config, x):
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output in ["t_vtxX", "t_vtxY", "t_vtxZ"]:
+        elif output in ["t_vtx_x", "t_vtx_y", "t_vtx_z"]:
             out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("linear", dtype="float32", name=output)(out))
             losses[output] = "mean_squared_error"
             weights[output] = 0.000001
             metrics[output] = "mae"
 
-        if output in ["prim_total", "prim_p", "prim_cp", "prim_np", "prim_g"]:
+        elif output == "t_vtx_t":
+            out = Dense(1, name=output + "_logits")(x)
+            outputs.append(Activation("linear", dtype="float32", name=output)(out))
+            losses[output] = "mean_squared_error"
+            weights[output] = 0.01
+            metrics[output] = "mae"
+
+        elif output in ["prim_total", "prim_p", "prim_cp", "prim_np", "prim_g"]:
             out = Dense(4, name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output == "t_nuEnergy":
+        elif output in ["t_nu_energy", "t_lep_energy"]:
             out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("linear", dtype="float32", name=output)(out))
             losses[output] = "mean_squared_error"
@@ -1032,20 +1039,24 @@ class MultiLossLayer(tf.keras.layers.Layer):
                 self.loss_funcs.append(data.MAP_NC_COMB_CAT["loss"])
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
-            elif output == "t_nuEnergy":
-                self.loss_funcs.append(MeanSquaredError(reduction=Reduction.SUM))
-                self.log_vars.append(self.add_var(output))
-                self.lw.append(0.0000005)
-            elif output in ["t_vtxX", "t_vtxY", "t_vtxZ"]:
+            elif output in ["t_vtx_x", "t_vtx_y", "t_vtx_z"]:
                 self.loss_funcs.append(MeanSquaredError(reduction=Reduction.SUM))
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(0.000001)
-            if output in ["prim_total", "prim_p", "prim_cp", "prim_np", "prim_g"]:
+            elif output == "t_vtx_t":
+                self.loss_funcs.append(MeanSquaredError(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(0.01)
+            elif output in ["prim_total", "prim_p", "prim_cp", "prim_np", "prim_g"]:
                 self.loss_funcs.append(
                     SparseCategoricalCrossentropy(reduction=Reduction.SUM)
                 )
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
+            elif output in ["t_nu_energy", "t_lep_energy"]:
+                self.loss_funcs.append(MeanSquaredError(reduction=Reduction.SUM))
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(0.0000005)
 
         self.num_losses = len(self.config.model.labels)
 

@@ -1,387 +1,413 @@
 exp:
-    output_dir: "/mnt/storage/jtingey/chips-net/data/models/"
+    output_dir: "./data/models/analysis/"
 
 data:
-    unstack: True
+    seperate_channels: True
     img_size: [64, 64]
-    cat_select: -1
     augment: False
+
 model:
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512
-    dropout: 0.2
+    dropout: 0.1
     filters: 64
     reco_pars: True
-    bottleneck: False
     se_ratio: 16
     learn_weights: False
+    precision_policy: "mixed_float16"
     summarise: False
-    precision_policy: "float32"
 
 samples:
+    # Different input representations
     v_c_flux:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
         channels: [1, 0, 0]
     v_ct_flux:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
         channels: [1, 1, 0]
     o_ct_flux:
         input_dirs:
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/flux/"
-        channels: [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            - "./data/input/chips_1200_all/flux/"
+            - "./data/input/chips_1200_all/cosmic/"
+        channels: [0, 0, 0, 1, 1, 0, 0]
     i_ct_flux:
         input_dirs:
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200_all/flux/"
-        channels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
+            - "./data/input/chips_1200_all/flux/"
+            - "./data/input/chips_1200_all/cosmic/"
+        channels: [0, 0, 0, 0, 0, 1, 1]
     v_cth_flux:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
         channels: [1, 1, 1]
-    v_cth_uniform:
+
+    # Different samples
+    both:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_cccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_nccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ncdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ncqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ncres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccmec/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_cccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_nccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ncdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ncqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ncres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccmec/"
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/nuel_cccoh/"
+            - "./data/input/chips_1200/nuel_nccoh/"
+            - "./data/input/chips_1200/nuel_ccdis/"
+            - "./data/input/chips_1200/nuel_ncdis/"
+            - "./data/input/chips_1200/nuel_ccqel/"
+            - "./data/input/chips_1200/nuel_ncqel/"
+            - "./data/input/chips_1200/nuel_ccres/"
+            - "./data/input/chips_1200/nuel_ncres/"
+            - "./data/input/chips_1200/nuel_ccmec/"
+            - "./data/input/chips_1200/numu_cccoh/"
+            - "./data/input/chips_1200/numu_nccoh/"
+            - "./data/input/chips_1200/numu_ccdis/"
+            - "./data/input/chips_1200/numu_ncdis/"
+            - "./data/input/chips_1200/numu_ccqel/"
+            - "./data/input/chips_1200/numu_ncqel/"
+            - "./data/input/chips_1200/numu_ccres/"
+            - "./data/input/chips_1200/numu_ncres/"
+            - "./data/input/chips_1200/numu_ccmec/"
+            - "./data/input/chips_1200/cosmic/"
         channels: [1, 1, 1]
-    v_cth_flux_cos:
+    flux:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
         channels: [1, 1, 1]
-    v_cth_uniform_cos:
+    uniform:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_cccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_nccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ncdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ncqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ncres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccmec/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_cccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_nccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ncdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ncqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ncres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccmec/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/nuel_cccoh/"
+            - "./data/input/chips_1200/nuel_nccoh/"
+            - "./data/input/chips_1200/nuel_ccdis/"
+            - "./data/input/chips_1200/nuel_ncdis/"
+            - "./data/input/chips_1200/nuel_ccqel/"
+            - "./data/input/chips_1200/nuel_ncqel/"
+            - "./data/input/chips_1200/nuel_ccres/"
+            - "./data/input/chips_1200/nuel_ncres/"
+            - "./data/input/chips_1200/nuel_ccmec/"
+            - "./data/input/chips_1200/numu_cccoh/"
+            - "./data/input/chips_1200/numu_nccoh/"
+            - "./data/input/chips_1200/numu_ccdis/"
+            - "./data/input/chips_1200/numu_ncdis/"
+            - "./data/input/chips_1200/numu_ccqel/"
+            - "./data/input/chips_1200/numu_ncqel/"
+            - "./data/input/chips_1200/numu_ccres/"
+            - "./data/input/chips_1200/numu_ncres/"
+            - "./data/input/chips_1200/numu_ccmec/"
+            - "./data/input/chips_1200/cosmic/"
         channels: [1, 1, 1]
-    v_cth_all:
+    cosmic:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_cccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_nccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ncdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ncqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ncres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccmec/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_cccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_nccoh/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ncdis/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ncqel/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ncres/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccmec/"
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/cosmic/"
         channels: [1, 1, 1]
-    v_cth_flux_5:
+    nuel_cccoh:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/nuel_cccoh/"
+        channels: [1, 1, 1]
+    nuel_ccdis:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_ccdis/"
+        channels: [1, 1, 1]
+    nuel_ccqel:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_ccqel/"
+        channels: [1, 1, 1]
+    nuel_ccres:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_ccres/"
+        channels: [1, 1, 1]
+    nuel_ccmec:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_ccmec/"
+        channels: [1, 1, 1]
+    nuel_ccqelmec:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_ccqel/"
+            - "./data/input/chips_1200/nuel_ccmec/"
+        channels: [1, 1, 1]
+    numu_cccoh:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_cccoh/"
+        channels: [1, 1, 1]
+    numu_ccdis:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_ccdis/"
+        channels: [1, 1, 1]
+    numu_ccqel:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_ccqel/"
+        channels: [1, 1, 1]
+    numu_ccres:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_ccres/"
+        channels: [1, 1, 1]
+    numu_ccmec:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_ccmec/"
+        channels: [1, 1, 1]
+    numu_ccqelmec:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_ccqel/"
+            - "./data/input/chips_1200/numu_ccmec/"
+        channels: [1, 1, 1]
+
+    # Stacked with no reco parameters as input for tf_explain
+    stacked_noreco:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+        channels: [1, 1, 1]
+        seperate_channels: False
+        reco_pars: False
+
+    # Different augmentations to study model resiliance
+    flux_factor_10:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
         channels: [1, 1, 1]
         augment: True
-        rand: [.02, .02, .02]
-        shift: [.05, .05, .05]
-    v_cth_flux_10:
+        aug_factor_mean: [0.1, 0.1, 0.1]
+        aug_factor_sigma: [0.02, 0.02, 0.02]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
+    flux_factor_20:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/flux/"
         channels: [1, 1, 1]
         augment: True
-        rand: [.02, .02, .02]
-        shift: [.1, .1, .1]
-    v_cth_flux_20:
+        aug_factor_mean: [0.2, 0.2, 0.2]
+        aug_factor_sigma: [0.02, 0.02, 0.02]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
+    flux_factor_50:
         input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/flux/"
         channels: [1, 1, 1]
         augment: True
-        rand: [.02, .02, .02]
-        shift: [.2, .2, .2]
-    v_cth_flux_50:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
-        channels: [1, 1, 1]
-        augment: True
-        rand: [.02, .02, .02]
-        shift: [.5, .5, .5]
-    v_cth_nuel_cccoh:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_cccoh/"
-        channels: [1, 1, 1]
-    v_cth_nuel_ccdis:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccdis/"
-        channels: [1, 1, 1]
-    v_cth_nuel_ccqel:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccqel/"
-        channels: [1, 1, 1]
-    v_cth_nuel_ccres:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccres/"
-        channels: [1, 1, 1]
-    v_cth_nuel_ccmec:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/nuel_ccmec/"
-        channels: [1, 1, 1]
-    v_cth_numu_cccoh:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_cccoh/"
-        channels: [1, 1, 1]
-    v_cth_numu_ccdis:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccdis/"
-        channels: [1, 1, 1]
-    v_cth_numu_ccqel:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccqel/"
-        channels: [1, 1, 1]
-    v_cth_numu_ccres:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccres/"
-        channels: [1, 1, 1]
-    v_cth_numu_ccmec:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/numu_ccmec/"
-        channels: [1, 1, 1]
-    v_cth_flux_stacked_noreco:
-        input_dirs: 
-            - "/mnt/storage/jtingey/chips-net/data/input/chips_1200/flux/"
-        channels: [1, 1, 1]
-        unstack: False
+        aug_factor_mean: [0.5, 0.5, 0.5]
+        aug_factor_sigma: [0.02, 0.02, 0.02]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
+
 models:
-    beam_v_c:
-        path: "beam_v_c" 
+    # Different input representations
+    repr_v_c:
+        path: "repr_v_c" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [1, 0, 0]
-    beam_v_ct:
-        path: "beam_v_ct" 
+    repr_v_ct:
+        path: "repr_v_ct" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [1, 1, 0]
-    beam_o_ct:
-        path: "beam_o_ct" 
+    repr_o_ct:
+        path: "repr_o_ct" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
-        channels: [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    beam_i_ct:
-        path: "beam_i_ct" 
+        channels: [0, 0, 0, 1, 1, 0, 0]
+    repr_i_ct:
+        path: "repr_i_ct" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
-        channels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
-    cosmic_v_ct:
-        path: "cosmic_v_ct" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [1, 1, 0]
-    cosmic_o_ct:
-        path: "cosmic_o_ct" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    cosmic_i_ct:
-        path: "cosmic_i_ct" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
-    beam_v_cth:
-        path: "beam_v_cth" 
+        channels: [0, 0, 0, 0, 0, 1, 1]
+    repr_v_cth:
+        path: "repr_v_cth" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [1, 1, 1]
-    cosmic_v_cth:
-        path: "cosmic_v_cth" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [1, 1, 1]
-    beam_v_cth_just_flux:
-        path: "beam_v_cth_just_flux" 
+
+    # Different training sample models
+    sample_both:
+        path: "repr_v_cth" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [1, 1, 1]
-    beam_v_cth_just_uniform:
-        path: "beam_v_cth_just_uniform" 
+    sample_flux:
+        path: "sample_flux" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [1, 1, 1]
-    t_final_cat_v_cth:
-        path: "t_final_cat_v_cth" 
+    sample_uniform:
+        path: "sample_uniform" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+
+    # Different categorisation models
+    cat_t_final_cat:
+        path: "cat_t_final_cat" 
         type: "vgg"
         labels: ["t_final_cat"]
         channels: [1, 1, 1]
-    t_all_cat_v_cth:
-        path: "t_all_cat_v_cth" 
+    cat_t_all_cat:
+        path: "cat_t_all_cat" 
         type: "vgg"
         labels: ["t_all_cat"]
         channels: [1, 1, 1]
-    t_comb_cat_v_cth:
-        path: "t_comb_cat_v_cth" 
+    cat_t_comb_cat:
+        path: "cat_t_comb_cat" 
         type: "vgg"
         labels: ["t_comb_cat"]
         channels: [1, 1, 1]
-    t_nc_cat_v_cth:
-        path: "t_nc_cat_v_cth" 
+    cat_t_nu_nc_cat:
+        path: "repr_v_cth" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+    cat_t_nc_cat:
+        path: "cat_t_nc_cat" 
         type: "vgg"
         labels: ["t_nc_cat"]
         channels: [1, 1, 1]
-    beam_v_cth_resnet:
-        path: "beam_v_cth_resnet" 
-        type: "resnet"
-        labels: ["t_nu_nc_cat"]
-        channels: [1, 1, 1]
-    beam_v_cth_inception:
-        path: "beam_v_cth_inception" 
-        type: "inception"
-        labels: ["t_nu_nc_cat"]
-        channels: [1, 1, 1]
-    multi_beam_v_cth:
-        path: "multi_beam_v_cth" 
-        type: "vgg"
-        labels: ["t_nu_nc_cat", "t_all_cat", "t_comb_cat", "t_int_type"]
-        channels: [1, 1, 1]
-    multi_beam_cosmic_v_cth:
-        path: "multi_beam_cosmic_v_cth" 
-        type: "vgg"
-        labels: ["t_nu_nc_cat", "t_all_cat", "t_comb_cat", "t_int_type", "t_cosmic_cat"]
-        channels: [1, 1, 1]
-    multi_beam_energy_v_cth:
-        path: "multi_beam_energy_v_cth" 
-        type: "vgg"
-        labels: ["t_nu_nc_cat", "t_all_cat", "t_comb_cat", "t_int_type", "t_nuEnergy"]
-        channels: [1, 1, 1]
-    multi_beam_vertex_v_cth:
-        path: "multi_beam_vertex_v_cth" 
-        type: "vgg"
-        labels: ["t_nu_nc_cat", "t_all_cat", "t_comb_cat", "t_int_type", "t_vtxX", "t_vtxY", "t_vtxZ"]
-        channels: [1, 1, 1]
-    multi_beam_split_v_cth:
-        path: "multi_beam_split_v_cth" 
+    cat_split:
+        path: "cat_split" 
         type: "vgg"
         labels: ["t_comb_cat", "t_cc_type", "t_nc_type"]
         channels: [1, 1, 1]
-    multi_beam_split_par_v_cth:
-        path: "multi_beam_split_par_v_cth" 
+    cat_split_learn:
+        path: "cat_split_learn" 
         type: "vgg"
-        labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "prim_total", "prim_p", "prim_cp", "prim_np"]
+        labels: ["t_comb_cat", "t_cc_type", "t_nc_type"]
         channels: [1, 1, 1]
+
+    # Cosmic classification models, multitask test
+    cosmic:
+        path: "cosmic" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [1, 1, 1]  
+    cosmic_vtx:
+        path: "cosmic_vtx" 
+        type: "vgg"
+        labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
+        channels: [1, 1, 1]
+    cosmic_vtx_learn:
+        path: "cosmic_vtx_learn" 
+        type: "vgg"
+        labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
+        channels: [1, 1, 1]
+
+    # Beam classification models, multitask test
+    beam:
+        path: "repr_v_cth" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]    
+    beam_primaries:
+        path: "beam_primaries" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat", "prim_p", "prim_cp", "prim_np"]
+        channels: [1, 1, 1] 
+    beam_primaries_learn:
+        path: "beam_primaries_learn" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat", "prim_p", "prim_cp", "prim_np"]
+        channels: [1, 1, 1] 
+        
+    # Energy models
+    energy:
+        path: "energy" 
+        type: "vgg"
+        labels: ["t_nu_energy"]
+        channels: [1, 1, 1]
+    energy_lepton:
+        path: "energy_lepton" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    energy_lepton_learn:
+        path: "energy_lepton_learn" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+
+    # Different sample energy models
     nuel_cccoh_energy:
         path: "nuel_cccoh_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     nuel_ccdis_energy:
         path: "nuel_ccdis_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     nuel_ccqel_energy:
         path: "nuel_ccqel_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     nuel_ccres_energy:
         path: "nuel_ccres_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     nuel_ccmec_energy:
         path: "nuel_ccmec_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     nuel_ccqelmec_energy:
         path: "nuel_ccqelmec_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     numu_cccoh_energy:
         path: "numu_cccoh_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     numu_ccdis_energy:
         path: "numu_ccdis_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     numu_ccqel_energy:
         path: "numu_ccqel_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     numu_ccres_energy:
         path: "numu_ccres_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     numu_ccmec_energy:
         path: "numu_ccmec_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     numu_ccqelmec_energy:
         path: "numu_ccqelmec_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     nuel_cc_energy:
-        path: "nuel_cc_energy" 
+        path: "energy_lepton" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     numu_cc_energy:
         path: "numu_cc_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
     nc_energy:
         path: "nc_energy" 
         type: "vgg"
-        labels: ["t_nuEnergy"]
+        labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
-    beam_v_cth_stacked_noreco:
-        path: "beam_v_cth_stacked_noreco" 
+
+    # Explain model
+    explain:
+        path: "explain" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [1, 1, 1]
-        unstack: False
+        seperate_channels: False
         reco_pars: False
+
 eval:
     examples: 64000
     cuts:
@@ -433,5 +459,3 @@ eval:
         #anumu:  0.00002387860145
         #cosmic: 0.99887121198245
         #total:  704071.258478269
-
-    

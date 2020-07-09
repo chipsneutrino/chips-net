@@ -66,8 +66,8 @@ def plot_hit_time(images_dict, event, save_path):
     axs[0, 0].imshow(
         images_dict["r_raw_charge_map_origin"][event], cmap="Reds", origin="lower"
     )
-    axs[0, 0].set_title(r"$\phi$ and $\\theta$ from origin")
-    axs[0, 0].set(xlabel=r"$\phi$ bins", ylabel=r"$\\theta$ bins")
+    axs[0, 0].set_title(r"$\phi$ and $\theta$ from origin")
+    axs[0, 0].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
 
     axs[0, 1].imshow(
         images_dict["r_raw_charge_map_iso"][event], cmap="Reds", origin="lower"
@@ -78,14 +78,14 @@ def plot_hit_time(images_dict, event, save_path):
     axs[0, 2].imshow(
         images_dict["r_raw_charge_map_vtx"][event], cmap="Reds", origin="lower"
     )
-    axs[0, 2].set_title(r"$\phi$ and $\\theta$ from vertex")
-    axs[0, 2].set(xlabel=r"$\phi$ bins", ylabel=r"$\\theta$ bins")
+    axs[0, 2].set_title(r"$\phi$ and $\theta$ from vertex")
+    axs[0, 2].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
     axs[0, 2].text(68, 3, "Desposited charge images", rotation=-90, fontsize=18)
 
     axs[1, 0].imshow(
         images_dict["r_raw_time_map_origin"][event], cmap="Reds", origin="lower"
     )
-    axs[1, 0].set(xlabel=r"$\phi$ bins", ylabel=r"$\\theta$ bins")
+    axs[1, 0].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
 
     axs[1, 1].imshow(
         images_dict["r_raw_time_map_iso"][event], cmap="Reds", origin="lower"
@@ -95,7 +95,7 @@ def plot_hit_time(images_dict, event, save_path):
     axs[1, 2].imshow(
         images_dict["r_raw_time_map_vtx"][event], cmap="Reds", origin="lower"
     )
-    axs[1, 2].set(xlabel=r"$\phi$ bins", ylabel=r"$\\theta$ bins")
+    axs[1, 2].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
     axs[1, 2].text(68, 10, "First hit time images", rotation=-90, fontsize=18)
     save("{}example_image_{}".format(save_path, event))
 
@@ -113,14 +113,14 @@ def plot_hough(images_dict, event, save_path):
     axs.imshow(
         images_dict["r_raw_hit_hough_map_vtx"][event], cmap="Reds", origin="lower"
     )
-    axs.set_title(r"$\phi$ and $\\theta$ from vertex")
-    axs.set(xlabel=r"$\phi$ bins", ylabel=r"$\\theta$ bins")
+    axs.set_title(r"$\phi$ and $\theta$ from vertex")
+    axs.set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
     axs.text(68, 13, "Hough space image", rotation=-90, fontsize=18)
     save("{}example_hough_{}".format(save_path, event))
 
 
 def plot_8bit_range(
-    images_dict, max_charge=30, max_time=130, max_hough=4000, save_path=""
+    images_dict, max_charge=25, max_time=120, max_hough=3500, save_path=""
 ):
     """Plot the charge, time and hough channel 8-bit distributions.
 

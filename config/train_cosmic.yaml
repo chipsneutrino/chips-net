@@ -17,7 +17,7 @@ data:
     aug_abs_sigma: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value, sigma
 model: 
     type: "vgg"  # (vgg, resnet, inception)
-    labels: ["t_cosmic_cat", "t_vtxX", "t_vtxY", "t_vtxZ"]  # For cosmic classifier
+    labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]  # For cosmic classifier
     lr: 0.0002  # The initial learning rate
     lr_decay: 0.5  # Learning rate decay coefficient
     dense_units: 512  # Number of units to use in dense layers

@@ -95,7 +95,7 @@ class Reader:
                     # Apply the absolute shifting of the bin contents
                     abs_shift = tf.random.normal(
                         shape=self.config.data.img_size,
-                        mean=(1.0 + self.config.data.aug_abs_mean[i]),
+                        mean=(self.config.data.aug_abs_mean[i]),
                         stddev=self.config.data.aug_abs_sigma[i],
                         dtype=tf.float32,
                     )
@@ -336,15 +336,15 @@ class Creator:
         Returns:
             np.array: array of leading lepton energies
         """
-        energies = []
+        energy_list = []
         for ev_pdgs, ev_energies in zip(pdgs, energies):  # loop through all events
             energy = 0.0
             for i, pdg in enumerate(ev_pdgs):
                 if pdg in [11, 13] and ev_energies[i] > energy:
                     energy = ev_energies[i]
+            energy_list.append(energy)
 
-            energies.append(energy)
-        return np.asarray(energies)
+        return np.asarray(energy_list)
 
     def gen_examples(self, true, reco):
         """Generate a list of examples from the input .root map file.
@@ -440,15 +440,19 @@ class Creator:
 
         labels_f = np.stack(
             (  # True Parameters (floats)
-                true.array("t_vtxX") / self.config.create.par_scale[0],
-                true.array("t_vtxY") / self.config.create.par_scale[1],
-                true.array("t_vtxZ") / self.config.create.par_scale[2],
+                true.array("t_vtxX"),
+                true.array("t_vtxY"),
+                true.array("t_vtxZ"),
                 true.array("t_vtxT"),
                 true.array("t_nuEnergy"),
                 lepton_energies,
             ),
             axis=1,
-        )
+        ).astype(np.float32)
+
+        # print(labels_f)
+        # print(labels_f.shape)
+        # print(labels_f.dtype)
 
         examples = []  # Generate examples using a feature dict
         for i in range(len(labels_i)):

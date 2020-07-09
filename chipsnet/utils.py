@@ -44,12 +44,14 @@ def data_from_conf(config, name):
     data_config = copy.copy(config)
     data_config.data.input_dirs = config.samples[name].input_dirs
     data_config.data.channels = config.samples[name].channels
+    if config.models[name].seperate_channels is False:
+        data_config.data.seperate_channels = False
     if config.samples[name].augment is True:
         data_config.data.augment = True
-        data_config.data.rand = config.samples[name].rand
-        data_config.data.shift = config.samples[name].shift
-    if config.samples[name].seperate_channels is False:
-        data_config.data.seperate_channels = False
+        data_config.data.aug_factor_mean = config.samples[name].aug_factor_mean
+        data_config.data.aug_factor_sigma = config.samples[name].aug_factor_sigma
+        data_config.data.aug_abs_mean = config.samples[name].aug_abs_mean
+        data_config.data.aug_abs_sigma = config.samples[name].aug_abs_sigma
     data = chipsnet.data.Reader(data_config)
     return data
 
@@ -70,10 +72,10 @@ def model_from_conf(config, name):
     model_config.model.labels = config.models[name].labels
     model_config.exp.name = config.models[name].path
     model_config.data.channels = config.models[name].channels
-    if config.models[name].reco_pars is False:
-        model_config.model.reco_pars = False
     if config.models[name].seperate_channels is False:
         model_config.data.seperate_channels = False
+    if config.models[name].reco_pars is False:
+        model_config.model.reco_pars = False
     chipsnet.config.setup_dirs(model_config, False)
     model = chipsnet.models.Model(model_config)
     model.load()

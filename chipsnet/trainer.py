@@ -83,6 +83,11 @@ class Trainer(object):
             self.config.trainer.val_examples, self.config.trainer.batch_size
         )
 
+        # Handy for debugging when you want to look at the inputs
+        # for example in training_ds.take(1):
+        #     print(example)
+        # return
+
         if self.config.trainer.steps_per_epoch == -1:
             steps = None
         else:
