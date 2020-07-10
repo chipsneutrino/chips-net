@@ -358,6 +358,11 @@ models:
         type: "vgg"
         labels: ["t_nu_energy"]
         channels: [1, 1, 1]
+    lepton:
+        path: "lepton" 
+        type: "vgg"
+        labels: ["t_lep_energy"]
+        channels: [1, 1, 1]
     energy_lepton:
         path: "energy_lepton" 
         type: "vgg"
@@ -459,8 +464,8 @@ eval:
     examples: 64000
     cuts:
         cosmic: 0.001   # Cosmic classifier cut
-        q:      100.0   # r_raw_total_digi_q cut
-        h:      100.0   # r_first_ring_height cut
+        q:      150.0   # r_total_digi_q cut
+        h:      150.0   # r_first_ring_height cut
         theta:  0.75    # r_dirTheta cut
         phi:    0.35    # r_dirPhi cut
     weights:

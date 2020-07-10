@@ -64,37 +64,33 @@ def plot_hit_time(images_dict, event, save_path):
     fig, axs = plt.subplots(2, 3, figsize=(16, 10), gridspec_kw={"hspace": 0.3})
     plt.setp(axs, xticks=[0, 16, 32, 48, 64], yticks=[0, 16, 32, 48, 64])
     axs[0, 0].imshow(
-        images_dict["r_raw_charge_map_origin"][event], cmap="Reds", origin="lower"
+        images_dict["r_charge_map_origin"][event], cmap="Reds", origin="lower"
     )
     axs[0, 0].set_title(r"$\phi$ and $\theta$ from origin")
     axs[0, 0].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
 
     axs[0, 1].imshow(
-        images_dict["r_raw_charge_map_iso"][event], cmap="Reds", origin="lower"
+        images_dict["r_charge_map_iso"][event], cmap="Reds", origin="lower"
     )
     axs[0, 1].set_title(r"$x^{+}$ and $x^{-}$ from origin")
     axs[0, 1].set(xlabel=r"$x^{+}$ bins", ylabel=r"$x^{-}$ bins")
 
     axs[0, 2].imshow(
-        images_dict["r_raw_charge_map_vtx"][event], cmap="Reds", origin="lower"
+        images_dict["r_charge_map_vtx"][event], cmap="Reds", origin="lower"
     )
     axs[0, 2].set_title(r"$\phi$ and $\theta$ from vertex")
     axs[0, 2].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
     axs[0, 2].text(68, 3, "Desposited charge images", rotation=-90, fontsize=18)
 
     axs[1, 0].imshow(
-        images_dict["r_raw_time_map_origin"][event], cmap="Reds", origin="lower"
+        images_dict["r_time_map_origin"][event], cmap="Reds", origin="lower"
     )
     axs[1, 0].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
 
-    axs[1, 1].imshow(
-        images_dict["r_raw_time_map_iso"][event], cmap="Reds", origin="lower"
-    )
+    axs[1, 1].imshow(images_dict["r_time_map_iso"][event], cmap="Reds", origin="lower")
     axs[1, 1].set(xlabel=r"$x^{+}$ bins", ylabel=r"$x^{-}$ bins")
 
-    axs[1, 2].imshow(
-        images_dict["r_raw_time_map_vtx"][event], cmap="Reds", origin="lower"
-    )
+    axs[1, 2].imshow(images_dict["r_time_map_vtx"][event], cmap="Reds", origin="lower")
     axs[1, 2].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
     axs[1, 2].text(68, 10, "First hit time images", rotation=-90, fontsize=18)
     save("{}example_image_{}".format(save_path, event))
@@ -110,9 +106,7 @@ def plot_hough(images_dict, event, save_path):
     """
     fig, axs = plt.subplots(1, 1, figsize=(5, 5), gridspec_kw={"hspace": 0.3})
     plt.setp(axs, xticks=[0, 16, 32, 48, 64], yticks=[0, 16, 32, 48, 64])
-    axs.imshow(
-        images_dict["r_raw_hit_hough_map_vtx"][event], cmap="Reds", origin="lower"
-    )
+    axs.imshow(images_dict["r_hough_map_vtx"][event], cmap="Reds", origin="lower")
     axs.set_title(r"$\phi$ and $\theta$ from vertex")
     axs.set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
     axs.text(68, 13, "Hough space image", rotation=-90, fontsize=18)
@@ -135,7 +129,7 @@ def plot_8bit_range(
     # plt.setp(axs, xticks=[0, 16, 32, 48, 64], yticks=[0, 16, 32, 48, 64])
 
     hist_data = []
-    for event in images_dict["r_raw_charge_map_vtx"]:
+    for event in images_dict["r_charge_map_vtx"]:
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
     occurrences = np.count_nonzero(hist_data == 255) / len(hist_data)
@@ -147,7 +141,7 @@ def plot_8bit_range(
     axs[0].label_outer()
 
     hist_data = []
-    for event in images_dict["r_raw_time_map_vtx"]:
+    for event in images_dict["r_time_map_vtx"]:
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
     occurrences = np.count_nonzero(hist_data == 255) / len(hist_data)
@@ -159,7 +153,7 @@ def plot_8bit_range(
     axs[1].label_outer()
 
     hist_data = []
-    for event in images_dict["r_raw_hit_hough_map_vtx"]:
+    for event in images_dict["r_hough_map_vtx"]:
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
     occurrences = np.count_nonzero(hist_data == 255) / len(hist_data)
@@ -327,6 +321,59 @@ def plot_curves(events, save_path):
     save(save_path)
 
 
+def plot_cosmic_curves(events, save_path):
+    """Plot the eff, pur, fom curves.
+
+    Args:
+        events (dict): events output
+        save_path (str): path to save plot to
+    """
+    fig, axs = plt.subplots(1, 3, figsize=(16, 5))
+    styles = ["solid", "dashed", "dotted", "dashdot"]
+    for i in range(len(events)):
+        axs[0].plot(
+            events[i]["cuts"][0],
+            events[i]["sig_effs"][0][0],
+            color="green",
+            linestyle=styles[i],
+        )
+        axs[0].plot(
+            events[i]["cuts"][0],
+            events[i]["bkg_effs"][0][0],
+            color="red",
+            linestyle=styles[i],
+        )
+    axs[0].set_xlabel("Cosmic score cut", fontsize=17)
+    axs[0].set_ylabel("Efficiency", fontsize=17)
+
+    for i in range(len(events)):
+        axs[1].plot(
+            events[i]["cuts"][0],
+            events[i]["purs"][0][0],
+            color="blue",
+            linestyle=styles[i],
+        )
+        axs[1].plot(
+            events[i]["cuts"][0],
+            events[i]["foms"][0][0],
+            color="black",
+            linestyle=styles[i],
+        )
+    axs[1].set_xlabel("Cosmic score cut", fontsize=17)
+    axs[1].set_ylabel("Purity or FOM", fontsize=17)
+
+    for i in range(len(events)):
+        axs[2].plot(
+            events[i]["bkg_effs"][0][0],
+            events[i]["sig_effs"][0][0],
+            color="black",
+            linestyle=styles[i],
+        )
+    axs[2].set_xlabel("Background efficiency", fontsize=17)
+    axs[2].set_ylabel("Signal efficiency", fontsize=17)
+    save(save_path)
+
+
 def plot_e_hists(events, ev, save_path):
     """Plot the eff and pur plot vs neutrino energy.
 
@@ -369,7 +416,7 @@ def plot_e_hists(events, ev, save_path):
             linestyle=styles[i],
         )
     axs[0].hist(
-        ev[ev["t_comb_cat"] == 0]["t_nuEnergy"].to_numpy() / 1000,
+        ev[ev["t_comb_cat"] == 0]["t_nu_energy"].to_numpy() / 1000,
         range=(1, 8),
         bins=14,
         color="green",
@@ -412,7 +459,7 @@ def plot_e_hists(events, ev, save_path):
             linestyle=styles[i],
         )
     axs[1].hist(
-        ev[ev["t_comb_cat"] == 1]["t_nuEnergy"].to_numpy() / 1000,
+        ev[ev["t_comb_cat"] == 1]["t_nu_energy"].to_numpy() / 1000,
         range=(1, 8),
         bins=14,
         color="blue",
@@ -454,7 +501,7 @@ def plot_e_hists(events, ev, save_path):
             linestyle=styles[i],
         )
     axs[2].hist(
-        ev[ev["t_comb_cat"] == 2]["t_nuEnergy"].to_numpy() / 1000,
+        ev[ev["t_comb_cat"] == 2]["t_nu_energy"].to_numpy() / 1000,
         range=(1, 8),
         bins=14,
         color="red",
@@ -496,3 +543,12 @@ def plot_history_comparison(config, models, save_path, key="accuracy"):
         axs_t.tick_params(axis="y", labelcolor="tab:blue")
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
     save(save_path)
+
+
+def plot_true_vs_reco_e(events, axs, key="t_nu_energy"):
+    axs.hist2d(events["t_nu_energy"], e_ev[e_ev["t_comb_cat"] == 0]["energy_pred_t_nu_energy"],
+                range=e_range, bins=e_bins, weights=e_ev[e_ev["t_comb_cat"] == 0]["w"], cmap="Reds")
+    axs.grid()
+    axs.label_outer()
+    axs.set(xlabel=r"True energy (MeV)", ylabel=r"Reco energy (MeV)")
+    axs.set_title(r"Nuel CC")

@@ -174,13 +174,16 @@ def process_ds(
         "pur_auc": [],
         "fom_auc": [],
         "roc_auc": [],
+        "max_foms": [],
+        "max_fom_cuts": [],
         "comb_matrices": [],
         "all_matrices": [],
         "comb_report": [],
         "cat_report": [],
     }
     for model_name, model_cat in zip(model_names, model_cats):
-        if model_name.startswith("cosmic"):
+        curves_output = None
+        if model_cat == "t_cosmic_cat":
             continue
 
         # Combine categories into fully combined ones
@@ -215,23 +218,6 @@ def process_ds(
             print(comb_report)
             print(cat_report)
 
-        # Run curve calculation
-        curves_output = calculate_curves(
-            events, prefix=model_name + "_", verbose=verbose
-        )
-        outputs["cuts"].append(curves_output["cuts"])
-        outputs["sig_effs"].append(curves_output["sig_effs"])
-        outputs["bkg_effs"].append(curves_output["bkg_effs"])
-        outputs["purs"].append(curves_output["purs"])
-        outputs["foms"].append(curves_output["foms"])
-        outputs["fom_effs"].append(curves_output["fom_effs"])
-        outputs["fom_purs"].append(curves_output["fom_purs"])
-        outputs["sig_effs_auc"].append(curves_output["sig_effs_auc"])
-        outputs["bkg_effs_auc"].append(curves_output["bkg_effs_auc"])
-        outputs["pur_auc"].append(curves_output["pur_auc"])
-        outputs["fom_auc"].append(curves_output["fom_auc"])
-        outputs["roc_auc"].append(curves_output["roc_auc"])
-
         matrix_comb = confusion_matrix(
             events["t_comb_cat"],
             events[model_name + "_comb_cat_class"],
@@ -248,6 +234,25 @@ def process_ds(
         matrix_all = np.rot90(matrix_all, 1)
         matrix_all = pd.DataFrame(matrix_all)
         outputs["all_matrices"].append(matrix_all)
+
+        curves_output = calculate_curves(
+            events, prefix=model_name + "_", verbose=verbose
+        )
+
+        outputs["cuts"].append(curves_output["cuts"])
+        outputs["sig_effs"].append(curves_output["sig_effs"])
+        outputs["bkg_effs"].append(curves_output["bkg_effs"])
+        outputs["purs"].append(curves_output["purs"])
+        outputs["foms"].append(curves_output["foms"])
+        outputs["fom_effs"].append(curves_output["fom_effs"])
+        outputs["fom_purs"].append(curves_output["fom_purs"])
+        outputs["sig_effs_auc"].append(curves_output["sig_effs_auc"])
+        outputs["bkg_effs_auc"].append(curves_output["bkg_effs_auc"])
+        outputs["pur_auc"].append(curves_output["pur_auc"])
+        outputs["fom_auc"].append(curves_output["fom_auc"])
+        outputs["roc_auc"].append(curves_output["roc_auc"])
+        outputs["max_foms"].append(curves_output["max_foms"])
+        outputs["max_fom_cuts"].append(curves_output["max_fom_cuts"])
 
     print("took {:.2f} seconds".format(time.time() - start_time))
 
@@ -282,11 +287,11 @@ def run_inference(events, model, seperate_channels=True, reco_pars=True, prefix=
             if e:
                 print("found no image_2... ", end="", flush=True)
     if reco_pars:
-        inputs.append(np.stack(events["r_vtxX"].to_numpy()))
-        inputs.append(np.stack(events["r_vtxY"].to_numpy()))
-        inputs.append(np.stack(events["r_vtxZ"].to_numpy()))
-        inputs.append(np.stack(events["r_dirTheta"].to_numpy()))
-        inputs.append(np.stack(events["r_dirPhi"].to_numpy()))
+        inputs.append(np.stack(events["r_vtx_x"].to_numpy()))
+        inputs.append(np.stack(events["r_vtx_y"].to_numpy()))
+        inputs.append(np.stack(events["r_vtx_z"].to_numpy()))
+        inputs.append(np.stack(events["r_dir_theta"].to_numpy()))
+        inputs.append(np.stack(events["r_dir_phi"].to_numpy()))
 
     # Make the predictions
     outputs = model.model.predict(inputs)
@@ -590,27 +595,30 @@ def apply_standard_cuts(
         pd.DataFrame: events with cuts applied
     """
     cosmic_cuts = np.zeros(len(events), dtype=bool)
-    if "pred_t_cosmic_cat" in events.columns:
-        cosmic_cut_func = cut_apply("pred_t_cosmic_cat", cosmic_cut, cut_type="greater")
-        cosmic_cuts = events.apply(cosmic_cut_func, axis=1)
-        events["cosmic_cut"] = cosmic_cuts
+    for column in events.columns:
+        if "pred_t_cosmic_cat" in column:
+            cosmic_cut_func = cut_apply(column, cosmic_cut, cut_type="greater")
+            cosmic_cuts = events.apply(cosmic_cut_func, axis=1)
+            events["cosmic_cut"] = cosmic_cuts
+            print(events[events["t_cosmic_cat"] == 0][column].describe())
+            print(events[events["t_cosmic_cat"] == 1][column].describe())
 
-    q_cut_func = cut_apply("r_raw_total_digi_q", q_cut, cut_type="lower")
+    q_cut_func = cut_apply("r_total_digi_q", q_cut, cut_type="lower")
     q_cuts = events.apply(q_cut_func, axis=1)
 
     h_cut_func = cut_apply("r_first_ring_height", h_cut, cut_type="lower")
     h_cuts = events.apply(h_cut_func, axis=1)
 
-    theta_low_cut_func = cut_apply("r_dirTheta", -theta_cut, cut_type="lower")
+    theta_low_cut_func = cut_apply("r_dir_theta", -theta_cut, cut_type="lower")
     theta_low_cuts = events.apply(theta_low_cut_func, axis=1)
 
-    theta_high_cut_func = cut_apply("r_dirTheta", theta_cut, cut_type="greater")
+    theta_high_cut_func = cut_apply("r_dir_theta", theta_cut, cut_type="greater")
     theta_high_cuts = events.apply(theta_high_cut_func, axis=1)
 
-    phi_low_cut_func = cut_apply("r_dirPhi", -phi_cut, cut_type="lower")
+    phi_low_cut_func = cut_apply("r_dir_phi", -phi_cut, cut_type="lower")
     phi_low_cuts = events.apply(phi_low_cut_func, axis=1)
 
-    phi_high_cut_func = cut_apply("r_dirPhi", phi_cut, cut_type="greater")
+    phi_high_cut_func = cut_apply("r_dir_phi", phi_cut, cut_type="greater")
     phi_high_cuts = events.apply(phi_high_cut_func, axis=1)
 
     events["cut"] = np.logical_or.reduce(
@@ -686,7 +694,7 @@ def calculate_curves(
     """
     np.seterr(divide="ignore", invalid="ignore")
     num_cats = chipsnet.data.get_map(cat_name)["categories"]
-    prefix = prefix + "pred_" + cat_name + "_"
+    prefix = prefix + "pred_" + cat_name
 
     cuts, totals, max_foms, max_fom_cuts = [], [], [], []
     sig_effs, bkg_effs, purities, foms = [], [], [], []
@@ -708,11 +716,14 @@ def calculate_curves(
         for count_cat in range(num_cats):
             passed = []
             for cut_cat in range(num_cats):
+                cut_string = prefix + "_" + str(count_cat)
+                if num_cats == 1:
+                    cut_string = prefix
                 passed.append(
                     events[
                         (events["cut"] == 0)
                         & (events[cat_name] == cut_cat)
-                        & (events[prefix + str(count_cat)] > cuts[cut + 1])
+                        & (events[cut_string] > cuts[cut + 1])
                     ]["w"].sum()
                 )
 
@@ -789,14 +800,17 @@ def calculate_curves(
         eff_hists = []
         for cut_cat in range(num_cats):
             total = events[events[cat_name] == cut_cat]
+            cut_string = prefix + "_" + str(count_cat)
+            if num_cats == 1:
+                cut_string = prefix
             passed = events[
                 (events[cat_name] == cut_cat)
                 & (events["cut"] == 0)
-                & (events[prefix + str(count_cat)] > max_fom_cuts[count_cat])
+                & (events[cut_string] > max_fom_cuts[count_cat])
             ]
 
             tot_h, tot_err, centers, edges = extended_hist(
-                total["t_nuEnergy"].to_numpy(),
+                total["t_nu_energy"].to_numpy(),
                 e_range[0],
                 e_range[1],
                 e_bins,
@@ -804,7 +818,7 @@ def calculate_curves(
             )
 
             pass_h, pass_err, centers, edges = extended_hist(
-                passed["t_nuEnergy"].to_numpy(),
+                passed["t_nu_energy"].to_numpy(),
                 e_range[0],
                 e_range[1],
                 e_bins,
@@ -866,6 +880,8 @@ def calculate_curves(
         "pur_auc": pur_auc,
         "fom_auc": fom_auc,
         "roc_auc": roc_auc,
+        "max_foms": max_foms,
+        "max_fom_cuts": max_fom_cuts,
     }
 
     return output
@@ -933,11 +949,11 @@ def run_pca(
             if e:
                 print("found no image_2... ", end="", flush=True)
     if reco_pars:
-        inputs.append(np.stack(events["r_vtxX"].to_numpy()))
-        inputs.append(np.stack(events["r_vtxY"].to_numpy()))
-        inputs.append(np.stack(events["r_vtxZ"].to_numpy()))
-        inputs.append(np.stack(events["r_dirTheta"].to_numpy()))
-        inputs.append(np.stack(events["r_dirPhi"].to_numpy()))
+        inputs.append(np.stack(events["r_vtx_x"].to_numpy()))
+        inputs.append(np.stack(events["r_vtx_y"].to_numpy()))
+        inputs.append(np.stack(events["r_vtx_z"].to_numpy()))
+        inputs.append(np.stack(events["r_dir_theta"].to_numpy()))
+        inputs.append(np.stack(events["r_dir_phi"].to_numpy()))
 
     # Make the predictions
     dense_outputs = dense_model.predict(inputs)
@@ -1007,11 +1023,11 @@ def run_tsne(
             if e:
                 print("found no image_2... ", end="", flush=True)
     if reco_pars:
-        inputs.append(np.stack(events["r_vtxX"].to_numpy()))
-        inputs.append(np.stack(events["r_vtxY"].to_numpy()))
-        inputs.append(np.stack(events["r_vtxZ"].to_numpy()))
-        inputs.append(np.stack(events["r_dirTheta"].to_numpy()))
-        inputs.append(np.stack(events["r_dirPhi"].to_numpy()))
+        inputs.append(np.stack(events["r_vtx_x"].to_numpy()))
+        inputs.append(np.stack(events["r_vtx_y"].to_numpy()))
+        inputs.append(np.stack(events["r_vtx_z"].to_numpy()))
+        inputs.append(np.stack(events["r_dir_theta"].to_numpy()))
+        inputs.append(np.stack(events["r_dir_phi"].to_numpy()))
 
     # Make the predictions
     dense_outputs = dense_model.predict(inputs)
@@ -1193,6 +1209,16 @@ def predict_energies(config, data_name, model_names=[], verbose=False):
             prefix=model_name + "_",
         )
 
+        if "t_nu_energy" in model.config.model.labels:
+            events["frac_nu_energy"] = (
+                events[model_name + "_pred_t_nu_energy"] - events["t_nu_energy"]
+            ) / events["t_nu_energy"]
+
+        if "t_lep_energy" in model.config.model.labels:
+            events["frac_lep_energy"] = (
+                events[model_name + "_pred_t_lep_energy"] - events["t_lep_energy"]
+            ) / events["t_lep_energy"]
+
     # Apply the event weights
     events = apply_weights(
         events,
@@ -1215,17 +1241,6 @@ def predict_energies(config, data_name, model_names=[], verbose=False):
         phi_cut=config.eval.cuts.phi,
         verbose=verbose,
     )
-
-    """
-    true_cat_energies = []
-    pred_cat_energies = []
-    for i in range(self.events.shape[0]):
-        true_cat_energies.append(estimations[self.events["t_cat"][i]][i])
-        pred_cat_energies.append(estimations[self.events["classification"][i]][i])
-
-    self.events["true_cat_pred_e"] = np.array(true_cat_energies)
-    self.events["pred_cat_pred_e"] = np.array(pred_cat_energies)
-    """
 
     print("took {:.2f} seconds".format(time.time() - start_time))
 
@@ -1255,20 +1270,23 @@ def globes_smearing_file(hists, names):
             f.write(">\n")
 
 
-def print_output_comparison(outputs):
+def print_output_comparison(outputs, reports=True):
     """Print a comparison of all the classification metrics.
 
     Args:
         outputs (list[outputs]): List of output dictionaries
     """
     for output in outputs:
+        print("Max FOMs: " + str(output["max_foms"][0]))
+        print("Max FOM cuts: " + str(output["max_fom_cuts"][0]))
         print("Sig eff AUC: " + str(output["sig_effs_auc"][0]))
         print("Bkg eff AUC: " + str(output["bkg_effs_auc"][0]))
         print("Purity AUC: " + str(output["pur_auc"][0]))
         print("FOM AUC: " + str(output["fom_auc"][0]))
         print("ROC AUC: " + str(output["roc_auc"][0]))
-        print(output["comb_report"][0])
-        print(output["cat_report"][0])
+        if reports:
+            print(output["comb_report"][0])
+            print(output["cat_report"][0])
         print(
             "---------------------------------------------------------------------------"
         )

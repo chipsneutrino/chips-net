@@ -942,11 +942,25 @@ def get_outputs(config, x):
         elif output in ["t_nu_energy", "t_lep_energy"]:
             out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("linear", dtype="float32", name=output)(out))
-            losses[output] = "mean_squared_error"
+            losses[output] = mse_masked_loss
             weights[output] = 0.0000005
             metrics[output] = "mae"
 
     return outputs, (losses, weights, metrics)
+
+
+def mse_masked_loss(y_true, y_pred):
+    """Return a masked mean squared error loss
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: mean square error function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, 0.0), tf.float32)
+    return tf.keras.losses.mean_squared_error(y_true * mask, y_pred * mask)
 
 
 def add_multitask_loss(config, outputs):
@@ -1054,7 +1068,7 @@ class MultiLossLayer(tf.keras.layers.Layer):
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output in ["t_nu_energy", "t_lep_energy"]:
-                self.loss_funcs.append(MeanSquaredError(reduction=Reduction.SUM))
+                self.loss_funcs.append(mse_masked_loss)
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(0.0000005)
 
