@@ -44,7 +44,7 @@ def data_from_conf(config, name):
     data_config = copy.copy(config)
     data_config.data.input_dirs = config.samples[name].input_dirs
     data_config.data.channels = config.samples[name].channels
-    if config.models[name].seperate_channels is False:
+    if config.samples[name].seperate_channels is False:
         data_config.data.seperate_channels = False
     if config.samples[name].augment is True:
         data_config.data.augment = True
@@ -161,27 +161,10 @@ def process_ds(
     )
 
     # Classify into fully combined categories and print the classification reports
-    outputs = {
-        "cuts": [],
-        "sig_effs": [],
-        "bkg_effs": [],
-        "purs": [],
-        "foms": [],
-        "fom_effs": [],
-        "fom_purs": [],
-        "sig_effs_auc": [],
-        "bkg_effs_auc": [],
-        "pur_auc": [],
-        "fom_auc": [],
-        "roc_auc": [],
-        "max_foms": [],
-        "max_fom_cuts": [],
-        "comb_matrices": [],
-        "all_matrices": [],
-        "comb_report": [],
-        "cat_report": [],
-    }
+    outputs = []
+
     for model_name, model_cat in zip(model_names, model_cats):
+        output = {}
         curves_output = None
         if model_cat == "t_cosmic_cat":
             continue
@@ -206,14 +189,14 @@ def process_ds(
             events[model_name + "_comb_cat_class"],
             zero_division=0,
         )
-        outputs["comb_report"].append(comb_report)
+        output["comb_report"] = comb_report
 
         cat_report = classification_report(
             events[model_cat],
             events[model_name + "_" + model_cat + "_class"],
             zero_division=0,
         )
-        outputs["cat_report"].append(cat_report)
+        output["cat_report"] = cat_report
         if verbose:
             print(comb_report)
             print(cat_report)
@@ -225,7 +208,7 @@ def process_ds(
         )
         matrix_comb = np.rot90(matrix_comb, 1)
         matrix_comb = pd.DataFrame(matrix_comb)
-        outputs["comb_matrices"].append(matrix_comb)
+        output["comb_matrices"] = matrix_comb
         matrix_all = confusion_matrix(
             events[model_cat],
             events[model_name + "_" + model_cat + "_class"],
@@ -233,26 +216,28 @@ def process_ds(
         )
         matrix_all = np.rot90(matrix_all, 1)
         matrix_all = pd.DataFrame(matrix_all)
-        outputs["all_matrices"].append(matrix_all)
+        output["all_matrices"] = matrix_all
 
         curves_output = calculate_curves(
             events, prefix=model_name + "_", verbose=verbose
         )
 
-        outputs["cuts"].append(curves_output["cuts"])
-        outputs["sig_effs"].append(curves_output["sig_effs"])
-        outputs["bkg_effs"].append(curves_output["bkg_effs"])
-        outputs["purs"].append(curves_output["purs"])
-        outputs["foms"].append(curves_output["foms"])
-        outputs["fom_effs"].append(curves_output["fom_effs"])
-        outputs["fom_purs"].append(curves_output["fom_purs"])
-        outputs["sig_effs_auc"].append(curves_output["sig_effs_auc"])
-        outputs["bkg_effs_auc"].append(curves_output["bkg_effs_auc"])
-        outputs["pur_auc"].append(curves_output["pur_auc"])
-        outputs["fom_auc"].append(curves_output["fom_auc"])
-        outputs["roc_auc"].append(curves_output["roc_auc"])
-        outputs["max_foms"].append(curves_output["max_foms"])
-        outputs["max_fom_cuts"].append(curves_output["max_fom_cuts"])
+        output["cuts"] = curves_output["cuts"]
+        output["sig_effs"] = curves_output["sig_effs"]
+        output["bkg_effs"] = curves_output["bkg_effs"]
+        output["purs"] = curves_output["purs"]
+        output["foms"] = curves_output["foms"]
+        output["fom_effs"] = curves_output["fom_effs"]
+        output["fom_purs"] = curves_output["fom_purs"]
+        output["sig_effs_auc"] = curves_output["sig_effs_auc"]
+        output["bkg_effs_auc"] = curves_output["bkg_effs_auc"]
+        output["pur_auc"] = curves_output["pur_auc"]
+        output["fom_auc"] = curves_output["fom_auc"]
+        output["roc_auc"] = curves_output["roc_auc"]
+        output["max_foms"] = curves_output["max_foms"]
+        output["max_fom_cuts"] = curves_output["max_fom_cuts"]
+
+        outputs.append(output)
 
     print("took {:.2f} seconds".format(time.time() - start_time))
 
@@ -1285,8 +1270,8 @@ def print_output_comparison(outputs, reports=True):
         print("FOM AUC: " + str(output["fom_auc"][0]))
         print("ROC AUC: " + str(output["roc_auc"][0]))
         if reports:
-            print(output["comb_report"][0])
-            print(output["cat_report"][0])
+            print(output["comb_report"])
+            print(output["cat_report"])
         print(
             "---------------------------------------------------------------------------"
         )

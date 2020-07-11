@@ -23,28 +23,28 @@ samples:
     v_c_flux:
         input_dirs: 
             - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
         channels: [1, 0, 0]
     v_ct_flux:
         input_dirs: 
             - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
         channels: [1, 1, 0]
     o_ct_flux:
         input_dirs:
             - "./data/input/chips_1200_all/flux/"
-            - "./data/input/chips_1200_all/cosmic/"
         channels: [0, 0, 0, 1, 1, 0, 0]
     i_ct_flux:
         input_dirs:
             - "./data/input/chips_1200_all/flux/"
-            - "./data/input/chips_1200_all/cosmic/"
         channels: [0, 0, 0, 0, 0, 1, 1]
     v_cth_flux:
         input_dirs: 
             - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
         channels: [1, 1, 1]
+    v_cth_flux_stacked:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+        channels: [1, 1, 1]
+        seperate_channels: False
 
     # Different samples
     both:
@@ -263,6 +263,12 @@ models:
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [1, 1, 1]
+    repr_v_cth_stacked:
+        path: "repr_v_cth_stacked" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+        seperate_channels: False
 
     # Different training sample models
     sample_both:
@@ -450,6 +456,18 @@ models:
         type: "vgg"
         labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
+        
+    # Final beam models
+    beam_final:
+        path: "beam_final" 
+        type: "vgg"
+        labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "prim_p", "prim_cp", "prim_np"]
+        channels: [1, 1, 1]
+    beam_final_learn:
+        path: "beam_final_learn" 
+        type: "vgg"
+        labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "prim_p", "prim_cp", "prim_np"]
+        channels: [1, 1, 1]
 
     # Explain model
     explain:
@@ -461,7 +479,7 @@ models:
         reco_pars: False
 
 eval:
-    examples: 64000
+    examples: 256000
     cuts:
         cosmic: 0.001   # Cosmic classifier cut
         q:      150.0   # r_total_digi_q cut

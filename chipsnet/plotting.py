@@ -279,14 +279,14 @@ def plot_curves(events, save_path):
     styles = ["solid", "dashed", "dotted", "dashdot"]
     for i in range(len(events)):
         axs[0].plot(
-            events[i]["cuts"][0],
-            events[i]["sig_effs"][0][0],
+            events[i]["cuts"],
+            events[i]["sig_effs"][0],
             color="green",
             linestyle=styles[i],
         )
         axs[0].plot(
-            events[i]["cuts"][0],
-            events[i]["bkg_effs"][0][0],
+            events[i]["cuts"],
+            events[i]["bkg_effs"][0],
             color="red",
             linestyle=styles[i],
         )
@@ -295,77 +295,18 @@ def plot_curves(events, save_path):
 
     for i in range(len(events)):
         axs[1].plot(
-            events[i]["cuts"][0],
-            events[i]["purs"][0][0],
-            color="blue",
-            linestyle=styles[i],
+            events[i]["cuts"], events[i]["purs"][0], color="blue", linestyle=styles[i],
         )
         axs[1].plot(
-            events[i]["cuts"][0],
-            events[i]["foms"][0][0],
-            color="black",
-            linestyle=styles[i],
+            events[i]["cuts"], events[i]["foms"][0], color="black", linestyle=styles[i],
         )
     axs[1].set_xlabel("Combined nuel cc score cut", fontsize=17)
     axs[1].set_ylabel("Purity or FOM", fontsize=17)
 
     for i in range(len(events)):
         axs[2].plot(
-            events[i]["bkg_effs"][0][0],
-            events[i]["sig_effs"][0][0],
-            color="black",
-            linestyle=styles[i],
-        )
-    axs[2].set_xlabel("Background efficiency", fontsize=17)
-    axs[2].set_ylabel("Signal efficiency", fontsize=17)
-    save(save_path)
-
-
-def plot_cosmic_curves(events, save_path):
-    """Plot the eff, pur, fom curves.
-
-    Args:
-        events (dict): events output
-        save_path (str): path to save plot to
-    """
-    fig, axs = plt.subplots(1, 3, figsize=(16, 5))
-    styles = ["solid", "dashed", "dotted", "dashdot"]
-    for i in range(len(events)):
-        axs[0].plot(
-            events[i]["cuts"][0],
-            events[i]["sig_effs"][0][0],
-            color="green",
-            linestyle=styles[i],
-        )
-        axs[0].plot(
-            events[i]["cuts"][0],
-            events[i]["bkg_effs"][0][0],
-            color="red",
-            linestyle=styles[i],
-        )
-    axs[0].set_xlabel("Cosmic score cut", fontsize=17)
-    axs[0].set_ylabel("Efficiency", fontsize=17)
-
-    for i in range(len(events)):
-        axs[1].plot(
-            events[i]["cuts"][0],
-            events[i]["purs"][0][0],
-            color="blue",
-            linestyle=styles[i],
-        )
-        axs[1].plot(
-            events[i]["cuts"][0],
-            events[i]["foms"][0][0],
-            color="black",
-            linestyle=styles[i],
-        )
-    axs[1].set_xlabel("Cosmic score cut", fontsize=17)
-    axs[1].set_ylabel("Purity or FOM", fontsize=17)
-
-    for i in range(len(events)):
-        axs[2].plot(
-            events[i]["bkg_effs"][0][0],
-            events[i]["sig_effs"][0][0],
+            events[i]["bkg_effs"][0],
+            events[i]["sig_effs"][0],
             color="black",
             linestyle=styles[i],
         )
@@ -389,29 +330,29 @@ def plot_e_hists(events, ev, save_path):
     for i in range(len(events)):
         axs[0].errorbar(
             bins,
-            events[i]["fom_effs"][0][0][0][0],
-            yerr=events[i]["fom_effs"][0][0][0][1],
+            events[i]["fom_effs"][0][0][0],
+            yerr=events[i]["fom_effs"][0][0][1],
             color="green",
             linestyle=styles[i],
         )
         axs[0].errorbar(
             bins,
-            events[i]["fom_effs"][0][0][1][0],
-            yerr=events[i]["fom_effs"][0][0][1][1],
+            events[i]["fom_effs"][0][1][0],
+            yerr=events[i]["fom_effs"][0][1][1],
             color="blue",
             linestyle=styles[i],
         )
         axs[0].errorbar(
             bins,
-            events[i]["fom_effs"][0][0][2][0],
-            yerr=events[i]["fom_effs"][0][0][2][1],
+            events[i]["fom_effs"][0][2][0],
+            yerr=events[i]["fom_effs"][0][2][1],
             color="red",
             linestyle=styles[i],
         )
         axs[0].errorbar(
             bins,
-            events[i]["fom_purs"][0][0][0],
-            yerr=events[i]["fom_purs"][0][0][1],
+            events[i]["fom_purs"][0][0],
+            yerr=events[i]["fom_purs"][0][1],
             color="black",
             linestyle=styles[i],
         )
@@ -432,29 +373,29 @@ def plot_e_hists(events, ev, save_path):
     for i in range(len(events)):
         axs[1].errorbar(
             bins,
-            events[i]["fom_effs"][0][1][0][0],
-            yerr=events[i]["fom_effs"][0][1][0][1],
+            events[i]["fom_effs"][1][0][0],
+            yerr=events[i]["fom_effs"][1][0][1],
             color="green",
             linestyle=styles[i],
         )
         axs[1].errorbar(
             bins,
-            events[i]["fom_effs"][0][1][1][0],
-            yerr=events[i]["fom_effs"][0][1][1][1],
+            events[i]["fom_effs"][1][1][0],
+            yerr=events[i]["fom_effs"][1][1][1],
             color="blue",
             linestyle=styles[i],
         )
         axs[1].errorbar(
             bins,
-            events[i]["fom_effs"][0][1][2][0],
-            yerr=events[i]["fom_effs"][0][1][2][1],
+            events[i]["fom_effs"][1][2][0],
+            yerr=events[i]["fom_effs"][1][2][1],
             color="red",
             linestyle=styles[i],
         )
         axs[1].errorbar(
             bins,
-            events[i]["fom_purs"][0][1][0],
-            yerr=events[i]["fom_purs"][0][1][1],
+            events[i]["fom_purs"][1][0],
+            yerr=events[i]["fom_purs"][1][1],
             color="black",
             linestyle=styles[i],
         )
@@ -474,29 +415,29 @@ def plot_e_hists(events, ev, save_path):
     for i in range(len(events)):
         axs[2].errorbar(
             bins,
-            events[i]["fom_effs"][0][2][0][0],
-            yerr=events[i]["fom_effs"][0][2][0][1],
+            events[i]["fom_effs"][2][0][0],
+            yerr=events[i]["fom_effs"][2][0][1],
             color="green",
             linestyle=styles[i],
         )
         axs[2].errorbar(
             bins,
-            events[i]["fom_effs"][0][2][1][0],
-            yerr=events[i]["fom_effs"][0][2][1][1],
+            events[i]["fom_effs"][2][1][0],
+            yerr=events[i]["fom_effs"][2][1][1],
             color="blue",
             linestyle=styles[i],
         )
         axs[2].errorbar(
             bins,
-            events[i]["fom_effs"][0][2][2][0],
-            yerr=events[i]["fom_effs"][0][2][2][1],
+            events[i]["fom_effs"][2][2][0],
+            yerr=events[i]["fom_effs"][2][2][1],
             color="red",
             linestyle=styles[i],
         )
         axs[2].errorbar(
             bins,
-            events[i]["fom_purs"][0][2][0],
-            yerr=events[i]["fom_purs"][0][2][1],
+            events[i]["fom_purs"][2][0],
+            yerr=events[i]["fom_purs"][2][1],
             color="black",
             linestyle=styles[i],
         )
@@ -546,8 +487,14 @@ def plot_history_comparison(config, models, save_path, key="accuracy"):
 
 
 def plot_true_vs_reco_e(events, axs, key="t_nu_energy"):
-    axs.hist2d(events["t_nu_energy"], e_ev[e_ev["t_comb_cat"] == 0]["energy_pred_t_nu_energy"],
-                range=e_range, bins=e_bins, weights=e_ev[e_ev["t_comb_cat"] == 0]["w"], cmap="Reds")
+    axs.hist2d(
+        events["t_nu_energy"],
+        e_ev[e_ev["t_comb_cat"] == 0]["energy_pred_t_nu_energy"],
+        range=e_range,
+        bins=e_bins,
+        weights=e_ev[e_ev["t_comb_cat"] == 0]["w"],
+        cmap="Reds",
+    )
     axs.grid()
     axs.label_outer()
     axs.set(xlabel=r"True energy (MeV)", ylabel=r"Reco energy (MeV)")
