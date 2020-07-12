@@ -24,6 +24,7 @@ from tf_explain.core.vanilla_gradients import VanillaGradients
 from tf_explain.core.smoothgrad import SmoothGrad
 from tf_explain.core.integrated_gradients import IntegratedGradients
 from tf_explain.core.gradients_inputs import GradientsInputs
+from scipy.stats import norm
 
 import chipsnet.config
 import chipsnet.data as data
@@ -900,6 +901,7 @@ def run_pca(
     layer_name="dense_final",
     standardise=True,
     components=3,
+    max_events=10000,
     verbose=False,
 ):
     """Run PCA on the final dense layer outputs and append results to events dataframe.
@@ -910,6 +912,7 @@ def run_pca(
         layer_name (str): final dense layer name
         standardise (bool): should we apply a standard scalar to the dense layer outputs?
         components (int): number of PCA componenets to calculate
+        max_events (int): maximum number of events to use in PCA
         verbose (bool): should we print the PCA summary?
 
     Returns:
@@ -949,7 +952,7 @@ def run_pca(
 
     # Run the PCA
     pca = PCA(n_components=components)
-    pca_result = pca.fit_transform(dense_outputs)
+    pca_result = pca.fit_transform(dense_outputs[:max_events])
     pca_result = pd.DataFrame(pca_result)
 
     # Append the results to the events dataframe
@@ -1195,12 +1198,12 @@ def predict_energies(config, data_name, model_names=[], verbose=False):
         )
 
         if "t_nu_energy" in model.config.model.labels:
-            events["frac_nu_energy"] = (
+            events[model_name + "_frac_nu_energy"] = (
                 events[model_name + "_pred_t_nu_energy"] - events["t_nu_energy"]
             ) / events["t_nu_energy"]
 
         if "t_lep_energy" in model.config.model.labels:
-            events["frac_lep_energy"] = (
+            events[model_name + "_frac_lep_energy"] = (
                 events[model_name + "_pred_t_lep_energy"] - events["t_lep_energy"]
             ) / events["t_lep_energy"]
 
@@ -1333,3 +1336,25 @@ def extended_hist(
 
     centers = np.delete(edges, [0]) - (np.ediff1d(edges) / 2.0)
     return n, w, centers, edges
+
+
+def frac_e_vs_par(
+    events,
+    par="t_nu_energy",
+    low=500,
+    high=8000,
+    bin_size=1500,
+    fit_name="frac_nu_energy",
+):
+    cuts, std_list = [], []
+    for cut in range(low, high, bin_size):
+        try:
+            subset = events[(events[par] >= cut)]
+            subset = subset[(subset[par] <= (cut + bin_size))]
+            mu, std = norm.fit(subset[fit_name])
+            std_list.append(std)
+            cuts.append(cut + (bin_size / 2))
+        except Exception as e:
+            cuts.append(cut + (bin_size / 2))
+            std_list.append(0)
+    return (cuts, std_list)

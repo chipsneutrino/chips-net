@@ -484,18 +484,3 @@ def plot_history_comparison(config, models, save_path, key="accuracy"):
         axs_t.tick_params(axis="y", labelcolor="tab:blue")
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
     save(save_path)
-
-
-def plot_true_vs_reco_e(events, axs, key="t_nu_energy"):
-    axs.hist2d(
-        events["t_nu_energy"],
-        e_ev[e_ev["t_comb_cat"] == 0]["energy_pred_t_nu_energy"],
-        range=e_range,
-        bins=e_bins,
-        weights=e_ev[e_ev["t_comb_cat"] == 0]["w"],
-        cmap="Reds",
-    )
-    axs.grid()
-    axs.label_outer()
-    axs.set(xlabel=r"True energy (MeV)", ylabel=r"Reco energy (MeV)")
-    axs.set_title(r"Nuel CC")

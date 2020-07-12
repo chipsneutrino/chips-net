@@ -235,6 +235,36 @@ samples:
         aug_factor_sigma: [0.02, 0.02, 0.02]
         aug_abs_mean: [0.0, 0.0, 0.0]
         aug_abs_sigma: [0.0, 0.0, 0.0]
+    flux_cosmic_factor_10:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.1, 0.1, 0.1]
+        aug_factor_sigma: [0.02, 0.02, 0.02]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
+    flux_cosmic_factor_20:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.2, 0.2, 0.2]
+        aug_factor_sigma: [0.02, 0.02, 0.02]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
+    flux_cosmic_factor_50:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.5, 0.5, 0.5]
+        aug_factor_sigma: [0.02, 0.02, 0.02]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
 
 models:
     # Different input representations
@@ -479,7 +509,7 @@ models:
         reco_pars: False
 
 eval:
-    examples: 256000
+    examples: 64000
     cuts:
         cosmic: 0.001   # Cosmic classifier cut
         q:      150.0   # r_total_digi_q cut
