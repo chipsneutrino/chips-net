@@ -950,7 +950,7 @@ def get_outputs(config, x):
 
 
 def mse_masked_loss(y_true, y_pred):
-    """Return a masked mean squared error loss
+    """Return a masked mean squared error loss.
 
     Args:
         y_true (tf.tensor): true value

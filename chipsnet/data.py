@@ -450,10 +450,6 @@ class Creator:
             axis=1,
         ).astype(np.float32)
 
-        # print(labels_f)
-        # print(labels_f.shape)
-        # print(labels_f.dtype)
-
         examples = []  # Generate examples using a feature dict
         for i in range(len(labels_i)):
             feature_dict = {

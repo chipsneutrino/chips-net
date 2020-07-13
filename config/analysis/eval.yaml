@@ -509,7 +509,7 @@ models:
         reco_pars: False
 
 eval:
-    examples: 64000
+    examples: 256000
     cuts:
         cosmic: 0.001   # Cosmic classifier cut
         q:      150.0   # r_total_digi_q cut
