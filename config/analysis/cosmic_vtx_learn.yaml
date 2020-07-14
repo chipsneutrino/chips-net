@@ -36,6 +36,6 @@ trainer:
     epochs: 10
     tb_update: 1000
     steps_per_epoch: -1
-    es_monitor: "val_accuracy"
-    es_delta: 0.0001
+    es_monitor: "val_t_cosmic_cat_accuracy"
+    es_delta: 0.00001
     es_epochs: 2

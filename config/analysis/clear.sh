@@ -52,8 +52,8 @@ rm -rf data/models/analysis/numu_cc_energy.yaml
 rm -rf data/models/analysis/nc_energy.yaml
 
 # Final beam model
-rm -rf data/models/analysis/beam_final.yaml
-rm -rf data/models/analysis/beam_final_learn.yaml
+rm -rf data/models/analysis/final_cosmic.yaml
+rm -rf data/models/analysis/final_beam.yaml
 
 # Explanation model (stacked/no_reco)
 rm -rf data/models/analysis/explain.yaml

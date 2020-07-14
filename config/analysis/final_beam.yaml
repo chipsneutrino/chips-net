@@ -1,6 +1,6 @@
 task: "train"
 exp:
-    name: "beam_final"
+    name: "final_beam"
     output_dir: "./data/models/analysis/"
     comet: False
 data:
@@ -46,7 +46,7 @@ model:
     precision_policy: "mixed_float16"
     summarise: False
 trainer:
-    train_examples: 1280000
+    train_examples: 7680000
     val_examples: 32000
     test_examples: 32000
     batch_size: 128

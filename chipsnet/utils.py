@@ -118,10 +118,6 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
     Returns:
         pd.DataFrame: fully processed events dataframe
     """
-    if len(m_names) != len(m_cats):
-        print("m_names and m_cats need to be the same length")
-        return
-
     print(
         "\n************************ Evaluating {} ************************".format(
             data_name
@@ -133,15 +129,25 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
     events = data_from_conf(config, data_name).testing_df(config.eval.examples)
 
     # Run all the required inference
-    for model_name in m_names:
-        model = model_from_conf(config, model_name)
+    for m_name in m_names:
+        model = model_from_conf(config, m_name)
         events = run_inference(
             events,
             model,
             seperate_channels=config.data.seperate_channels,
             reco_pars=config.model.reco_pars,
-            prefix=model_name + "_",
+            prefix=m_name + "_",
         )
+
+        if "t_nu_energy" in model.config.model.labels:
+            events[m_name + "_frac_nu_energy"] = (
+                events[m_name + "_pred_t_nu_energy"] - events["t_nu_energy"]
+            ) / events["t_nu_energy"]
+
+        if "t_lep_energy" in model.config.model.labels:
+            events[m_name + "_frac_lep_energy"] = (
+                events[m_name + "_pred_t_lep_energy"] - events["t_lep_energy"]
+            ) / events["t_lep_energy"]
 
     # Apply the event weights
     events = apply_weights(
@@ -171,7 +177,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
 
     for m_name, m_cat in zip(m_names, m_cats):
         output = {}
-        if m_cats == "t_cosmic_cat":
+        if m_cat in ["t_cosmic_cat", "energy"]:
             continue
 
         # Combine categories into fully combined ones
@@ -192,7 +198,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
         # Combined classification report and confusion matrix
         comb_cats = chipsnet.data.get_map("t_comb_cat")["categories"] + 1
         comb_labels = chipsnet.data.get_map("t_comb_cat")["labels"]
-        if len(events["t_cosmic_cat"] == 0):
+        if len(events[events["t_cosmic_cat"] == 1]) == 0:
             comb_cats = comb_cats - 1
             comb_labels = comb_labels[:comb_cats]
         comb_report = classification_report(
@@ -219,7 +225,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
         # Model category classification report and confusion matrix
         cat_cats = chipsnet.data.get_map(m_cat)["categories"] + 1
         cat_labels = chipsnet.data.get_map(m_cat)["labels"]
-        if len(events["t_cosmic_cat"] == 0):
+        if len(events[events["t_cosmic_cat"] == 1]) == 0:
             cat_cats = cat_cats - 1
             cat_labels = cat_labels[:cat_cats]
         cat_report = classification_report(
@@ -272,7 +278,6 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
                 m_name
             )
         )
-        print("- Comb Acc: {:.5f}".format(comb_report["accuracy"]))
         print(
             "- Comb-> Prec: ({:.5f},{:.5f}), Rec: ({:.5f},{:.5f}), F1: ({:.5f},{:.5f})".format(
                 comb_report["weighted avg"]["precision"],
@@ -1102,7 +1107,7 @@ def run_pca(
 
     # Append the results to the events dataframe
     for component in range(components):
-        events["pca_" + str(component)] = pca_result[component]
+        events["pca" + str(component)] = pca_result[component]
 
     if verbose:
         print(
@@ -1174,7 +1179,7 @@ def run_tsne(
 
     # Append the results to the events dataframe
     for component in range(components):
-        events["tsne_" + str(component)] = tsne_result[component]
+        events["tsne" + str(component)] = tsne_result[component]
 
     return events
 
@@ -1307,76 +1312,6 @@ def explain_grads(events, model, num_events, output="t_nu_nc_cat"):
             )
         )
     return outputs
-
-
-def predict_energies(config, data_name, model_names=[], verbose=False):
-    """Fully process a dataset through a list of models and run a standard evaluation.
-
-    Args:
-        config (dotmap.DotMap): configuration namespace
-        data_name (str): data name
-        model_names (List[str]): model names
-        verbose (bool): should we print summaries?
-
-    Returns:
-        pd.DataFrame: fully processed events dataframe
-    """
-    print("Processing {}... ".format(data_name), end="", flush=True)
-    if verbose:
-        print("\n")
-    start_time = time.time()
-
-    # Get the dataframe from the dataset name
-    events = data_from_conf(config, data_name).testing_df(config.eval.examples)
-
-    # Run all the required inference
-    for model_name in model_names:
-        model = model_from_conf(config, model_name)
-        events = run_inference(
-            events,
-            model,
-            seperate_channels=config.data.seperate_channels,
-            reco_pars=config.model.reco_pars,
-            prefix=model_name + "_",
-        )
-
-        if "t_nu_energy" in model.config.model.labels:
-            events[model_name + "_frac_nu_energy"] = (
-                events[model_name + "_pred_t_nu_energy"] - events["t_nu_energy"]
-            ) / events["t_nu_energy"]
-
-        if "t_lep_energy" in model.config.model.labels:
-            events[model_name + "_frac_lep_energy"] = (
-                events[model_name + "_pred_t_lep_energy"] - events["t_lep_energy"]
-            ) / events["t_lep_energy"]
-
-    # Apply the event weights
-    events = apply_weights(
-        events,
-        total_num=config.eval.weights.total,
-        nuel_frac=config.eval.weights.nuel,
-        anuel_frac=config.eval.weights.anuel,
-        numu_frac=config.eval.weights.numu,
-        anumu_frac=config.eval.weights.anumu,
-        cosmic_frac=config.eval.weights.cosmic,
-        verbose=verbose,
-    )
-
-    # Apply the standard cuts
-    events = apply_standard_cuts(
-        events,
-        cosmic_cut=config.eval.cuts.cosmic,
-        q_cut=config.eval.cuts.q,
-        h_cut=config.eval.cuts.h,
-        theta_cut=config.eval.cuts.theta,
-        phi_cut=config.eval.cuts.phi,
-        verbose=verbose,
-    )
-
-    print("took {:.2f} seconds".format(time.time() - start_time))
-
-    # Return everything
-    return events
 
 
 def globes_smearing_file(hists, names):
