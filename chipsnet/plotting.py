@@ -15,7 +15,7 @@ def save(name):
     Args:
         name (str): output path+name
     """
-    plt.savefig("{}.pgf".format(name))
+    # plt.savefig("{}.pgf".format(name))
     plt.savefig("{}.pdf".format(name))
     plt.show()
 
@@ -61,7 +61,7 @@ def plot_cats(events_u, events_b, cat_map, save_path):
     axs.set_xticklabels(cat_map["labels"], fontsize=14, rotation="vertical")
     axs.set_ylabel("Testing events")
     axs.legend()
-    save(save_path + cat_map["name"])
+    save(save_path + "explore_" + cat_map["name"])
 
 
 def plot_hit_time(images_dict, event, save_name):
@@ -224,7 +224,7 @@ def plot_8bit_range(
     axs[2].set(xlabel="Hough 8-bit value", ylabel="Frequency")
     axs[2].label_outer()
 
-    save(save_path + "8_bit_range")
+    save(save_path + "expore_8_bit_range")
 
 
 def plot_cuts(config, events, save_path):
@@ -275,9 +275,9 @@ def plot_cuts(config, events, save_path):
         label="cosmic",
     )
     axs[0, 0].set(xlabel="Total collected charge (p.e)")
+    axs[0, 0].set(ylabel="Events (arb.)")
     axs[0, 0].axvspan(0, config.eval.cuts.q, alpha=0.5, color="grey")
     axs[0, 0].set_yticks([])
-    # axs[0, 0].legend()
 
     axs[0, 1].hist(
         events[events.t_comb_cat == 0]["r_first_ring_height"],
@@ -318,7 +318,27 @@ def plot_cuts(config, events, save_path):
     axs[0, 1].set(xlabel="Hough ring height (p.e)")
     axs[0, 1].axvspan(0, config.eval.cuts.h, alpha=0.5, color="grey")
     axs[0, 1].set_yticks([])
-    # axs[0, 1].legend()
+    nuel = Line2D(
+        [0],
+        [0],
+        color="tab:green",
+        linewidth=1,
+        linestyle="solid",
+        label=r"$\nu_{e}$ CC",
+    )
+    numu = Line2D(
+        [0],
+        [0],
+        color="tab:blue",
+        linewidth=1,
+        linestyle="solid",
+        label=r"$\nu_{\mu}$ CC",
+    )
+    nc = Line2D([0], [0], color="tab:red", linewidth=1, linestyle="solid", label=r"NC")
+    cosmic = Line2D(
+        [0], [0], color="tab:orange", linewidth=1, linestyle="solid", label=r"cosmic"
+    )
+    axs[0, 1].legend(handles=[nuel, numu, nc, cosmic], loc="upper right")
 
     axs[1, 0].hist(
         events[events.t_comb_cat == 0]["r_dir_theta"],
@@ -360,7 +380,7 @@ def plot_cuts(config, events, save_path):
     axs[1, 0].axvspan(-1, -config.eval.cuts.theta, alpha=0.5, color="grey")
     axs[1, 0].axvspan(config.eval.cuts.theta, 1, alpha=0.5, color="grey")
     axs[1, 0].set_yticks([])
-    # axs[1, 0].legend()
+    axs[1, 0].set(ylabel="Events (arb.)")
 
     axs[1, 1].hist(
         events[events.t_comb_cat == 0]["r_dir_phi"] * 3.14159,
@@ -402,8 +422,7 @@ def plot_cuts(config, events, save_path):
     axs[1, 1].axvspan(-3.2, -config.eval.cuts.phi * 3.14159, alpha=0.5, color="grey")
     axs[1, 1].axvspan(config.eval.cuts.phi * 3.14159, 3.2, alpha=0.5, color="grey")
     axs[1, 1].set_yticks([])
-    # axs[1, 1].legend()
-    chipsnet.plotting.save(save_path + "simple_cuts")
+    chipsnet.plotting.save(save_path + "explore_simple_cuts")
 
 
 def plot_combined_values(events, prefix, save_path):
@@ -418,14 +437,14 @@ def plot_combined_values(events, prefix, save_path):
     hist_range = (0, 1)
     cat0 = prefix + "pred_t_comb_cat_0"
     cat1 = prefix + "pred_t_comb_cat_1"
-    cat2 = prefix + "pred_t_comb_cat_2"
+    # cat2 = prefix + "pred_t_comb_cat_2"
     nuel_cc_events = events[events["t_comb_cat"] == 0]
     numu_cc_events = events[events["t_comb_cat"] == 1]
     nc_events = events[events["t_comb_cat"] == 2]
     cosmic_events = events[(events["t_comb_cat"] == 3) & (events["cut"] == 0)]
 
     fig, axs = plt.subplots(
-        1, 3, figsize=(18, 5), gridspec_kw={"hspace": 0.1, "wspace": 0.1}
+        1, 2, figsize=(12, 5), gridspec_kw={"hspace": 0.1, "wspace": 0.1}
     )
     plt.setp(axs, xticks=[0, 0.2, 0.4, 0.6, 0.8, 1])
     axs[0].hist(
@@ -481,10 +500,10 @@ def plot_combined_values(events, prefix, save_path):
         label=r"$\nu_{\mu}$ CC",
     )
     nc = Line2D([0], [0], color="tab:red", linewidth=1, linestyle="solid", label=r"NC")
-    cosmic = Line2D(
-        [0], [0], color="tab:orange", linewidth=1, linestyle="solid", label=r"cosmic"
-    )
-    axs[0].legend(handles=[nuel, numu, nc, cosmic], loc="upper right")
+    # cosmic = Line2D(
+    #    [0], [0], color="tab:orange", linewidth=1, linestyle="solid", label=r"cosmic"
+    # )
+    axs[0].legend(handles=[nuel, numu, nc], loc="upper right")
 
     axs[1].hist(
         nuel_cc_events[cat1],
@@ -523,6 +542,7 @@ def plot_combined_values(events, prefix, save_path):
     axs[1].set_yscale("log")
     axs[1].label_outer()
 
+    """
     axs[2].hist(
         nuel_cc_events[cat2],
         weights=nuel_cc_events["w"],
@@ -559,10 +579,11 @@ def plot_combined_values(events, prefix, save_path):
     axs[2].set_xlabel(r"NC score", fontsize=24)
     axs[2].set_yscale("log")
     axs[2].label_outer()
+    """
     save(save_path)
 
 
-def plot_curves(events, cat, save_path):
+def plot_eff_curves(events, cat, save_path):
     """Plot the eff, pur, fom curves.
 
     Args:
@@ -570,62 +591,66 @@ def plot_curves(events, cat, save_path):
         save_path (str): path to save plot to
     """
     fig, axs = plt.subplots(
-        2, 2, figsize=(12, 12), gridspec_kw={"hspace": 0.2, "wspace": 0.3}
+        1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.2, "wspace": 0.3}
     )
-    plt.setp(axs, xticks=[0, 0.25, 0.5, 0.75, 1], yticks=[0, 0.25, 0.5, 0.75, 1])
+    plt.setp(axs, xticks=[0, 0.25, 0.5, 0.75, 1], yticks=[0, 25, 50, 75, 100])
     styles = ["solid", "dashed", "dotted", "dashdot"]
     for i in range(len(events)):
-        axs[0, 0].plot(
+        axs.plot(
             events[i]["cuts"],
-            events[i]["sig_effs"][cat],
+            events[i]["sig_effs"][cat] * 100,
             color="tab:green",
             linestyle=styles[i],
             label="",
         )
-        axs[0, 0].plot(
+        axs.plot(
             events[i]["cuts"],
-            events[i]["bkg_effs"][cat],
+            events[i]["bkg_effs"][cat] * 100,
             color="tab:red",
             linestyle=styles[i],
         )
-    if cat == 0:
-        axs[0, 0].set_xlabel(r"$\nu_{e}$ CC score", fontsize=24)
-    elif cat == 1:
-        axs[0, 0].set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=24)
-    axs[0, 0].set_ylabel("Efficiency", fontsize=24)
-    axs[0, 0].set_ylim(0, 1)
-    axs[0, 0].set_xlim(0, 1)
-    signal = Line2D(
-        [0], [0], color="tab:green", linewidth=2, linestyle="solid", label="signal"
-    )
-    bkg = Line2D(
-        [0], [0], color="tab:red", linewidth=2, linestyle="solid", label="background"
-    )
-    axs[0, 0].legend(handles=[signal, bkg], loc="center left")
-    axs[0, 0].grid()
-
-    for i in range(len(events)):
-        axs[0, 1].plot(
+        axs.plot(
             events[i]["cuts"],
-            events[i]["purs"][cat],
+            events[i]["purs"][cat] * 100,
             color="tab:blue",
             linestyle=styles[i],
         )
-        axs[0, 1].plot(
+        axs.plot(
             events[i]["cuts"],
-            events[i]["foms_0"][cat],
+            events[i]["foms_0"][cat] * 100,
             color="black",
             linestyle=styles[i],
         )
     if cat == 0:
-        axs[0, 1].set_xlabel(r"$\nu_{e}$ CC score", fontsize=24)
+        axs.set_xlabel(r"$\nu_{e}$ CC score", fontsize=24)
     elif cat == 1:
-        axs[0, 1].set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=24)
-    axs[0, 1].set_ylabel("Purity or FOM", fontsize=24)
-    axs[0, 1].set_ylim(0, 1)
-    axs[0, 1].set_xlim(0, 1)
+        axs.set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=24)
+    axs.set_ylabel("Percentage", fontsize=24)
+    axs.set_ylim(0, 100)
+    axs.set_xlim(0, 1)
+    signal = Line2D(
+        [0],
+        [0],
+        color="tab:green",
+        linewidth=2,
+        linestyle="solid",
+        label="signal efficiency",
+    )
+    bkg = Line2D(
+        [0],
+        [0],
+        color="tab:red",
+        linewidth=2,
+        linestyle="solid",
+        label="background efficiency",
+    )
     pur = Line2D(
-        [0], [0], color="tab:blue", linewidth=2, linestyle="solid", label="purity"
+        [0],
+        [0],
+        color="tab:blue",
+        linewidth=2,
+        linestyle="solid",
+        label="signal purity",
     )
     fom = Line2D(
         [0],
@@ -635,41 +660,64 @@ def plot_curves(events, cat, save_path):
         linestyle="solid",
         label=r"efficiency $\times$ purity",
     )
-    axs[0, 1].legend(handles=[pur, fom], loc="center left")
-    axs[0, 1].grid()
+    axs.legend(handles=[signal, bkg, pur, fom], loc="center left")
+    axs.grid()
+    save(save_path)
+
+
+def plot_comp_curves(events, cat, save_path):
+    """Plot the eff, pur, fom curves.
+
+    Args:
+        events (dict): events output
+        save_path (str): path to save plot to
+    """
+    fig, axs = plt.subplots(
+        1, 2, figsize=(12, 5), gridspec_kw={"hspace": 0.2, "wspace": 0.3}
+    )
+    # plt.setp(axs, xticks=[0, 0.25, 0.5, 0.75, 1], yticks=[0, 0.25, 0.5, 0.75, 1])
+    styles = ["solid", "dashed", "dotted", "dashdot"]
 
     for i in range(len(events)):
-        axs[1, 0].plot(
+        axs[0].plot(
             events[i]["bkg_effs"][cat],
             events[i]["sig_effs"][cat],
-            color="black",
+            color="tab:cyan",
             linestyle=styles[i],
         )
-    axs[1, 0].set_xlabel("Background efficiency", fontsize=24)
-    axs[1, 0].set_ylabel("Signal efficiency", fontsize=24)
-    axs[1, 0].set_ylim(0, 1)
-    axs[1, 0].set_xlim(0, 1)
-    axs[1, 0].legend()
-    axs[1, 0].grid()
+    axs[0].set_xlabel("Background efficiency", fontsize=24)
+    axs[0].set_ylabel("Signal efficiency", fontsize=24)
+    # axs[0].set_ylim(0, 1)
+    # axs[0].set_xlim(0, 1)
+    axs[0].legend()
+    axs[0].grid()
+    roc = Line2D(
+        [0], [0], color="tab:cyan", linewidth=2, linestyle="solid", label=r"ROC curve",
+    )
+    axs[0].legend(handles=[roc], loc="center left")
 
     for i in range(len(events)):
-        axs[1, 1].plot(
+        axs[1].plot(
             events[i]["sig_effs"][cat],
             events[i]["purs"][cat],
-            color="pink",
+            color="tab:pink",
             linestyle=styles[i],
         )
-    axs[1, 1].set_xlabel("Signal efficiency", fontsize=24)
-    axs[1, 1].set_ylabel("Purity", fontsize=24)
-    axs[1, 1].set_ylim(0, 1)
-    axs[1, 1].set_xlim(0, 1)
-    axs[1, 1].legend()
-    axs[1, 1].grid()
+    axs[1].set_xlabel("Signal efficiency", fontsize=24)
+    axs[1].set_ylabel("Signal Purity", fontsize=24)
+    # axs[1].set_ylim(0, 1)
+    # axs[1].set_xlim(0, 1)
+    axs[1].legend()
+    axs[1].grid()
+    prc = Line2D(
+        [0], [0], color="tab:pink", linewidth=2, linestyle="solid", label=r"PR curve",
+    )
+    axs[1].legend(handles=[prc], loc="center left")
 
     save(save_path)
 
 
-def plot_e_hists(events, ev, save_path):
+def plot_nuel_hists(events, ev, save_path):
     """Plot the eff and pur plot vs neutrino energy.
 
     Args:
@@ -677,95 +725,162 @@ def plot_e_hists(events, ev, save_path):
         ev (pd.DataFrame): events DataFrame
         save_path (str): path to save plot to
     """
-    fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+    fig, axs = plt.subplots(1, 1, figsize=(12, 8))
     bins = np.arange(1.25, 8.25, 0.5)
     styles = ["solid", "dashed", "dotted", "dashdot"]
 
     for i in range(len(events)):
-        axs[0].errorbar(
+        axs.errorbar(
             bins,
-            events[i]["fom_effs"][0][0][0],
-            yerr=events[i]["fom_effs"][0][0][1],
+            events[i]["fom_effs"][0][0][0] * 100,
+            yerr=events[i]["fom_effs"][0][0][1] * 100,
             color="tab:green",
             linestyle=styles[i],
         )
-        axs[0].errorbar(
+        axs.errorbar(
             bins,
-            events[i]["fom_effs"][0][1][0],
-            yerr=events[i]["fom_effs"][0][1][1],
+            events[i]["fom_effs"][0][1][0] * 100,
+            yerr=events[i]["fom_effs"][0][1][1] * 100,
             color="tab:blue",
             linestyle=styles[i],
         )
-        axs[0].errorbar(
+        axs.errorbar(
             bins,
-            events[i]["fom_effs"][0][2][0],
-            yerr=events[i]["fom_effs"][0][2][1],
+            events[i]["fom_effs"][0][2][0] * 100,
+            yerr=events[i]["fom_effs"][0][2][1] * 100,
             color="tab:red",
             linestyle=styles[i],
         )
-        axs[0].errorbar(
+        axs.errorbar(
             bins,
-            events[i]["fom_purs"][0][0],
-            yerr=events[i]["fom_purs"][0][1],
+            events[i]["fom_purs"][0][0] * 100,
+            yerr=events[i]["fom_purs"][0][1] * 100,
             color="black",
             linestyle=styles[i],
         )
-    axs[0].hist(
-        ev[ev["t_comb_cat"] == 0]["t_nu_energy"].to_numpy() / 1000,
+    axs.hist(
+        ev[ev["t_comb_cat"] == 0]["t_nu_energy"] / 1000,
         range=(1, 8),
         bins=14,
         color="tab:green",
-        density=True,
+        density=False,
         alpha=0.3,
-        weights=ev[ev["t_comb_cat"] == 0]["w"].to_numpy(),
+        weights=ev[ev["t_comb_cat"] == 0]["w"] * 15,
     )
-    axs[0].set_xlabel("Neutrino energy (GeV)", fontsize=24)
-    axs[0].set_ylabel("Efficiency", fontsize=24)
-    axs[0].set_ylim([0, 1])
-    axs[0].set_title(r"$\nu_{e}$ CC signal")
+    axs.set_xlabel("Neutrino energy (GeV)", fontsize=24)
+    axs.set_ylabel("Percentage", fontsize=24)
+    axs.set_ylim([0, 100])
+    nuel_eff = Line2D(
+        [0],
+        [0],
+        color="tab:green",
+        linewidth=2,
+        linestyle="solid",
+        label=r"$\nu_{e}$ CC efficiency",
+    )
+    numu_eff = Line2D(
+        [0],
+        [0],
+        color="tab:blue",
+        linewidth=2,
+        linestyle="solid",
+        label=r"$\nu_{\mu}$ CC efficiency",
+    )
+    nc_eff = Line2D(
+        [0],
+        [0],
+        color="tab:red",
+        linewidth=2,
+        linestyle="solid",
+        label=r"NC efficiency",
+    )
+    pur = Line2D(
+        [0], [0], color="black", linewidth=2, linestyle="solid", label=r"Purity",
+    )
+    axs.legend(handles=[nuel_eff, numu_eff, nc_eff, pur], loc=(0.65, 0.1))
+
+
+def plot_numu_hists(events, ev, save_path):
+    """Plot the eff and pur plot vs neutrino energy.
+
+    Args:
+        events (dict): events output
+        ev (pd.DataFrame): events DataFrame
+        save_path (str): path to save plot to
+    """
+    fig, axs = plt.subplots(1, 1, figsize=(12, 8))
+    bins = np.arange(1.25, 8.25, 0.5)
+    styles = ["solid", "dashed", "dotted", "dashdot"]
 
     for i in range(len(events)):
-        axs[1].errorbar(
+        axs.errorbar(
             bins,
-            events[i]["fom_effs"][1][0][0],
-            yerr=events[i]["fom_effs"][1][0][1],
+            events[i]["fom_effs"][1][0][0] * 100,
+            yerr=events[i]["fom_effs"][1][0][1] * 100,
             color="tab:green",
             linestyle=styles[i],
         )
-        axs[1].errorbar(
+        axs.errorbar(
             bins,
-            events[i]["fom_effs"][1][1][0],
-            yerr=events[i]["fom_effs"][1][1][1],
+            events[i]["fom_effs"][1][1][0] * 100,
+            yerr=events[i]["fom_effs"][1][1][1] * 100,
             color="tab:blue",
             linestyle=styles[i],
         )
-        axs[1].errorbar(
+        axs.errorbar(
             bins,
-            events[i]["fom_effs"][1][2][0],
-            yerr=events[i]["fom_effs"][1][2][1],
+            events[i]["fom_effs"][1][2][0] * 100,
+            yerr=events[i]["fom_effs"][1][2][1] * 100,
             color="tab:red",
             linestyle=styles[i],
         )
-        axs[1].errorbar(
+        axs.errorbar(
             bins,
-            events[i]["fom_purs"][1][0],
-            yerr=events[i]["fom_purs"][1][1],
+            events[i]["fom_purs"][1][0] * 100,
+            yerr=events[i]["fom_purs"][1][1] * 100,
             color="black",
             linestyle=styles[i],
         )
-    axs[1].hist(
-        ev[ev["t_comb_cat"] == 1]["t_nu_energy"].to_numpy() / 1000,
+    axs.hist(
+        ev[ev["t_comb_cat"] == 1]["t_nu_energy"] / 1000,
         range=(1, 8),
         bins=14,
         color="tab:blue",
-        density=True,
+        density=False,
         alpha=0.3,
-        weights=ev[ev["t_comb_cat"] == 1]["w"].to_numpy(),
+        weights=ev[ev["t_comb_cat"] == 1]["w"] * 0.1,
     )
-    axs[1].set_xlabel("Neutrino energy (GeV)", fontsize=24)
-    axs[1].set_ylim([0, 1])
-    axs[1].set_title(r"$\nu_{\mu}$ CC signal")
-    save(save_path)
+    axs.set_xlabel("Neutrino energy (GeV)", fontsize=24)
+    axs.set_ylabel("Percentage", fontsize=24)
+    axs.set_ylim([0, 100])
+    nuel_eff = Line2D(
+        [0],
+        [0],
+        color="tab:green",
+        linewidth=2,
+        linestyle="solid",
+        label=r"$\nu_{e}$ CC efficiency",
+    )
+    numu_eff = Line2D(
+        [0],
+        [0],
+        color="tab:blue",
+        linewidth=2,
+        linestyle="solid",
+        label=r"$\nu_{\mu}$ CC efficiency",
+    )
+    nc_eff = Line2D(
+        [0],
+        [0],
+        color="tab:red",
+        linewidth=2,
+        linestyle="solid",
+        label=r"NC efficiency",
+    )
+    pur = Line2D(
+        [0], [0], color="black", linewidth=2, linestyle="solid", label=r"Purity",
+    )
+    axs.legend(handles=[numu_eff, nuel_eff, nc_eff, pur], loc="center right")
 
 
 def plot_history(config, model, save_path, key="accuracy", label=r"accuracy"):
@@ -777,7 +892,9 @@ def plot_history(config, model, save_path, key="accuracy", label=r"accuracy"):
         save_path (str): path to save plot to
         key (str): Key to use for second metric alongside loss
     """
-    fig, axs = plt.subplots(1, 1, figsize=(8, 5))
+    fig, axs = plt.subplots(
+        1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.2, "wspace": 0.3}
+    )
     plt.setp(axs, xticks=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     history = chipsnet.utils.model_history(config, model)
     epochs = np.arange(1, len(history["loss"]) + 1)

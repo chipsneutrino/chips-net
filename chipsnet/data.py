@@ -74,7 +74,7 @@ class Reader:
         # Decode and reshape the 'image' into a tf tensor, reshape, then cast correctly and scale
         image = tf.io.decode_raw(example["inputs_image"], tf.uint8)
         image = tf.reshape(image, self.image_shape)
-        image = tf.cast(image, tf.float32) / 256.0  # Cast to float and salce to [0,1]
+        image = tf.cast(image, tf.float32) / 256.0  # Cast to float and scale to [0,1]
 
         # Unstack the channels and reassemble if needed later
         unstacked = tf.unstack(image, axis=2)
@@ -99,7 +99,23 @@ class Reader:
                         stddev=self.config.data.aug_abs_sigma[i],
                         dtype=tf.float32,
                     )
+                    zero = tf.constant(0, dtype=tf.float32)
+                    zero_locs = tf.not_equal(unstacked[i], zero)
+                    zero_locs = tf.cast(zero_locs, tf.float32)
+                    abs_shift = tf.math.multiply(abs_shift, zero_locs)
                     unstacked[i] = tf.math.add(unstacked[i], abs_shift)
+
+                    # Apply the noise shifting of the bin contents
+                    noise_shift = tf.random.normal(
+                        shape=self.config.data.img_size,
+                        mean=(self.config.data.aug_noise_mean[i]),
+                        stddev=self.config.data.aug_noise_sigma[i],
+                        dtype=tf.float32,
+                    )
+                    unstacked[i] = tf.math.add(unstacked[i], noise_shift)
+
+                    # Clip value back to between [0,1]
+                    unstacked[i] = tf.clip_by_value(unstacked[i], 0.0, 1.0)
 
                 channels.append(unstacked[i])
 
@@ -237,6 +253,18 @@ class Reader:
             ds = ds.batch(batch_size, drop_remainder=True)
         return ds
 
+    def test_val_ds(self, num_events, batch_size=None, strip=False):
+        """Return the testing + validation dataset.
+
+        Returns:
+            tf.dataset: testing + validation dataset
+        """
+        ds = self.dataset(self.test_dirs + self.val_dirs, strip=strip)
+        ds = ds.take(num_events)
+        if batch_size is not None:
+            ds = ds.batch(batch_size, drop_remainder=True)
+        return ds
+
     def training_df(self, num_events):
         """Return the training DataFrame.
 
@@ -269,6 +297,17 @@ class Reader:
             pd.DataFrame: testing sample DataFrame
         """
         return df_from_ds(self.testing_ds(num_events, 256))
+
+    def test_val_df(self, num_events):
+        """Return the testing + validation DataFrame.
+
+        Args:
+            num_events (int): number of events to include
+
+        Returns:
+            pd.DataFrame: testing +validation sample DataFrame
+        """
+        return df_from_ds(self.test_val_ds(num_events, 256))
 
 
 class Creator:

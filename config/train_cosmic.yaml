@@ -29,13 +29,13 @@ model:
     precision_policy: "mixed_float16"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
     summarise: True  # Should we display a summary of the model when it is built?
 trainer:
-    train_examples: 1280000  # Number of training examples to use
-    val_examples: 64000  # Number of validation examples to use
-    test_examples: 128000  # Nqumber of testing examples to use
+    train_examples: 320000  # Number of training examples to use
+    val_examples: 32000  # Number of validation examples to use
+    test_examples: 64000  # Nqumber of testing examples to use
     batch_size: 128  # Training batch size
-    epochs: 10  # Number of epochs to train for
+    epochs: 5  # Number of epochs to train for
     tb_update: 1000  # How often should tensorboard record values (batches)
     steps_per_epoch: -1  # Number of steps per epoch (-1 default)
-    es_monitor: "val_accuracy"  # Metric to monitor for early stopping
+    es_monitor: "val_t_cosmic_cat_accuracy"  # Metric to monitor for early stopping
     es_delta: 0.00001  # Early stopping minimum delta value
     es_epochs: 2  # Early stopping epochs without delta change before stop

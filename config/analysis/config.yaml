@@ -1,0 +1,698 @@
+exp:
+    output_dir: "./data/models/analysis/"
+
+data:
+    seperate_channels: True
+    img_size: [64, 64]
+    augment: False
+    exp:
+        output_dir: "./data/models/analysis/"
+    
+    data:
+        seperate_channels: True
+        img_size: [64, 64]
+        augment: False
+    
+    model:
+        lr: 0.0002
+        lr_decay: 0.5
+        dense_units: 512
+        dropout: 0.1
+        filters: 64
+        reco_pars: True
+        se_ratio: 16
+        learn_weights: False
+        precision_policy: "mixed_float16"
+        summarise: False
+    
+model:
+    lr: 0.0002
+    lr_decay: 0.5
+    dense_units: 512
+    dropout: 0.1
+    filters: 64
+    reco_pars: True
+    se_ratio: 16
+    learn_weights: False
+    precision_policy: "mixed_float16"
+    summarise: False
+
+samples:
+    # Different input representations
+    v_c_flux:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+        channels: [1, 0, 0]
+    v_ct_flux:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+        channels: [1, 1, 0]
+    o_ct_flux:
+        input_dirs:
+            - "./data/input/chips_1200_all/flux/"
+        channels: [0, 0, 0, 1, 1, 0, 0]
+    i_ct_flux:
+        input_dirs:
+            - "./data/input/chips_1200_all/flux/"
+        channels: [0, 0, 0, 0, 0, 1, 1]
+    v_cth_flux:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+        channels: [1, 1, 1]
+    v_cth_flux_stacked:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+        channels: [1, 1, 1]
+        seperate_channels: False
+
+    # Different samples
+    both:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/nuel_cccoh/"
+            - "./data/input/chips_1200/nuel_nccoh/"
+            - "./data/input/chips_1200/nuel_ccdis/"
+            - "./data/input/chips_1200/nuel_ncdis/"
+            - "./data/input/chips_1200/nuel_ccqel/"
+            - "./data/input/chips_1200/nuel_ncqel/"
+            - "./data/input/chips_1200/nuel_ccres/"
+            - "./data/input/chips_1200/nuel_ncres/"
+            - "./data/input/chips_1200/nuel_ccmec/"
+            - "./data/input/chips_1200/numu_cccoh/"
+            - "./data/input/chips_1200/numu_nccoh/"
+            - "./data/input/chips_1200/numu_ccdis/"
+            - "./data/input/chips_1200/numu_ncdis/"
+            - "./data/input/chips_1200/numu_ccqel/"
+            - "./data/input/chips_1200/numu_ncqel/"
+            - "./data/input/chips_1200/numu_ccres/"
+            - "./data/input/chips_1200/numu_ncres/"
+            - "./data/input/chips_1200/numu_ccmec/"
+        channels: [1, 1, 1]
+    both_cosmic:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/nuel_cccoh/"
+            - "./data/input/chips_1200/nuel_nccoh/"
+            - "./data/input/chips_1200/nuel_ccdis/"
+            - "./data/input/chips_1200/nuel_ncdis/"
+            - "./data/input/chips_1200/nuel_ccqel/"
+            - "./data/input/chips_1200/nuel_ncqel/"
+            - "./data/input/chips_1200/nuel_ccres/"
+            - "./data/input/chips_1200/nuel_ncres/"
+            - "./data/input/chips_1200/nuel_ccmec/"
+            - "./data/input/chips_1200/numu_cccoh/"
+            - "./data/input/chips_1200/numu_nccoh/"
+            - "./data/input/chips_1200/numu_ccdis/"
+            - "./data/input/chips_1200/numu_ncdis/"
+            - "./data/input/chips_1200/numu_ccqel/"
+            - "./data/input/chips_1200/numu_ncqel/"
+            - "./data/input/chips_1200/numu_ccres/"
+            - "./data/input/chips_1200/numu_ncres/"
+            - "./data/input/chips_1200/numu_ccmec/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+    flux:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+        channels: [1, 1, 1]
+    flux_cosmic:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+    uniform:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_cccoh/"
+            - "./data/input/chips_1200/nuel_nccoh/"
+            - "./data/input/chips_1200/nuel_ccdis/"
+            - "./data/input/chips_1200/nuel_ncdis/"
+            - "./data/input/chips_1200/nuel_ccqel/"
+            - "./data/input/chips_1200/nuel_ncqel/"
+            - "./data/input/chips_1200/nuel_ccres/"
+            - "./data/input/chips_1200/nuel_ncres/"
+            - "./data/input/chips_1200/nuel_ccmec/"
+            - "./data/input/chips_1200/numu_cccoh/"
+            - "./data/input/chips_1200/numu_nccoh/"
+            - "./data/input/chips_1200/numu_ccdis/"
+            - "./data/input/chips_1200/numu_ncdis/"
+            - "./data/input/chips_1200/numu_ccqel/"
+            - "./data/input/chips_1200/numu_ncqel/"
+            - "./data/input/chips_1200/numu_ccres/"
+            - "./data/input/chips_1200/numu_ncres/"
+            - "./data/input/chips_1200/numu_ccmec/"
+        channels: [1, 1, 1]
+    uniform_cosmic:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_cccoh/"
+            - "./data/input/chips_1200/nuel_nccoh/"
+            - "./data/input/chips_1200/nuel_ccdis/"
+            - "./data/input/chips_1200/nuel_ncdis/"
+            - "./data/input/chips_1200/nuel_ccqel/"
+            - "./data/input/chips_1200/nuel_ncqel/"
+            - "./data/input/chips_1200/nuel_ccres/"
+            - "./data/input/chips_1200/nuel_ncres/"
+            - "./data/input/chips_1200/nuel_ccmec/"
+            - "./data/input/chips_1200/numu_cccoh/"
+            - "./data/input/chips_1200/numu_nccoh/"
+            - "./data/input/chips_1200/numu_ccdis/"
+            - "./data/input/chips_1200/numu_ncdis/"
+            - "./data/input/chips_1200/numu_ccqel/"
+            - "./data/input/chips_1200/numu_ncqel/"
+            - "./data/input/chips_1200/numu_ccres/"
+            - "./data/input/chips_1200/numu_ncres/"
+            - "./data/input/chips_1200/numu_ccmec/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+    cosmic:
+        input_dirs: 
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+    nuel_cccoh:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_cccoh/"
+        channels: [1, 1, 1]
+    nuel_ccdis:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_ccdis/"
+        channels: [1, 1, 1]
+    nuel_ccqel:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_ccqel/"
+        channels: [1, 1, 1]
+    nuel_ccres:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_ccres/"
+        channels: [1, 1, 1]
+    nuel_ccmec:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_ccmec/"
+        channels: [1, 1, 1]
+    nuel_ccqelmec:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_ccqel/"
+            - "./data/input/chips_1200/nuel_ccmec/"
+        channels: [1, 1, 1]
+    numu_cccoh:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_cccoh/"
+        channels: [1, 1, 1]
+    numu_ccdis:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_ccdis/"
+        channels: [1, 1, 1]
+    numu_ccqel:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_ccqel/"
+        channels: [1, 1, 1]
+    numu_ccres:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_ccres/"
+        channels: [1, 1, 1]
+    numu_ccmec:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_ccmec/"
+        channels: [1, 1, 1]
+    numu_ccqelmec:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_ccqel/"
+            - "./data/input/chips_1200/numu_ccmec/"
+        channels: [1, 1, 1]
+
+    # Stacked with no reco parameters as input for tf_explain
+    stacked_noreco:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        seperate_channels: False
+        reco_pars: False
+
+    # Different augmentations to study model resiliance
+    flux_cosmic_factor_10:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.1, 0.1, 0.1]
+        aug_factor_sigma: [0.02, 0.02, 0.02]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.0, 0.0, 0.0]
+    flux_cosmic_factor_20:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.2, 0.2, 0.2]
+        aug_factor_sigma: [0.02, 0.02, 0.02]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.0, 0.0, 0.0]
+    flux_cosmic_factor_50:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.5, 0.5, 0.5]
+        aug_factor_sigma: [0.02, 0.02, 0.02]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.0, 0.0, 0.0]
+    flux_cosmic_abs_10:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.0, 0.0, 0.0]
+        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.1, 0.1, 0.1]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.0, 0.0, 0.0]
+    flux_cosmic_abs_20:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.0, 0.0, 0.0]
+        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.2, 0.2, 0.2]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.0, 0.0, 0.0]
+    flux_cosmic_abs_50:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.0, 0.0, 0.0]
+        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.5, 0.5, 0.5]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.0, 0.0, 0.0]
+    flux_cosmic_noise_10:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.0, 0.0, 0.0]
+        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.01, 0.01, 0.01]
+    flux_cosmic_noise_20:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.0, 0.0, 0.0]
+        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.02, 0.02, 0.02]
+    flux_cosmic_noise_50:
+        input_dirs: 
+            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/cosmic/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.0, 0.0, 0.0]
+        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.05, 0.05, 0.05]
+
+models:
+    # Different input representations
+    repr_v_c:
+        path: "repr/repr_v_c" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 0, 0]
+    repr_v_ct:
+        path: "repr/repr_v_ct" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 0]
+    repr_o_ct:
+        path: "repr/repr_o_ct" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [0, 0, 0, 1, 1, 0, 0]
+    repr_i_ct:
+        path: "repr/repr_i_ct" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [0, 0, 0, 0, 0, 1, 1]
+    repr_v_cth:
+        path: "repr/repr_v_cth" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+    repr_v_cth_stacked:
+        path: "repr/repr_v_cth_stacked" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+        seperate_channels: False
+
+    # Different training sample models
+    sample_both:
+        path: "repr/repr_v_cth" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+    sample_flux:
+        path: "sample/sample_flux" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+    sample_uniform:
+        path: "sample/sample_uniform" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+
+    # Different categorisation models
+    cat_t_final_cat:
+        path: "cat/cat_t_final_cat" 
+        type: "vgg"
+        labels: ["t_final_cat"]
+        channels: [1, 1, 1]
+    cat_t_all_cat:
+        path: "cat/cat_t_all_cat" 
+        type: "vgg"
+        labels: ["t_all_cat"]
+        channels: [1, 1, 1]
+    cat_t_comb_cat:
+        path: "cat/cat_t_comb_cat" 
+        type: "vgg"
+        labels: ["t_comb_cat"]
+        channels: [1, 1, 1]
+    cat_t_nu_nc_cat:
+        path: "repr/repr_v_cth" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+    cat_t_nc_cat:
+        path: "cat/cat_t_nc_cat" 
+        type: "vgg"
+        labels: ["t_nc_cat"]
+        channels: [1, 1, 1]
+    cat_split:
+        path: "cat/cat_split" 
+        type: "vgg"
+        labels: ["t_comb_cat", "t_cc_type", "t_nc_type"]
+        channels: [1, 1, 1]
+    cat_split_learn:
+        path: "cat/cat_split_learn" 
+        type: "vgg"
+        labels: ["t_comb_cat", "t_cc_type", "t_nc_type"]
+        channels: [1, 1, 1]
+
+    # Cosmic classification models
+    cosmic:
+        path: "cosmic/cosmic" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [1, 1, 1]  
+    cosmic_vtx:
+        path: "cosmic/cosmic_vtx" 
+        type: "vgg"
+        labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
+        channels: [1, 1, 1]
+    cosmic_vtx_learn:
+        path: "cosmic/cosmic_vtx_learn" 
+        type: "vgg"
+        labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
+        channels: [1, 1, 1]
+
+    # Beam classification models
+    beam:
+        path: "repr/repr_v_cth" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]    
+    beam_primaries:
+        path: "beam/beam_primaries" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat", "prim_p", "prim_cp", "prim_np"]
+        channels: [1, 1, 1] 
+    beam_primaries_learn:
+        path: "beam/beam_primaries_learn" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat", "prim_p", "prim_cp", "prim_np"]
+        channels: [1, 1, 1] 
+        
+    # Energy models
+    energy_nu:
+        path: "energy/energy_nu" 
+        type: "vgg"
+        labels: ["t_nu_energy"]
+        channels: [1, 1, 1]
+    energy_lep:
+        path: "energy/energy_lep" 
+        type: "vgg"
+        labels: ["t_lep_energy"]
+        channels: [1, 1, 1]
+    energy_nu_lep:
+        path: "energy/energy_nu_lep" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    energy_nu_lep_learn:
+        path: "energy/energy_nu_lep_learn" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    energy_nu_lep_vtx:
+        path: "energy/energy_nu_lep_vtx" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
+        channels: [1, 1, 1]
+
+    # Final models
+    final_cosmic:
+        path: "final/final_cosmic"
+        type: "vgg"
+        labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
+        channels: [1, 1, 1]
+    final_beam:
+        path: "final/final_beam" 
+        type: "vgg"
+        labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "prim_p", "prim_cp", "prim_np"]
+        channels: [1, 1, 1]
+    final_nuel_cc_e:
+        path: "energy/energy_lepton"
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_numu_cc_e:
+        path: "final/final_numu_cc_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_nc_e:
+        path: "final/final_nc_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_cosmic_e:
+        path: "final/final_cosmic_e" 
+        type: "vgg"
+        labels: ["t_nu_energy"]
+        channels: [1, 1, 1]
+    final_nuel_cccoh_e:
+        path: "final/final_nuel_cccoh_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_nuel_ccdis_e:
+        path: "final/final_nuel_ccdis_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_nuel_ccqel_e:
+        path: "final/final_nuel_ccqel_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_nuel_ccres_e:
+        path: "final/final_nuel_ccres_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_nuel_ccmec_e:
+        path: "final/final_nuel_ccmec_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_nuel_ccqelmec_e:
+        path: "final/final_nuel_ccqelmec_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_numu_cccoh_e:
+        path: "final/final_numu_cccoh_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_numu_ccdis_e:
+        path: "final/final_numu_ccdis_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_numu_ccqel_e:
+        path: "final/final_numu_ccqel_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_numu_ccres_e:
+        path: "final/final_numu_ccres_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_numu_ccmec_e:
+        path: "final/final_numu_ccmec_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    final_numu_ccqelmec_e:
+        path: "final/final_numu_ccqelmec_e" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+
+    # Explain models
+    explain_cosmic:
+        path: "explain/explain_cosmic" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [1, 1, 1]
+        seperate_channels: False
+        reco_pars: False
+    explain_beam:
+        path: "explain/explain_beam" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+        seperate_channels: False
+        reco_pars: False
+    explain_energy:
+        path: "explain/explain_energy" 
+        type: "vgg"
+        labels: ["t_nu_energy"]
+        channels: [1, 1, 1]
+        seperate_channels: False
+        reco_pars: False
+
+    # Different height detector models
+    height_1200_cosmic:
+        path: "cosmic/cosmic" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [1, 1, 1]
+    height_1200_beam:
+        path: "repr/repr_v_cth" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+    height_1000_cosmic:
+        path: "height/height_1000_cosmic" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [1, 1, 1]
+    height_1000_beam:
+        path: "height/height_1000_beam" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+    height_800_cosmic:
+        path: "height/height_800_cosmic" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [1, 1, 1]
+    height_800_beam:
+        path: "height/height_800_beam" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+    height_600_cosmic:
+        path: "height/height_600_cosmic" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [1, 1, 1]
+    height_600_beam:
+        path: "height/height_600_beam" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+    height_400_cosmic:
+        path: "height/height_400_cosmic" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [1, 1, 1]
+    height_400_beam:
+        path: "height/height_400_beam" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+
+eval:
+    examples: 128000
+    cuts:
+        cosmic: 0.0005   # Cosmic classifier cut
+        q:      250.0   # r_total_digi_q cut
+        h:      250.0   # r_first_ring_height cut
+        theta:  0.7    # r_dirTheta cut
+        phi:    0.35    # r_dirPhi cut
+    weights:  # for the chips_1200 detector
+        nuel:   0.00003202064566
+        anuel:  0.00000208200747
+        numu:   0.00276174709613
+        anumu:  0.00006042213136
+        cosmic: 0.99714372811940
+        total:  1214165.85244438
+        # chips_1000 detector
+        #nuel:   0.00002974799103
+        #anuel:  0.00000193423768
+        #numu:   0.00256573301963
+        #anumu:  0.00005613369079
+        #cosmic: 0.99734645106085
+        #total:  1089103.64395438
+        # chips_800 detector
+        #nuel:   0.00002676062972
+        #anuel:  0.00000173999711
+        #numu:   0.00230807624024
+        #anumu:  0.00005049661715
+        #cosmic: 0.99761292651578
+        #total:  968546.578321513
+        # chips_600 detector
+        #nuel:   0.00002250846505
+        #anuel:  0.00000146351803
+        #numu:   0.00194133149815
+        #anumu:  0.00004247289223
+        #cosmic: 0.99799222362654
+        #total:  863638.956297674
+        # chips_400 detector
+        #nuel:   0.00001704846385
+        #anuel:  0.00000110850448
+        #numu:   0.00147041212187
+        #anumu:  0.00003217001097
+        #cosmic: 0.99847926089884
+        #total:  760154.010964974

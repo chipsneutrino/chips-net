@@ -25,7 +25,6 @@ data:
         - "./data/input/chips_1200_all/numu_ncres/"
         - "./data/input/chips_1200_all/numu_ccmec/"
         #- "./data/input/chips_1200_all/cosmic/"
-    unstack: True  # Should we split the channels into seperate images?
     #channels: [1, 1, 1, 0, 0, 0, 0]  # Which channels should be active?
     channels: [1, 1, 1]  # Which channels should be active?
     seperate_channels: True  # Should we split the channels into seperate images?

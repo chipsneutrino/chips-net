@@ -25,7 +25,8 @@ from tf_explain.core.vanilla_gradients import VanillaGradients
 from tf_explain.core.smoothgrad import SmoothGrad
 from tf_explain.core.integrated_gradients import IntegratedGradients
 from tf_explain.core.gradients_inputs import GradientsInputs
-from scipy.stats import norm
+from scipy.optimize import curve_fit
+import uproot
 
 import chipsnet.config
 import chipsnet.data as data
@@ -54,6 +55,8 @@ def data_from_conf(config, name):
         data_config.data.aug_factor_sigma = config.samples[name].aug_factor_sigma
         data_config.data.aug_abs_mean = config.samples[name].aug_abs_mean
         data_config.data.aug_abs_sigma = config.samples[name].aug_abs_sigma
+        data_config.data.aug_noise_mean = config.samples[name].aug_noise_mean
+        data_config.data.aug_noise_sigma = config.samples[name].aug_noise_sigma
     data = chipsnet.data.Reader(data_config)
     return data
 
@@ -126,7 +129,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
     start_time = time.time()
 
     # Get the dataframe from the dataset name
-    events = data_from_conf(config, data_name).testing_df(config.eval.examples)
+    events = data_from_conf(config, data_name).test_val_df(config.eval.examples)
 
     # Run all the required inference
     for m_name in m_names:
@@ -828,18 +831,15 @@ def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
         max_fom_cuts_1.append(0.0)
         max_fom_passed_0.append([])
         max_fom_passed_1.append([])
+        sig_effs.append([])
+        bkg_effs.append([])
+        purities.append([])
+        foms_0.append([])
+        foms_1.append([])
 
-    for cat in range(num_cats):
-        sig_effs.append([1.0])
-        bkg_effs.append([1.0])
-        purities.append([totals[cat] / sum(totals)])
-        foms_0.append([sig_effs[cat][0] * purities[cat][0]])
-        foms_1.append([0])
-
-    cuts.append(0.0)
     inc = float(1.0 / thresholds)
-    for cut in range(thresholds):
-        cuts.append((cut * inc) + inc)
+    for cut in range(thresholds + 1):
+        cuts.append(cut * inc)
         for count_cat in range(num_cats):
             passed = []
             for cut_cat in range(num_cats):
@@ -850,7 +850,7 @@ def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
                     events[
                         (events["cut"] == 0)
                         & (events[cat_name] == cut_cat)
-                        & (events[cut_string] > cuts[cut + 1])
+                        & (events[cut_string] > cuts[cut])
                     ]["w"].sum()
                 )
 
@@ -871,26 +871,23 @@ def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
             else:
                 foms_1[count_cat].append(passed[count_cat] / math.sqrt(bkg_passed))
 
-            if (
-                sig_effs[count_cat][cut + 1] == 0.0
-                or bkg_effs[count_cat][cut + 1] == 0.0
-            ):
+            if sig_effs[count_cat][cut] == 0.0 or bkg_effs[count_cat][cut] == 0.0:
                 purities[count_cat].append(1.0)
                 foms_0[count_cat].append(0.0)
             else:
                 purities[count_cat].append(passed[count_cat] / sum(passed))
                 foms_0[count_cat].append(
-                    sig_effs[count_cat][cut + 1] * purities[count_cat][cut + 1]
+                    sig_effs[count_cat][cut] * purities[count_cat][cut]
                 )
 
-            if foms_0[count_cat][cut + 1] > max_foms_0[count_cat]:
-                max_foms_0[count_cat] = foms_0[count_cat][cut + 1]
-                max_fom_cuts_0[count_cat] = cuts[cut + 1]
+            if foms_0[count_cat][cut] > max_foms_0[count_cat]:
+                max_foms_0[count_cat] = foms_0[count_cat][cut]
+                max_fom_cuts_0[count_cat] = cuts[cut]
                 max_fom_passed_0[count_cat] = [passed[cat] for cat in range(num_cats)]
 
-            if foms_1[count_cat][cut + 1] > max_foms_1[count_cat]:
-                max_foms_1[count_cat] = foms_1[count_cat][cut + 1]
-                max_fom_cuts_1[count_cat] = cuts[cut + 1]
+            if foms_1[count_cat][cut] > max_foms_1[count_cat]:
+                max_foms_1[count_cat] = foms_1[count_cat][cut]
+                max_fom_cuts_1[count_cat] = cuts[cut]
                 max_fom_passed_1[count_cat] = [passed[cat] for cat in range(num_cats)]
 
     # Convert the lists to numpy arrays
@@ -1204,7 +1201,7 @@ def explain_gradcam(
     )
     outputs = []
     for event in range(num_events):
-        category = int(events["t_nu_nc_cat"][event])
+        category = int(events[output][event])
         image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
         outputs.append(
             GradCAM().explain(
@@ -1234,7 +1231,7 @@ def explain_occlusion(events, model, num_events, output="t_nu_nc_cat"):
     )
     outputs = []
     for event in range(num_events):
-        category = int(events["t_nu_nc_cat"][event])
+        category = int(events[output][event])
         image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
         outputs.append(
             OcclusionSensitivity().explain(
@@ -1264,7 +1261,7 @@ def explain_activation(
     )
     outputs = []
     for event in range(num_events):
-        category = int(events["t_nu_nc_cat"][event])
+        category = int(events[output][event])
         image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
         outputs.append(
             ExtractActivations().explain(
@@ -1291,7 +1288,7 @@ def explain_grads(events, model, num_events, output="t_nu_nc_cat"):
     )
     outputs = {"vanilla": [], "smooth": [], "integrated": [], "inputs": []}
     for event in range(num_events):
-        category = int(events["t_nu_nc_cat"][event])
+        category = int(events[output][event])
         image = tf.expand_dims(events["image_0"][event], axis=0).numpy()
         outputs["vanilla"].append(
             VanillaGradients().explain(
@@ -1394,12 +1391,28 @@ def extended_hist(
     return n, w, centers, edges
 
 
+def gaussian(x, a, b, c):
+    """Gaussian function to fit histograms with.
+
+    Args:
+        x (float): input value
+        a (str): scaling factor
+        b (int): exponent
+        c (int): denomenator
+
+    Returns:
+        float: result of gaussian function
+    """
+    val = a * np.exp(-((x - b) ** 2) / c ** 2)
+    return val
+
+
 def frac_e_vs_par(
     events,
     par="t_nu_energy",
     low=500,
-    high=8000,
-    bin_size=1500,
+    high=8500,
+    bin_size=1000,
     fit_name="frac_nu_energy",
 ):
     """Bin fractional energy resolution in by a parameter.
@@ -1415,15 +1428,94 @@ def frac_e_vs_par(
     Returns:
         (list, list): list of cuts, list of std errors
     """
-    cuts, std_list = [], []
+    cuts, std_list, std_err_list = [], [], []
     for cut in range(low, high, bin_size):
         try:
             subset = events[(events[par] >= cut)]
             subset = subset[(subset[par] <= (cut + bin_size))]
-            mu, std = norm.fit(subset[fit_name])
-            std_list.append(std)
+
+            n, bins = np.histogram(
+                subset[fit_name], 25, range=(-1, 1), weights=subset["w"], density=True
+            )
+
+            centers = 0.5 * (bins[1:] + bins[:-1])
+            pars, cov = curve_fit(gaussian, centers, n, p0=[1, 0, 0.25])
+            # mu, std = norm.fit(subset[fit_name])
+            std_list.append(pars[2])
+            std_err_list.append(np.sqrt(cov[2, 2]))
             cuts.append(cut + (bin_size / 2))
         except Exception:
             cuts.append(cut + (bin_size / 2))
             std_list.append(0)
-    return (cuts, std_list)
+            std_err_list.append(0)
+    return (cuts, std_list, std_err_list)
+
+
+def get_old_df(file_name, l_type):
+    """Generate DataFrame from old reco/pid files.
+
+    Args:
+        file_name (str): file names
+        l_type (int): lepton type (11 or 13)
+
+    Returns:
+        pd.DataFrame: dataframe with similar fields to standard events df
+    """
+    f = uproot.open(file_name)
+    true = f["fResultsTree"]["TruthInfo"]
+    reco = f["fResultsTree"]["PidInfo_ElectronLike"]
+    if l_type == 13:
+        reco = f["fResultsTree"]["PidInfo_MuonLike"]
+    pid = f["PIDTree_ann"]
+
+    df = pd.DataFrame()
+    df["t_nu_energy"] = true["fBeamEnergy"].array()
+    df["t_vtx_x"] = true["fVtxX"].array() / 1000
+    df["t_vtx_y"] = true["fVtxY"].array() / 1000
+    df["t_vtx_z"] = true["fVtxZ"].array() / 1000
+    df["t_vtx_t"] = true["fVtxTime"].array()
+    df["r_vtx_x"] = reco["fVtxX"].array() / 100
+    df["r_vtx_y"] = reco["fVtxY"].array() / 100
+    df["r_vtx_z"] = reco["fVtxZ"].array() / 100
+    df["r_vtx_t"] = reco["fVtxTime"].array()
+    df["is_cc"] = true["fIsCC"].array()
+    df["is_qe"] = true["fIsQE"].array()
+    df["r_lep_energy"] = reco["fEnergy"].array()
+
+    # Find the true lepton energies
+    t_lep_energy = []
+    for cc, energy, pdg in zip(
+        true["fIsCC"].array(),
+        true["fPrimaryEnergies"].array(),
+        true["fPrimaryPDGs"].array(),
+    ):
+        if cc:
+            try:
+                t_lep_energy.append(energy[np.where(pdg == l_type)][0])
+            except Exception:
+                t_lep_energy.append(0.0)
+        else:
+            t_lep_energy.append(0.0)
+    df["t_lep_energy"] = np.asarray(t_lep_energy)
+
+    # Merge the output PID info with the dataframe
+    pid_df = pd.DataFrame()
+    pid_df["t_nu_energy"] = pid["trueBeamE"].array()
+    pid_df["ann_vs_numu"] = pid["annNueCCQEvsNumuCCQE"].array()
+    pid_df["ann_vs_nc"] = pid["annNueCCQEvsNC"].array()
+    pid_df["delta_charge_2lnl"] = pid["deltaCharge2LnL"].array()
+    pid_df["delta_time_2lnl"] = pid["deltaTime2LnL"].array()
+    df = pd.merge(df, pid_df, how="inner", on=["t_nu_energy"])
+
+    # Calculate some things
+    df["frac_lep_e"] = (df["r_lep_energy"] - df["t_nu_energy"]) / df["t_nu_energy"]
+    df["l_type"] = np.full(len(df), l_type)
+    nuel_frac = 0.011210643451769 + 0.000728924820382
+    numu_Frac = 0.966906237070093 + 0.021154194657756
+    total_num = 3467.98778272783
+    tot_num = len(df)
+    weight = (1.0 / tot_num) * (nuel_frac * total_num)
+    if l_type == 13:
+        weight = (1.0 / tot_num) * (numu_Frac * total_num)
+    df["w"] = np.full(len(df), weight)
+    return df

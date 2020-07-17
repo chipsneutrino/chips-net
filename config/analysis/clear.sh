@@ -1,65 +1,76 @@
 #! /bin/bash
 
 # Which representation and channels are best analysis (repr)
-rm -rf data/models/analysis/repr_v_c.yaml
-rm -rf data/models/analysis/repr_v_ct.yaml
-rm -rf data/models/analysis/repr_o_ct.yaml
-rm -rf data/models/analysis/repr_i_ct.yaml
-rm -rf data/models/analysis/repr_v_cth.yaml
-rm -rf data/models/analysis/repr_v_cth_stacked.yaml
+rm -rf data/models/analysis/repr/repr_v_c
+rm -rf data/models/analysis/repr/repr_v_ct
+rm -rf data/models/analysis/repr/repr_o_ct
+rm -rf data/models/analysis/repr/repr_i_ct
+rm -rf data/models/analysis/repr/repr_v_cth
+rm -rf data/models/analysis/repr/repr_v_cth_stacked
 
 # Which training sample is best analysis (sample)
-rm -rf data/models/analysis/sample_flux.yaml
-rm -rf data/models/analysis/sample_uniform.yaml
+rm -rf data/models/analysis/sample/sample_flux
+rm -rf data/models/analysis/sample/sample_uniform
 
 # Which categorisation is best analysis (cat)
-rm -rf data/models/analysis/cat_t_final_cat.yaml
-rm -rf data/models/analysis/cat_t_all_cat.yaml
-rm -rf data/models/analysis/cat_t_comb_cat.yaml
-rm -rf data/models/analysis/cat_t_nc_cat.yaml
-rm -rf data/models/analysis/cat_split.yaml
-rm -rf data/models/analysis/cat_split_learn.yaml
+rm -rf data/models/analysis/cat/cat_t_final_cat
+rm -rf data/models/analysis/cat/cat_t_all_cat
+rm -rf data/models/analysis/cat/cat_t_comb_cat
+rm -rf data/models/analysis/cat/cat_t_nc_cat
+rm -rf data/models/analysis/cat/cat_split
+rm -rf data/models/analysis/cat/cat_split_learn
 
 # Cosmic classification analysis (cosmic)
-rm -rf data/models/analysis/cosmic.yaml
-rm -rf data/models/analysis/cosmic_vtx.yaml
-rm -rf data/models/analysis/cosmic_vtx_learn.yaml
+rm -rf data/models/analysis/cosmic/cosmic
+rm -rf data/models/analysis/cosmic/cosmic_vtx
+rm -rf data/models/analysis/cosmic/cosmic_vtx_learn
 
 # Beam classification analysis (beam)
-rm -rf data/models/analysis/beam_primaries.yaml
-rm -rf data/models/analysis/beam_primaries_learn.yaml
+rm -rf data/models/analysis/beam/beam_primaries
+rm -rf data/models/analysis/beam/beam_primaries_learn
 
 # Energy estimation analysis (energy)
-rm -rf data/models/analysis/energy.yaml
-rm -rf data/models/analysis/lepton.yaml
-rm -rf data/models/analysis/energy_lepton.yaml
-rm -rf data/models/analysis/energy_lepton_learn.yaml
+rm -rf data/models/analysis/energy/energy_nu
+rm -rf data/models/analysis/energy/energy_lep
+rm -rf data/models/analysis/energy/energy_nu_lep
+rm -rf data/models/analysis/energy/energy_nu_lep_learn
+rm -rf data/models/analysis/energy/energy_nu_lep_vtx
 
-# Different sample energy estimations (energy)
-rm -rf data/models/analysis/nuel_cccoh_energy.yaml
-rm -rf data/models/analysis/nuel_ccdis_energy.yaml
-rm -rf data/models/analysis/nuel_ccqel_energy.yaml
-rm -rf data/models/analysis/nuel_ccres_energy.yaml
-rm -rf data/models/analysis/nuel_ccmec_energy.yaml
-rm -rf data/models/analysis/nuel_ccqelmec_energy.yaml
-rm -rf data/models/analysis/numu_cccoh_energy.yaml
-rm -rf data/models/analysis/numu_ccdis_energy.yaml
-rm -rf data/models/analysis/numu_ccqel_energy.yaml
-rm -rf data/models/analysis/numu_ccres_energy.yaml
-rm -rf data/models/analysis/numu_ccmec_energy.yaml
-rm -rf data/models/analysis/numu_ccqelmec_energy.yaml
-rm -rf data/models/analysis/numu_cc_energy.yaml
-rm -rf data/models/analysis/nc_energy.yaml
-
-# Final beam model
-rm -rf data/models/analysis/final_cosmic.yaml
-rm -rf data/models/analysis/final_beam.yaml
+# Final models
+rm -rf data/models/analysis/final/final_cosmic
+rm -rf data/models/analysis/final/final_beam
+rm -rf data/models/analysis/final/final_nuel_cccoh_e
+rm -rf data/models/analysis/final/final_nuel_ccdis_e
+rm -rf data/models/analysis/final/final_nuel_ccqel_e
+rm -rf data/models/analysis/final/final_nuel_ccres_e
+rm -rf data/models/analysis/final/final_nuel_ccmec_e
+rm -rf data/models/analysis/final/final_nuel_ccqelmec_e
+rm -rf data/models/analysis/final/final_numu_cccoh_e
+rm -rf data/models/analysis/final/final_numu_ccdis_e
+rm -rf data/models/analysis/final/final_numu_ccqel_e
+rm -rf data/models/analysis/final/final_numu_ccres_e
+rm -rf data/models/analysis/final/final_numu_ccmec_e
+rm -rf data/models/analysis/final/final_numu_ccqelmec_e
+rm -rf data/models/analysis/final/final_numu_cc_e
+rm -rf data/models/analysis/final/final_nc_e
+rm -rf data/models/analysis/final/final_cosmic_e
 
 # Explanation model (stacked/no_reco)
-rm -rf data/models/analysis/explain.yaml
+rm -rf data/models/analysis/explain/explain_cosmic
+rm -rf data/models/analysis/explain/explain_beam
+rm -rf data/models/analysis/explain/explain_energy
 
 # Different height detector analysis (height)
-rm -rf data/models/analysis/height_chips_1000.yaml
-rm -rf data/models/analysis/height_chips_800.yaml
-rm -rf data/models/analysis/height_chips_600.yaml
-rm -rf data/models/analysis/height_chips_400.yaml
+rm -rf data/models/analysis/height/height_1000_cosmic
+rm -rf data/models/analysis/height/height_1000_beam
+rm -rf data/models/analysis/height/height_800_cosmic
+rm -rf data/models/analysis/height/height_800_beam
+rm -rf data/models/analysis/height/height_600_cosmic
+rm -rf data/models/analysis/height/height_600_beam
+rm -rf data/models/analysis/height/height_400_cosmic
+rm -rf data/models/analysis/height/height_400_beam
+
+# Model studies (studies)
+rm -rf data/models/analysis/study/study_cosmic
+rm -rf data/models/analysis/study/study_beam
+rm -rf data/models/analysis/study/study_energy
