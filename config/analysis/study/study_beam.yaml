@@ -48,9 +48,9 @@ model:
     precision_policy: "mixed_float16"
     summarise: False
 trainer:
-    train_examples: 5120000
-    val_examples: 64000
-    test_examples: 64000
+    train_examples: 1280000
+    val_examples: 32000
+    test_examples: 32000
     batch_size: 128
     epochs: 10
     tb_update: 1000
@@ -61,8 +61,8 @@ trainer:
 study:
     trials: 50
     data:
-        seperate_channels: [True, False]
-        augment: [True, False]
+        seperate_channels: [True]
+        augment: [True]
     model:
         lr: [0.00005, 0.001]
         lr_decay: [0.5, 0.5]
@@ -70,7 +70,7 @@ study:
         dropout: [0.0, 0.25]
         filters: [32, 64]
         reco_pars: [True, False]
-        se_ratio: [0, 16]
-        learn_weights: [True, False]
+        se_ratio: [0, 8, 16]
+        learn_weights: [False]
     trainer:
         batch_size: [64, 128, 256]

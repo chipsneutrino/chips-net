@@ -485,6 +485,11 @@ models:
         type: "vgg"
         labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
+    energy_nu_lep_vtx_learn:
+        path: "energy/energy_nu_lep_vtx_learn" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
+        channels: [1, 1, 1]
 
     # Final models
     final_cosmic:
@@ -654,7 +659,7 @@ models:
         channels: [1, 1, 1]
 
 eval:
-    examples: 128000
+    examples: 256000
     cuts:
         cosmic: 0.0005   # Cosmic classifier cut
         q:      250.0   # r_total_digi_q cut
