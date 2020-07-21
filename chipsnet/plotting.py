@@ -15,8 +15,7 @@ def save(name):
     Args:
         name (str): output path+name
     """
-    # plt.savefig("{}.pgf".format(name))
-    plt.savefig("{}.pdf".format(name))
+    plt.savefig("{}.pdf".format(name), bbox_inches="tight")
     plt.show()
 
 
@@ -83,7 +82,7 @@ def plot_hit_time(images_dict, event, save_name):
         extent=(0, 64, 0, 64),
     )
     axs[0, 0].set_title(r"origin view ($\phi$,$\theta$)")
-    axs[0, 0].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
+    axs[0, 0].set(ylabel=r"$\theta$ bins")
 
     axs[0, 1].imshow(
         images_dict["r_charge_map_iso"][event],
@@ -92,7 +91,7 @@ def plot_hit_time(images_dict, event, save_name):
         extent=(0, 64, 0, 64),
     )
     axs[0, 1].set_title(r"origin view ($x^{+}$,$x^{-}$)")
-    axs[0, 1].set(xlabel=r"$x^{+}$ bins", ylabel=r"$x^{-}$ bins")
+    axs[0, 1].set(ylabel=r"$x^{-}$ bins")
 
     axs[0, 2].imshow(
         images_dict["r_charge_map_vtx"][event],
@@ -101,7 +100,7 @@ def plot_hit_time(images_dict, event, save_name):
         extent=(0, 64, 0, 64),
     )
     axs[0, 2].set_title(r"vertex view ($\phi$,$\theta$)")
-    axs[0, 2].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
+    axs[0, 2].set(ylabel=r"$\theta$ bins")
     axs[0, 2].text(68, 2, "Hit charge images", rotation=-90, fontsize=24)
 
     axs[1, 0].imshow(
@@ -224,7 +223,7 @@ def plot_8bit_range(
     axs[2].set(xlabel="Hough 8-bit value", ylabel="Frequency")
     axs[2].label_outer()
 
-    save(save_path + "expore_8_bit_range")
+    save(save_path + "explore_8_bit_range")
 
 
 def plot_cuts(config, events, save_path):

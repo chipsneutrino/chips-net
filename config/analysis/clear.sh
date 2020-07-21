@@ -43,17 +43,12 @@ rm -rf data/models/analysis/final/final_nuel_cccoh_e
 rm -rf data/models/analysis/final/final_nuel_ccdis_e
 rm -rf data/models/analysis/final/final_nuel_ccqel_e
 rm -rf data/models/analysis/final/final_nuel_ccres_e
-rm -rf data/models/analysis/final/final_nuel_ccmec_e
-rm -rf data/models/analysis/final/final_nuel_ccqelmec_e
 rm -rf data/models/analysis/final/final_numu_cccoh_e
 rm -rf data/models/analysis/final/final_numu_ccdis_e
 rm -rf data/models/analysis/final/final_numu_ccqel_e
 rm -rf data/models/analysis/final/final_numu_ccres_e
-rm -rf data/models/analysis/final/final_numu_ccmec_e
-rm -rf data/models/analysis/final/final_numu_ccqelmec_e
 rm -rf data/models/analysis/final/final_numu_cc_e
 rm -rf data/models/analysis/final/final_nc_e
-rm -rf data/models/analysis/final/final_cosmic_e
 
 # Explanation model (stacked/no_reco)
 rm -rf data/models/analysis/explain/explain_cosmic
@@ -69,6 +64,10 @@ rm -rf data/models/analysis/height/height_600_cosmic
 rm -rf data/models/analysis/height/height_600_beam
 rm -rf data/models/analysis/height/height_400_cosmic
 rm -rf data/models/analysis/height/height_400_beam
+
+# Light cone studies
+rm -rf data/models/analysis/lcs/lcs_cosmic
+rm -rf data/models/analysis/lcs/lcs_beam
 
 # Model studies (studies)
 rm -rf data/models/analysis/study/study_cosmic

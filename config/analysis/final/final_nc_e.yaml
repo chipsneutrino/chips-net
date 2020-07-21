@@ -25,7 +25,7 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]
 model:
     type: "vgg"
-    labels: ["t_nu_energy", "t_lep_energy"]
+    labels: ["t_nu_energy"]
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512
@@ -33,7 +33,7 @@ model:
     filters: 64
     reco_pars: True
     se_ratio: 16
-    learn_weights: True
+    learn_weights: False
     precision_policy: "mixed_float16"
     summarise: False
 trainer:

@@ -81,6 +81,8 @@ def model_from_conf(config, name):
         model_config.data.seperate_channels = False
     if config.models[name].reco_pars is False:
         model_config.model.reco_pars = False
+    if config.models[name].precision_policy == "float32":
+        model_config.model.precision_policy = "float32"
     chipsnet.config.setup_dirs(model_config, False)
     model = chipsnet.models.Model(model_config)
     model.load()
@@ -1435,11 +1437,11 @@ def frac_e_vs_par(
             subset = subset[(subset[par] <= (cut + bin_size))]
 
             n, bins = np.histogram(
-                subset[fit_name], 25, range=(-1, 1), weights=subset["w"], density=True
+                subset[fit_name], 25, range=(-1, 1), weights=subset["w"], density=True,
             )
 
             centers = 0.5 * (bins[1:] + bins[:-1])
-            pars, cov = curve_fit(gaussian, centers, n, p0=[1, 0, 0.25])
+            pars, cov = curve_fit(gaussian, centers, n, p0=[1, 0, 0.15])
             # mu, std = norm.fit(subset[fit_name])
             std_list.append(pars[2])
             std_err_list.append(np.sqrt(cov[2, 2]))

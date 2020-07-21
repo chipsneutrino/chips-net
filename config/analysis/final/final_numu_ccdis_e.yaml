@@ -37,6 +37,6 @@ trainer:
     epochs: 15
     tb_update: 1000
     steps_per_epoch: -1
-    es_monitor: "val_mae"
+    es_monitor: "val_t_nu_energy_mae"
     es_delta: 10
     es_epochs: 5

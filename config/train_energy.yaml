@@ -6,12 +6,13 @@ exp:
 data:
     input_dirs:  # The directories from which to take input data
         - "./data/input/chips_1200/nuel_ccqel/"
+        - "./data/input/chips_1200/nuel_ccmec/"
     channels: [1, 1, 1]  # Which channels should be active?
     seperate_channels: True  # Should we split the channels into seperate images?
     img_size: [64, 64]  # The input image size
     augment: False  # Should we enable absolute and factor augmentation of the input images?
     aug_factor_mean: [0.0, 0.0, 0.0]  # Scale bin contents by a factor, mean
-    aug_factor_sigma: [0.02, 0.02, 0.02]  # Scale bin contents by a factor, sigma
+    aug_factor_sigma: [0.0, 0.0, 0.0]  # Scale bin contents by a factor, sigma
     aug_abs_mean: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value, mean
     aug_abs_sigma: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value, sigma
 model:

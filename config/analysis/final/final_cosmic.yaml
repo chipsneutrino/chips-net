@@ -19,7 +19,7 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]
 model:
     type: "vgg"
-    labels: ["t_cosmic_cat"]
+    labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512

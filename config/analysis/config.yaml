@@ -12,19 +12,6 @@ data:
         seperate_channels: True
         img_size: [64, 64]
         augment: False
-    
-    model:
-        lr: 0.0002
-        lr_decay: 0.5
-        dense_units: 512
-        dropout: 0.1
-        filters: 64
-        reco_pars: True
-        se_ratio: 16
-        learn_weights: False
-        precision_policy: "mixed_float16"
-        summarise: False
-    
 model:
     lr: 0.0002
     lr_decay: 0.5
@@ -178,19 +165,11 @@ samples:
     nuel_ccqel:
         input_dirs: 
             - "./data/input/chips_1200/nuel_ccqel/"
+            - "./data/input/chips_1200/nuel_ccmec/"
         channels: [1, 1, 1]
     nuel_ccres:
         input_dirs: 
             - "./data/input/chips_1200/nuel_ccres/"
-        channels: [1, 1, 1]
-    nuel_ccmec:
-        input_dirs: 
-            - "./data/input/chips_1200/nuel_ccmec/"
-        channels: [1, 1, 1]
-    nuel_ccqelmec:
-        input_dirs: 
-            - "./data/input/chips_1200/nuel_ccqel/"
-            - "./data/input/chips_1200/nuel_ccmec/"
         channels: [1, 1, 1]
     numu_cccoh:
         input_dirs: 
@@ -203,19 +182,11 @@ samples:
     numu_ccqel:
         input_dirs: 
             - "./data/input/chips_1200/numu_ccqel/"
+            - "./data/input/chips_1200/numu_ccmec/"
         channels: [1, 1, 1]
     numu_ccres:
         input_dirs: 
             - "./data/input/chips_1200/numu_ccres/"
-        channels: [1, 1, 1]
-    numu_ccmec:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_ccmec/"
-        channels: [1, 1, 1]
-    numu_ccqelmec:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_ccqel/"
-            - "./data/input/chips_1200/numu_ccmec/"
         channels: [1, 1, 1]
 
     # Stacked with no reco parameters as input for tf_explain
@@ -336,6 +307,24 @@ samples:
         aug_abs_sigma: [0.0, 0.0, 0.0]
         aug_noise_mean: [0.0, 0.0, 0.0]
         aug_noise_sigma: [0.05, 0.05, 0.05]
+
+    # Different height detector fluxes
+    flux_1000:
+        input_dirs: 
+            - "./data/input/chips_1000/flux/"
+        channels: [1, 1, 1]
+    flux_800:
+        input_dirs: 
+            - "./data/input/chips_800/flux/"
+        channels: [1, 1, 1]
+    flux_600:
+        input_dirs: 
+            - "./data/input/chips_600/flux/"
+        channels: [1, 1, 1]
+    flux_400:
+        input_dirs: 
+            - "./data/input/chips_400/flux/"
+        channels: [1, 1, 1]
 
 models:
     # Different input representations
@@ -493,9 +482,9 @@ models:
 
     # Final models
     final_cosmic:
-        path: "final/final_cosmic"
+        path: "cosmic/cosmic"
         type: "vgg"
-        labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
+        labels: ["t_cosmic_cat"]
         channels: [1, 1, 1]
     final_beam:
         path: "final/final_beam" 
@@ -503,7 +492,7 @@ models:
         labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "prim_p", "prim_cp", "prim_np"]
         channels: [1, 1, 1]
     final_nuel_cc_e:
-        path: "energy/energy_lepton"
+        path: "energy/energy_nu_lep_learn" 
         type: "vgg"
         labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
@@ -542,16 +531,6 @@ models:
         type: "vgg"
         labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
-    final_nuel_ccmec_e:
-        path: "final/final_nuel_ccmec_e" 
-        type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
-        channels: [1, 1, 1]
-    final_nuel_ccqelmec_e:
-        path: "final/final_nuel_ccqelmec_e" 
-        type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
-        channels: [1, 1, 1]
     final_numu_cccoh_e:
         path: "final/final_numu_cccoh_e" 
         type: "vgg"
@@ -572,16 +551,6 @@ models:
         type: "vgg"
         labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
-    final_numu_ccmec_e:
-        path: "final/final_numu_ccmec_e" 
-        type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
-        channels: [1, 1, 1]
-    final_numu_ccqelmec_e:
-        path: "final/final_numu_ccqelmec_e" 
-        type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
-        channels: [1, 1, 1]
 
     # Explain models
     explain_cosmic:
@@ -591,6 +560,7 @@ models:
         channels: [1, 1, 1]
         seperate_channels: False
         reco_pars: False
+        precision_policy: "float32"
     explain_beam:
         path: "explain/explain_beam" 
         type: "vgg"
@@ -598,6 +568,7 @@ models:
         channels: [1, 1, 1]
         seperate_channels: False
         reco_pars: False
+        precision_policy: "float32"
     explain_energy:
         path: "explain/explain_energy" 
         type: "vgg"
@@ -605,54 +576,45 @@ models:
         channels: [1, 1, 1]
         seperate_channels: False
         reco_pars: False
+        precision_policy: "float32"
 
     # Different height detector models
-    height_1200_cosmic:
-        path: "cosmic/cosmic" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [1, 1, 1]
-    height_1200_beam:
-        path: "repr/repr_v_cth" 
-        type: "vgg"
-        labels: ["t_nu_nc_cat"]
-        channels: [1, 1, 1]
-    height_1000_cosmic:
+    height_one_cosmic:
         path: "height/height_1000_cosmic" 
         type: "vgg"
         labels: ["t_cosmic_cat"]
         channels: [1, 1, 1]
-    height_1000_beam:
+    height_one_beam:
         path: "height/height_1000_beam" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [1, 1, 1]
-    height_800_cosmic:
+    height_eight_cosmic:
         path: "height/height_800_cosmic" 
         type: "vgg"
         labels: ["t_cosmic_cat"]
         channels: [1, 1, 1]
-    height_800_beam:
+    height_eight_beam:
         path: "height/height_800_beam" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [1, 1, 1]
-    height_600_cosmic:
+    height_six_cosmic:
         path: "height/height_600_cosmic" 
         type: "vgg"
         labels: ["t_cosmic_cat"]
         channels: [1, 1, 1]
-    height_600_beam:
+    height_six_beam:
         path: "height/height_600_beam" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
         channels: [1, 1, 1]
-    height_400_cosmic:
+    height_four_cosmic:
         path: "height/height_400_cosmic" 
         type: "vgg"
         labels: ["t_cosmic_cat"]
         channels: [1, 1, 1]
-    height_400_beam:
+    height_four_beam:
         path: "height/height_400_beam" 
         type: "vgg"
         labels: ["t_nu_nc_cat"]
