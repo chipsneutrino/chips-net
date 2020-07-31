@@ -932,10 +932,17 @@ def get_outputs(config, x):
             weights[output] = 0.01
             metrics[output] = "mae"
 
-        elif output in ["prim_total", "prim_p", "prim_cp", "prim_np", "prim_g"]:
+        elif output == "t_prim_counts":
             out = Dense(4, name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
+            weights[output] = 1.0
+            metrics[output] = "accuracy"
+
+        elif output == "t_escapes":
+            out = Dense(1, name=output + "_logits")(x)
+            outputs.append(Activation("sigmoid", dtype="float32", name=output)(out))
+            losses[output] = binary_masked_loss
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
@@ -959,8 +966,22 @@ def mse_masked_loss(y_true, y_pred):
     Returns:
         tf.keras.loss: mean square error function
     """
-    mask = tf.cast(tf.math.not_equal(y_true, 0.0), tf.float32)
+    mask = tf.cast(tf.math.not_equal(y_true, -1.0), tf.float32)
     return tf.keras.losses.mean_squared_error(y_true * mask, y_pred * mask)
+
+
+def binary_masked_loss(y_true, y_pred):
+    """Return a masked binary crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: binary crossentropy error function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, -1), tf.int32)
+    return tf.keras.losses.binary_crossentropy(y_true * mask, y_pred * mask)
 
 
 def add_multitask_loss(config, outputs):
@@ -1061,10 +1082,14 @@ class MultiLossLayer(tf.keras.layers.Layer):
                 self.loss_funcs.append(MeanSquaredError(reduction=Reduction.SUM))
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(0.01)
-            elif output in ["prim_total", "prim_p", "prim_cp", "prim_np", "prim_g"]:
+            elif output == "t_prim_counts":
                 self.loss_funcs.append(
                     SparseCategoricalCrossentropy(reduction=Reduction.SUM)
                 )
+                self.log_vars.append(self.add_var(output))
+                self.lw.append(1.0)
+            elif output == "t_escapes":
+                self.loss_funcs.append(binary_masked_loss)
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output in ["t_nu_energy", "t_lep_energy"]:

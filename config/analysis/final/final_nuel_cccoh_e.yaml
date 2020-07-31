@@ -5,7 +5,7 @@ exp:
     comet: False
 data:
     input_dirs:
-        - "./data/input/chips_1200/nuel_cccoh/"
+        - "./data/input/chips_1200/nuel_cccoh_numuflux/"
     channels: [1, 1, 1]
     seperate_channels: True
     img_size: [64, 64]
@@ -19,10 +19,10 @@ data:
 model:
     type: "vgg"
     labels: ["t_nu_energy", "t_lep_energy"]
-    lr: 0.0002
+    lr: 0.0003
     lr_decay: 0.5
     dense_units: 512
-    dropout: 0.1
+    dropout: 0.085
     filters: 64
     reco_pars: True
     se_ratio: 16

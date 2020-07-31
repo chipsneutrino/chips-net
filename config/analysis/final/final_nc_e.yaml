@@ -5,14 +5,14 @@ exp:
     comet: False
 data:
     input_dirs:
-        - "./data/input/chips_1200/nuel_nccoh/"
-        - "./data/input/chips_1200/nuel_ncdis/"
-        - "./data/input/chips_1200/nuel_ncqel/"
-        - "./data/input/chips_1200/nuel_ncres/"
-        - "./data/input/chips_1200/numu_nccoh/"
-        - "./data/input/chips_1200/numu_ncdis/"
-        - "./data/input/chips_1200/numu_ncqel/"
-        - "./data/input/chips_1200/numu_ncres/"
+        - "./data/input/chips_1200/numu_nccoh_numuflux/"
+        - "./data/input/chips_1200/numu_ncdis_numuflux/"
+        - "./data/input/chips_1200/numu_ncqel_numuflux/"
+        - "./data/input/chips_1200/numu_ncres_numuflux/"
+        - "./data/input/chips_1200/nuel_nccoh_numuflux/"
+        - "./data/input/chips_1200/nuel_ncdis_numuflux/"
+        - "./data/input/chips_1200/nuel_ncqel_numuflux/"
+        - "./data/input/chips_1200/nuel_ncres_numuflux/"
     channels: [1, 1, 1]
     seperate_channels: True
     img_size: [64, 64]
@@ -26,10 +26,10 @@ data:
 model:
     type: "vgg"
     labels: ["t_nu_energy"]
-    lr: 0.0002
+    lr: 0.0003
     lr_decay: 0.5
     dense_units: 512
-    dropout: 0.1
+    dropout: 0.085
     filters: 64
     reco_pars: True
     se_ratio: 16

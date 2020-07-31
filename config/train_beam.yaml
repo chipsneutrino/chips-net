@@ -49,7 +49,7 @@ model:
     summarise: True  # Should we display a summary of the model when it is built?
 trainer:
     train_examples: 320000  # Number of training examples to use
-    val_examples: 32000  # Number of validation examples to use
+    val_examples: 64000  # Number of validation examples to use
     test_examples: 64000  # Nqumber of testing examples to use
     batch_size: 128  # Training batch size
     epochs: 5  # Number of epochs to train for

@@ -1,0 +1,12 @@
+task: "create"
+create:
+    input_dirs:
+        - "/unix/chips/jtingey/prod/numu_ccdis_numuflux/map/chips_1200/"
+    out_dir: "./data/input/chips_1200_all/numu_ccdis_numuflux/"  
+    sample_type: 0
+    val_frac: 0.08
+    test_frac: 0.08
+    join: 10
+    all_maps: True
+    parallel: True
+    par_scale: [1250.0, 1250.0, 600.0, 1.0, 3.14159]

@@ -54,15 +54,6 @@ class SherpaStudy(object):
             dashboard_port=8880,
         )
 
-        self.objective = "val_loss"
-        self.context = ["val_mae", "val_mse"]
-
-        self.objective = "val_loss"
-        self.context = ["val_accuracy"]
-
-        self.objective = "val_loss"
-        self.context = ["val_t_cat_accuracy", "val_t_nuEnergy_mae"]
-
     def run(self):
         """Run the SHERPA study."""
         for trial in self.study:
@@ -89,12 +80,17 @@ class SherpaStudy(object):
             trainer = chipsnet.trainer.Trainer(self.config, model, data)
 
             history = trainer.train()
-            print(history.history["val_accuracy"])
+            print(history.history[self.config.study.objective])
             for epoch in range(self.config.trainer.epochs):
+                context_dict = {
+                    context: history.history[context][epoch]
+                    for context in self.config.study.context
+                }
                 self.study.add_observation(
                     trial=trial,
                     iteration=epoch,
-                    objective=history.history["val_accuracy"][epoch],
+                    objective=history.history[self.config.study.objective][epoch],
+                    context=context_dict,
                 )
             self.study.finalize(trial)
             self.study.save()

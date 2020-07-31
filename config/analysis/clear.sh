@@ -35,6 +35,7 @@ rm -rf data/models/analysis/energy/energy_lep
 rm -rf data/models/analysis/energy/energy_nu_lep
 rm -rf data/models/analysis/energy/energy_nu_lep_learn
 rm -rf data/models/analysis/energy/energy_nu_lep_vtx
+rm -rf data/models/analysis/energy/energy_nu_lep_vtx_learn
 
 # Final models
 rm -rf data/models/analysis/final/final_cosmic

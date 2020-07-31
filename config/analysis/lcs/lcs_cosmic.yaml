@@ -5,8 +5,9 @@ exp:
     comet: False
 data:
     input_dirs:
-        - "./data/input/chips_1200_nolc/flux/"
-        - "./data/input/chips_1200_nolc/cosmic/"
+        - "./data/input/chips_1200_nolc/numu_all_numuflux/"
+        - "./data/input/chips_1200_nolc/nuel_all_numuflux/"
+        - "./data/input/chips_1200_nolc/cosmics/"
     channels: [1, 1, 1]
     seperate_channels: True
     img_size: [64, 64]

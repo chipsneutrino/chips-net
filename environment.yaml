@@ -34,3 +34,4 @@ dependencies:
     - pytest-docstyle
     - pytest-flake8
     - pytest-black
+    - pandarallel

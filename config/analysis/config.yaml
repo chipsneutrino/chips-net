@@ -28,172 +28,210 @@ samples:
     # Different input representations
     v_c_flux:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
         channels: [1, 0, 0]
     v_ct_flux:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
         channels: [1, 1, 0]
     o_ct_flux:
         input_dirs:
-            - "./data/input/chips_1200_all/flux/"
+            - "./data/input/chips_1200_all/numu_all_numuflux/"
+            - "./data/input/chips_1200_all/nuel_all_nuelflux/"
+            - "./data/input/chips_1200_all/anumu_all_anumuflux/"
+            - "./data/input/chips_1200_all/anuel_all_anuelflux/"
+            - "./data/input/chips_1200_all/nuel_all_numuflux/"
         channels: [0, 0, 0, 1, 1, 0, 0]
     i_ct_flux:
         input_dirs:
-            - "./data/input/chips_1200_all/flux/"
+            - "./data/input/chips_1200_all/numu_all_numuflux/"
+            - "./data/input/chips_1200_all/nuel_all_nuelflux/"
+            - "./data/input/chips_1200_all/anumu_all_anumuflux/"
+            - "./data/input/chips_1200_all/anuel_all_anuelflux/"
+            - "./data/input/chips_1200_all/nuel_all_numuflux/"
         channels: [0, 0, 0, 0, 0, 1, 1]
     v_cth_flux:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
         channels: [1, 1, 1]
     v_cth_flux_stacked:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
         channels: [1, 1, 1]
         seperate_channels: False
 
     # Different samples
     both:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/nuel_cccoh/"
-            - "./data/input/chips_1200/nuel_nccoh/"
-            - "./data/input/chips_1200/nuel_ccdis/"
-            - "./data/input/chips_1200/nuel_ncdis/"
-            - "./data/input/chips_1200/nuel_ccqel/"
-            - "./data/input/chips_1200/nuel_ncqel/"
-            - "./data/input/chips_1200/nuel_ccres/"
-            - "./data/input/chips_1200/nuel_ncres/"
-            - "./data/input/chips_1200/nuel_ccmec/"
-            - "./data/input/chips_1200/numu_cccoh/"
-            - "./data/input/chips_1200/numu_nccoh/"
-            - "./data/input/chips_1200/numu_ccdis/"
-            - "./data/input/chips_1200/numu_ncdis/"
-            - "./data/input/chips_1200/numu_ccqel/"
-            - "./data/input/chips_1200/numu_ncqel/"
-            - "./data/input/chips_1200/numu_ccres/"
-            - "./data/input/chips_1200/numu_ncres/"
-            - "./data/input/chips_1200/numu_ccmec/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/numu_cccoh_numuflux/"
+            - "./data/input/chips_1200/numu_nccoh_numuflux/"
+            - "./data/input/chips_1200/numu_ccdis_numuflux/"
+            - "./data/input/chips_1200/numu_ncdis_numuflux/"
+            - "./data/input/chips_1200/numu_ccqel_numuflux/"
+            - "./data/input/chips_1200/numu_ncqel_numuflux/"
+            - "./data/input/chips_1200/numu_ccres_numuflux/"
+            - "./data/input/chips_1200/numu_ncres_numuflux/"
+            - "./data/input/chips_1200/numu_ccmec_numuflux/"
+            - "./data/input/chips_1200/nuel_cccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_nccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_ccdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ncdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ccqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ccres_numuflux/"
+            - "./data/input/chips_1200/nuel_ncres_numuflux/"
+            - "./data/input/chips_1200/nuel_ccmec_numuflux/"
         channels: [1, 1, 1]
     both_cosmic:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/nuel_cccoh/"
-            - "./data/input/chips_1200/nuel_nccoh/"
-            - "./data/input/chips_1200/nuel_ccdis/"
-            - "./data/input/chips_1200/nuel_ncdis/"
-            - "./data/input/chips_1200/nuel_ccqel/"
-            - "./data/input/chips_1200/nuel_ncqel/"
-            - "./data/input/chips_1200/nuel_ccres/"
-            - "./data/input/chips_1200/nuel_ncres/"
-            - "./data/input/chips_1200/nuel_ccmec/"
-            - "./data/input/chips_1200/numu_cccoh/"
-            - "./data/input/chips_1200/numu_nccoh/"
-            - "./data/input/chips_1200/numu_ccdis/"
-            - "./data/input/chips_1200/numu_ncdis/"
-            - "./data/input/chips_1200/numu_ccqel/"
-            - "./data/input/chips_1200/numu_ncqel/"
-            - "./data/input/chips_1200/numu_ccres/"
-            - "./data/input/chips_1200/numu_ncres/"
-            - "./data/input/chips_1200/numu_ccmec/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/numu_cccoh_numuflux/"
+            - "./data/input/chips_1200/numu_nccoh_numuflux/"
+            - "./data/input/chips_1200/numu_ccdis_numuflux/"
+            - "./data/input/chips_1200/numu_ncdis_numuflux/"
+            - "./data/input/chips_1200/numu_ccqel_numuflux/"
+            - "./data/input/chips_1200/numu_ncqel_numuflux/"
+            - "./data/input/chips_1200/numu_ccres_numuflux/"
+            - "./data/input/chips_1200/numu_ncres_numuflux/"
+            - "./data/input/chips_1200/numu_ccmec_numuflux/"
+            - "./data/input/chips_1200/nuel_cccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_nccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_ccdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ncdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ccqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ccres_numuflux/"
+            - "./data/input/chips_1200/nuel_ncres_numuflux/"
+            - "./data/input/chips_1200/nuel_ccmec_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
     flux:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
         channels: [1, 1, 1]
     flux_cosmic:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
     uniform:
         input_dirs: 
-            - "./data/input/chips_1200/nuel_cccoh/"
-            - "./data/input/chips_1200/nuel_nccoh/"
-            - "./data/input/chips_1200/nuel_ccdis/"
-            - "./data/input/chips_1200/nuel_ncdis/"
-            - "./data/input/chips_1200/nuel_ccqel/"
-            - "./data/input/chips_1200/nuel_ncqel/"
-            - "./data/input/chips_1200/nuel_ccres/"
-            - "./data/input/chips_1200/nuel_ncres/"
-            - "./data/input/chips_1200/nuel_ccmec/"
-            - "./data/input/chips_1200/numu_cccoh/"
-            - "./data/input/chips_1200/numu_nccoh/"
-            - "./data/input/chips_1200/numu_ccdis/"
-            - "./data/input/chips_1200/numu_ncdis/"
-            - "./data/input/chips_1200/numu_ccqel/"
-            - "./data/input/chips_1200/numu_ncqel/"
-            - "./data/input/chips_1200/numu_ccres/"
-            - "./data/input/chips_1200/numu_ncres/"
-            - "./data/input/chips_1200/numu_ccmec/"
+            - "./data/input/chips_1200/numu_cccoh_numuflux/"
+            - "./data/input/chips_1200/numu_nccoh_numuflux/"
+            - "./data/input/chips_1200/numu_ccdis_numuflux/"
+            - "./data/input/chips_1200/numu_ncdis_numuflux/"
+            - "./data/input/chips_1200/numu_ccqel_numuflux/"
+            - "./data/input/chips_1200/numu_ncqel_numuflux/"
+            - "./data/input/chips_1200/numu_ccres_numuflux/"
+            - "./data/input/chips_1200/numu_ncres_numuflux/"
+            - "./data/input/chips_1200/numu_ccmec_numuflux/"
+            - "./data/input/chips_1200/nuel_cccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_nccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_ccdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ncdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ccqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ccres_numuflux/"
+            - "./data/input/chips_1200/nuel_ncres_numuflux/"
+            - "./data/input/chips_1200/nuel_ccmec_numuflux/"
         channels: [1, 1, 1]
     uniform_cosmic:
         input_dirs: 
-            - "./data/input/chips_1200/nuel_cccoh/"
-            - "./data/input/chips_1200/nuel_nccoh/"
-            - "./data/input/chips_1200/nuel_ccdis/"
-            - "./data/input/chips_1200/nuel_ncdis/"
-            - "./data/input/chips_1200/nuel_ccqel/"
-            - "./data/input/chips_1200/nuel_ncqel/"
-            - "./data/input/chips_1200/nuel_ccres/"
-            - "./data/input/chips_1200/nuel_ncres/"
-            - "./data/input/chips_1200/nuel_ccmec/"
-            - "./data/input/chips_1200/numu_cccoh/"
-            - "./data/input/chips_1200/numu_nccoh/"
-            - "./data/input/chips_1200/numu_ccdis/"
-            - "./data/input/chips_1200/numu_ncdis/"
-            - "./data/input/chips_1200/numu_ccqel/"
-            - "./data/input/chips_1200/numu_ncqel/"
-            - "./data/input/chips_1200/numu_ccres/"
-            - "./data/input/chips_1200/numu_ncres/"
-            - "./data/input/chips_1200/numu_ccmec/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_cccoh_numuflux/"
+            - "./data/input/chips_1200/numu_nccoh_numuflux/"
+            - "./data/input/chips_1200/numu_ccdis_numuflux/"
+            - "./data/input/chips_1200/numu_ncdis_numuflux/"
+            - "./data/input/chips_1200/numu_ccqel_numuflux/"
+            - "./data/input/chips_1200/numu_ncqel_numuflux/"
+            - "./data/input/chips_1200/numu_ccres_numuflux/"
+            - "./data/input/chips_1200/numu_ncres_numuflux/"
+            - "./data/input/chips_1200/numu_ccmec_numuflux/"
+            - "./data/input/chips_1200/nuel_cccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_nccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_ccdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ncdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ccqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ccres_numuflux/"
+            - "./data/input/chips_1200/nuel_ncres_numuflux/"
+            - "./data/input/chips_1200/nuel_ccmec_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
     cosmic:
         input_dirs: 
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
     nuel_cccoh:
         input_dirs: 
-            - "./data/input/chips_1200/nuel_cccoh/"
+            - "./data/input/chips_1200/nuel_cccoh_numuflux/"
         channels: [1, 1, 1]
     nuel_ccdis:
         input_dirs: 
-            - "./data/input/chips_1200/nuel_ccdis/"
+            - "./data/input/chips_1200/nuel_ccdis_numuflux/"
         channels: [1, 1, 1]
     nuel_ccqel:
         input_dirs: 
-            - "./data/input/chips_1200/nuel_ccqel/"
-            - "./data/input/chips_1200/nuel_ccmec/"
+            - "./data/input/chips_1200/nuel_ccqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ccmec_numuflux/"
         channels: [1, 1, 1]
     nuel_ccres:
         input_dirs: 
-            - "./data/input/chips_1200/nuel_ccres/"
+            - "./data/input/chips_1200/nuel_ccres_numuflux/"
         channels: [1, 1, 1]
     numu_cccoh:
         input_dirs: 
-            - "./data/input/chips_1200/numu_cccoh/"
+            - "./data/input/chips_1200/numu_cccoh_numuflux/"
         channels: [1, 1, 1]
     numu_ccdis:
         input_dirs: 
-            - "./data/input/chips_1200/numu_ccdis/"
+            - "./data/input/chips_1200/numu_ccdis_numuflux/"
         channels: [1, 1, 1]
     numu_ccqel:
         input_dirs: 
-            - "./data/input/chips_1200/numu_ccqel/"
-            - "./data/input/chips_1200/numu_ccmec/"
+            - "./data/input/chips_1200/numu_ccqel_numuflux/"
+            - "./data/input/chips_1200/numu_ccmec_numuflux/"
         channels: [1, 1, 1]
     numu_ccres:
         input_dirs: 
-            - "./data/input/chips_1200/numu_ccres/"
+            - "./data/input/chips_1200/numu_ccres_numuflux/"
         channels: [1, 1, 1]
 
     # Stacked with no reco parameters as input for tf_explain
     stacked_noreco:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         seperate_channels: False
         reco_pars: False
@@ -201,8 +239,12 @@ samples:
     # Different augmentations to study model resiliance
     flux_cosmic_factor_10:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.1, 0.1, 0.1]
@@ -213,8 +255,12 @@ samples:
         aug_noise_sigma: [0.0, 0.0, 0.0]
     flux_cosmic_factor_20:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.2, 0.2, 0.2]
@@ -225,8 +271,12 @@ samples:
         aug_noise_sigma: [0.0, 0.0, 0.0]
     flux_cosmic_factor_50:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.5, 0.5, 0.5]
@@ -237,8 +287,12 @@ samples:
         aug_noise_sigma: [0.0, 0.0, 0.0]
     flux_cosmic_abs_10:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
@@ -249,8 +303,12 @@ samples:
         aug_noise_sigma: [0.0, 0.0, 0.0]
     flux_cosmic_abs_20:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
@@ -261,8 +319,12 @@ samples:
         aug_noise_sigma: [0.0, 0.0, 0.0]
     flux_cosmic_abs_50:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
@@ -273,8 +335,12 @@ samples:
         aug_noise_sigma: [0.0, 0.0, 0.0]
     flux_cosmic_noise_10:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
@@ -285,8 +351,12 @@ samples:
         aug_noise_sigma: [0.01, 0.01, 0.01]
     flux_cosmic_noise_20:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
@@ -297,8 +367,12 @@ samples:
         aug_noise_sigma: [0.02, 0.02, 0.02]
     flux_cosmic_noise_50:
         input_dirs: 
-            - "./data/input/chips_1200/flux/"
-            - "./data/input/chips_1200/cosmic/"
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
@@ -309,21 +383,52 @@ samples:
         aug_noise_sigma: [0.05, 0.05, 0.05]
 
     # Different height detector fluxes
-    flux_1000:
+    flux_cosmic_1000:
         input_dirs: 
-            - "./data/input/chips_1000/flux/"
+            - "./data/input/chips_1000/numu_all_numuflux/"
+            - "./data/input/chips_1000/nuel_all_nuelflux/"
+            - "./data/input/chips_1000/anumu_all_anumuflux/"
+            - "./data/input/chips_1000/anuel_all_anuelflux/"
+            - "./data/input/chips_1000/nuel_all_numuflux/"
+            - "./data/input/chips_1000/cosmics/"
         channels: [1, 1, 1]
-    flux_800:
+    flux_cosmic_800:
         input_dirs: 
-            - "./data/input/chips_800/flux/"
+            - "./data/input/chips_800/numu_all_numuflux/"
+            - "./data/input/chips_800/nuel_all_nuelflux/"
+            - "./data/input/chips_800/anumu_all_anumuflux/"
+            - "./data/input/chips_800/anuel_all_anuelflux/"
+            - "./data/input/chips_800/nuel_all_numuflux/"
+            - "./data/input/chips_800/cosmics/"
         channels: [1, 1, 1]
-    flux_600:
+    flux_cosmic_600:
         input_dirs: 
-            - "./data/input/chips_600/flux/"
+            - "./data/input/chips_600/numu_all_numuflux/"
+            - "./data/input/chips_600/nuel_all_nuelflux/"
+            - "./data/input/chips_600/anumu_all_anumuflux/"
+            - "./data/input/chips_600/anuel_all_anuelflux/"
+            - "./data/input/chips_600/nuel_all_numuflux/"
+            - "./data/input/chips_600/cosmics/"
         channels: [1, 1, 1]
-    flux_400:
+    flux_cosmic_400:
         input_dirs: 
-            - "./data/input/chips_400/flux/"
+            - "./data/input/chips_400/numu_all_numuflux/"
+            - "./data/input/chips_400/nuel_all_nuelflux/"
+            - "./data/input/chips_400/anumu_all_anumuflux/"
+            - "./data/input/chips_400/anuel_all_anuelflux/"
+            - "./data/input/chips_400/nuel_all_numuflux/"
+            - "./data/input/chips_400/cosmics/"
+        channels: [1, 1, 1]
+
+    # Without light cone data
+    flux_cosmic_nolc:
+        input_dirs: 
+            - "./data/input/chips_1200_nolc/numu_all_numuflux/"
+            - "./data/input/chips_1200_nolc/nuel_all_nuelflux/"
+            - "./data/input/chips_1200_nolc/anumu_all_anumuflux/"
+            - "./data/input/chips_1200_nolc/anuel_all_anuelflux/"
+            - "./data/input/chips_1200_nolc/nuel_all_numuflux/"
+            - "./data/input/chips_1200_nolc/cosmics/"
         channels: [1, 1, 1]
 
 models:
@@ -440,12 +545,12 @@ models:
     beam_primaries:
         path: "beam/beam_primaries" 
         type: "vgg"
-        labels: ["t_nu_nc_cat", "prim_p", "prim_cp", "prim_np"]
+        labels: ["t_nu_nc_cat", "t_prim_counts"]
         channels: [1, 1, 1] 
     beam_primaries_learn:
         path: "beam/beam_primaries_learn" 
         type: "vgg"
-        labels: ["t_nu_nc_cat", "prim_p", "prim_cp", "prim_np"]
+        labels: ["t_nu_nc_cat", "t_prim_counts"]
         channels: [1, 1, 1] 
         
     # Energy models
@@ -489,7 +594,7 @@ models:
     final_beam:
         path: "final/final_beam" 
         type: "vgg"
-        labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "prim_p", "prim_cp", "prim_np"]
+        labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "t_prim_counts"]
         channels: [1, 1, 1]
     final_nuel_cc_e:
         path: "energy/energy_nu_lep_learn" 
@@ -620,8 +725,20 @@ models:
         labels: ["t_nu_nc_cat"]
         channels: [1, 1, 1]
 
+    # Without light cone models
+    lcs_cosmic:
+        path: "lcs/lcs_cosmic" 
+        type: "vgg"
+        labels: ["t_cosmic_cat"]
+        channels: [1, 1, 1]
+    lcs_beam:
+        path: "lcs/lcs_beam" 
+        type: "vgg"
+        labels: ["t_nu_nc_cat"]
+        channels: [1, 1, 1]
+
 eval:
-    examples: 256000
+    examples: 64000
     cuts:
         cosmic: 0.0005   # Cosmic classifier cut
         q:      250.0   # r_total_digi_q cut

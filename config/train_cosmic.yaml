@@ -13,8 +13,10 @@ data:
     augment: True  # Should we enable absolute and factor augmentation of the input images?
     aug_factor_mean: [0.0, 0.0, 0.0]  # Scale bin contents by a factor, mean
     aug_factor_sigma: [0.02, 0.02, 0.02]  # Scale bin contents by a factor, sigma
-    aug_abs_mean: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value, mean
-    aug_abs_sigma: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value, sigma
+    aug_abs_mean: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value if > zero, mean
+    aug_abs_sigma: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value if > zero, sigma
+    aug_noise_mean: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value as though noise, mean
+    aug_noise_sigma: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value as though noise, sigma
 model: 
     type: "vgg"  # (vgg, resnet, inception)
     labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]  # For cosmic classifier
@@ -30,7 +32,7 @@ model:
     summarise: True  # Should we display a summary of the model when it is built?
 trainer:
     train_examples: 320000  # Number of training examples to use
-    val_examples: 32000  # Number of validation examples to use
+    val_examples: 64000  # Number of validation examples to use
     test_examples: 64000  # Nqumber of testing examples to use
     batch_size: 128  # Training batch size
     epochs: 5  # Number of epochs to train for

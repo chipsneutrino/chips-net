@@ -139,22 +139,20 @@ class Reader:
 
         # Decode integer labels and append to labels dictionary
         labels_i = tf.io.decode_raw(example["labels_i"], tf.int32)
-        labels[MAP_NU_TYPE["name"]] = labels_i[0]
-        labels[MAP_SIGN_TYPE["name"]] = labels_i[1]
-        labels[MAP_INT_TYPE["name"]] = labels_i[2]
-        labels[MAP_CC_CAT["name"]] = labels_i[3]
-        labels[MAP_NC_CAT["name"]] = labels_i[4]
-        labels[MAP_FINAL_CAT["name"]] = labels_i[5]
-        labels[MAP_ALL_CAT["name"]] = labels_i[6]
-        labels[MAP_COSMIC_CAT["name"]] = labels_i[7]
-        labels[MAP_FULL_COMB_CAT["name"]] = labels_i[8]
-        labels[MAP_NU_NC_COMB_CAT["name"]] = labels_i[9]
-        labels[MAP_NC_COMB_CAT["name"]] = labels_i[10]
-        labels["prim_total"] = labels_i[11]
-        labels["prim_p"] = labels_i[12]
-        labels["prim_cp"] = labels_i[13]
-        labels["prim_np"] = labels_i[14]
-        labels["prim_g"] = labels_i[15]
+        labels["t_sample_type"] = labels_i[0]
+        labels[MAP_NU_TYPE["name"]] = labels_i[1]
+        labels[MAP_SIGN_TYPE["name"]] = labels_i[2]
+        labels[MAP_INT_TYPE["name"]] = labels_i[3]
+        labels[MAP_CC_CAT["name"]] = labels_i[4]
+        labels[MAP_NC_CAT["name"]] = labels_i[5]
+        labels[MAP_FINAL_CAT["name"]] = labels_i[6]
+        labels[MAP_ALL_CAT["name"]] = labels_i[7]
+        labels[MAP_COSMIC_CAT["name"]] = labels_i[8]
+        labels[MAP_FULL_COMB_CAT["name"]] = labels_i[9]
+        labels[MAP_NU_NC_COMB_CAT["name"]] = labels_i[10]
+        labels[MAP_NC_COMB_CAT["name"]] = labels_i[11]
+        labels("t_prim_counts") = labels_i[12]
+        labels["t_escapes"] = labels_i[13]
 
         # Decode float labels and append to the labels dictionary
         labels_f = tf.io.decode_raw(example["labels_f"], tf.float32)
@@ -345,45 +343,25 @@ class Creator:
         """
         events = []
         for ev_pdgs, ev_energies in zip(pdgs, energies):  # loop through all events
-            counts = np.array([0, 0, 0, 0, 0])
+            counts = np.array([0, 0, 0, 0, 0, 0])
             for i, pdg in enumerate(ev_pdgs):
                 if pdg == -999:
                     continue
-                elif pdg in [2212, 2212] and ev_energies[i] > PROTON_THRESHOLD:
+                elif pdg in [11, -11] and ev_energies[i] > ELECTRON_THRESHOLD:
                     counts[0] += 1
+                elif pdg in [13, -13] and ev_energies[i] > MUON_THRESHOLD:
                     counts[1] += 1
-                elif pdg in [211, -211] and ev_energies[i] > CP_THRESHOLD:
-                    counts[0] += 1
+                elif pdg in [2212, -2212] and ev_energies[i] > PROTON_THRESHOLD:
                     counts[2] += 1
-                elif pdg in [111] and ev_energies[i] > NP_THRESHOLD:
-                    counts[0] += 1
+                elif pdg in [211, -211] and ev_energies[i] > CP_THRESHOLD:
                     counts[3] += 1
-                elif pdg in [22] and ev_energies[i] > GAMMA_THRESHOLD:
-                    counts[0] += 1
+                elif pdg in [111] and ev_energies[i] > NP_THRESHOLD:
                     counts[4] += 1
+                elif pdg in [22] and ev_energies[i] > GAMMA_THRESHOLD:
+                    counts[5] += 1
             counts = np.clip(counts, a_min=0, a_max=3)  # 4th value is for n>2 particles
             events.append(counts)
         return np.stack(events, axis=0)
-
-    def lepton_energies(self, pdgs, energies):
-        """Get the leading lepton energies for the events.
-
-        Args:
-            pdgs (np.array): primary particle pdgs
-            energies (np.array): primary particle energies
-
-        Returns:
-            np.array: array of leading lepton energies
-        """
-        energy_list = []
-        for ev_pdgs, ev_energies in zip(pdgs, energies):  # loop through all events
-            energy = 0.0
-            for i, pdg in enumerate(ev_pdgs):
-                if pdg in [11, 13] and ev_energies[i] > energy:
-                    energy = ev_energies[i]
-            energy_list.append(energy)
-
-        return np.asarray(energy_list)
 
     def gen_examples(self, true, reco):
         """Generate a list of examples from the input .root map file.
@@ -414,12 +392,12 @@ class Creator:
             (  # Reco Parameters (floats)
                 reco.array("r_total_digi_q"),
                 reco.array("r_first_ring_height"),
-                reco.array("r_vtxX") / self.config.create.par_scale[0],
-                reco.array("r_vtxY") / self.config.create.par_scale[1],
-                reco.array("r_vtxZ") / self.config.create.par_scale[2],
-                reco.array("r_vtxT"),
-                reco.array("r_dirTheta") / self.config.create.par_scale[3],
-                reco.array("r_dirPhi") / self.config.create.par_scale[4],
+                reco.array("r_vtx_x") / self.config.create.par_scale[0],
+                reco.array("r_vtx_y") / self.config.create.par_scale[1],
+                reco.array("r_vtx_z") / self.config.create.par_scale[2],
+                reco.array("r_vtx_t"),
+                reco.array("r_dir_theta") / self.config.create.par_scale[3],
+                reco.array("r_dir_phi") / self.config.create.par_scale[4],
             ),
             axis=1,
         )
@@ -447,12 +425,13 @@ class Creator:
             [MAP_NC_COMB_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
         )
 
-        counts = self.count_primaries(
+        primary_counts = self.count_primaries(
             true.array("t_p_pdgs"), true.array("t_p_energies")
         )
 
         labels_i = np.stack(
             (  # True Parameters (integers)
+                np.full(len(n_arr), self.config.create.sample_type),
                 n_arr,
                 s_arr,
                 i_arr,
@@ -464,27 +443,20 @@ class Creator:
                 comb_arr,
                 nu_nc_comb_arr,
                 nc_comb_arr,
-                counts[:, 0],
-                counts[:, 1],
-                counts[:, 2],
-                counts[:, 3],
-                counts[:, 4],
+                primary_counts,
+                true.array("t_escapes"),
             ),
             axis=1,
         ).astype(np.int32)
 
-        lepton_energies = self.lepton_energies(
-            true.array("t_p_pdgs"), true.array("t_p_energies")
-        )
-
         labels_f = np.stack(
             (  # True Parameters (floats)
-                true.array("t_vtxX"),
-                true.array("t_vtxY"),
-                true.array("t_vtxZ"),
-                true.array("t_vtxT"),
-                true.array("t_nuEnergy"),
-                lepton_energies,
+                true.array("t_vtx_x"),
+                true.array("t_vtx_y"),
+                true.array("t_vtx_z"),
+                true.array("t_vtx_t"),
+                true.array("t_nu_energy"),
+                true.array("t_lep_energy"),
             ),
             axis=1,
         ).astype(np.float32)
@@ -519,9 +491,9 @@ class Creator:
         # Split into training, validation and testing samples
         random.shuffle(examples)  # Shuffle the examples list
         val_split = int(
-            (1.0 - self.config.create.split - self.config.create.split) * len(examples)
+            (1.0 - self.config.create.val_frac - self.config.create.test_frac) * len(examples)
         )
-        test_split = int((1.0 - self.config.create.split) * len(examples))
+        test_split = int((1.0 - self.config.create.test_frac) * len(examples))
         train_examples = examples[:val_split]
         val_examples = examples[val_split:test_split]
         test_examples = examples[test_split:]
@@ -572,6 +544,12 @@ class Creator:
 
 """Declare constants for use in primary particle counting"""
 INDEX = 1.344  # for 405nm at ~4 degrees celcius
+ELECTRON_THRESHOLD = math.sqrt(
+    math.pow(Particle.from_pdgid(11).mass, 2) / (1 - (1 / math.pow(INDEX, 2)))
+)
+MUON_THRESHOLD = math.sqrt(
+    math.pow(Particle.from_pdgid(13).mass, 2) / (1 - (1 / math.pow(INDEX, 2)))
+)
 PROTON_THRESHOLD = math.sqrt(
     math.pow(Particle.from_pdgid(2212).mass, 2) / (1 - (1 / math.pow(INDEX, 2)))
 )
@@ -726,24 +704,24 @@ def int_type_loss(y_true, y_pred):
 
 
 """Map interaction types (Total = 13)
-We put IMD, ElasticScattering and InverseMuDecay into 'NC-OTHER' for simplicity"""
+We put IMD, ElasticScattering and InverseMuDecay into 'NC-Other' for simplicity"""
 MAP_INT_TYPE = {
     "name": "t_int_type",
     "categories": 12,
     "loss": int_type_loss,
     "labels": [
-        "CC-QEL",  # 0
-        "CC-RES",  # 1
+        "CC-QE",  # 0
+        "CC-Res",  # 1
         "CC-DIS",  # 2
-        "CC-COH",  # 3
+        "CC-Coh",  # 3
         "CC-MEC",  # 4
-        "CC-OTHER",  # 5
-        "NC-QEL",  # 6
-        "NC-RES",  # 7
+        "CC-Other",  # 5
+        "NC-QE",  # 6
+        "NC-Res",  # 7
         "NC-DIS",  # 8
-        "NC-COH",  # 9
+        "NC-Coh",  # 9
         "NC-MEC",  # 10
-        "NC-OTHER",  # 11
+        "NC-Other",  # 11
         "Cosmic",  # 12
     ],
     "table": {
@@ -800,12 +778,12 @@ MAP_CC_CAT = {
     "categories": 5,
     "loss": cc_cat_loss,
     "labels": [
-        "CC-QEL",  # 0
-        "CC-RES",  # 1
+        "CC-QE",  # 0
+        "CC-Res",  # 1
         "CC-DIS",  # 2
-        "CC-COH",  # 3
-        "CC-OTHER",  # 4
-        "Cosmic-NC",  # 5
+        "CC-Coh",  # 3
+        "CC-Other",  # 4
+        "Cosmic/NC",  # 5
     ],
     "table": {
         (0, 0): 0,
@@ -858,12 +836,12 @@ MAP_NC_CAT = {
     "categories": 5,
     "loss": nc_cat_loss,
     "labels": [
-        "NC-QEL",  # 0
-        "NC-RES",  # 1
+        "NC-QE",  # 0
+        "NC-Res",  # 1
         "NC-DIS",  # 2
-        "NC-COH",  # 3
-        "NC-OTHER",  # 4
-        "Cosmic-CC",  # 5
+        "NC-Coh",  # 3
+        "NC-Other",  # 4
+        "Cosmic/CC",  # 5
     ],
     "table": {
         (0, 0): 5,
@@ -916,21 +894,21 @@ MAP_FINAL_CAT = {
     "categories": 15,
     "loss": final_cat_loss,
     "labels": [
-        r"$\nu_{e}$ CC-QEL",  # 0
-        r"$\nu_{e}$ CC-RES",  # 1
+        r"$\nu_{e}$ CC-QE",  # 0
+        r"$\nu_{e}$ CC-Res",  # 1
         r"$\nu_{e}$ CC-DIS",  # 2
-        r"$\nu_{e}$ CC-COH",  # 3
-        r"$\nu_{e}$ CC-OTHER",  # 4
-        r"$\nu_{\mu}$ CC-QEL",  # 5
-        r"$\nu_{\mu}$ CC-RES",  # 6
+        r"$\nu_{e}$ CC-Coh",  # 3
+        r"$\nu_{e}$ CC-Other",  # 4
+        r"$\nu_{\mu}$ CC-QE",  # 5
+        r"$\nu_{\mu}$ CC-Res",  # 6
         r"$\nu_{\mu}$ CC-DIS",  # 7
-        r"$\nu_{\mu}$ CC-COH",  # 8
-        r"$\nu_{\mu}$ CC-OTHER",  # 9
-        "NC-QEL",  # 10
-        "NC-RES",  # 11
+        r"$\nu_{\mu}$ CC-Coh",  # 8
+        r"$\nu_{\mu}$ CC-Other",  # 9
+        "NC-QE",  # 10
+        "NC-Res",  # 11
         "NC-DIS",  # 12
-        "NC-COH",  # 13
-        "NC-OTHER",  # 14
+        "NC-Coh",  # 13
+        "NC-Other",  # 14
         "Cosmic",  # 15
     ],
     "table": {
@@ -984,30 +962,30 @@ MAP_ALL_CAT = {
     "categories": 24,
     "loss": all_cat_loss,
     "labels": [
-        r"$\nu_{e}$ CC-QEL",  # 0
-        r"$\nu_{e}$ CC-RES",  # 1
+        r"$\nu_{e}$ CC-QE",  # 0
+        r"$\nu_{e}$ CC-Res",  # 1
         r"$\nu_{e}$ CC-DIS",  # 2
-        r"$\nu_{e}$ CC-COH",  # 3
+        r"$\nu_{e}$ CC-Coh",  # 3
         r"$\nu_{e}$ CC-MEC",  # 4
-        r"$\nu_{e}$ CC-OTHER",  # 5
-        r"$\nu_{e}$ NC-QEL",  # 6
-        r"$\nu_{e}$ NC-RES",  # 7
+        r"$\nu_{e}$ CC-Other",  # 5
+        r"$\nu_{e}$ NC-QE",  # 6
+        r"$\nu_{e}$ NC-Res",  # 7
         r"$\nu_{e}$ NC-DIS",  # 8
-        r"$\nu_{e}$ NC-COH",  # 9
+        r"$\nu_{e}$ NC-Coh",  # 9
         r"$\nu_{e}$ NC-MEC",  # 10
-        r"$\nu_{e}$ NC-OTHER",  # 11
-        r"$\nu_{\mu}$ CC-QEL",  # 12
-        r"$\nu_{\mu}$ CC-RES",  # 13
+        r"$\nu_{e}$ NC-Other",  # 11
+        r"$\nu_{\mu}$ CC-QE",  # 12
+        r"$\nu_{\mu}$ CC-Res",  # 13
         r"$\nu_{\mu}$ CC-DIS",  # 14
-        r"$\nu_{\mu}$ CC-COH",  # 15
+        r"$\nu_{\mu}$ CC-Coh",  # 15
         r"$\nu_{\mu}$ CC-MEC",  # 16
-        r"$\nu_{\mu}$ CC-OTHER",  # 17
-        r"$\nu_{\mu}$ NC-QEL",  # 18
-        r"$\nu_{\mu}$ NC-RES",  # 19
+        r"$\nu_{\mu}$ CC-Other",  # 17
+        r"$\nu_{\mu}$ NC-QE",  # 18
+        r"$\nu_{\mu}$ NC-Res",  # 19
         r"$\nu_{\mu}$ NC-DIS",  # 20
-        r"$\nu_{\mu}$ NC-COH",  # 21
+        r"$\nu_{\mu}$ NC-Coh",  # 21
         r"$\nu_{\mu}$ NC-MEC",  # 22
-        r"$\nu_{\mu}$ NC-OTHER",  # 23
+        r"$\nu_{\mu}$ NC-Other",  # 23
         "Cosmic",  # 24
     ],
     "table": {
@@ -1149,24 +1127,24 @@ MAP_NU_NC_COMB_CAT = {
     "categories": 18,
     "loss": nu_nc_comb_loss,
     "labels": [
-        r"$\nu_{e}$ CC-QEL",  # 0
-        r"$\nu_{e}$ CC-RES",  # 1
+        r"$\nu_{e}$ CC-QE",  # 0
+        r"$\nu_{e}$ CC-Res",  # 1
         r"$\nu_{e}$ CC-DIS",  # 2
-        r"$\nu_{e}$ CC-COH",  # 3
+        r"$\nu_{e}$ CC-Coh",  # 3
         r"$\nu_{e}$ CC-MEC",  # 4
-        r"$\nu_{e}$ CC-OTHER",  # 5
-        r"$\nu_{\mu}$ CC-QEL",  # 6
-        r"$\nu_{\mu}$ CC-RES",  # 7
+        r"$\nu_{e}$ CC-Other",  # 5
+        r"$\nu_{\mu}$ CC-QE",  # 6
+        r"$\nu_{\mu}$ CC-Res",  # 7
         r"$\nu_{\mu}$ CC-DIS",  # 8
-        r"$\nu_{\mu}$ CC-COH",  # 9
+        r"$\nu_{\mu}$ CC-Coh",  # 9
         r"$\nu_{\mu}$ CC-MEC",  # 10
-        r"$\nu_{\mu}$ CC-OTHER",  # 11
-        "NC-QEL",  # 12
-        "NC-RES",  # 13
+        r"$\nu_{\mu}$ CC-Other",  # 11
+        "NC-QE",  # 12
+        "NC-Res",  # 13
         "NC-DIS",  # 14
-        "NC-COH",  # 15
+        "NC-Coh",  # 15
         "NC-MEC",  # 16
-        "NC-OTHER",  # 17
+        "NC-Other",  # 17
         "Cosmic",  # 18
     ],
     "table": {
@@ -1220,18 +1198,18 @@ MAP_NC_COMB_CAT = {
     "categories": 13,
     "loss": nc_comb_loss,
     "labels": [
-        r"$\nu_{e}$ CC-QEL",  # 0
-        r"$\nu_{e}$ CC-RES",  # 1
+        r"$\nu_{e}$ CC-QE",  # 0
+        r"$\nu_{e}$ CC-Res",  # 1
         r"$\nu_{e}$ CC-DIS",  # 2
-        r"$\nu_{e}$ CC-COH",  # 3
+        r"$\nu_{e}$ CC-Coh",  # 3
         r"$\nu_{e}$ CC-MEC",  # 4
-        r"$\nu_{e}$ CC-OTHER",  # 5
-        r"$\nu_{mu}$ CC-QEL",  # 6
-        r"$\nu_{mu}$ CC-RES",  # 7
+        r"$\nu_{e}$ CC-Other",  # 5
+        r"$\nu_{mu}$ CC-QE",  # 6
+        r"$\nu_{mu}$ CC-Res",  # 7
         r"$\nu_{mu}$ CC-DIS",  # 8
-        r"$\nu_{mu}$ CC-COH",  # 9
+        r"$\nu_{mu}$ CC-Coh",  # 9
         r"$\nu_{mu}$ CC-MEC",  # 10
-        r"$\nu_{mu}$ CC-OTHER",  # 11
+        r"$\nu_{mu}$ CC-Other",  # 11
         "NC",  # 12
         "Cosmic",  # 13
     ],

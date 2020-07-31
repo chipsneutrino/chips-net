@@ -27,10 +27,14 @@ from tf_explain.core.integrated_gradients import IntegratedGradients
 from tf_explain.core.gradients_inputs import GradientsInputs
 from scipy.optimize import curve_fit
 import uproot
+from pandarallel import pandarallel
 
 import chipsnet.config
 import chipsnet.data as data
 import chipsnet.models
+
+
+pandarallel.initialize(verbose=1)
 
 
 def data_from_conf(config, name):
@@ -111,7 +115,7 @@ def model_history(config, name):
     return pd.DataFrame.from_dict(history_dict)
 
 
-def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
+def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"], just_out=False):
     """Fully process a dataset through a list of models and run a standard evaluation.
 
     Args:
@@ -119,6 +123,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
         data_name (str): data name
         model_names (List[str]): model names
         verbose (bool): should we print summaries?
+        just_out (bool): just return the outputs not the events?
 
     Returns:
         pd.DataFrame: fully processed events dataframe
@@ -153,6 +158,9 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
             events[m_name + "_frac_lep_energy"] = (
                 events[m_name + "_pred_t_lep_energy"] - events["t_lep_energy"]
             ) / events["t_lep_energy"]
+
+    # Calculate the fraction of nu energy in lepton
+    events["frac_energy"] = events["t_lep_energy"] / events["t_nu_energy"]
 
     # Apply the event weights
     events = apply_weights(
@@ -190,11 +198,11 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
 
         # Run classification and print report
         class_prefix = m_name + "_" + "pred_t_comb_cat_"
-        events[m_name + "_comb_cat_class"] = events.apply(
+        events[m_name + "_comb_cat_class"] = events.parallel_apply(
             classify, axis=1, args=(3, class_prefix)
         )
         class_prefix = m_name + "_" + "pred_" + m_cat + "_"
-        events[m_name + "_" + m_cat + "_class"] = events.apply(
+        events[m_name + "_" + m_cat + "_class"] = events.parallel_apply(
             classify,
             axis=1,
             args=(chipsnet.data.get_map(m_cat)["categories"], class_prefix),
@@ -211,7 +219,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
             events[m_name + "_comb_cat_class"],
             labels=[x for x in range(comb_cats)],
             target_names=comb_labels,
-            sample_weight=events["w"],
+            sample_weight=events["w_osc_zero"],
             zero_division=0,
             output_dict=True,
         )
@@ -219,7 +227,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
             events["t_comb_cat"],
             events[m_name + "_comb_cat_class"],
             labels=[x for x in range(comb_cats)],
-            sample_weight=events["w"],
+            sample_weight=events["w_osc_zero"],
             normalize="true",
         )
         comb_matrix = np.rot90(comb_matrix, 1)
@@ -238,7 +246,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
             events[m_name + "_" + m_cat + "_class"],
             labels=[x for x in range(cat_cats)],
             target_names=cat_labels,
-            sample_weight=events["w"],
+            sample_weight=events["w_osc_zero"],
             zero_division=0,
             output_dict=True,
         )
@@ -246,7 +254,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
             events[m_cat],
             events[m_name + "_" + m_cat + "_class"],
             labels=[x for x in range(cat_cats)],
-            sample_weight=events["w"],
+            sample_weight=events["w_osc_zero"],
             normalize="true",
         )
         cat_matrix = np.rot90(cat_matrix, 1)
@@ -255,14 +263,17 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
         output["cat_matrix"] = cat_matrix
 
         curves_output = calculate_curves(events, prefix=m_name + "_")
+        eff_output = calculate_eff_pur(
+            events, curves_output["max_fom_cuts_0"], prefix=m_name + "_"
+        )
         output["cuts"] = curves_output["cuts"]
         output["sig_effs"] = curves_output["sig_effs"]
         output["bkg_effs"] = curves_output["bkg_effs"]
         output["purs"] = curves_output["purs"]
         output["foms_0"] = curves_output["foms_0"]
         output["foms_1"] = curves_output["foms_1"]
-        output["fom_effs"] = curves_output["fom_effs"]
-        output["fom_purs"] = curves_output["fom_purs"]
+        output["fom_effs"] = eff_output["fom_effs"]
+        output["fom_purs"] = eff_output["fom_purs"]
         output["sig_effs_auc"] = curves_output["sig_effs_auc"]
         output["bkg_effs_auc"] = curves_output["bkg_effs_auc"]
         output["pur_auc"] = curves_output["pur_auc"]
@@ -304,7 +315,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
             )
         )
         print(
-            "- Nuel-> ROC-AUC: {:.5f}, PRC-AUC: {:.5f}, S-Eff: {:.5f}, S-Pur: {:.5f}".format(
+            "\n- Nuel-> ROC-AUC: {:.5f}, PRC-AUC: {:.5f}, S-Eff: {:.5f}, S-Pur: {:.5f}".format(
                 output["roc_auc"][0],
                 output["prc_auc"][0],
                 output["sig_effs"][0][np.where(output["cuts"] == 0.5)[0]][0],
@@ -344,7 +355,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
         )
 
         print(
-            "- Numu-> ROC-AUC: {:.5f}, PRC-AUC: {:.5f}, S-Eff: {:.5f}, S-Pur: {:.5f}".format(
+            "\n- Numu-> ROC-AUC: {:.5f}, PRC-AUC: {:.5f}, S-Eff: {:.5f}, S-Pur: {:.5f}".format(
                 output["roc_auc"][1],
                 output["prc_auc"][1],
                 output["sig_effs"][1][np.where(output["cuts"] == 0.5)[0]][0],
@@ -368,7 +379,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
         )
 
         print(
-            "- FOM2-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}".format(
+            "- FOM2-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}\n".format(
                 output["max_foms_1"][1],
                 output["max_fom_cuts_1"][1],
                 output["max_fom_passed_1"][1][0],
@@ -386,7 +397,10 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"]):
     print("took {:.2f} seconds".format(time.time() - start_time))
 
     # Return everything
-    return events, outputs
+    if just_out:
+        return outputs
+    else:
+        return events, outputs
 
 
 def run_inference(events, model, seperate_channels=True, reco_pars=True, prefix=""):
@@ -532,22 +546,30 @@ def full_comb_combine(events, map_type, prefix=""):
     comb_prefix = prefix + "pred_t_comb_cat_"
     if map_type == "t_final_cat":
         apply_prefix = prefix + "pred_t_final_cat_"
-        events["scores"] = events.apply(final_cat_apply, axis=1, args=(apply_prefix,))
+        events["scores"] = events.parallel_apply(
+            final_cat_apply, axis=1, args=(apply_prefix,)
+        )
     elif map_type == "t_all_cat":
         apply_prefix = prefix + "pred_t_all_cat_"
-        events["scores"] = events.apply(all_cat_apply, axis=1, args=(apply_prefix,))
+        events["scores"] = events.parallel_apply(
+            all_cat_apply, axis=1, args=(apply_prefix,)
+        )
     elif map_type == "t_comb_cat":
         return events
     elif map_type == "t_nu_nc_cat":
         apply_prefix = prefix + "pred_t_nu_nc_cat_"
-        events["scores"] = events.apply(nu_nc_comb_apply, axis=1, args=(apply_prefix,))
+        events["scores"] = events.parallel_apply(
+            nu_nc_comb_apply, axis=1, args=(apply_prefix,)
+        )
     elif map_type == "t_nc_cat":
         apply_prefix = prefix + "pred_t_nc_cat_"
-        events["scores"] = events.apply(nc_comb_apply, axis=1, args=(apply_prefix,))
+        events["scores"] = events.parallel_apply(
+            nc_comb_apply, axis=1, args=(apply_prefix,)
+        )
 
-    events[comb_prefix + "0"] = events.scores.map(lambda x: x[0])
-    events[comb_prefix + "1"] = events.scores.map(lambda x: x[1])
-    events[comb_prefix + "2"] = events.scores.map(lambda x: x[2])
+    events[comb_prefix + "0"] = events.scores.parallel_map(lambda x: x[0])
+    events[comb_prefix + "1"] = events.scores.parallel_map(lambda x: x[1])
+    events[comb_prefix + "2"] = events.scores.parallel_map(lambda x: x[2])
     events.drop(["scores"], axis=1)
     return events
 
@@ -578,7 +600,7 @@ def apply_weights(
         pd.DataFrame: events dataframe with weights
     """
 
-    def add_weight(event, w_nuel, w_anuel, w_numu, w_anumu, w_cosmic):
+    def add_scale_weight(event, w_nuel, w_anuel, w_numu, w_anumu, w_cosmic):
         """Add the correct weight to each event.
 
         Args:
@@ -618,6 +640,52 @@ def apply_weights(
         else:
             raise NotImplementedError
 
+    def add_osc_weight(event, numu_survival_prob, nuel_osc):
+        """Add the correct weight to each event.
+
+        Args:
+            event (dict): pandas event(row) dict
+            numu_survival_prob (np.array): numu survival probability array
+        """
+        if (
+            event[data.MAP_NU_TYPE["name"]] == 0
+            and event[data.MAP_SIGN_TYPE["name"]] == 0
+            and event[data.MAP_COSMIC_CAT["name"]] == 0
+        ):  # Nuel
+            nu_energy = math.floor(event["t_nu_energy"] / 100)
+            if nu_energy > 99:
+                nu_energy = 99
+            return nuel_osc[nu_energy] * event["w_scale"]
+        elif (
+            event[data.MAP_NU_TYPE["name"]] == 0
+            and event[data.MAP_SIGN_TYPE["name"]] == 1
+            and event[data.MAP_COSMIC_CAT["name"]] == 0
+        ):  # Anuel
+            return event["w_scale"]
+        elif (
+            event[data.MAP_NU_TYPE["name"]] == 1
+            and event[data.MAP_SIGN_TYPE["name"]] == 0
+            and event[data.MAP_COSMIC_CAT["name"]] == 0
+        ):  # Numu
+            nu_energy = math.floor(event["t_nu_energy"] / 100)
+            if nu_energy > 99:
+                nu_energy = 99
+            return numu_survival_prob[nu_energy] * event["w_scale"]
+        elif (
+            event[data.MAP_NU_TYPE["name"]] == 1
+            and event[data.MAP_SIGN_TYPE["name"]] == 1
+            and event[data.MAP_COSMIC_CAT["name"]] == 0
+        ):  # Anumu
+            nu_energy = math.floor(event["t_nu_energy"] / 100)
+            if nu_energy > 99:
+                nu_energy = 99
+            return numu_survival_prob[nu_energy] * event["w_scale"]
+        elif event[data.MAP_COSMIC_CAT["name"]] == 1:
+            return event["w_scale"]
+        else:
+            raise NotImplementedError
+
+    np.seterr(divide="ignore", invalid="ignore")
     tot_nuel = events[
         (events[data.MAP_NU_TYPE["name"]] == 0)
         & (events[data.MAP_SIGN_TYPE["name"]] == 0)
@@ -665,8 +733,8 @@ def apply_weights(
     else:
         w_cosmic = (1.0 / tot_cosmic) * (cosmic_frac * total_num)
 
-    events["w"] = events.apply(
-        add_weight, axis=1, args=(w_nuel, w_anuel, w_numu, w_anumu, w_cosmic)
+    events["w_scale"] = events.parallel_apply(
+        add_scale_weight, axis=1, args=(w_nuel, w_anuel, w_numu, w_anumu, w_cosmic)
     )
 
     if verbose:
@@ -684,6 +752,56 @@ def apply_weights(
                 w_cosmic,
             )
         )
+    # Now we need to apply the oscillation probability weights
+    osc_file_zero = uproot.open("./data/input/numu_vacuum_oscillations.root")
+    osc_file_minus = uproot.open("./data/input/numu_vacuum_oscillations.root")
+    osc_file_plus = uproot.open("./data/input/numu_vacuum_oscillations.root")
+
+    # We need to scale the nuel events so they simulate the appearance spectra
+    numu_ev = events[
+        (events[data.MAP_NU_TYPE["name"]] == 1)
+        & (events[data.MAP_SIGN_TYPE["name"]] == 0)
+        & (events[data.MAP_COSMIC_CAT["name"]] == 0)
+    ]
+    nuel_ev = events[
+        (events[data.MAP_NU_TYPE["name"]] == 0)
+        & (events[data.MAP_SIGN_TYPE["name"]] == 0)
+        & (events[data.MAP_COSMIC_CAT["name"]] == 0)
+    ]
+
+    numu_e_h = np.histogram(
+        numu_ev["t_nu_energy"] / 100,
+        bins=100,
+        range=(0, 100),
+        weights=numu_ev["w_scale"],
+    )
+    nuel_e_h = np.histogram(
+        nuel_ev["t_nu_energy"] / 100,
+        bins=100,
+        range=(0, 100),
+        weights=nuel_ev["w_scale"],
+    )
+    nuel_osc_zero = (numu_e_h[0] * osc_file_zero["hist_mue"].values[113]) / nuel_e_h[0]
+    nuel_osc_minus = (numu_e_h[0] * osc_file_zero["hist_mue"].values[113]) / nuel_e_h[0]
+    nuel_osc_plus = (numu_e_h[0] * osc_file_zero["hist_mue"].values[113]) / nuel_e_h[0]
+
+    # Apply the oscillation weights to the events
+    events["w_osc_zero"] = events.parallel_apply(
+        add_osc_weight,
+        axis=1,
+        args=(osc_file_zero["hist_mumu"].values[113], nuel_osc_zero),
+    )
+    events["w_osc_minus"] = events.parallel_apply(
+        add_osc_weight,
+        axis=1,
+        args=(osc_file_minus["hist_mumu"].values[113], nuel_osc_minus),
+    )
+    events["w_osc_plus"] = events.parallel_apply(
+        add_osc_weight,
+        axis=1,
+        args=(osc_file_plus["hist_mumu"].values[113], nuel_osc_plus),
+    )
+
     return events
 
 
@@ -714,28 +832,28 @@ def apply_standard_cuts(
     for column in events.columns:
         if "pred_t_cosmic_cat" in column:
             cosmic_cut_func = cut_apply(column, cosmic_cut, cut_type="greater")
-            cosmic_cuts = events.apply(cosmic_cut_func, axis=1)
+            cosmic_cuts = events.parallel_apply(cosmic_cut_func, axis=1)
             events["cosmic_cut"] = cosmic_cuts
             print(events[events["t_cosmic_cat"] == 0][column].describe())
             print(events[events["t_cosmic_cat"] == 1][column].describe())
 
     q_cut_func = cut_apply("r_total_digi_q", q_cut, cut_type="lower")
-    q_cuts = events.apply(q_cut_func, axis=1)
+    q_cuts = events.parallel_apply(q_cut_func, axis=1)
 
     h_cut_func = cut_apply("r_first_ring_height", h_cut, cut_type="lower")
-    h_cuts = events.apply(h_cut_func, axis=1)
+    h_cuts = events.parallel_apply(h_cut_func, axis=1)
 
     theta_low_cut_func = cut_apply("r_dir_theta", -theta_cut, cut_type="lower")
-    theta_low_cuts = events.apply(theta_low_cut_func, axis=1)
+    theta_low_cuts = events.parallel_apply(theta_low_cut_func, axis=1)
 
     theta_high_cut_func = cut_apply("r_dir_theta", theta_cut, cut_type="greater")
-    theta_high_cuts = events.apply(theta_high_cut_func, axis=1)
+    theta_high_cuts = events.parallel_apply(theta_high_cut_func, axis=1)
 
     phi_low_cut_func = cut_apply("r_dir_phi", -phi_cut, cut_type="lower")
-    phi_low_cuts = events.apply(phi_low_cut_func, axis=1)
+    phi_low_cuts = events.parallel_apply(phi_low_cut_func, axis=1)
 
     phi_high_cut_func = cut_apply("r_dir_phi", phi_cut, cut_type="greater")
-    phi_high_cuts = events.apply(phi_high_cut_func, axis=1)
+    phi_high_cuts = events.parallel_apply(phi_high_cut_func, axis=1)
 
     events["cut"] = np.logical_or.reduce(
         (
@@ -800,11 +918,19 @@ def cut_apply(variable, value, cut_type):
     return cut_func
 
 
-def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
+def calculate_curves(ev, thresholds=200, prefix=""):
     """Calculate efficiency, purity and figure of merit across the full range of cut values.
 
+    In the cc nuel signal case
+    SIGNAL = Appeared CC beam nuel
+    BKG = Beam CC numu + anumu, beam CC nuel + anuel, NC nu + anu 
+
+    In the cc numu signal case
+    SIGNAL = Beam numu + anumu
+    BKG = NC nu + anu, Appeared CC beam nuel, Beam CC nuel + anuel
+
     Args:
-        events (pd.DataFrame): events dataframe to use
+        ev (pd.DataFrame): events dataframe to use
         cat_name (str): category name to use
         thresholds (int): number of threshold values to use
         prefix (str): prefix to apply to model output values
@@ -816,9 +942,15 @@ def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
         purities (np.array): array of purities
         foms (np.array): array of figure-of-merits (efficiency*purity)
     """
+    selections = [
+        ev[(ev["t_comb_cat"] == 0)],  # Appearance CC nuel
+        ev[(ev["t_comb_cat"] == 1)],  # Beam CC numu
+        ev[(ev["t_comb_cat"] == 2)],  # Beam NC
+    ]
+    weights = ["w_osc_zero", "w_osc_zero", "w_osc_zero"]
+    num_cats = len(selections)
     np.seterr(divide="ignore", invalid="ignore")
-    num_cats = chipsnet.data.get_map(cat_name)["categories"]
-    prefix = prefix + "pred_" + cat_name
+    prefix = prefix + "pred_t_comb_cat"
 
     cuts, totals = [], []
     max_foms_0, max_fom_cuts_0, max_fom_passed_0 = [], [], []
@@ -826,7 +958,7 @@ def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
     foms_0, foms_1 = [], []
     sig_effs, bkg_effs, purities = [], [], []
     for cat in range(num_cats):
-        totals.append(events[events[cat_name] == cat]["w"].sum())
+        totals.append(selections[cat][weights[cat]].sum())
         max_foms_0.append(0.0)
         max_fom_cuts_0.append(0.0)
         max_foms_1.append(0.0)
@@ -848,12 +980,19 @@ def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
                 cut_string = prefix + "_" + str(count_cat)
                 if num_cats == 1:
                     cut_string = prefix
+                # passed.append(
+                #    events[
+                #        (events["cut"] == 0)
+                #        & (events[cat_name] == cut_cat)
+                #        & (events[cut_string] > cuts[cut])
+                #    ]["w"].sum()
+                # )
+
                 passed.append(
-                    events[
-                        (events["cut"] == 0)
-                        & (events[cat_name] == cut_cat)
-                        & (events[cut_string] > cuts[cut])
-                    ]["w"].sum()
+                    selections[cut_cat][
+                        (selections[cut_cat]["cut"] == 0)
+                        & (selections[cut_cat][cut_string] >= cuts[cut])
+                    ][weights[cut_cat]].sum()
                 )
 
             # Calculate the signal and background efficiencies for this category
@@ -917,10 +1056,42 @@ def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
         roc_auc.append(auc(bkg_effs[cat], sig_effs[cat]))
         prc_auc.append(auc(sig_effs[cat], purities[cat]))
 
-    # We now use the maximum figure-of-merit values to calculate the efficiency
-    # and purity hists with neutrino energy.
-    e_bins = 14
-    e_range = (1000, 8000)
+    output = {
+        "cuts": cuts,
+        "sig_effs": sig_effs,
+        "bkg_effs": bkg_effs,
+        "purs": purities,
+        "foms_0": foms_0,
+        "foms_1": foms_1,
+        "sig_effs_auc": sig_effs_auc,
+        "bkg_effs_auc": bkg_effs_auc,
+        "pur_auc": pur_auc,
+        "fom_auc_0": fom_auc_0,
+        "fom_auc_1": fom_auc_1,
+        "roc_auc": roc_auc,
+        "prc_auc": prc_auc,
+        "max_foms_0": max_foms_0,
+        "max_foms_1": max_foms_1,
+        "max_fom_cuts_0": max_fom_cuts_0,
+        "max_fom_cuts_1": max_fom_cuts_1,
+        "max_fom_passed_0": max_fom_passed_0,
+        "max_fom_passed_1": max_fom_passed_1,
+    }
+
+    return output
+
+
+def calculate_eff_pur(ev, cut_value, e_bins=14, e_range=(1000, 8000), prefix=""):
+    selections = [
+        ev[(ev["t_comb_cat"] == 0)],  # Appearance CC nuel
+        ev[(ev["t_comb_cat"] == 1)],  # Beam CC numu
+        ev[(ev["t_comb_cat"] == 2)],  # Beam NC
+    ]
+    weights = ["w_osc_zero", "w_osc_zero", "w_osc_zero"]
+    num_cats = len(selections)
+    np.seterr(divide="ignore", invalid="ignore")
+    prefix = prefix + "pred_t_comb_cat"
+
     fom_effs = []
     fom_purs = []
     for count_cat in range(num_cats):
@@ -929,14 +1100,19 @@ def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
         bkg_err = np.zeros(e_bins)
         eff_hists = []
         for cut_cat in range(num_cats):
-            total = events[events[cat_name] == cut_cat]
+            total = selections[cut_cat]
             cut_string = prefix + "_" + str(count_cat)
             if num_cats == 1:
                 cut_string = prefix
-            passed = events[
-                (events[cat_name] == cut_cat)
-                & (events["cut"] == 0)
-                & (events[cut_string] > max_fom_cuts_0[count_cat])
+            # passed = events[
+            #    (events[cat_name] == cut_cat)
+            #    & (events["cut"] == 0)
+            #    & (events[cut_string] > cut_value[count_cat])
+            # ]
+
+            passed = selections[cut_cat][
+                (selections[cut_cat]["cut"] == 0)
+                & (selections[cut_cat][cut_string] > cut_value[count_cat])
             ]
 
             tot_h, tot_err, centers, edges = extended_hist(
@@ -944,7 +1120,7 @@ def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
                 e_range[0],
                 e_range[1],
                 e_bins,
-                weights=total["w"].to_numpy(),
+                weights=total[weights[cut_cat]].to_numpy(),
             )
 
             pass_h, pass_err, centers, edges = extended_hist(
@@ -952,7 +1128,7 @@ def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
                 e_range[0],
                 e_range[1],
                 e_bins,
-                weights=passed["w"].to_numpy(),
+                weights=passed[weights[cut_cat]].to_numpy(),
             )
 
             eff_h = np.divide(pass_h, tot_h)
@@ -998,27 +1174,8 @@ def calculate_curves(events, cat_name="t_comb_cat", thresholds=200, prefix=""):
         fom_purs.append((pur_h, pur_err))
 
     output = {
-        "cuts": cuts,
-        "sig_effs": sig_effs,
-        "bkg_effs": bkg_effs,
-        "purs": purities,
-        "foms_0": foms_0,
-        "foms_1": foms_1,
         "fom_effs": fom_effs,
         "fom_purs": fom_purs,
-        "sig_effs_auc": sig_effs_auc,
-        "bkg_effs_auc": bkg_effs_auc,
-        "pur_auc": pur_auc,
-        "fom_auc_0": fom_auc_0,
-        "fom_auc_1": fom_auc_1,
-        "roc_auc": roc_auc,
-        "prc_auc": prc_auc,
-        "max_foms_0": max_foms_0,
-        "max_foms_1": max_foms_1,
-        "max_fom_cuts_0": max_fom_cuts_0,
-        "max_fom_cuts_1": max_fom_cuts_1,
-        "max_fom_passed_0": max_fom_passed_0,
-        "max_fom_passed_1": max_fom_passed_1,
     }
 
     return output
@@ -1412,8 +1569,8 @@ def gaussian(x, a, b, c):
 def frac_e_vs_par(
     events,
     par="t_nu_energy",
-    low=500,
-    high=8500,
+    low=1000,
+    high=8000,
     bin_size=1000,
     fit_name="frac_nu_energy",
 ):
@@ -1430,27 +1587,39 @@ def frac_e_vs_par(
     Returns:
         (list, list): list of cuts, list of std errors
     """
-    cuts, std_list, std_err_list = [], [], []
+    cuts, mean_list, mean_err_list, std_list, std_err_list = [], [], [], [], []
     for cut in range(low, high, bin_size):
         try:
             subset = events[(events[par] >= cut)]
             subset = subset[(subset[par] <= (cut + bin_size))]
 
             n, bins = np.histogram(
-                subset[fit_name], 25, range=(-1, 1), weights=subset["w"], density=True,
+                subset[fit_name], 40, range=(-1, 1), weights=subset["w"], density=True,
             )
 
+            subset[fit_name]
+
             centers = 0.5 * (bins[1:] + bins[:-1])
-            pars, cov = curve_fit(gaussian, centers, n, p0=[1, 0, 0.15])
+            pars, cov = curve_fit(
+                gaussian,
+                centers,
+                n,
+                p0=[1, subset[fit_name].mean(), subset[fit_name].std()],
+            )
             # mu, std = norm.fit(subset[fit_name])
-            std_list.append(pars[2])
-            std_err_list.append(np.sqrt(cov[2, 2]))
+            mean_list.append(abs(pars[1]))
+            mean_err_list.append(abs(np.sqrt(cov[1, 1])))
+            std_list.append(abs(pars[2]))
+            std_err_list.append(abs(np.sqrt(cov[2, 2])))
             cuts.append(cut + (bin_size / 2))
-        except Exception:
+        except Exception as e:
+            print(e)
             cuts.append(cut + (bin_size / 2))
+            mean_list.append(0)
+            mean_err_list.append(0)
             std_list.append(0)
             std_err_list.append(0)
-    return (cuts, std_list, std_err_list)
+    return cuts, [mean_list, mean_err_list], [std_list, std_err_list]
 
 
 def get_old_df(file_name, l_type):

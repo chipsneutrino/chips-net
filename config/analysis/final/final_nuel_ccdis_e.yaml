@@ -5,7 +5,7 @@ exp:
     comet: False
 data:
     input_dirs:
-        - "./data/input/chips_1200/nuel_ccdis/"
+        - "./data/input/chips_1200/nuel_ccdis_numuflux/"
     channels: [1, 1, 1]
     seperate_channels: True
     img_size: [64, 64]

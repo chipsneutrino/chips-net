@@ -62,6 +62,8 @@ trainer:
     es_epochs: 2  # Early stopping epochs without delta change before stop
 study:
     trials: 50  # Number of trials in the study
+    objective: "val_accuracy" # What SHERPA should track as the objective
+    context: []  # Other values to keep track of
     # The following list the SHERPA options for variables in the previous sections
     data:
         unstack: [True, False]

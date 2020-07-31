@@ -5,11 +5,8 @@ exp:
     comet: False
 data:
     input_dirs:
-        - "./data/input/chips_1200/nuel_cccoh/"
-        - "./data/input/chips_1200/nuel_ccdis/"
-        - "./data/input/chips_1200/nuel_ccqel/"
-        - "./data/input/chips_1200/nuel_ccres/"
-        - "./data/input/chips_1200/nuel_ccmec/"
+        - "./data/input/chips_1200/nuel_ccqel_numuflux/"
+        - "./data/input/chips_1200/nuel_ccmec_numuflux/"
     channels: [1, 1, 1]
     seperate_channels: True
     img_size: [64, 64]
@@ -35,10 +32,10 @@ model:
     summarise: False
 trainer:
     train_examples: 1280000
-    val_examples: 32000
+    val_examples: 64000
     test_examples: 32000
     batch_size: 128
-    epochs: 15
+    epochs: 5
     tb_update: 1000
     steps_per_epoch: -1
     es_monitor: "val_t_nu_energy_mae"
@@ -46,16 +43,18 @@ trainer:
     es_epochs: 5
 study:
     trials: 50
+    objective: "val_t_nu_energy_mae"
+    context: ["val_t_lep_energy_mae"]
     data:
-        seperate_channels: [True]
+        seperate_channels: [True, False]
         augment: [False]
     model:
         lr: [0.00005, 0.001]
         lr_decay: [0.5, 0.5]
-        dense_units: [255, 512]
+        dense_units: [512]
         dropout: [0.0, 0.25]
-        filters: [32, 64]
-        reco_pars: [True, False]
+        filters: [64]
+        reco_pars: [True]
         se_ratio: [0, 16]
         learn_weights: [True, False]
     trainer:

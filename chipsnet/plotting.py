@@ -448,15 +448,23 @@ def plot_combined_values(events, prefix, save_path):
     plt.setp(axs, xticks=[0, 0.2, 0.4, 0.6, 0.8, 1])
     axs[0].hist(
         nuel_cc_events[cat0],
-        weights=nuel_cc_events["w"],
+        weights=nuel_cc_events["w_scale"],
         range=hist_range,
         bins=bins,
         color="tab:green",
         histtype="step",
     )
     axs[0].hist(
+        nuel_cc_events[cat0],
+        weights=nuel_cc_events["w_osc_zero"],
+        range=hist_range,
+        bins=bins,
+        color="black",
+        histtype="step",
+    )
+    axs[0].hist(
         numu_cc_events[cat0],
-        weights=numu_cc_events["w"],
+        weights=numu_cc_events["w_osc_zero"],
         range=hist_range,
         bins=bins,
         color="tab:blue",
@@ -464,7 +472,7 @@ def plot_combined_values(events, prefix, save_path):
     )
     axs[0].hist(
         nc_events[cat0],
-        weights=nc_events["w"],
+        weights=nc_events["w_osc_zero"],
         range=hist_range,
         bins=bins,
         color="tab:red",
@@ -472,7 +480,7 @@ def plot_combined_values(events, prefix, save_path):
     )
     axs[0].hist(
         cosmic_events[cat0],
-        weights=cosmic_events["w"],
+        weights=cosmic_events["w_osc_zero"],
         range=hist_range,
         bins=bins,
         color="tab:orange",
@@ -506,7 +514,7 @@ def plot_combined_values(events, prefix, save_path):
 
     axs[1].hist(
         nuel_cc_events[cat1],
-        weights=nuel_cc_events["w"],
+        weights=nuel_cc_events["w_osc_zero"],
         range=hist_range,
         bins=bins,
         color="tab:green",
@@ -514,7 +522,7 @@ def plot_combined_values(events, prefix, save_path):
     )
     axs[1].hist(
         numu_cc_events[cat1],
-        weights=numu_cc_events["w"],
+        weights=numu_cc_events["w_osc_zero"],
         range=hist_range,
         bins=bins,
         color="tab:blue",
@@ -522,7 +530,7 @@ def plot_combined_values(events, prefix, save_path):
     )
     axs[1].hist(
         nc_events[cat1],
-        weights=nc_events["w"],
+        weights=nc_events["w_osc_zero"],
         range=hist_range,
         bins=bins,
         color="tab:red",
@@ -530,7 +538,7 @@ def plot_combined_values(events, prefix, save_path):
     )
     axs[1].hist(
         cosmic_events[cat1],
-        weights=cosmic_events["w"],
+        weights=cosmic_events["w_osc_zero"],
         range=hist_range,
         bins=bins,
         color="tab:orange",
@@ -897,17 +905,17 @@ def plot_history(config, model, save_path, key="accuracy", label=r"accuracy"):
     plt.setp(axs, xticks=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     history = chipsnet.utils.model_history(config, model)
     epochs = np.arange(1, len(history["loss"]) + 1)
-    axs.set_xlabel("epoch", fontsize=17)
-    axs.set_ylabel(label, color="tab:red", fontsize=17)
+    axs.set_xlabel("epoch", fontsize=24)
+    axs.set_ylabel(label, color="tab:red", fontsize=24)
     axs.plot(epochs, history[key], color="tab:red", linestyle="solid")
     axs.plot(epochs, history["val_" + key], color="tab:red", linestyle="dashed")
     axs.tick_params(axis="y", labelcolor="tab:red")
     axs_t = axs.twinx()  # instantiate a second axes that shares the same x-axis
     axs_t.set_ylabel(
-        "loss", color="tab:blue", fontsize=17
+        "loss", color="tab:blue", fontsize=24
     )  # we already handled the x-label with ax1
     axs_t.plot(epochs, history["loss"], color="tab:blue", linestyle="solid")
     axs_t.plot(epochs, history["val_loss"], color="tab:blue", linestyle="dashed")
     axs_t.tick_params(axis="y", labelcolor="tab:blue")
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    # fig.tight_layout()  # otherwise the right y-label is slightly clipped
     save(save_path)
