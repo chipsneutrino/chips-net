@@ -5,8 +5,8 @@ exp:
     comet: False  # Should we use comet to store the experiment online
 data:
     input_dirs:  # The directories from which to take input data
-        - "./data/input/chips_1200/nuel_ccqel/"
-        - "./data/input/chips_1200/nuel_ccmec/"
+        - "./data/input/chips_1200/nuel_ccqel_numuflux/"
+        - "./data/input/chips_1200/nuel_ccmec_numuflux/"
     channels: [1, 1, 1]  # Which channels should be active?
     seperate_channels: True  # Should we split the channels into seperate images?
     img_size: [64, 64]  # The input image size
@@ -19,7 +19,7 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value as though noise, sigma
 model:
     type: "vgg"  # (vgg, resnet, inception)
-    labels: ["t_nu_energy", "t_lep_energy"]  # For energy estimation
+    labels: ["t_nu_energy", "t_lep_energy", "t_escapes"]  # For energy estimation
     lr: 0.0003  # The initial learning rate
     lr_decay: 0.0  # Learning rate decay coefficient
     dense_units: 512  # Number of units to use in dense layers

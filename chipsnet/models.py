@@ -932,7 +932,14 @@ def get_outputs(config, x):
             weights[output] = 0.01
             metrics[output] = "mae"
 
-        elif output == "t_prim_counts":
+        elif output in [
+            "t_el_count",
+            "t_mu_count",
+            "t_p_count",
+            "t_cp_count",
+            "t_np_count",
+            "t_g_count",
+        ]:
             out = Dense(4, name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = "sparse_categorical_crossentropy"
@@ -980,7 +987,7 @@ def binary_masked_loss(y_true, y_pred):
     Returns:
         tf.keras.loss: binary crossentropy error function
     """
-    mask = tf.cast(tf.math.not_equal(y_true, -1), tf.int32)
+    mask = tf.cast(tf.math.not_equal(y_true, -1), tf.float32)
     return tf.keras.losses.binary_crossentropy(y_true * mask, y_pred * mask)
 
 
@@ -1082,7 +1089,14 @@ class MultiLossLayer(tf.keras.layers.Layer):
                 self.loss_funcs.append(MeanSquaredError(reduction=Reduction.SUM))
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(0.01)
-            elif output == "t_prim_counts":
+            elif output in [
+                "t_el_count",
+                "t_mu_count",
+                "t_p_count",
+                "t_cp_count",
+                "t_np_count",
+                "t_g_count",
+            ]:
                 self.loss_funcs.append(
                     SparseCategoricalCrossentropy(reduction=Reduction.SUM)
                 )

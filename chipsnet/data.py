@@ -151,8 +151,13 @@ class Reader:
         labels[MAP_FULL_COMB_CAT["name"]] = labels_i[9]
         labels[MAP_NU_NC_COMB_CAT["name"]] = labels_i[10]
         labels[MAP_NC_COMB_CAT["name"]] = labels_i[11]
-        labels("t_prim_counts") = labels_i[12]
-        labels["t_escapes"] = labels_i[13]
+        labels["t_el_count"] = labels_i[12]
+        labels["t_mu_count"] = labels_i[13]
+        labels["t_p_count"] = labels_i[14]
+        labels["t_cp_count"] = labels_i[15]
+        labels["t_np_count"] = labels_i[16]
+        labels["t_g_count"] = labels_i[17]
+        labels["t_escapes"] = labels_i[18]
 
         # Decode float labels and append to the labels dictionary
         labels_f = tf.io.decode_raw(example["labels_f"], tf.float32)
@@ -443,7 +448,12 @@ class Creator:
                 comb_arr,
                 nu_nc_comb_arr,
                 nc_comb_arr,
-                primary_counts,
+                primary_counts[:, 0],
+                primary_counts[:, 1],
+                primary_counts[:, 2],
+                primary_counts[:, 3],
+                primary_counts[:, 4],
+                primary_counts[:, 5],
                 true.array("t_escapes"),
             ),
             axis=1,
@@ -491,7 +501,8 @@ class Creator:
         # Split into training, validation and testing samples
         random.shuffle(examples)  # Shuffle the examples list
         val_split = int(
-            (1.0 - self.config.create.val_frac - self.config.create.test_frac) * len(examples)
+            (1.0 - self.config.create.val_frac - self.config.create.test_frac)
+            * len(examples)
         )
         test_split = int((1.0 - self.config.create.test_frac) * len(examples))
         train_examples = examples[:val_split]

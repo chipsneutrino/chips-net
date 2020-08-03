@@ -5,8 +5,9 @@ exp:
     comet: False  # Should we use comet to store the experiment online
 data:
     input_dirs:  # The directories from which to take input data
-        - "./data/input/chips_1200/flux/"
-        - "./data/input/chips_1200/cosmic/"
+        - "./data/input/chips_1200/numu_all_numuflux/"
+        - "./data/input/chips_1200/nuel_all_numuflux/"
+        - "./data/input/chips_1200/cosmics/"
     channels: [1, 1, 1]  # Which channels should be active?
     seperate_channels: True  # Should we split the channels into seperate images?
     img_size: [64, 64]  # The input image size

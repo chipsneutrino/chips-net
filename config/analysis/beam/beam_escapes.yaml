@@ -1,0 +1,61 @@
+task: "train"
+exp:
+    name: "beam_escapes"
+    output_dir: "./data/models/analysis/beam/"
+    comet: False
+data:
+    input_dirs:
+        - "./data/input/chips_1200/numu_all_numuflux/"
+        - "./data/input/chips_1200/nuel_all_numuflux/"
+        - "./data/input/chips_1200/numu_cccoh_numuflux/"
+        - "./data/input/chips_1200/numu_nccoh_numuflux/"
+        - "./data/input/chips_1200/numu_ccdis_numuflux/"
+        - "./data/input/chips_1200/numu_ncdis_numuflux/"
+        - "./data/input/chips_1200/numu_ccqel_numuflux/"
+        - "./data/input/chips_1200/numu_ncqel_numuflux/"
+        - "./data/input/chips_1200/numu_ccres_numuflux/"
+        - "./data/input/chips_1200/numu_ncres_numuflux/"
+        - "./data/input/chips_1200/numu_ccmec_numuflux/"
+        - "./data/input/chips_1200/nuel_cccoh_numuflux/"
+        - "./data/input/chips_1200/nuel_nccoh_numuflux/"
+        - "./data/input/chips_1200/nuel_ccdis_numuflux/"
+        - "./data/input/chips_1200/nuel_ncdis_numuflux/"
+        - "./data/input/chips_1200/nuel_ccqel_numuflux/"
+        - "./data/input/chips_1200/nuel_ncqel_numuflux/"
+        - "./data/input/chips_1200/nuel_ccres_numuflux/"
+        - "./data/input/chips_1200/nuel_ncres_numuflux/"
+        - "./data/input/chips_1200/nuel_ccmec_numuflux/"
+    channels: [1, 1, 1]
+    seperate_channels: True
+    img_size: [64, 64]
+    augment: True
+    aug_factor_mean: [0.0, 0.0, 0.0]
+    aug_factor_sigma: [0.02, 0.02, 0.02]
+    aug_abs_mean: [0.0, 0.0, 0.0]
+    aug_abs_sigma: [0.0, 0.0, 0.0]
+    aug_noise_mean: [0.0, 0.0, 0.0]
+    aug_noise_sigma: [0.0, 0.0, 0.0]
+model:
+    type: "vgg"
+    labels: ["t_nu_nc_cat", "t_escapes"]
+    lr: 0.0002
+    lr_decay: 0.5
+    dense_units: 512
+    dropout: 0.1
+    filters: 64
+    reco_pars: True
+    se_ratio: 16
+    learn_weights: False
+    precision_policy: "mixed_float16"
+    summarise: False
+trainer:
+    train_examples: 1280000
+    val_examples: 32000
+    test_examples: 32000
+    batch_size: 128
+    epochs: 10
+    tb_update: 1000
+    steps_per_epoch: -1
+    es_monitor: "val_t_nu_nc_cat_accuracy"
+    es_delta: 0.0001
+    es_epochs: 2

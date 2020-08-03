@@ -923,7 +923,7 @@ def calculate_curves(ev, thresholds=200, prefix=""):
 
     In the cc nuel signal case
     SIGNAL = Appeared CC beam nuel
-    BKG = Beam CC numu + anumu, beam CC nuel + anuel, NC nu + anu 
+    BKG = Beam CC numu + anumu, beam CC nuel + anuel, NC nu + anu
 
     In the cc numu signal case
     SIGNAL = Beam numu + anumu
@@ -936,11 +936,7 @@ def calculate_curves(ev, thresholds=200, prefix=""):
         prefix (str): prefix to apply to model output values
 
     Returns:
-        cuts (np.array): array of threshold cut values
-        sig_effs (np.array): array signal efficiencies
-        bkg_effs (np.array): array background efficiencies
-        purities (np.array): array of purities
-        foms (np.array): array of figure-of-merits (efficiency*purity)
+        output (dict): output dictionary of results
     """
     selections = [
         ev[(ev["t_comb_cat"] == 0)],  # Appearance CC nuel
@@ -1082,6 +1078,18 @@ def calculate_curves(ev, thresholds=200, prefix=""):
 
 
 def calculate_eff_pur(ev, cut_value, e_bins=14, e_range=(1000, 8000), prefix=""):
+    """Calculate efficiency and purity curves at a specific cut value.
+
+    Args:
+        ev (pd.DataFrame): events dataframe to use
+        cut_value (float): cut value to use
+        e_bins (int): number of energy bins
+        e_range: (tuple): energy range
+        prefix (str): prefix to apply to model output values
+
+    Returns:
+        output (dict): output dictionary of results
+    """
     selections = [
         ev[(ev["t_comb_cat"] == 0)],  # Appearance CC nuel
         ev[(ev["t_comb_cat"] == 1)],  # Beam CC numu
