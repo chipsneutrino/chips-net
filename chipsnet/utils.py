@@ -171,6 +171,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_nu_nc_cat"], just_out=Fal
         numu_frac=config.eval.weights.numu,
         anumu_frac=config.eval.weights.anumu,
         cosmic_frac=config.eval.weights.cosmic,
+        osc_file_name=config.eval.weights.osc_file_name,
         verbose=True,
     )
 
@@ -582,6 +583,7 @@ def apply_weights(
     numu_frac=0.00276174709613,  # for chips_1200
     anumu_frac=0.00006042213136,  # for chips_1200
     cosmic_frac=0.99714372811940,  # for chips_1200
+    osc_file_name="./data/input/numu_vac_osc_cp_zero.root",
     verbose=False,
 ):
     """Calculate and apply the 'weight' column to scale events to predicted numbers.
@@ -594,13 +596,14 @@ def apply_weights(
         numu_frac (float): fraction of events from numu
         anumu_frac (float): fraction of events from anumu
         cosmic_frac (float): fractions of events from cosmics
+        osc_file_name (str): Oscillation data file name 
         verbose (bool): should we print the weight summary?
 
     Returns:
         pd.DataFrame: events dataframe with weights
     """
 
-    def add_scale_weight(event, w_nuel, w_anuel, w_numu, w_anumu, w_cosmic):
+    def apply_scale_weight(event, w_nuel, w_anuel, w_numu, w_anumu, w_cosmic):
         """Add the correct weight to each event.
 
         Args:
@@ -615,73 +618,96 @@ def apply_weights(
             event[data.MAP_NU_TYPE["name"]] == 0
             and event[data.MAP_SIGN_TYPE["name"]] == 0
             and event[data.MAP_COSMIC_CAT["name"]] == 0
-        ):
+            and event["t_sample_type"] == 0
+        ):  # Beam nuel
             return w_nuel
+        elif (
+            event[data.MAP_NU_TYPE["name"]] == 0
+            and event[data.MAP_SIGN_TYPE["name"]] == 0
+            and event[data.MAP_COSMIC_CAT["name"]] == 0
+            and event["t_sample_type"] == 1
+        ):  # Appeared nuel
+            return 1
         elif (
             event[data.MAP_NU_TYPE["name"]] == 0
             and event[data.MAP_SIGN_TYPE["name"]] == 1
             and event[data.MAP_COSMIC_CAT["name"]] == 0
-        ):
+            and event["t_sample_type"] == 0
+        ):  # Beam anuel
             return w_anuel
         elif (
             event[data.MAP_NU_TYPE["name"]] == 1
             and event[data.MAP_SIGN_TYPE["name"]] == 0
             and event[data.MAP_COSMIC_CAT["name"]] == 0
-        ):
+            and event["t_sample_type"] == 0
+        ):  # Beam numu
             return w_numu
         elif (
             event[data.MAP_NU_TYPE["name"]] == 1
             and event[data.MAP_SIGN_TYPE["name"]] == 1
             and event[data.MAP_COSMIC_CAT["name"]] == 0
-        ):
+            and event["t_sample_type"] == 0
+        ):  # Beam anumu
             return w_anumu
-        elif event[data.MAP_COSMIC_CAT["name"]] == 1:
+        elif event[data.MAP_COSMIC_CAT["name"]] == 1 and event["t_sample_type"] == 2:
             return w_cosmic
         else:
             raise NotImplementedError
 
-    def add_osc_weight(event, numu_survival_prob, nuel_osc):
+    def apply_osc_weight(event, numu_survival_prob, nuel_osc):
         """Add the correct weight to each event.
 
         Args:
             event (dict): pandas event(row) dict
             numu_survival_prob (np.array): numu survival probability array
+            nuel_osc (np.array): numu appearance scaled probability array
         """
         if (
             event[data.MAP_NU_TYPE["name"]] == 0
             and event[data.MAP_SIGN_TYPE["name"]] == 0
             and event[data.MAP_COSMIC_CAT["name"]] == 0
-        ):  # Nuel
+            and event["t_sample_type"] == 0
+        ):  # Beam nuel
+            return event["w"]
+        if (
+            event[data.MAP_NU_TYPE["name"]] == 0
+            and event[data.MAP_SIGN_TYPE["name"]] == 0
+            and event[data.MAP_COSMIC_CAT["name"]] == 0
+            and event["t_sample_type"] == 1
+        ):  # Appeared nuel
             nu_energy = math.floor(event["t_nu_energy"] / 100)
             if nu_energy > 99:
                 nu_energy = 99
-            return nuel_osc[nu_energy] * event["w_scale"]
+            return nuel_osc[nu_energy] * event["w"]
         elif (
             event[data.MAP_NU_TYPE["name"]] == 0
             and event[data.MAP_SIGN_TYPE["name"]] == 1
             and event[data.MAP_COSMIC_CAT["name"]] == 0
-        ):  # Anuel
-            return event["w_scale"]
+            and event["t_sample_type"] == 0
+        ):  # beam anuel
+            return event["w"]
         elif (
             event[data.MAP_NU_TYPE["name"]] == 1
             and event[data.MAP_SIGN_TYPE["name"]] == 0
             and event[data.MAP_COSMIC_CAT["name"]] == 0
-        ):  # Numu
+            and event["t_sample_type"] == 0
+        ):  # Beam numu
             nu_energy = math.floor(event["t_nu_energy"] / 100)
             if nu_energy > 99:
                 nu_energy = 99
-            return numu_survival_prob[nu_energy] * event["w_scale"]
+            return numu_survival_prob[nu_energy] * event["w"]
         elif (
             event[data.MAP_NU_TYPE["name"]] == 1
             and event[data.MAP_SIGN_TYPE["name"]] == 1
             and event[data.MAP_COSMIC_CAT["name"]] == 0
-        ):  # Anumu
+            and event["t_sample_type"] == 0
+        ):  # Beam anumu
             nu_energy = math.floor(event["t_nu_energy"] / 100)
             if nu_energy > 99:
                 nu_energy = 99
-            return numu_survival_prob[nu_energy] * event["w_scale"]
-        elif event[data.MAP_COSMIC_CAT["name"]] == 1:
-            return event["w_scale"]
+            return numu_survival_prob[nu_energy] * event["w"]
+        elif event[data.MAP_COSMIC_CAT["name"]] == 1 and event["t_sample_type"] == 2:
+            return event["w"]
         else:
             raise NotImplementedError
 
@@ -690,21 +716,25 @@ def apply_weights(
         (events[data.MAP_NU_TYPE["name"]] == 0)
         & (events[data.MAP_SIGN_TYPE["name"]] == 0)
         & (events[data.MAP_COSMIC_CAT["name"]] == 0)
+        & (events["t_sample_type"] == 0)
     ].shape[0]
     tot_anuel = events[
         (events[data.MAP_NU_TYPE["name"]] == 0)
         & (events[data.MAP_SIGN_TYPE["name"]] == 1)
         & (events[data.MAP_COSMIC_CAT["name"]] == 0)
+        & (events["t_sample_type"] == 0)
     ].shape[0]
     tot_numu = events[
         (events[data.MAP_NU_TYPE["name"]] == 1)
         & (events[data.MAP_SIGN_TYPE["name"]] == 0)
         & (events[data.MAP_COSMIC_CAT["name"]] == 0)
+        & (events["t_sample_type"] == 0)
     ].shape[0]
     tot_anumu = events[
         (events[data.MAP_NU_TYPE["name"]] == 1)
         & (events[data.MAP_SIGN_TYPE["name"]] == 1)
         & (events[data.MAP_COSMIC_CAT["name"]] == 0)
+        & (events["t_sample_type"] == 0)
     ].shape[0]
     tot_cosmic = events[events[data.MAP_COSMIC_CAT["name"]] == 1].shape[0]
 
@@ -733,10 +763,6 @@ def apply_weights(
     else:
         w_cosmic = (1.0 / tot_cosmic) * (cosmic_frac * total_num)
 
-    events["w_scale"] = events.parallel_apply(
-        add_scale_weight, axis=1, args=(w_nuel, w_anuel, w_numu, w_anumu, w_cosmic)
-    )
-
     if verbose:
         print(
             "Weights: ({},{:.5f}), ({},{:.5f}), ({},{:.5f}), ({},{:.5f}), ({},{:.5f})".format(
@@ -752,54 +778,39 @@ def apply_weights(
                 w_cosmic,
             )
         )
+
+    events["w"] = events.parallel_apply(
+        apply_scale_weight, axis=1, args=(w_nuel, w_anuel, w_numu, w_anumu, w_cosmic),
+    )
+
     # Now we need to apply the oscillation probability weights
-    osc_file_zero = uproot.open("./data/input/numu_vacuum_oscillations.root")
-    osc_file_minus = uproot.open("./data/input/numu_vacuum_oscillations.root")
-    osc_file_plus = uproot.open("./data/input/numu_vacuum_oscillations.root")
+    osc_file = uproot.open(osc_file_name)
 
     # We need to scale the nuel events so they simulate the appearance spectra
-    numu_ev = events[
+    numu_ev = events[  # Get the unoscillated numu beam events
         (events[data.MAP_NU_TYPE["name"]] == 1)
         & (events[data.MAP_SIGN_TYPE["name"]] == 0)
         & (events[data.MAP_COSMIC_CAT["name"]] == 0)
+        & (events["t_sample_type"] == 0)
     ]
-    nuel_ev = events[
+    nuel_ev = events[  # Get the nuel events generated with the numu flux
         (events[data.MAP_NU_TYPE["name"]] == 0)
         & (events[data.MAP_SIGN_TYPE["name"]] == 0)
         & (events[data.MAP_COSMIC_CAT["name"]] == 0)
+        & (events["t_sample_type"] == 1)
     ]
 
     numu_e_h = np.histogram(
-        numu_ev["t_nu_energy"] / 100,
-        bins=100,
-        range=(0, 100),
-        weights=numu_ev["w_scale"],
+        numu_ev["t_nu_energy"] / 100, bins=100, range=(0, 100), weights=numu_ev["w"],
     )
     nuel_e_h = np.histogram(
-        nuel_ev["t_nu_energy"] / 100,
-        bins=100,
-        range=(0, 100),
-        weights=nuel_ev["w_scale"],
+        nuel_ev["t_nu_energy"] / 100, bins=100, range=(0, 100), weights=nuel_ev["w"],
     )
-    nuel_osc_zero = (numu_e_h[0] * osc_file_zero["hist_mue"].values[113]) / nuel_e_h[0]
-    nuel_osc_minus = (numu_e_h[0] * osc_file_zero["hist_mue"].values[113]) / nuel_e_h[0]
-    nuel_osc_plus = (numu_e_h[0] * osc_file_zero["hist_mue"].values[113]) / nuel_e_h[0]
+    nuel_osc = (numu_e_h[0] * osc_file["hist_mue"].values[113]) / nuel_e_h[0]
 
-    # Apply the oscillation weights to the events
-    events["w_osc_zero"] = events.parallel_apply(
-        add_osc_weight,
-        axis=1,
-        args=(osc_file_zero["hist_mumu"].values[113], nuel_osc_zero),
-    )
-    events["w_osc_minus"] = events.parallel_apply(
-        add_osc_weight,
-        axis=1,
-        args=(osc_file_minus["hist_mumu"].values[113], nuel_osc_minus),
-    )
-    events["w_osc_plus"] = events.parallel_apply(
-        add_osc_weight,
-        axis=1,
-        args=(osc_file_plus["hist_mumu"].values[113], nuel_osc_plus),
+    # Apply a weight to every event
+    events["w"] = events.parallel_apply(
+        apply_osc_weight, axis=1, args=(osc_file["hist_mumu"].values[113], nuel_osc,),
     )
 
     return events

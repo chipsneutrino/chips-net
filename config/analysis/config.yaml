@@ -738,7 +738,7 @@ models:
         channels: [1, 1, 1]
 
 eval:
-    examples: 64000
+    examples: 128000
     cuts:
         cosmic: 0.0005   # Cosmic classifier cut
         q:      250.0   # r_total_digi_q cut
@@ -746,6 +746,7 @@ eval:
         theta:  0.7    # r_dirTheta cut
         phi:    0.35    # r_dirPhi cut
     weights:  # for the chips_1200 detector
+        osc_file_name: "./data/input/numu_vac_osc_cp_zero.root"
         nuel:   0.00003202064566
         anuel:  0.00000208200747
         numu:   0.00276174709613
