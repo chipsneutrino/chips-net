@@ -10,7 +10,6 @@ python chipsnet/run.py config/create/numu_nccoh_numuflux.yaml
 python chipsnet/run.py config/create/numu_ccdis_numuflux.yaml
 python chipsnet/run.py config/create/numu_ncdis_numuflux.yaml
 python chipsnet/run.py config/create/numu_ccqel_numuflux.yaml
-python chipsnet/run.py config/create/numu_ncqel_numuflux.yaml
 python chipsnet/run.py config/create/numu_ccres_numuflux.yaml
 python chipsnet/run.py config/create/numu_ncres_numuflux.yaml
 python chipsnet/run.py config/create/numu_ccmec_numuflux.yaml
@@ -19,11 +18,10 @@ python chipsnet/run.py config/create/nuel_nccoh_numuflux.yaml
 python chipsnet/run.py config/create/nuel_ccdis_numuflux.yaml
 python chipsnet/run.py config/create/nuel_ncdis_numuflux.yaml
 python chipsnet/run.py config/create/nuel_ccqel_numuflux.yaml
-python chipsnet/run.py config/create/nuel_ncqel_numuflux.yaml
 python chipsnet/run.py config/create/nuel_ccres_numuflux.yaml
 python chipsnet/run.py config/create/nuel_ncres_numuflux.yaml
-python chipsnet/run.py config/create/nuel_ccmec_numuflux.yaml
-python chipsnet/run.py config/create/cosmics.yaml
+python chipsnet/run.py config/create/nuel_ccmec_numuflux.yamlq
+#python chipsnet/run.py config/create/cosmics.yaml
 
 python chipsnet/run.py config/create/numu_all_numuflux_all.yaml
 python chipsnet/run.py config/create/nuel_all_nuelflux_all.yaml
@@ -35,7 +33,6 @@ python chipsnet/run.py config/create/numu_nccoh_numuflux_all.yaml
 python chipsnet/run.py config/create/numu_ccdis_numuflux_all.yaml
 python chipsnet/run.py config/create/numu_ncdis_numuflux_all.yaml
 python chipsnet/run.py config/create/numu_ccqel_numuflux_all.yaml
-python chipsnet/run.py config/create/numu_ncqel_numuflux_all.yaml
 python chipsnet/run.py config/create/numu_ccres_numuflux_all.yaml
 python chipsnet/run.py config/create/numu_ncres_numuflux_all.yaml
 python chipsnet/run.py config/create/numu_ccmec_numuflux_all.yaml
@@ -44,8 +41,7 @@ python chipsnet/run.py config/create/nuel_nccoh_numuflux_all.yaml
 python chipsnet/run.py config/create/nuel_ccdis_numuflux_all.yaml
 python chipsnet/run.py config/create/nuel_ncdis_numuflux_all.yaml
 python chipsnet/run.py config/create/nuel_ccqel_numuflux_all.yaml
-python chipsnet/run.py config/create/nuel_ncqel_numuflux_all.yaml
 python chipsnet/run.py config/create/nuel_ccres_numuflux_all.yaml
 python chipsnet/run.py config/create/nuel_ncres_numuflux_all.yaml
 python chipsnet/run.py config/create/nuel_ccmec_numuflux_all.yaml
-python chipsnet/run.py config/create/cosmics_all.yaml
+#python chipsnet/run.py config/create/cosmics_all.yaml

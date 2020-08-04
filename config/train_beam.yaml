@@ -7,24 +7,6 @@ data:
     input_dirs:  # The directories from which to take input data
         - "./data/input/chips_1200/numu_all_numuflux/"
         - "./data/input/chips_1200/nuel_all_numuflux/"
-        - "./data/input/chips_1200/numu_cccoh_numuflux/"
-        - "./data/input/chips_1200/numu_nccoh_numuflux/"
-        - "./data/input/chips_1200/numu_ccdis_numuflux/"
-        - "./data/input/chips_1200/numu_ncdis_numuflux/"
-        - "./data/input/chips_1200/numu_ccqel_numuflux/"
-        - "./data/input/chips_1200/numu_ncqel_numuflux/"
-        - "./data/input/chips_1200/numu_ccres_numuflux/"
-        - "./data/input/chips_1200/numu_ncres_numuflux/"
-        - "./data/input/chips_1200/numu_ccmec_numuflux/"
-        - "./data/input/chips_1200/nuel_cccoh_numuflux/"
-        - "./data/input/chips_1200/nuel_nccoh_numuflux/"
-        - "./data/input/chips_1200/nuel_ccdis_numuflux/"
-        - "./data/input/chips_1200/nuel_ncdis_numuflux/"
-        - "./data/input/chips_1200/nuel_ccqel_numuflux/"
-        - "./data/input/chips_1200/nuel_ncqel_numuflux/"
-        - "./data/input/chips_1200/nuel_ccres_numuflux/"
-        - "./data/input/chips_1200/nuel_ncres_numuflux/"
-        - "./data/input/chips_1200/nuel_ccmec_numuflux/"
     channels: [1, 1, 1]  # Which channels should be active?
     seperate_channels: True  # Should we split the channels into seperate images?
     img_size: [64, 64]  # The input image size
@@ -37,7 +19,7 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value as though noise, sigma
 model: 
     type: "vgg"  # (vgg, resnet, inception)
-    labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "t_el_count", "t_mu_count", "t_p_count", "t_cp_count", "t_np_count", "t_g_count", "t_escapes"]  # For beam category classifier
+    labels: ["t_all_cat"]  # For beam category classifier
     lr: 0.0002  # The initial learning rate
     lr_decay: 0.5  # Learning rate decay coefficient
     dense_units: 512  # Number of units to use in dense layers
@@ -45,7 +27,7 @@ model:
     filters: 64  # Initial number of filters to use
     reco_pars: True  # Should the reco paramters be appended to final dense layer?
     se_ratio: 16  # Ratio for squeeze-exitation blocks, if zero they will not be used
-    learn_weights: True  # If training multiple labels, should we use the custom weight learning layer?
+    learn_weights: False  # If training multiple labels, should we use the custom weight learning layer?
     precision_policy: "mixed_float16"  # Should we use mixed precision 'mixed_float16' or normal 'float32'
     summarise: True  # Should we display a summary of the model when it is built?
 trainer:
@@ -56,6 +38,6 @@ trainer:
     epochs: 5  # Number of epochs to train for
     tb_update: 1000  # How often should tensorboard record values (batches)
     steps_per_epoch: -1  # Number of steps per epoch (-1 default)
-    es_monitor: "val_t_comb_cat_accuracy"  # Metric to monitor for early stopping
+    es_monitor: "val_accuracy"  # Metric to monitor for early stopping
     es_delta: 0.0001  # Early stopping minimum delta value
     es_epochs: 2  # Early stopping epochs without delta change before stop

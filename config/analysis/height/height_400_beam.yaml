@@ -7,24 +7,6 @@ data:
     input_dirs:
         - "./data/input/chips_400/numu_all_numuflux/"
         - "./data/input/chips_400/nuel_all_numuflux/"
-        - "./data/input/chips_400/numu_cccoh_numuflux/"
-        - "./data/input/chips_400/numu_nccoh_numuflux/"
-        - "./data/input/chips_400/numu_ccdis_numuflux/"
-        - "./data/input/chips_400/numu_ncdis_numuflux/"
-        - "./data/input/chips_400/numu_ccqel_numuflux/"
-        - "./data/input/chips_400/numu_ncqel_numuflux/"
-        - "./data/input/chips_400/numu_ccres_numuflux/"
-        - "./data/input/chips_400/numu_ncres_numuflux/"
-        - "./data/input/chips_400/numu_ccmec_numuflux/"
-        - "./data/input/chips_400/nuel_cccoh_numuflux/"
-        - "./data/input/chips_400/nuel_nccoh_numuflux/"
-        - "./data/input/chips_400/nuel_ccdis_numuflux/"
-        - "./data/input/chips_400/nuel_ncdis_numuflux/"
-        - "./data/input/chips_400/nuel_ccqel_numuflux/"
-        - "./data/input/chips_400/nuel_ncqel_numuflux/"
-        - "./data/input/chips_400/nuel_ccres_numuflux/"
-        - "./data/input/chips_400/nuel_ncres_numuflux/"
-        - "./data/input/chips_400/nuel_ccmec_numuflux/"
     channels: [1, 1, 1]
     seperate_channels: True
     img_size: [64, 64]
@@ -37,7 +19,7 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]
 model:
     type: "vgg"
-    labels: ["t_nu_nc_cat"]
+    labels: ["t_all_cat"]
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512

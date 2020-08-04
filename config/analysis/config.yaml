@@ -77,7 +77,7 @@ samples:
         seperate_channels: False
 
     # Different samples
-    both:
+    sample_both:
         input_dirs: 
             - "./data/input/chips_1200/numu_all_numuflux/"
             - "./data/input/chips_1200/nuel_all_numuflux/"
@@ -100,10 +100,64 @@ samples:
             - "./data/input/chips_1200/nuel_ncres_numuflux/"
             - "./data/input/chips_1200/nuel_ccmec_numuflux/"
         channels: [1, 1, 1]
-    both_cosmic:
+    sample_both_cosmic:
         input_dirs: 
             - "./data/input/chips_1200/numu_all_numuflux/"
             - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/numu_cccoh_numuflux/"
+            - "./data/input/chips_1200/numu_nccoh_numuflux/"
+            - "./data/input/chips_1200/numu_ccdis_numuflux/"
+            - "./data/input/chips_1200/numu_ncdis_numuflux/"
+            - "./data/input/chips_1200/numu_ccqel_numuflux/"
+            - "./data/input/chips_1200/numu_ncqel_numuflux/"
+            - "./data/input/chips_1200/numu_ccres_numuflux/"
+            - "./data/input/chips_1200/numu_ncres_numuflux/"
+            - "./data/input/chips_1200/numu_ccmec_numuflux/"
+            - "./data/input/chips_1200/nuel_cccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_nccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_ccdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ncdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ccqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ccres_numuflux/"
+            - "./data/input/chips_1200/nuel_ncres_numuflux/"
+            - "./data/input/chips_1200/nuel_ccmec_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
+        channels: [1, 1, 1]
+    sample_flux:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+        channels: [1, 1, 1]
+    sample_flux_cosmic:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
+        channels: [1, 1, 1]
+    sample_uniform:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_cccoh_numuflux/"
+            - "./data/input/chips_1200/numu_nccoh_numuflux/"
+            - "./data/input/chips_1200/numu_ccdis_numuflux/"
+            - "./data/input/chips_1200/numu_ncdis_numuflux/"
+            - "./data/input/chips_1200/numu_ccqel_numuflux/"
+            - "./data/input/chips_1200/numu_ncqel_numuflux/"
+            - "./data/input/chips_1200/numu_ccres_numuflux/"
+            - "./data/input/chips_1200/numu_ncres_numuflux/"
+            - "./data/input/chips_1200/numu_ccmec_numuflux/"
+            - "./data/input/chips_1200/nuel_cccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_nccoh_numuflux/"
+            - "./data/input/chips_1200/nuel_ccdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ncdis_numuflux/"
+            - "./data/input/chips_1200/nuel_ccqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
+            - "./data/input/chips_1200/nuel_ccres_numuflux/"
+            - "./data/input/chips_1200/nuel_ncres_numuflux/"
+            - "./data/input/chips_1200/nuel_ccmec_numuflux/"
+        channels: [1, 1, 1]
+    sample_uniform_cosmic:
+        input_dirs: 
             - "./data/input/chips_1200/numu_cccoh_numuflux/"
             - "./data/input/chips_1200/numu_nccoh_numuflux/"
             - "./data/input/chips_1200/numu_ccdis_numuflux/"
@@ -139,49 +193,6 @@ samples:
             - "./data/input/chips_1200/anumu_all_anumuflux/"
             - "./data/input/chips_1200/anuel_all_anuelflux/"
             - "./data/input/chips_1200/nuel_all_numuflux/"
-            - "./data/input/chips_1200/cosmics/"
-        channels: [1, 1, 1]
-    uniform:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_cccoh_numuflux/"
-            - "./data/input/chips_1200/numu_nccoh_numuflux/"
-            - "./data/input/chips_1200/numu_ccdis_numuflux/"
-            - "./data/input/chips_1200/numu_ncdis_numuflux/"
-            - "./data/input/chips_1200/numu_ccqel_numuflux/"
-            - "./data/input/chips_1200/numu_ncqel_numuflux/"
-            - "./data/input/chips_1200/numu_ccres_numuflux/"
-            - "./data/input/chips_1200/numu_ncres_numuflux/"
-            - "./data/input/chips_1200/numu_ccmec_numuflux/"
-            - "./data/input/chips_1200/nuel_cccoh_numuflux/"
-            - "./data/input/chips_1200/nuel_nccoh_numuflux/"
-            - "./data/input/chips_1200/nuel_ccdis_numuflux/"
-            - "./data/input/chips_1200/nuel_ncdis_numuflux/"
-            - "./data/input/chips_1200/nuel_ccqel_numuflux/"
-            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
-            - "./data/input/chips_1200/nuel_ccres_numuflux/"
-            - "./data/input/chips_1200/nuel_ncres_numuflux/"
-            - "./data/input/chips_1200/nuel_ccmec_numuflux/"
-        channels: [1, 1, 1]
-    uniform_cosmic:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_cccoh_numuflux/"
-            - "./data/input/chips_1200/numu_nccoh_numuflux/"
-            - "./data/input/chips_1200/numu_ccdis_numuflux/"
-            - "./data/input/chips_1200/numu_ncdis_numuflux/"
-            - "./data/input/chips_1200/numu_ccqel_numuflux/"
-            - "./data/input/chips_1200/numu_ncqel_numuflux/"
-            - "./data/input/chips_1200/numu_ccres_numuflux/"
-            - "./data/input/chips_1200/numu_ncres_numuflux/"
-            - "./data/input/chips_1200/numu_ccmec_numuflux/"
-            - "./data/input/chips_1200/nuel_cccoh_numuflux/"
-            - "./data/input/chips_1200/nuel_nccoh_numuflux/"
-            - "./data/input/chips_1200/nuel_ccdis_numuflux/"
-            - "./data/input/chips_1200/nuel_ncdis_numuflux/"
-            - "./data/input/chips_1200/nuel_ccqel_numuflux/"
-            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
-            - "./data/input/chips_1200/nuel_ccres_numuflux/"
-            - "./data/input/chips_1200/nuel_ncres_numuflux/"
-            - "./data/input/chips_1200/nuel_ccmec_numuflux/"
             - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
     cosmic:
@@ -746,7 +757,7 @@ eval:
         theta:  0.7    # r_dirTheta cut
         phi:    0.35    # r_dirPhi cut
     weights:  # for the chips_1200 detector
-        osc_file_name: "./data/input/numu_vac_osc_cp_zero.root"
+        osc_file_name: "./data/input/oscillations/matter_osc_cp_zero.root"
         nuel:   0.00003202064566
         anuel:  0.00000208200747
         numu:   0.00276174709613

@@ -953,7 +953,7 @@ def get_outputs(config, x):
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output in ["t_nu_energy", "t_lep_energy"]:
+        elif output in ["t_nu_energy", "t_lep_energy", "t_had_energy"]:
             out = Dense(1, name=output + "_logits")(x)
             outputs.append(Activation("linear", dtype="float32", name=output)(out))
             losses[output] = mse_masked_loss
@@ -1106,7 +1106,7 @@ class MultiLossLayer(tf.keras.layers.Layer):
                 self.loss_funcs.append(binary_masked_loss)
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
-            elif output in ["t_nu_energy", "t_lep_energy"]:
+            elif output in ["t_nu_energy", "t_lep_energy", "t_had_energy"]:
                 self.loss_funcs.append(mse_masked_loss)
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(0.0000005)

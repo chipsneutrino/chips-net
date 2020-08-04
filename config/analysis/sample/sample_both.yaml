@@ -1,7 +1,7 @@
 task: "train"
 exp:
-    name: "cat_t_final_cat"
-    output_dir: "./data/models/analysis/cat/"
+    name: "sample_both"
+    output_dir: "./data/models/analysis/sample/"
     comet: False
 data:
     input_dirs:
@@ -12,7 +12,6 @@ data:
         - "./data/input/chips_1200/numu_ccdis_numuflux/"
         - "./data/input/chips_1200/numu_ncdis_numuflux/"
         - "./data/input/chips_1200/numu_ccqel_numuflux/"
-        - "./data/input/chips_1200/numu_ncqel_numuflux/"
         - "./data/input/chips_1200/numu_ccres_numuflux/"
         - "./data/input/chips_1200/numu_ncres_numuflux/"
         - "./data/input/chips_1200/numu_ccmec_numuflux/"
@@ -21,7 +20,6 @@ data:
         - "./data/input/chips_1200/nuel_ccdis_numuflux/"
         - "./data/input/chips_1200/nuel_ncdis_numuflux/"
         - "./data/input/chips_1200/nuel_ccqel_numuflux/"
-        - "./data/input/chips_1200/nuel_ncqel_numuflux/"
         - "./data/input/chips_1200/nuel_ccres_numuflux/"
         - "./data/input/chips_1200/nuel_ncres_numuflux/"
         - "./data/input/chips_1200/nuel_ccmec_numuflux/"
@@ -37,7 +35,7 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]
 model:
     type: "vgg"
-    labels: ["t_final_cat"]
+    labels: ["t_all_cat"]
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512

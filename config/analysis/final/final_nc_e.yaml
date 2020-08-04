@@ -7,11 +7,9 @@ data:
     input_dirs:
         - "./data/input/chips_1200/numu_nccoh_numuflux/"
         - "./data/input/chips_1200/numu_ncdis_numuflux/"
-        - "./data/input/chips_1200/numu_ncqel_numuflux/"
         - "./data/input/chips_1200/numu_ncres_numuflux/"
         - "./data/input/chips_1200/nuel_nccoh_numuflux/"
         - "./data/input/chips_1200/nuel_ncdis_numuflux/"
-        - "./data/input/chips_1200/nuel_ncqel_numuflux/"
         - "./data/input/chips_1200/nuel_ncres_numuflux/"
     channels: [1, 1, 1]
     seperate_channels: True
@@ -25,7 +23,7 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]
 model:
     type: "vgg"
-    labels: ["t_nu_energy"]
+    labels: ["t_nu_energy", "t_had_energy"]
     lr: 0.0003
     lr_decay: 0.5
     dense_units: 512
@@ -33,7 +31,7 @@ model:
     filters: 64
     reco_pars: True
     se_ratio: 16
-    learn_weights: False
+    learn_weights: True
     precision_policy: "mixed_float16"
     summarise: False
 trainer:
@@ -44,6 +42,6 @@ trainer:
     epochs: 15
     tb_update: 1000
     steps_per_epoch: -1
-    es_monitor: "val_mae"
+    es_monitor: "val_t_nu_energy_mae"
     es_delta: 10
     es_epochs: 5

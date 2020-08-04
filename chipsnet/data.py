@@ -145,19 +145,17 @@ class Reader:
         labels[MAP_INT_TYPE["name"]] = labels_i[3]
         labels[MAP_CC_CAT["name"]] = labels_i[4]
         labels[MAP_NC_CAT["name"]] = labels_i[5]
-        labels[MAP_FINAL_CAT["name"]] = labels_i[6]
-        labels[MAP_ALL_CAT["name"]] = labels_i[7]
-        labels[MAP_COSMIC_CAT["name"]] = labels_i[8]
-        labels[MAP_FULL_COMB_CAT["name"]] = labels_i[9]
-        labels[MAP_NU_NC_COMB_CAT["name"]] = labels_i[10]
-        labels[MAP_NC_COMB_CAT["name"]] = labels_i[11]
-        labels["t_el_count"] = labels_i[12]
-        labels["t_mu_count"] = labels_i[13]
-        labels["t_p_count"] = labels_i[14]
-        labels["t_cp_count"] = labels_i[15]
-        labels["t_np_count"] = labels_i[16]
-        labels["t_g_count"] = labels_i[17]
-        labels["t_escapes"] = labels_i[18]
+        labels[MAP_ALL_CAT["name"]] = labels_i[6]
+        labels[MAP_COSMIC_CAT["name"]] = labels_i[7]
+        labels[MAP_FULL_COMB_CAT["name"]] = labels_i[8]
+        labels[MAP_NC_COMB_CAT["name"]] = labels_i[9]
+        labels["t_el_count"] = labels_i[10]
+        labels["t_mu_count"] = labels_i[11]
+        labels["t_p_count"] = labels_i[12]
+        labels["t_cp_count"] = labels_i[13]
+        labels["t_np_count"] = labels_i[14]
+        labels["t_g_count"] = labels_i[15]
+        labels["t_escapes"] = labels_i[16]
 
         # Decode float labels and append to the labels dictionary
         labels_f = tf.io.decode_raw(example["labels_f"], tf.float32)
@@ -167,6 +165,7 @@ class Reader:
         labels["t_vtx_t"] = labels_f[3]
         labels["t_nu_energy"] = labels_f[4]
         labels["t_lep_energy"] = labels_f[5]
+        labels["t_had_energy"] = labels_f[6]
 
         # Append labels to inputs if needed for multitask network
         if self.config.model.learn_weights:
@@ -368,6 +367,37 @@ class Creator:
             events.append(counts)
         return np.stack(events, axis=0)
 
+    def get_hadronic_energies(self, pdgs, energies, nu_energies, lep_energies):
+        """Get the hadronic energy in an event.
+
+        Args:
+            pdgs (np.array): primary particle pdgs
+            energies (np.array): primary particle energies
+            nu_energies (np.array): neutrino energies
+            lep_energies (np.array): lepton energies
+
+        Returns:
+            np.array: array of hadronic energies
+        """
+        energy_list = []
+        for i, (ev_pdgs, ev_energies) in enumerate(
+            zip(pdgs, energies)
+        ):  # loop through all events
+            nu_energy = 0.0
+            for j, pdg in enumerate(ev_pdgs):
+                if pdg in [12, -12, 14, -14] and ev_energies[j] > nu_energy:
+                    nu_energy = ev_energies[j]
+
+            had_energy = 0.0
+            if lep_energies[i] == -1:
+                had_energy = nu_energies[i] - nu_energy
+            else:
+                had_energy = nu_energies[i] - nu_energy - lep_energies[i]
+
+            energy_list.append(had_energy)
+
+        return np.asarray(energy_list)
+
     def gen_examples(self, true, reco):
         """Generate a list of examples from the input .root map file.
 
@@ -413,18 +443,12 @@ class Creator:
         i_arr = np.vectorize(MAP_INT_TYPE["table"].get)(true.array("t_code"))
         cc_arr = np.array([MAP_CC_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)])
         nc_arr = np.array([MAP_NC_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)])
-        final_arr = np.array(
-            [MAP_FINAL_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
-        )
         cat_arr = np.array([MAP_ALL_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)])
         cosmic_arr = np.array(
             [MAP_COSMIC_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
         )
         comb_arr = np.array(
             [MAP_FULL_COMB_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
-        )
-        nu_nc_comb_arr = np.array(
-            [MAP_NU_NC_COMB_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
         )
         nc_comb_arr = np.array(
             [MAP_NC_COMB_CAT["table"][(n, i)] for n, i in zip(n_arr, i_arr)]
@@ -442,11 +466,9 @@ class Creator:
                 i_arr,
                 cc_arr,
                 nc_arr,
-                final_arr,
                 cat_arr,
                 cosmic_arr,
                 comb_arr,
-                nu_nc_comb_arr,
                 nc_comb_arr,
                 primary_counts[:, 0],
                 primary_counts[:, 1],
@@ -459,6 +481,13 @@ class Creator:
             axis=1,
         ).astype(np.int32)
 
+        hadronic_energies = self.get_hadronic_energies(
+            true.array("t_p_pdgs"),
+            true.array("t_p_energies"),
+            true.array("t_nu_energy"),
+            true.array("t_lep_energy"),
+        )
+
         labels_f = np.stack(
             (  # True Parameters (floats)
                 true.array("t_vtx_x"),
@@ -467,6 +496,7 @@ class Creator:
                 true.array("t_vtx_t"),
                 true.array("t_nu_energy"),
                 true.array("t_lep_energy"),
+                hadronic_energies,
             ),
             axis=1,
         ).astype(np.float32)
@@ -638,11 +668,9 @@ def get_map(name):
         MAP_INT_TYPE,
         MAP_CC_CAT,
         MAP_NC_CAT,
-        MAP_FINAL_CAT,
         MAP_ALL_CAT,
         MAP_COSMIC_CAT,
         MAP_FULL_COMB_CAT,
-        MAP_NU_NC_COMB_CAT,
         MAP_NC_COMB_CAT,
     ]:
         if cat_map["name"] == name:
@@ -714,7 +742,7 @@ def int_type_loss(y_true, y_pred):
     return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
 
 
-"""Map interaction types (Total = 13)
+"""Map interaction types.
 We put IMD, ElasticScattering and InverseMuDecay into 'NC-Other' for simplicity"""
 MAP_INT_TYPE = {
     "name": "t_int_type",
@@ -769,268 +797,7 @@ MAP_INT_TYPE = {
 }
 
 
-def cc_cat_loss(y_true, y_pred):
-    """Return a masked sparse categorical crossentropy loss.
-
-    Args:
-        y_true (tf.tensor): true value
-        y_pred (tf.tensor): predicted value
-
-    Returns:
-        tf.keras.loss: sparse categorical crossentropy function
-    """
-    mask = tf.cast(tf.math.not_equal(y_true, 5), tf.float32)
-    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
-
-
-"""Map cc categories (Total = 5)"""
-MAP_CC_CAT = {
-    "name": "t_cc_type",
-    "categories": 5,
-    "loss": cc_cat_loss,
-    "labels": [
-        "CC-QE",  # 0
-        "CC-Res",  # 1
-        "CC-DIS",  # 2
-        "CC-Coh",  # 3
-        "CC-Other",  # 4
-        "Cosmic/NC",  # 5
-    ],
-    "table": {
-        (0, 0): 0,
-        (0, 1): 1,
-        (0, 2): 2,
-        (0, 3): 3,
-        (0, 4): 0,
-        (0, 5): 4,
-        (0, 6): 5,
-        (0, 7): 5,
-        (0, 8): 5,
-        (0, 9): 5,
-        (0, 10): 5,
-        (0, 11): 5,
-        (0, 12): 5,
-        (1, 0): 0,
-        (1, 1): 1,
-        (1, 2): 2,
-        (1, 3): 3,
-        (1, 4): 0,
-        (1, 5): 4,
-        (1, 6): 5,
-        (1, 7): 5,
-        (1, 8): 5,
-        (1, 9): 5,
-        (1, 10): 5,
-        (1, 11): 5,
-        (1, 12): 5,
-    },
-}
-
-
-def nc_cat_loss(y_true, y_pred):
-    """Return a masked sparse categorical crossentropy loss.
-
-    Args:
-        y_true (tf.tensor): true value
-        y_pred (tf.tensor): predicted value
-
-    Returns:
-        tf.keras.loss: sparse categorical crossentropy function
-    """
-    mask = tf.cast(tf.math.not_equal(y_true, 5), tf.float32)
-    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
-
-
-"""Map nc categories (Total = 5)"""
-MAP_NC_CAT = {
-    "name": "t_nc_type",
-    "categories": 5,
-    "loss": nc_cat_loss,
-    "labels": [
-        "NC-QE",  # 0
-        "NC-Res",  # 1
-        "NC-DIS",  # 2
-        "NC-Coh",  # 3
-        "NC-Other",  # 4
-        "Cosmic/CC",  # 5
-    ],
-    "table": {
-        (0, 0): 5,
-        (0, 1): 5,
-        (0, 2): 5,
-        (0, 3): 5,
-        (0, 4): 5,
-        (0, 5): 5,
-        (0, 6): 0,
-        (0, 7): 1,
-        (0, 8): 2,
-        (0, 9): 3,
-        (0, 10): 0,
-        (0, 11): 4,
-        (0, 12): 5,
-        (1, 0): 5,
-        (1, 1): 5,
-        (1, 2): 5,
-        (1, 3): 5,
-        (1, 4): 5,
-        (1, 5): 5,
-        (1, 6): 0,
-        (1, 7): 1,
-        (1, 8): 2,
-        (1, 9): 3,
-        (1, 10): 0,
-        (1, 11): 4,
-        (1, 12): 5,
-    },
-}
-
-
-def final_cat_loss(y_true, y_pred):
-    """Return a masked sparse categorical crossentropy loss.
-
-    Args:
-        y_true (tf.tensor): true value
-        y_pred (tf.tensor): predicted value
-
-    Returns:
-        tf.keras.loss: sparse categorical crossentropy function
-    """
-    mask = tf.cast(tf.math.not_equal(y_true, 15), tf.float32)
-    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
-
-
-"""Map final categories (Total = 15)"""
-MAP_FINAL_CAT = {
-    "name": "t_final_cat",
-    "categories": 15,
-    "loss": final_cat_loss,
-    "labels": [
-        r"$\nu_{e}$ CC-QE",  # 0
-        r"$\nu_{e}$ CC-Res",  # 1
-        r"$\nu_{e}$ CC-DIS",  # 2
-        r"$\nu_{e}$ CC-Coh",  # 3
-        r"$\nu_{e}$ CC-Other",  # 4
-        r"$\nu_{\mu}$ CC-QE",  # 5
-        r"$\nu_{\mu}$ CC-Res",  # 6
-        r"$\nu_{\mu}$ CC-DIS",  # 7
-        r"$\nu_{\mu}$ CC-Coh",  # 8
-        r"$\nu_{\mu}$ CC-Other",  # 9
-        "NC-QE",  # 10
-        "NC-Res",  # 11
-        "NC-DIS",  # 12
-        "NC-Coh",  # 13
-        "NC-Other",  # 14
-        "Cosmic",  # 15
-    ],
-    "table": {
-        (0, 0): 0,
-        (0, 1): 1,
-        (0, 2): 2,
-        (0, 3): 3,
-        (0, 4): 0,
-        (0, 5): 4,
-        (0, 6): 10,
-        (0, 7): 11,
-        (0, 8): 12,
-        (0, 9): 13,
-        (0, 10): 10,
-        (0, 11): 14,
-        (0, 12): 15,
-        (1, 0): 5,
-        (1, 1): 6,
-        (1, 2): 7,
-        (1, 3): 8,
-        (1, 4): 5,
-        (1, 5): 9,
-        (1, 6): 10,
-        (1, 7): 11,
-        (1, 8): 12,
-        (1, 9): 13,
-        (1, 10): 10,
-        (1, 11): 14,
-        (1, 12): 15,
-    },
-}
-
-
-def all_cat_loss(y_true, y_pred):
-    """Return a masked sparse categorical crossentropy loss.
-
-    Args:
-        y_true (tf.tensor): true value
-        y_pred (tf.tensor): predicted value
-
-    Returns:
-        tf.keras.loss: sparse categorical crossentropy function
-    """
-    mask = tf.cast(tf.math.not_equal(y_true, 24), tf.float32)
-    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
-
-
-"""Map to all categories (Total = 19)"""
-MAP_ALL_CAT = {
-    "name": "t_all_cat",
-    "categories": 24,
-    "loss": all_cat_loss,
-    "labels": [
-        r"$\nu_{e}$ CC-QE",  # 0
-        r"$\nu_{e}$ CC-Res",  # 1
-        r"$\nu_{e}$ CC-DIS",  # 2
-        r"$\nu_{e}$ CC-Coh",  # 3
-        r"$\nu_{e}$ CC-MEC",  # 4
-        r"$\nu_{e}$ CC-Other",  # 5
-        r"$\nu_{e}$ NC-QE",  # 6
-        r"$\nu_{e}$ NC-Res",  # 7
-        r"$\nu_{e}$ NC-DIS",  # 8
-        r"$\nu_{e}$ NC-Coh",  # 9
-        r"$\nu_{e}$ NC-MEC",  # 10
-        r"$\nu_{e}$ NC-Other",  # 11
-        r"$\nu_{\mu}$ CC-QE",  # 12
-        r"$\nu_{\mu}$ CC-Res",  # 13
-        r"$\nu_{\mu}$ CC-DIS",  # 14
-        r"$\nu_{\mu}$ CC-Coh",  # 15
-        r"$\nu_{\mu}$ CC-MEC",  # 16
-        r"$\nu_{\mu}$ CC-Other",  # 17
-        r"$\nu_{\mu}$ NC-QE",  # 18
-        r"$\nu_{\mu}$ NC-Res",  # 19
-        r"$\nu_{\mu}$ NC-DIS",  # 20
-        r"$\nu_{\mu}$ NC-Coh",  # 21
-        r"$\nu_{\mu}$ NC-MEC",  # 22
-        r"$\nu_{\mu}$ NC-Other",  # 23
-        "Cosmic",  # 24
-    ],
-    "table": {
-        (0, 0): 0,
-        (0, 1): 1,
-        (0, 2): 2,
-        (0, 3): 3,
-        (0, 4): 4,
-        (0, 5): 5,
-        (0, 6): 6,
-        (0, 7): 7,
-        (0, 8): 8,
-        (0, 9): 9,
-        (0, 10): 10,
-        (0, 11): 11,
-        (0, 12): 24,
-        (1, 0): 12,
-        (1, 1): 13,
-        (1, 2): 14,
-        (1, 3): 15,
-        (1, 4): 16,
-        (1, 5): 17,
-        (1, 6): 18,
-        (1, 7): 19,
-        (1, 8): 20,
-        (1, 9): 21,
-        (1, 10): 22,
-        (1, 11): 23,
-        (1, 12): 24,
-    },
-}
-
-
-"""Map a cosmic flag (Total = 2)"""
+"""Map a cosmic flag."""
 MAP_COSMIC_CAT = {
     "name": "t_cosmic_cat",
     "categories": 1,
@@ -1067,7 +834,7 @@ MAP_COSMIC_CAT = {
 }
 
 
-def full_comb_loss(y_true, y_pred):
+def full_comb_cat_loss(y_true, y_pred):
     """Return a masked sparse categorical crossentropy loss.
 
     Args:
@@ -1081,11 +848,11 @@ def full_comb_loss(y_true, y_pred):
     return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
 
 
-"""Map to full_combined categories (Total = 5)"""
+"""Map to full_combined categories."""
 MAP_FULL_COMB_CAT = {
     "name": "t_comb_cat",
     "categories": 3,
-    "loss": full_comb_loss,
+    "loss": full_comb_cat_loss,
     "labels": [r"$\nu_{e}$ CC", r"$\nu_{\mu}$ CC", "NC", "Cosmic"],  # 0  # 1  # 2  # 3
     "table": {
         (0, 0): 0,
@@ -1118,7 +885,7 @@ MAP_FULL_COMB_CAT = {
 }
 
 
-def nu_nc_comb_loss(y_true, y_pred):
+def cc_cat_loss(y_true, y_pred):
     """Return a masked sparse categorical crossentropy loss.
 
     Args:
@@ -1128,15 +895,131 @@ def nu_nc_comb_loss(y_true, y_pred):
     Returns:
         tf.keras.loss: sparse categorical crossentropy function
     """
-    mask = tf.cast(tf.math.not_equal(y_true, 18), tf.float32)
+    mask = tf.cast(tf.math.not_equal(y_true, 6), tf.float32)
     return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
 
 
-"""Map to nc_nu_combined categories (Total = 14)"""
-MAP_NU_NC_COMB_CAT = {
-    "name": "t_nu_nc_cat",
-    "categories": 18,
-    "loss": nu_nc_comb_loss,
+"""Map cc categories."""
+MAP_CC_CAT = {
+    "name": "t_cc_cat",
+    "categories": 5,
+    "loss": cc_cat_loss,
+    "labels": [
+        "CC-QE",  # 0
+        "CC-Res",  # 1
+        "CC-DIS",  # 2
+        "CC-Coh",  # 3
+        "CC-MEC",  # 4
+        "CC-Other",  # 5
+        "Cosmic/NC",  # 6
+    ],
+    "table": {
+        (0, 0): 0,
+        (0, 1): 1,
+        (0, 2): 2,
+        (0, 3): 3,
+        (0, 4): 4,
+        (0, 5): 5,
+        (0, 6): 6,
+        (0, 7): 6,
+        (0, 8): 6,
+        (0, 9): 6,
+        (0, 10): 6,
+        (0, 11): 6,
+        (0, 12): 6,
+        (1, 0): 0,
+        (1, 1): 1,
+        (1, 2): 2,
+        (1, 3): 3,
+        (1, 4): 4,
+        (1, 5): 5,
+        (1, 6): 6,
+        (1, 7): 6,
+        (1, 8): 6,
+        (1, 9): 6,
+        (1, 10): 6,
+        (1, 11): 6,
+        (1, 12): 6,
+    },
+}
+
+
+def nc_cat_loss(y_true, y_pred):
+    """Return a masked sparse categorical crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: sparse categorical crossentropy function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, 4), tf.float32)
+    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
+
+
+"""Map nc categories."""
+MAP_NC_CAT = {
+    "name": "t_nc_cat",
+    "categories": 4,
+    "loss": nc_cat_loss,
+    "labels": [
+        "NC-Res",  # 0
+        "NC-DIS",  # 1
+        "NC-Coh",  # 2
+        "NC-Other",  # 3
+        "Cosmic/CC",  # 4
+    ],
+    "table": {
+        (0, 0): 4,
+        (0, 1): 4,
+        (0, 2): 4,
+        (0, 3): 4,
+        (0, 4): 4,
+        (0, 5): 4,
+        (0, 6): 3,
+        (0, 7): 0,
+        (0, 8): 1,
+        (0, 9): 2,
+        (0, 10): 3,
+        (0, 11): 3,
+        (0, 12): 4,
+        (1, 0): 4,
+        (1, 1): 4,
+        (1, 2): 4,
+        (1, 3): 4,
+        (1, 4): 4,
+        (1, 5): 4,
+        (1, 6): 3,
+        (1, 7): 0,
+        (1, 8): 1,
+        (1, 9): 2,
+        (1, 10): 3,
+        (1, 11): 3,
+        (1, 12): 4,
+    },
+}
+
+
+def all_cat_loss(y_true, y_pred):
+    """Return a masked sparse categorical crossentropy loss.
+
+    Args:
+        y_true (tf.tensor): true value
+        y_pred (tf.tensor): predicted value
+
+    Returns:
+        tf.keras.loss: sparse categorical crossentropy function
+    """
+    mask = tf.cast(tf.math.not_equal(y_true, 16), tf.float32)
+    return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
+
+
+"""Map to all categories."""
+MAP_ALL_CAT = {
+    "name": "t_all_cat",
+    "categories": 16,
+    "loss": all_cat_loss,
     "labels": [
         r"$\nu_{e}$ CC-QE",  # 0
         r"$\nu_{e}$ CC-Res",  # 1
@@ -1150,13 +1033,11 @@ MAP_NU_NC_COMB_CAT = {
         r"$\nu_{\mu}$ CC-Coh",  # 9
         r"$\nu_{\mu}$ CC-MEC",  # 10
         r"$\nu_{\mu}$ CC-Other",  # 11
-        "NC-QE",  # 12
-        "NC-Res",  # 13
-        "NC-DIS",  # 14
-        "NC-Coh",  # 15
-        "NC-MEC",  # 16
-        "NC-Other",  # 17
-        "Cosmic",  # 18
+        "NC-Res",  # 12
+        "NC-DIS",  # 13
+        "NC-Coh",  # 14
+        "NC-Other",  # 15
+        "Cosmic",  # 16
     ],
     "table": {
         (0, 0): 0,
@@ -1165,31 +1046,31 @@ MAP_NU_NC_COMB_CAT = {
         (0, 3): 3,
         (0, 4): 4,
         (0, 5): 5,
-        (0, 6): 12,
-        (0, 7): 13,
-        (0, 8): 14,
-        (0, 9): 15,
-        (0, 10): 16,
-        (0, 11): 17,
-        (0, 12): 18,
+        (0, 6): 15,
+        (0, 7): 12,
+        (0, 8): 13,
+        (0, 9): 14,
+        (0, 10): 15,
+        (0, 11): 15,
+        (0, 12): 16,
         (1, 0): 6,
         (1, 1): 7,
         (1, 2): 8,
         (1, 3): 9,
         (1, 4): 10,
         (1, 5): 11,
-        (1, 6): 12,
-        (1, 7): 13,
-        (1, 8): 14,
-        (1, 9): 15,
-        (1, 10): 16,
-        (1, 11): 17,
-        (1, 12): 18,
+        (1, 6): 15,
+        (1, 7): 12,
+        (1, 8): 13,
+        (1, 9): 14,
+        (1, 10): 15,
+        (1, 11): 15,
+        (1, 12): 16,
     },
 }
 
 
-def nc_comb_loss(y_true, y_pred):
+def nc_comb_cat_loss(y_true, y_pred):
     """Return a masked sparse categorical crossentropy loss.
 
     Args:
@@ -1203,11 +1084,11 @@ def nc_comb_loss(y_true, y_pred):
     return tf.keras.losses.sparse_categorical_crossentropy(y_true * mask, y_pred * mask)
 
 
-"""Map to nc_combined categories (Total = 11)"""
+"""Map to nc_combined categories."""
 MAP_NC_COMB_CAT = {
-    "name": "t_nc_cat",
+    "name": "t_nc_comb_cat",
     "categories": 13,
-    "loss": nc_comb_loss,
+    "loss": nc_comb_cat_loss,
     "labels": [
         r"$\nu_{e}$ CC-QE",  # 0
         r"$\nu_{e}$ CC-Res",  # 1

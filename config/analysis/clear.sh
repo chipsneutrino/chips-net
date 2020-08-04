@@ -1,5 +1,9 @@
 #! /bin/bash
 
+# Which training sample is best analysis (sample)
+rm -rf data/models/analysis/sample/sample_both
+rm -rf data/models/analysis/sample/sample_uniform
+
 # Which representation and channels are best analysis (repr)
 rm -rf data/models/analysis/repr/repr_v_c
 rm -rf data/models/analysis/repr/repr_v_ct
@@ -7,10 +11,6 @@ rm -rf data/models/analysis/repr/repr_o_ct
 rm -rf data/models/analysis/repr/repr_i_ct
 rm -rf data/models/analysis/repr/repr_v_cth
 rm -rf data/models/analysis/repr/repr_v_cth_stacked
-
-# Which training sample is best analysis (sample)
-rm -rf data/models/analysis/sample/sample_flux
-rm -rf data/models/analysis/sample/sample_uniform
 
 # Which categorisation is best analysis (cat)
 rm -rf data/models/analysis/cat/cat_t_final_cat

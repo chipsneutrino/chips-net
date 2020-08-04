@@ -7,24 +7,6 @@ data:
     input_dirs:
         - "./data/input/chips_1200/numu_all_numuflux/"
         - "./data/input/chips_1200/nuel_all_numuflux/"
-        - "./data/input/chips_1200/numu_cccoh_numuflux/"
-        - "./data/input/chips_1200/numu_nccoh_numuflux/"
-        - "./data/input/chips_1200/numu_ccdis_numuflux/"
-        - "./data/input/chips_1200/numu_ncdis_numuflux/"
-        - "./data/input/chips_1200/numu_ccqel_numuflux/"
-        - "./data/input/chips_1200/numu_ncqel_numuflux/"
-        - "./data/input/chips_1200/numu_ccres_numuflux/"
-        - "./data/input/chips_1200/numu_ncres_numuflux/"
-        - "./data/input/chips_1200/numu_ccmec_numuflux/"
-        - "./data/input/chips_1200/nuel_cccoh_numuflux/"
-        - "./data/input/chips_1200/nuel_nccoh_numuflux/"
-        - "./data/input/chips_1200/nuel_ccdis_numuflux/"
-        - "./data/input/chips_1200/nuel_ncdis_numuflux/"
-        - "./data/input/chips_1200/nuel_ccqel_numuflux/"
-        - "./data/input/chips_1200/nuel_ncqel_numuflux/"
-        - "./data/input/chips_1200/nuel_ccres_numuflux/"
-        - "./data/input/chips_1200/nuel_ncres_numuflux/"
-        - "./data/input/chips_1200/nuel_ccmec_numuflux/"
     channels: [1, 1, 1]
     seperate_channels: True
     img_size: [64, 64]
@@ -37,7 +19,7 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]
 model:
     type: "vgg"
-    labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "t_prim_counts"]
+    labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "t_el_count", "t_mu_count", "t_p_count", "t_cp_count", "t_np_count", "t_g_count"]
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512
@@ -49,7 +31,7 @@ model:
     precision_policy: "mixed_float16"
     summarise: False
 trainer:
-    train_examples: 5120000
+    train_examples: 2560000
     val_examples: 64000
     test_examples: 64000
     batch_size: 128
