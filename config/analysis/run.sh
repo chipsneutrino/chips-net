@@ -1,23 +1,22 @@
 #! /bin/bash
 
 # Which training sample is best analysis (sample)
-python chipsnet/run.py config/analysis/sample/sample_both.yaml
-python chipsnet/run.py config/analysis/sample/sample_uniform.yaml
+#python chipsnet/run.py config/analysis/sample/sample_both.yaml
+#python chipsnet/run.py config/analysis/sample/sample_uniform.yaml
 
 # Which representation and channels are best analysis (repr)
-python chipsnet/run.py config/analysis/repr/repr_v_c.yaml
-python chipsnet/run.py config/analysis/repr/repr_v_ct.yaml
-python chipsnet/run.py config/analysis/repr/repr_o_ct.yaml
-python chipsnet/run.py config/analysis/repr/repr_i_ct.yaml
-python chipsnet/run.py config/analysis/repr/repr_v_cth.yaml
-python chipsnet/run.py config/analysis/repr/repr_v_cth_stacked.yaml
+#python chipsnet/run.py config/analysis/repr/repr_v_c.yaml
+#python chipsnet/run.py config/analysis/repr/repr_v_ct.yaml
+#python chipsnet/run.py config/analysis/repr/repr_o_ct.yaml
+#python chipsnet/run.py config/analysis/repr/repr_i_ct.yaml
+#python chipsnet/run.py config/analysis/repr/repr_v_cth.yaml
+#python chipsnet/run.py config/analysis/repr/repr_v_cth_stacked.yaml
 
 # Which categorisation is best analysis (cat)
-#python chipsnet/run.py config/analysis/cat/cat_t_all_cat.yaml
 #python chipsnet/run.py config/analysis/cat/cat_t_nc_comb_cat.yaml
 #python chipsnet/run.py config/analysis/cat/cat_t_comb_cat.yaml
-#python chipsnet/run.py config/analysis/cat/cat_split.yaml
-#python chipsnet/run.py config/analysis/cat/cat_split_learn.yaml
+python chipsnet/run.py config/analysis/cat/cat_split.yaml
+python chipsnet/run.py config/analysis/cat/cat_split_learn.yaml
 
 # Cosmic classification analysis (cosmic)
 #python chipsnet/run.py config/analysis/cosmic/cosmic.yaml
@@ -27,10 +26,10 @@ python chipsnet/run.py config/analysis/repr/repr_v_cth_stacked.yaml
 #python chipsnet/run.py config/analysis/cosmic/cosmic_escapes_learn.yaml
 
 # Beam classification analysis (beam)
-#python chipsnet/run.py config/analysis/beam/beam_primaries.yaml
-#python chipsnet/run.py config/analysis/beam/beam_primaries_learn.yaml
-#python chipsnet/run.py config/analysis/beam/beam_escapes.yaml
-#python chipsnet/run.py config/analysis/beam/beam_escapes_learn.yaml
+python chipsnet/run.py config/analysis/beam/beam_primaries.yaml
+python chipsnet/run.py config/analysis/beam/beam_primaries_learn.yaml
+python chipsnet/run.py config/analysis/beam/beam_escapes.yaml
+python chipsnet/run.py config/analysis/beam/beam_escapes_learn.yaml
 
 # Energy estimation analysis (energy)
 #python chipsnet/run.py config/analysis/energy/energy_nu.yaml

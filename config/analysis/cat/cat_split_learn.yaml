@@ -19,7 +19,7 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]
 model:
     type: "vgg"
-    labels: ["t_comb_cat", "t_cc_type", "t_nc_type"]
+    labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat"]
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512

@@ -551,11 +551,9 @@ def plot_combined_values(events, type, prefix, save_path):
             histtype="step",
             linewidth=2,
         )
-        axs.set_ylim(0, 15)
-        # axs.set_ylim(10e-3, 10e3)
+        axs.set_ylim(0, 20)
         axs.set_xlabel(r"$\nu_{e}$ CC score", fontsize=24)
         axs.set_ylabel(r"Events/$6\times10^{20}$ POT/kt", fontsize=24)
-        # axs.set_yscale("log")
         nuel = Line2D(
             [0],
             [0],

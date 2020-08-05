@@ -876,13 +876,6 @@ def get_outputs(config, x):
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
-        elif output == data.MAP_FINAL_CAT["name"]:
-            out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
-            outputs.append(Activation("softmax", dtype="float32", name=output)(out))
-            losses[output] = data.MAP_FINAL_CAT["loss"]
-            weights[output] = 1.0
-            metrics[output] = "accuracy"
-
         elif output == data.MAP_ALL_CAT["name"]:
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
@@ -901,13 +894,6 @@ def get_outputs(config, x):
             out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
             outputs.append(Activation("softmax", dtype="float32", name=output)(out))
             losses[output] = data.MAP_FULL_COMB_CAT["loss"]
-            weights[output] = 1.0
-            metrics[output] = "accuracy"
-
-        elif output == data.MAP_NU_NC_COMB_CAT["name"]:
-            out = Dense(data.get_map(output)["categories"], name=output + "_logits")(x)
-            outputs.append(Activation("softmax", dtype="float32", name=output)(out))
-            losses[output] = data.MAP_NU_NC_COMB_CAT["loss"]
             weights[output] = 1.0
             metrics[output] = "accuracy"
 
@@ -1057,10 +1043,6 @@ class MultiLossLayer(tf.keras.layers.Layer):
                 self.loss_funcs.append(data.MAP_NC_CAT["loss"])
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
-            elif output == data.MAP_FINAL_CAT["name"]:
-                self.loss_funcs.append(data.MAP_FINAL_CAT["loss"])
-                self.log_vars.append(self.add_var(output))
-                self.lw.append(1.0)
             elif output == data.MAP_ALL_CAT["name"]:
                 self.loss_funcs.append(data.MAP_ALL_CAT["loss"])
                 self.log_vars.append(self.add_var(output))
@@ -1071,10 +1053,6 @@ class MultiLossLayer(tf.keras.layers.Layer):
                 self.lw.append(1.0)
             elif output == data.MAP_FULL_COMB_CAT["name"]:
                 self.loss_funcs.append(data.MAP_FULL_COMB_CAT["loss"])
-                self.log_vars.append(self.add_var(output))
-                self.lw.append(1.0)
-            elif output == data.MAP_NU_NC_COMB_CAT["name"]:
-                self.loss_funcs.append(data.MAP_NU_NC_COMB_CAT["loss"])
                 self.log_vars.append(self.add_var(output))
                 self.lw.append(1.0)
             elif output == data.MAP_NC_COMB_CAT["name"]:

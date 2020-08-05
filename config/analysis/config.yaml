@@ -447,72 +447,62 @@ models:
     repr_v_c:
         path: "repr/repr_v_c" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 0, 0]
     repr_v_ct:
         path: "repr/repr_v_ct" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 0]
     repr_o_ct:
         path: "repr/repr_o_ct" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [0, 0, 0, 1, 1, 0, 0]
     repr_i_ct:
         path: "repr/repr_i_ct" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [0, 0, 0, 0, 0, 1, 1]
     repr_v_cth:
         path: "repr/repr_v_cth" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
     repr_v_cth_stacked:
         path: "repr/repr_v_cth_stacked" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
         seperate_channels: False
 
     # Different training sample models
     sample_both:
-        path: "repr/repr_v_cth" 
+        path: "sample/sample_both" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
     sample_flux:
-        path: "sample/sample_flux" 
+        path: "repr/repr_v_cth" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
     sample_uniform:
         path: "sample/sample_uniform" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
 
     # Different categorisation models
-    cat_t_final_cat:
-        path: "cat/cat_t_final_cat" 
-        type: "vgg"
-        labels: ["t_final_cat"]
-        channels: [1, 1, 1]
-    cat_t_all_cat:
-        path: "cat/cat_t_all_cat" 
-        type: "vgg"
-        labels: ["t_all_cat"]
-        channels: [1, 1, 1]
     cat_t_comb_cat:
         path: "cat/cat_t_comb_cat" 
         type: "vgg"
         labels: ["t_comb_cat"]
         channels: [1, 1, 1]
-    cat_t_nu_nc_cat:
+    cat_t_all_cat:
         path: "repr/repr_v_cth" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
     cat_t_nc_cat:
         path: "cat/cat_t_nc_cat" 
@@ -551,17 +541,17 @@ models:
     beam:
         path: "repr/repr_v_cth" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]    
     beam_primaries:
         path: "beam/beam_primaries" 
         type: "vgg"
-        labels: ["t_nu_nc_cat", "t_prim_counts"]
+        labels: ["t_all_cat", "t_prim_counts"]
         channels: [1, 1, 1] 
     beam_primaries_learn:
         path: "beam/beam_primaries_learn" 
         type: "vgg"
-        labels: ["t_nu_nc_cat", "t_prim_counts"]
+        labels: ["t_all_cat", "t_prim_counts"]
         channels: [1, 1, 1] 
         
     # Energy models
@@ -680,7 +670,7 @@ models:
     explain_beam:
         path: "explain/explain_beam" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
         seperate_channels: False
         reco_pars: False
@@ -703,7 +693,7 @@ models:
     height_one_beam:
         path: "height/height_1000_beam" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
     height_eight_cosmic:
         path: "height/height_800_cosmic" 
@@ -713,7 +703,7 @@ models:
     height_eight_beam:
         path: "height/height_800_beam" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
     height_six_cosmic:
         path: "height/height_600_cosmic" 
@@ -723,7 +713,7 @@ models:
     height_six_beam:
         path: "height/height_600_beam" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
     height_four_cosmic:
         path: "height/height_400_cosmic" 
@@ -733,7 +723,7 @@ models:
     height_four_beam:
         path: "height/height_400_beam" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
 
     # Without light cone models
@@ -745,11 +735,11 @@ models:
     lcs_beam:
         path: "lcs/lcs_beam" 
         type: "vgg"
-        labels: ["t_nu_nc_cat"]
+        labels: ["t_all_cat"]
         channels: [1, 1, 1]
 
 eval:
-    examples: 128000
+    examples: 256000
     cuts:
         cosmic: 0.0005   # Cosmic classifier cut
         q:      250.0   # r_total_digi_q cut
