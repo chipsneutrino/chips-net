@@ -369,7 +369,7 @@ def plot_cuts(config, events, save_path):
     )
     nc = Line2D([0], [0], color="tab:red", linewidth=1, linestyle="solid", label=r"NC")
     cosmic = Line2D(
-        [0], [0], color="tab:orange", linewidth=1, linestyle="solid", label=r"Cosmic"
+        [0], [0], color="black", linewidth=1, linestyle="solid", label=r"Cosmic"
     )
     axs[0, 1].legend(handles=[osc_nuel, numu, nc, nuel, cosmic], loc="upper right")
 

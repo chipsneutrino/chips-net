@@ -11,7 +11,9 @@ https://towardsdatascience.com/illustrated-10-cnn-architectures-95d78ace614d
 """
 
 import os
+import ast
 
+import pandas as pd
 import tensorflow as tf
 import tensorflow.keras.initializers as initializers
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
@@ -55,20 +57,46 @@ class Model:
         self.config = config
         self.build()  # We build the model immediately
 
-    def load(self, checkpoint_num=None):
+    def load(self, checkpoint="best"):
         """Return the correct model with its trained weights loaded.
 
         Args:
             checkpoint_num (int): checkpoint number to use
         """
-        if checkpoint_num is None:
+        if checkpoint == "latest":
             latest = tf.train.latest_checkpoint(self.config.exp.checkpoints_dir)
             self.model.load_weights(latest).expect_partial()
+        elif checkpoint == "best":
+            history = pd.read_csv(os.path.join(self.config.exp.exp_dir, "history.csv"))
+            history_dict = {}
+            for key in history.keys():
+                history_dict[key] = ast.literal_eval(history[key].values[0])
+            history = pd.DataFrame.from_dict(history_dict)
+
+            best = None
+            key = self.config.model.labels[0]
+            if len(self.config.model.labels) == 1:
+                if "energy" in key or "vtx" in key:
+                    best = history["val_mae"].to_numpy().argmin() + 1
+                else:
+                    best = history["val_accuracy"].to_numpy().argmax() + 1
+            else:
+                if "energy" in key or "vtx" in key:
+                    best = history["val_" + key + "_mae"].to_numpy().argmin() + 1
+                else:
+                    best = history["val_" + key + "_accuracy"].to_numpy().argmax() + 1
+
+            print("Loading best checkpoint ({})".format(best))
+
+            checkpoint_path = (
+                self.config.exp.checkpoints_dir + "cp-" + str(best).zfill(4) + ".ckpt"
+            )
+            self.model.load_weights(checkpoint_path).expect_partial()
         else:
             checkpoint_path = (
                 self.config.exp.checkpoints_dir
                 + "cp-"
-                + str(checkpoint_num).zfill(4)
+                + str(checkpoint).zfill(4)
                 + ".ckpt"
             )
             self.model.load_weights(checkpoint_path).expect_partial()

@@ -18,11 +18,11 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]
 model:
     type: "vgg"
-    labels: ["t_nu_energy", "t_lep_energy"]
-    lr: 0.0003
+    labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
+    lr: 0.0002
     lr_decay: 0.5
     dense_units: 512
-    dropout: 0.085
+    dropout: 0.1
     filters: 64
     reco_pars: True
     se_ratio: 16
@@ -30,13 +30,13 @@ model:
     precision_policy: "mixed_float16"
     summarise: False
 trainer:
-    train_examples: 1280000
-    val_examples: 32000
-    test_examples: 32000
+    train_examples: 2560000
+    val_examples: 64000
+    test_examples: 64000
     batch_size: 128
-    epochs: 15
+    epochs: 20
     tb_update: 1000
     steps_per_epoch: -1
     es_monitor: "val_t_nu_energy_mae"
-    es_delta: 10
+    es_delta: 2
     es_epochs: 5

@@ -27,7 +27,7 @@ model:
     filters: 64
     reco_pars: True
     se_ratio: 16
-    learn_weights: False
+    learn_weights: True
     precision_policy: "mixed_float16"
     summarise: False
 trainer:
@@ -35,9 +35,9 @@ trainer:
     val_examples: 64000
     test_examples: 64000
     batch_size: 128
-    epochs: 10
+    epochs: 20
     tb_update: 1000
     steps_per_epoch: -1
     es_monitor: "val_t_comb_cat_accuracy"
     es_delta: 0.0001
-    es_epochs: 2
+    es_epochs: 5

@@ -20,8 +20,8 @@ python chipsnet/run.py config/create/nuel_ncdis_numuflux.yaml
 python chipsnet/run.py config/create/nuel_ccqel_numuflux.yaml
 python chipsnet/run.py config/create/nuel_ccres_numuflux.yaml
 python chipsnet/run.py config/create/nuel_ncres_numuflux.yaml
-python chipsnet/run.py config/create/nuel_ccmec_numuflux.yamlq
-#python chipsnet/run.py config/create/cosmics.yaml
+python chipsnet/run.py config/create/nuel_ccmec_numuflux.yaml
+python chipsnet/run.py config/create/cosmics.yaml
 
 python chipsnet/run.py config/create/numu_all_numuflux_all.yaml
 python chipsnet/run.py config/create/nuel_all_nuelflux_all.yaml
@@ -44,4 +44,4 @@ python chipsnet/run.py config/create/nuel_ccqel_numuflux_all.yaml
 python chipsnet/run.py config/create/nuel_ccres_numuflux_all.yaml
 python chipsnet/run.py config/create/nuel_ncres_numuflux_all.yaml
 python chipsnet/run.py config/create/nuel_ccmec_numuflux_all.yaml
-#python chipsnet/run.py config/create/cosmics_all.yaml
+python chipsnet/run.py config/create/cosmics_all.yaml

@@ -86,7 +86,6 @@ samples:
             - "./data/input/chips_1200/numu_ccdis_numuflux/"
             - "./data/input/chips_1200/numu_ncdis_numuflux/"
             - "./data/input/chips_1200/numu_ccqel_numuflux/"
-            - "./data/input/chips_1200/numu_ncqel_numuflux/"
             - "./data/input/chips_1200/numu_ccres_numuflux/"
             - "./data/input/chips_1200/numu_ncres_numuflux/"
             - "./data/input/chips_1200/numu_ccmec_numuflux/"
@@ -95,7 +94,6 @@ samples:
             - "./data/input/chips_1200/nuel_ccdis_numuflux/"
             - "./data/input/chips_1200/nuel_ncdis_numuflux/"
             - "./data/input/chips_1200/nuel_ccqel_numuflux/"
-            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
             - "./data/input/chips_1200/nuel_ccres_numuflux/"
             - "./data/input/chips_1200/nuel_ncres_numuflux/"
             - "./data/input/chips_1200/nuel_ccmec_numuflux/"
@@ -109,7 +107,6 @@ samples:
             - "./data/input/chips_1200/numu_ccdis_numuflux/"
             - "./data/input/chips_1200/numu_ncdis_numuflux/"
             - "./data/input/chips_1200/numu_ccqel_numuflux/"
-            - "./data/input/chips_1200/numu_ncqel_numuflux/"
             - "./data/input/chips_1200/numu_ccres_numuflux/"
             - "./data/input/chips_1200/numu_ncres_numuflux/"
             - "./data/input/chips_1200/numu_ccmec_numuflux/"
@@ -118,7 +115,6 @@ samples:
             - "./data/input/chips_1200/nuel_ccdis_numuflux/"
             - "./data/input/chips_1200/nuel_ncdis_numuflux/"
             - "./data/input/chips_1200/nuel_ccqel_numuflux/"
-            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
             - "./data/input/chips_1200/nuel_ccres_numuflux/"
             - "./data/input/chips_1200/nuel_ncres_numuflux/"
             - "./data/input/chips_1200/nuel_ccmec_numuflux/"
@@ -142,7 +138,6 @@ samples:
             - "./data/input/chips_1200/numu_ccdis_numuflux/"
             - "./data/input/chips_1200/numu_ncdis_numuflux/"
             - "./data/input/chips_1200/numu_ccqel_numuflux/"
-            - "./data/input/chips_1200/numu_ncqel_numuflux/"
             - "./data/input/chips_1200/numu_ccres_numuflux/"
             - "./data/input/chips_1200/numu_ncres_numuflux/"
             - "./data/input/chips_1200/numu_ccmec_numuflux/"
@@ -151,7 +146,6 @@ samples:
             - "./data/input/chips_1200/nuel_ccdis_numuflux/"
             - "./data/input/chips_1200/nuel_ncdis_numuflux/"
             - "./data/input/chips_1200/nuel_ccqel_numuflux/"
-            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
             - "./data/input/chips_1200/nuel_ccres_numuflux/"
             - "./data/input/chips_1200/nuel_ncres_numuflux/"
             - "./data/input/chips_1200/nuel_ccmec_numuflux/"
@@ -163,7 +157,6 @@ samples:
             - "./data/input/chips_1200/numu_ccdis_numuflux/"
             - "./data/input/chips_1200/numu_ncdis_numuflux/"
             - "./data/input/chips_1200/numu_ccqel_numuflux/"
-            - "./data/input/chips_1200/numu_ncqel_numuflux/"
             - "./data/input/chips_1200/numu_ccres_numuflux/"
             - "./data/input/chips_1200/numu_ncres_numuflux/"
             - "./data/input/chips_1200/numu_ccmec_numuflux/"
@@ -172,7 +165,6 @@ samples:
             - "./data/input/chips_1200/nuel_ccdis_numuflux/"
             - "./data/input/chips_1200/nuel_ncdis_numuflux/"
             - "./data/input/chips_1200/nuel_ccqel_numuflux/"
-            - "./data/input/chips_1200/nuel_ncqel_numuflux/"
             - "./data/input/chips_1200/nuel_ccres_numuflux/"
             - "./data/input/chips_1200/nuel_ncres_numuflux/"
             - "./data/input/chips_1200/nuel_ccmec_numuflux/"
@@ -198,6 +190,14 @@ samples:
     cosmic:
         input_dirs: 
             - "./data/input/chips_1200/cosmics/"
+        channels: [1, 1, 1]
+    nuel_all:
+        input_dirs: 
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+        channels: [1, 1, 1]
+    numu_all:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_all_numuflux/"
         channels: [1, 1, 1]
     nuel_cccoh:
         input_dirs: 
@@ -494,30 +494,30 @@ models:
         channels: [1, 1, 1]
 
     # Different categorisation models
-    cat_t_comb_cat:
-        path: "cat/cat_t_comb_cat" 
-        type: "vgg"
-        labels: ["t_comb_cat"]
-        channels: [1, 1, 1]
     cat_t_all_cat:
         path: "repr/repr_v_cth" 
         type: "vgg"
         labels: ["t_all_cat"]
         channels: [1, 1, 1]
-    cat_t_nc_cat:
-        path: "cat/cat_t_nc_cat" 
+    cat_t_nc_comb_cat:
+        path: "cat/cat_t_nc_comb_cat" 
         type: "vgg"
-        labels: ["t_nc_cat"]
+        labels: ["t_nc_comb_cat"]
+        channels: [1, 1, 1]
+    cat_t_comb_cat:
+        path: "cat/cat_t_comb_cat" 
+        type: "vgg"
+        labels: ["t_comb_cat"]
         channels: [1, 1, 1]
     cat_split:
         path: "cat/cat_split" 
         type: "vgg"
-        labels: ["t_comb_cat", "t_cc_type", "t_nc_type"]
+        labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat"]
         channels: [1, 1, 1]
     cat_split_learn:
         path: "cat/cat_split_learn" 
         type: "vgg"
-        labels: ["t_comb_cat", "t_cc_type", "t_nc_type"]
+        labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat"]
         channels: [1, 1, 1]
 
     # Cosmic classification models
@@ -536,22 +536,42 @@ models:
         type: "vgg"
         labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
+    cosmic_escapes:
+        path: "cosmic/cosmic_escapes" 
+        type: "vgg"
+        labels: ["t_cosmic_cat", "t_escapes"]
+        channels: [1, 1, 1]
+    cosmic_escapes_learn:
+        path: "cosmic/cosmic_escapes_learn" 
+        type: "vgg"
+        labels: ["t_cosmic_cat", "t_escapes"]
+        channels: [1, 1, 1]
+    cosmic_vtx_escapes:
+        path: "cosmic/cosmic_vtx_escapes" 
+        type: "vgg"
+        labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t", "t_escapes"]
+        channels: [1, 1, 1]
 
     # Beam classification models
     beam:
-        path: "repr/repr_v_cth" 
+        path: "cat/cat_split" 
         type: "vgg"
-        labels: ["t_all_cat"]
-        channels: [1, 1, 1]    
+        labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat"]
+        channels: [1, 1, 1]  
     beam_primaries:
         path: "beam/beam_primaries" 
         type: "vgg"
-        labels: ["t_all_cat", "t_prim_counts"]
+        labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat", "t_el_count", "t_mu_count", "t_p_count", "t_cp_count", "t_np_count", "t_g_count"]
         channels: [1, 1, 1] 
     beam_primaries_learn:
         path: "beam/beam_primaries_learn" 
         type: "vgg"
-        labels: ["t_all_cat", "t_prim_counts"]
+        labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat", "t_el_count", "t_mu_count", "t_p_count", "t_cp_count", "t_np_count", "t_g_count"]
+        channels: [1, 1, 1] 
+    beam_primaries_test:
+        path: "beam/beam_primaries_test" 
+        type: "vgg"
+        labels: ["t_all_cat", "t_el_count", "t_mu_count", "t_p_count", "t_cp_count", "t_np_count", "t_g_count"]
         channels: [1, 1, 1] 
         
     # Energy models
@@ -575,6 +595,16 @@ models:
         type: "vgg"
         labels: ["t_nu_energy", "t_lep_energy"]
         channels: [1, 1, 1]
+    energy_nu_lep_had:
+        path: "energy/energy_nu_lep_had" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy", "t_had_energy"]
+        channels: [1, 1, 1]
+    energy_nu_lep_had_learn:
+        path: "energy/energy_nu_lep_had_learn" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy", "t_had_energy"]
+        channels: [1, 1, 1]
     energy_nu_lep_vtx:
         path: "energy/energy_nu_lep_vtx" 
         type: "vgg"
@@ -584,6 +614,31 @@ models:
         path: "energy/energy_nu_lep_vtx_learn" 
         type: "vgg"
         labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
+        channels: [1, 1, 1]
+    energy_nu_lep_escapes:
+        path: "energy/energy_nu_lep_escapes" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy", "t_escapes"]
+        channels: [1, 1, 1]
+    energy_nu_lep_escapes_learn:
+        path: "energy/energy_nu_lep_escapes_learn" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy", "t_escapes"]
+        channels: [1, 1, 1]
+    energy_nu_lep_vtx_escapes:
+        path: "energy/energy_nu_lep_vtx_escapes" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t", "t_escapes"]
+        channels: [1, 1, 1]
+    energy_numu:
+        path: "energy/energy_numu" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy"]
+        channels: [1, 1, 1]
+    energy_numu_multi:
+        path: "energy/energy_numu_multi" 
+        type: "vgg"
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t", "t_escapes"]
         channels: [1, 1, 1]
 
     # Final models
@@ -595,7 +650,7 @@ models:
     final_beam:
         path: "final/final_beam" 
         type: "vgg"
-        labels: ["t_comb_cat", "t_cc_type", "t_nc_type", "t_prim_counts"]
+        labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat", "t_prim_counts"]
         channels: [1, 1, 1]
     final_nuel_cc_e:
         path: "energy/energy_nu_lep_learn" 
@@ -683,69 +738,14 @@ models:
         seperate_channels: False
         reco_pars: False
         precision_policy: "float32"
-
-    # Different height detector models
-    height_one_cosmic:
-        path: "height/height_1000_cosmic" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [1, 1, 1]
-    height_one_beam:
-        path: "height/height_1000_beam" 
-        type: "vgg"
-        labels: ["t_all_cat"]
-        channels: [1, 1, 1]
-    height_eight_cosmic:
-        path: "height/height_800_cosmic" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [1, 1, 1]
-    height_eight_beam:
-        path: "height/height_800_beam" 
-        type: "vgg"
-        labels: ["t_all_cat"]
-        channels: [1, 1, 1]
-    height_six_cosmic:
-        path: "height/height_600_cosmic" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [1, 1, 1]
-    height_six_beam:
-        path: "height/height_600_beam" 
-        type: "vgg"
-        labels: ["t_all_cat"]
-        channels: [1, 1, 1]
-    height_four_cosmic:
-        path: "height/height_400_cosmic" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [1, 1, 1]
-    height_four_beam:
-        path: "height/height_400_beam" 
-        type: "vgg"
-        labels: ["t_all_cat"]
-        channels: [1, 1, 1]
-
-    # Without light cone models
-    lcs_cosmic:
-        path: "lcs/lcs_cosmic" 
-        type: "vgg"
-        labels: ["t_cosmic_cat"]
-        channels: [1, 1, 1]
-    lcs_beam:
-        path: "lcs/lcs_beam" 
-        type: "vgg"
-        labels: ["t_all_cat"]
-        channels: [1, 1, 1]
-
 eval:
     examples: 256000
     cuts:
-        cosmic: 0.0005   # Cosmic classifier cut
-        q:      250.0   # r_total_digi_q cut
-        h:      250.0   # r_first_ring_height cut
-        theta:  0.7    # r_dirTheta cut
-        phi:    0.35    # r_dirPhi cut
+        cosmic: 0.0005      # Cosmic classifier cut
+        q:      250.0       # r_total_digi_q cut
+        h:      250.0       # r_first_ring_height cut
+        theta:  0.7         # r_dirTheta cut
+        phi:    0.35        # r_dirPhi cut
     weights:  # for the chips_1200 detector
         osc_file_name: "./data/input/oscillations/matter_osc_cp_zero.root"
         nuel:   0.00003202064566

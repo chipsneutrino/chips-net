@@ -65,12 +65,13 @@ def data_from_conf(config, name):
     return data
 
 
-def model_from_conf(config, name):
+def model_from_conf(config, name, checkpoint="best"):
     """Get the loaded models.Model corresponding to the given name and configuration.
 
     Args:
         config (dotmap.DotMap): base configuration namespace
         name (str): model name
+        checkpoint (str): which checkpoint to load
 
     Returns:
         chipsnet.models.Model: model loaded from the configuration
@@ -89,7 +90,7 @@ def model_from_conf(config, name):
         model_config.model.precision_policy = "float32"
     chipsnet.config.setup_dirs(model_config, False)
     model = chipsnet.models.Model(model_config)
-    model.load()
+    model.load(checkpoint)
     return model
 
 
@@ -115,7 +116,15 @@ def model_history(config, name):
     return pd.DataFrame.from_dict(history_dict)
 
 
-def evaluate(config, data_name, m_names=[], m_cats=["t_all_cat"], just_out=False):
+def evaluate(
+    config,
+    data_name,
+    m_names=[],
+    m_cats=["t_all_cat"],
+    just_out=False,
+    just_cosmic=False,
+    checkpoint="best",
+):
     """Fully process a dataset through a list of models and run a standard evaluation.
 
     Args:
@@ -124,6 +133,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_all_cat"], just_out=False
         model_names (List[str]): model names
         verbose (bool): should we print summaries?
         just_out (bool): just return the outputs not the events?
+        checkpoint (str): which checkpoint to load
 
     Returns:
         pd.DataFrame: fully processed events dataframe
@@ -140,7 +150,7 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_all_cat"], just_out=False
 
     # Run all the required inference
     for m_name in m_names:
-        model = model_from_conf(config, m_name)
+        model = model_from_conf(config, m_name, checkpoint)
         ev = run_inference(
             ev,
             model,
@@ -158,6 +168,11 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_all_cat"], just_out=False
             ev[m_name + "_frac_lep_energy"] = (
                 ev[m_name + "_pred_t_lep_energy"] - ev["t_lep_energy"]
             ) / ev["t_lep_energy"]
+
+        if "t_had_energy" in model.config.model.labels:
+            ev[m_name + "_frac_had_energy"] = (
+                ev[m_name + "_pred_t_had_energy"] - ev["t_had_energy"]
+            ) / ev["t_had_energy"]
 
     # Calculate the fraction of nu energy in lepton
     ev["frac_energy"] = ev["t_lep_energy"] / ev["t_nu_energy"]
@@ -289,6 +304,9 @@ def evaluate(config, data_name, m_names=[], m_cats=["t_all_cat"], just_out=False
         output["max_fom_passed_0"] = curves_output["max_fom_passed_0"]
         output["max_fom_passed_1"] = curves_output["max_fom_passed_1"]
         outputs.append(output)
+
+        if just_cosmic:
+            continue
 
         print(
             "\n------------------------ {} report ------------------------".format(
@@ -636,7 +654,10 @@ def apply_weights(
             nu_energy = math.floor(event["t_nu_energy"] / 100)
             if nu_energy > 99:
                 nu_energy = 99
-            return nuel_osc[nu_energy] * event["w"]
+            if nuel_osc[nu_energy] == 0.0:
+                return event["w"]
+            else:
+                return nuel_osc[nu_energy] * event["w"]
         elif (
             event[data.MAP_NU_TYPE["name"]] == 0
             and event[data.MAP_SIGN_TYPE["name"]] == 1
@@ -803,7 +824,6 @@ def apply_standard_cuts(
             cosmic_cut_func = cut_apply(column, cosmic_cut, cut_type="greater")
             cosmic_cuts = events.parallel_apply(cosmic_cut_func, axis=1)
             events["cosmic_cut"] = cosmic_cuts
-            print(events[events["t_cosmic_cat"] == 0][column].describe())
             print(events[events["t_cosmic_cat"] == 1][column].describe())
 
     q_cut_func = cut_apply("r_total_digi_q", q_cut, cut_type="lower")
@@ -1040,7 +1060,7 @@ def calculate_curves(ev, thresholds=200, prefix=""):
     return output
 
 
-def calculate_eff_pur(ev, cut_value, e_bins=14, e_range=(1000, 8000), prefix=""):
+def calculate_eff_pur(ev, cut_value, e_bins=20, e_range=(0, 10000), prefix=""):
     """Calculate efficiency and purity curves at a specific cut value.
 
     Args:
@@ -1053,9 +1073,50 @@ def calculate_eff_pur(ev, cut_value, e_bins=14, e_range=(1000, 8000), prefix="")
     Returns:
         output (dict): output dictionary of results
     """
+    selections = [
+        ev[
+            (ev["t_comb_cat"] == 0)
+            & (ev["t_sample_type"] == 1)
+            & ((ev["t_all_cat"] == 0) | (ev["t_all_cat"] == 4))
+        ],  # Appeared CC QEL nuel
+        ev[
+            (ev["t_comb_cat"] == 0)
+            & (ev["t_sample_type"] == 1)
+            & (
+                (ev["t_all_cat"] == 1)
+                | (ev["t_all_cat"] == 2)
+                | (ev["t_all_cat"] == 3)
+                | (ev["t_all_cat"] == 5)
+            )
+        ],  # Appeared CC nonQEL nuel
+        ev[
+            (ev["t_comb_cat"] == 1)
+            & (ev["t_sample_type"] == 0)
+            & ((ev["t_all_cat"] == 6) | (ev["t_all_cat"] == 10))
+        ],  # Appeared CC QEL nuel
+        ev[
+            (ev["t_comb_cat"] == 1)
+            & (ev["t_sample_type"] == 0)
+            & (
+                (ev["t_all_cat"] == 7)
+                | (ev["t_all_cat"] == 8)
+                | (ev["t_all_cat"] == 9)
+                | (ev["t_all_cat"] == 11)
+            )
+        ],  # Appeared CC nonQEL nuel
+        ev[(ev["t_comb_cat"] == 2)],  # NC
+    ]
+    keys = [
+        prefix + "pred_t_comb_cat_0",
+        prefix + "pred_t_comb_cat_0",
+        prefix + "pred_t_comb_cat_1",
+        prefix + "pred_t_comb_cat_1",
+        prefix + "pred_t_comb_cat_2",
+    ]
+    cut_keys = [0, 0, 1, 1, 2]
     # selections = [
-    #    ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 1)],  # Appeared CC nuel
-    #    ev[(ev["t_comb_cat"] == 1)],  # All CC numu
+    #    ev[(ev["t_comb_cat"] == 0)],  # CC nuel
+    #    ev[(ev["t_comb_cat"] == 1)],  # CC numu
     #    ev[(ev["t_comb_cat"] == 2)],  # NC
     # ]
     # keys = [
@@ -1063,16 +1124,6 @@ def calculate_eff_pur(ev, cut_value, e_bins=14, e_range=(1000, 8000), prefix="")
     #    prefix + "pred_t_comb_cat_1",
     #    prefix + "pred_t_comb_cat_2",
     # ]
-    selections = [
-        ev[(ev["t_comb_cat"] == 0)],  # CC nuel
-        ev[(ev["t_comb_cat"] == 1)],  # CC numu
-        ev[(ev["t_comb_cat"] == 2)],  # NC
-    ]
-    keys = [
-        prefix + "pred_t_comb_cat_0",
-        prefix + "pred_t_comb_cat_1",
-        prefix + "pred_t_comb_cat_2",
-    ]
     num_cats = len(selections)
     np.seterr(divide="ignore", invalid="ignore")
 
@@ -1087,7 +1138,10 @@ def calculate_eff_pur(ev, cut_value, e_bins=14, e_range=(1000, 8000), prefix="")
             total = selections[cut_cat]
             passed = selections[cut_cat][
                 (selections[cut_cat]["cut"] == 0)
-                & (selections[cut_cat][keys[count_cat]] > cut_value[count_cat])
+                & (
+                    selections[cut_cat][keys[count_cat]]
+                    > cut_value[cut_keys[count_cat]]
+                )
             ]
 
             tot_h, tot_err, centers, edges = extended_hist(
@@ -1445,7 +1499,33 @@ def explain_grads(events, model, num_events, output="t_all_cat"):
     return outputs
 
 
-def globes_smearing_file(hists, names):
+def print_globes_effs(outputs):
+    """Print the GLoBES efficiency arrays.
+
+    Args:
+        outputs (dict): outputs to use
+    """
+    print("---- nuel-cc selection")
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][0][0][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][0][1][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][0][2][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][0][3][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][0][4][0]])
+    print("---- numu-cc selection")
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][2][0][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][2][1][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][2][2][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][2][3][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][2][4][0]])
+    print("---- nc selection")
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][4][0][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][4][1][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][4][2][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][4][3][0]])
+    print(["{0:0.4f}".format(i) for i in outputs["fom_effs"][4][4][0]])
+
+
+def print_globes_smearing(ev, hists, names):
     """Output Globes compatible energy smearing files.
 
     Args:
@@ -1567,13 +1647,13 @@ def frac_e_vs_par(
         try:
             subset = events[(events[par] >= cut)]
             subset = subset[(subset[par] <= (cut + bin_size))]
-
             n, bins = np.histogram(
-                subset[fit_name], 40, range=(-1, 1), weights=subset["w"], density=True,
+                subset[fit_name],
+                bins=40,
+                range=(-1, 1),
+                weights=subset["w"],
+                density=True,
             )
-
-            subset[fit_name]
-
             centers = 0.5 * (bins[1:] + bins[:-1])
             pars, cov = curve_fit(
                 gaussian,
@@ -1581,7 +1661,6 @@ def frac_e_vs_par(
                 n,
                 p0=[1, subset[fit_name].mean(), subset[fit_name].std()],
             )
-            # mu, std = norm.fit(subset[fit_name])
             mean_list.append(abs(pars[1]))
             mean_err_list.append(abs(np.sqrt(cov[1, 1])))
             std_list.append(abs(pars[2]))

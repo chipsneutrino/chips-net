@@ -32,13 +32,13 @@ model:
     precision_policy: "mixed_float16"
     summarise: False
 trainer:
-    train_examples: 1280000
-    val_examples: 32000
-    test_examples: 32000
+    train_examples: 960000
+    val_examples: 64000
+    test_examples: 64000
     batch_size: 128
-    epochs: 10
+    epochs: 20
     tb_update: 1000
     steps_per_epoch: -1
     es_monitor: "val_t_cosmic_cat_accuracy"
     es_delta: 0.00001
-    es_epochs: 2
+    es_epochs: 5

@@ -363,6 +363,8 @@ class Creator:
                     counts[4] += 1
                 elif pdg in [22] and ev_energies[i] > GAMMA_THRESHOLD:
                     counts[5] += 1
+                elif pdg in [321, -321] and ev_energies[i] > KAON_THRESHOLD:
+                    pass
             counts = np.clip(counts, a_min=0, a_max=3)  # 4th value is for n>2 particles
             events.append(counts)
         return np.stack(events, axis=0)
@@ -596,6 +598,9 @@ PROTON_THRESHOLD = math.sqrt(
 )
 CP_THRESHOLD = math.sqrt(
     math.pow(Particle.from_pdgid(211).mass, 2) / (1 - (1 / math.pow(INDEX, 2)))
+)
+KAON_THRESHOLD = math.sqrt(
+    math.pow(Particle.from_pdgid(321).mass, 2) / (1 - (1 / math.pow(INDEX, 2)))
 )
 NP_THRESHOLD = 20 * Particle.from_pdgid(11).mass
 GAMMA_THRESHOLD = 20 * Particle.from_pdgid(11).mass
@@ -902,7 +907,7 @@ def cc_cat_loss(y_true, y_pred):
 """Map cc categories."""
 MAP_CC_CAT = {
     "name": "t_cc_cat",
-    "categories": 5,
+    "categories": 6,
     "loss": cc_cat_loss,
     "labels": [
         "CC-QE",  # 0
