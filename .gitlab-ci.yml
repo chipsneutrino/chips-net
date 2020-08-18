@@ -30,7 +30,7 @@ test:
     - source /opt/conda/bin/activate
     - source activate chipsnet
     - export PYTHONPATH=$PYTHONPATH:$(pwd)
-    - pytest --pydocstyle --flake8 --black -v .
+    - make test
 
 pages:
   stage: pages
