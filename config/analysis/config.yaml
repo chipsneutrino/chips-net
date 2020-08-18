@@ -393,55 +393,6 @@ samples:
         aug_noise_mean: [0.0, 0.0, 0.0]
         aug_noise_sigma: [0.05, 0.05, 0.05]
 
-    # Different height detector fluxes
-    flux_cosmic_1000:
-        input_dirs: 
-            - "./data/input/chips_1000/numu_all_numuflux/"
-            - "./data/input/chips_1000/nuel_all_nuelflux/"
-            - "./data/input/chips_1000/anumu_all_anumuflux/"
-            - "./data/input/chips_1000/anuel_all_anuelflux/"
-            - "./data/input/chips_1000/nuel_all_numuflux/"
-            - "./data/input/chips_1000/cosmics/"
-        channels: [1, 1, 1]
-    flux_cosmic_800:
-        input_dirs: 
-            - "./data/input/chips_800/numu_all_numuflux/"
-            - "./data/input/chips_800/nuel_all_nuelflux/"
-            - "./data/input/chips_800/anumu_all_anumuflux/"
-            - "./data/input/chips_800/anuel_all_anuelflux/"
-            - "./data/input/chips_800/nuel_all_numuflux/"
-            - "./data/input/chips_800/cosmics/"
-        channels: [1, 1, 1]
-    flux_cosmic_600:
-        input_dirs: 
-            - "./data/input/chips_600/numu_all_numuflux/"
-            - "./data/input/chips_600/nuel_all_nuelflux/"
-            - "./data/input/chips_600/anumu_all_anumuflux/"
-            - "./data/input/chips_600/anuel_all_anuelflux/"
-            - "./data/input/chips_600/nuel_all_numuflux/"
-            - "./data/input/chips_600/cosmics/"
-        channels: [1, 1, 1]
-    flux_cosmic_400:
-        input_dirs: 
-            - "./data/input/chips_400/numu_all_numuflux/"
-            - "./data/input/chips_400/nuel_all_nuelflux/"
-            - "./data/input/chips_400/anumu_all_anumuflux/"
-            - "./data/input/chips_400/anuel_all_anuelflux/"
-            - "./data/input/chips_400/nuel_all_numuflux/"
-            - "./data/input/chips_400/cosmics/"
-        channels: [1, 1, 1]
-
-    # Without light cone data
-    flux_cosmic_nolc:
-        input_dirs: 
-            - "./data/input/chips_1200_nolc/numu_all_numuflux/"
-            - "./data/input/chips_1200_nolc/nuel_all_nuelflux/"
-            - "./data/input/chips_1200_nolc/anumu_all_anumuflux/"
-            - "./data/input/chips_1200_nolc/anuel_all_anuelflux/"
-            - "./data/input/chips_1200_nolc/nuel_all_numuflux/"
-            - "./data/input/chips_1200_nolc/cosmics/"
-        channels: [1, 1, 1]
-
 models:
     # Different input representations
     repr_v_c:
@@ -526,16 +477,6 @@ models:
         type: "vgg"
         labels: ["t_cosmic_cat"]
         channels: [1, 1, 1]  
-    cosmic_vtx:
-        path: "cosmic/cosmic_vtx" 
-        type: "vgg"
-        labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
-        channels: [1, 1, 1]
-    cosmic_vtx_learn:
-        path: "cosmic/cosmic_vtx_learn" 
-        type: "vgg"
-        labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
-        channels: [1, 1, 1]
     cosmic_escapes:
         path: "cosmic/cosmic_escapes" 
         type: "vgg"
@@ -545,11 +486,6 @@ models:
         path: "cosmic/cosmic_escapes_learn" 
         type: "vgg"
         labels: ["t_cosmic_cat", "t_escapes"]
-        channels: [1, 1, 1]
-    cosmic_vtx_escapes:
-        path: "cosmic/cosmic_vtx_escapes" 
-        type: "vgg"
-        labels: ["t_cosmic_cat", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t", "t_escapes"]
         channels: [1, 1, 1]
 
     # Beam classification models
@@ -653,64 +589,59 @@ models:
         labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat", "t_el_count", "t_mu_count", "t_p_count", "t_cp_count", "t_np_count", "t_g_count"]
         channels: [1, 1, 1]
     final_nuel_cc_e:
-        path: "energy/energy_nu_lep_learn" 
+        path: "final/final_nuel_cc_e" 
         type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
     final_numu_cc_e:
         path: "final/final_numu_cc_e" 
         type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
     final_nc_e:
         path: "final/final_nc_e" 
         type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
-        channels: [1, 1, 1]
-    final_cosmic_e:
-        path: "final/final_cosmic_e" 
-        type: "vgg"
-        labels: ["t_nu_energy"]
+        labels: ["t_nu_energy", "t_had_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
     final_nuel_cccoh_e:
         path: "final/final_nuel_cccoh_e" 
         type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
     final_nuel_ccdis_e:
         path: "final/final_nuel_ccdis_e" 
         type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
     final_nuel_ccqel_e:
         path: "final/final_nuel_ccqel_e" 
         type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
     final_nuel_ccres_e:
         path: "final/final_nuel_ccres_e" 
         type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
     final_numu_cccoh_e:
         path: "final/final_numu_cccoh_e" 
         type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
     final_numu_ccdis_e:
         path: "final/final_numu_ccdis_e" 
         type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
     final_numu_ccqel_e:
         path: "final/final_numu_ccqel_e" 
         type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
     final_numu_ccres_e:
         path: "final/final_numu_ccres_e" 
         type: "vgg"
-        labels: ["t_nu_energy", "t_lep_energy"]
+        labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
         channels: [1, 1, 1]
 
     # Explain models

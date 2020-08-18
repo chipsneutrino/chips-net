@@ -20,22 +20,20 @@
 
 # Cosmic classification analysis (cosmic)
 #python chipsnet/run.py config/analysis/cosmic/cosmic.yaml
-#python chipsnet/run.py config/analysis/cosmic/cosmic_vtx.yaml
-#python chipsnet/run.py config/analysis/cosmic/cosmic_vtx_learn.yaml
 #python chipsnet/run.py config/analysis/cosmic/cosmic_escapes.yaml
 #python chipsnet/run.py config/analysis/cosmic/cosmic_escapes_learn.yaml
-#python chipsnet/run.py config/analysis/cosmic/cosmic_vtx_escapes.yaml
 
 # Beam classification analysis (beam)
 #python chipsnet/run.py config/analysis/beam/beam_primaries.yaml
 #python chipsnet/run.py config/analysis/beam/beam_primaries_learn.yaml
-#python chipsnet/run.py config/analysis/beam/beam_primaries_test.yaml
 
-# Energy estimation analysis (energy)
+# Energy mutli-chan analysis (energy_chan)
 #python chipsnet/run.py config/analysis/energy/energy_nu.yaml
 #python chipsnet/run.py config/analysis/energy/energy_lep.yaml
 #python chipsnet/run.py config/analysis/energy/energy_nu_lep.yaml
 #python chipsnet/run.py config/analysis/energy/energy_nu_lep_learn.yaml
+
+# Energy extra parameters analysis (energy_par)
 #python chipsnet/run.py config/analysis/energy/energy_nu_lep_vtx.yaml
 #python chipsnet/run.py config/analysis/energy/energy_nu_lep_vtx_learn.yaml
 #python chipsnet/run.py config/analysis/energy/energy_nu_lep_escapes.yaml
@@ -47,7 +45,7 @@
 #python chipsnet/run.py config/analysis/final/final_beam.yaml
 #python chipsnet/run.py config/analysis/final/final_nuel_cccoh_e.yaml
 #python chipsnet/run.py config/analysis/final/final_nuel_ccdis_e.yaml
-python chipsnet/run.py config/analysis/final/final_nuel_ccqel_e.yaml
+#python chipsnet/run.py config/analysis/final/final_nuel_ccqel_e.yaml
 python chipsnet/run.py config/analysis/final/final_nuel_ccres_e.yaml
 python chipsnet/run.py config/analysis/final/final_nuel_cc_e.yaml
 python chipsnet/run.py config/analysis/final/final_numu_cccoh_e.yaml

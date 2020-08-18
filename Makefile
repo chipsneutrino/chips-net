@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 ANALYSIS_DIR = ./config/analysis
 
-default: train
+default: train_beam
 
 create:
 	python chipsnet/run.py ./config/create.yaml
@@ -20,6 +20,9 @@ study:
 
 analysis: 
 	@for f in $(shell ls ${ANALYSIS_DIR}); do python chipsnet/run.py $${f}; done
+
+update:
+	conda env update --file environment.yaml
 
 clean:
 	rm -rf ./data/models/*

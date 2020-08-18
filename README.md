@@ -25,7 +25,7 @@ make create
 ```
 
 ```bash
-make train
+make train_beam
 ```
 
 ```bash
@@ -48,8 +48,8 @@ You can run the full analysis notebook using [papermill](https://papermill.readt
 
 ```bash
 papermill notebooks/analysis.ipynb notebooks/analysis_complete.ipynb \
-    -p config_path "/mnt/storage/jtingey/chips-net/config/eval.yaml" \
-    -p save_path "/mnt/storage/jtingey/chips-net/data/output/"
+    -p config_path "./config/analysis/config.yaml" \
+    -p save_path "./data/output/"
 ```
 
 ## Tips

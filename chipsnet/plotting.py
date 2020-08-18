@@ -685,32 +685,41 @@ def plot_eff_curves(events, cat, save_path):
     fig, axs = plt.subplots(
         1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.2, "wspace": 0.3}
     )
-    plt.setp(axs, xticks=[0, 0.25, 0.5, 0.75, 1], yticks=[0, 25, 50, 75, 100])
+    if cat == 0:
+        plt.setp(
+            axs, xticks=[0, 0.20, 0.40, 0.60, 0.80, 1], yticks=[0, 20, 40, 60, 80, 100]
+        )
+    elif cat == 1:
+        plt.setp(
+            axs,
+            xticks=[0, 0.20, 0.40, 0.60, 0.80, 1],
+            yticks=[0, 75, 80, 85, 90, 95, 100],
+        )
     styles = ["solid", "dashed", "dotted", "dashdot"]
     for i in range(len(events)):
         axs.plot(
             events[i]["cuts"],
             events[i]["sig_effs"][cat] * 100,
-            color="tab:green",
+            color="tab:orange",
             linestyle=styles[i],
             label="",
         )
-        axs.plot(
-            events[i]["cuts"],
-            events[i]["bkg_effs"][cat] * 100,
-            color="tab:red",
-            linestyle=styles[i],
-        )
+        # axs.plot(
+        #    events[i]["cuts"],
+        #    events[i]["bkg_effs"][cat] * 100,
+        #    color="tab:cyan",
+        #    linestyle=styles[i],
+        # )
         axs.plot(
             events[i]["cuts"],
             events[i]["purs"][cat] * 100,
-            color="tab:blue",
+            color="tab:purple",
             linestyle=styles[i],
         )
         axs.plot(
             events[i]["cuts"],
             events[i]["foms_0"][cat] * 100,
-            color="black",
+            color="tab:brown",
             linestyle=styles[i],
         )
     if cat == 0:
@@ -719,40 +728,63 @@ def plot_eff_curves(events, cat, save_path):
         axs.set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=24)
     axs.set_ylabel("Percentage", fontsize=24)
     axs.set_ylim(0, 100)
+    if cat == 1:
+        axs.set_ylim(75, 100)
     axs.set_xlim(0, 1)
     signal = Line2D(
         [0],
         [0],
-        color="tab:green",
+        color="tab:orange",
         linewidth=2,
         linestyle="solid",
-        label="signal efficiency",
+        label=r"(Beam+appeared) $\nu_{e}$ CC efficiency",
     )
-    bkg = Line2D(
-        [0],
-        [0],
-        color="tab:red",
-        linewidth=2,
-        linestyle="solid",
-        label="background efficiency",
-    )
+    if cat == 1:
+        signal = Line2D(
+            [0],
+            [0],
+            color="tab:orange",
+            linewidth=2,
+            linestyle="solid",
+            label=r"Survived $\nu_{\mu}$ CC efficiency",
+        )
+    # bkg = Line2D(
+    #    [0],
+    #    [0],
+    #    color="tab:cyan",
+    #    linewidth=2,
+    #    linestyle="solid",
+    #    label="Background efficiency",
+    # )
     pur = Line2D(
         [0],
         [0],
-        color="tab:blue",
+        color="tab:purple",
         linewidth=2,
         linestyle="solid",
-        label="signal purity",
+        label=r"(Beam+appeared) $\nu_{e}$ CC purity",
     )
+    if cat == 1:
+        pur = Line2D(
+            [0],
+            [0],
+            color="tab:purple",
+            linewidth=2,
+            linestyle="solid",
+            label=r"Survived $\nu_{\mu}$ CC purity",
+        )
     fom = Line2D(
         [0],
         [0],
-        color="black",
+        color="tab:brown",
         linewidth=2,
         linestyle="solid",
-        label=r"efficiency $\times$ purity",
+        label=r"Efficiency $\times$ purity",
     )
-    axs.legend(handles=[signal, bkg, pur, fom], loc="center left")
+    if cat == 0:
+        axs.legend(handles=[signal, pur, fom], loc="center left")
+    elif cat == 1:
+        axs.legend(handles=[signal, pur, fom], loc="lower left")
     axs.grid()
     save(save_path)
 
@@ -779,14 +811,14 @@ def plot_comp_curves(events, cat, save_path):
         )
     axs[0].set_xlabel("Background efficiency", fontsize=24)
     axs[0].set_ylabel("Signal efficiency", fontsize=24)
-    # axs[0].set_ylim(0, 1)
-    # axs[0].set_xlim(0, 1)
+    axs[0].set_ylim(0.6, 1)
+    axs[0].set_xlim(0, 0.25)
     axs[0].legend()
     axs[0].grid()
-    roc = Line2D(
-        [0], [0], color="tab:cyan", linewidth=2, linestyle="solid", label=r"ROC curve",
-    )
-    axs[0].legend(handles=[roc], loc="center left")
+    # roc = Line2D(
+    #    [0], [0], color="tab:cyan", linewidth=2, linestyle="solid", label=r"ROC curve",
+    # )
+    # axs[0].legend(handles=[roc], loc="center left")
 
     for i in range(len(events)):
         axs[1].plot(
@@ -801,10 +833,10 @@ def plot_comp_curves(events, cat, save_path):
     # axs[1].set_xlim(0, 1)
     axs[1].legend()
     axs[1].grid()
-    prc = Line2D(
-        [0], [0], color="tab:pink", linewidth=2, linestyle="solid", label=r"PR curve",
-    )
-    axs[1].legend(handles=[prc], loc="center left")
+    # prc = Line2D(
+    #    [0], [0], color="tab:pink", linewidth=2, linestyle="solid", label=r"PR curve",
+    # )
+    # axs[1].legend(handles=[prc], loc="center left")
 
     save(save_path)
 
