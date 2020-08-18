@@ -1073,6 +1073,7 @@ def calculate_eff_pur(ev, cut_value, e_bins=20, e_range=(0, 10000), prefix=""):
     Returns:
         output (dict): output dictionary of results
     """
+    """
     selections = [
         ev[
             (ev["t_comb_cat"] == 0)
@@ -1114,16 +1115,20 @@ def calculate_eff_pur(ev, cut_value, e_bins=20, e_range=(0, 10000), prefix=""):
         prefix + "pred_t_comb_cat_2",
     ]
     cut_keys = [0, 0, 1, 1, 2]
-    # selections = [
-    #    ev[(ev["t_comb_cat"] == 0)],  # CC nuel
-    #    ev[(ev["t_comb_cat"] == 1)],  # CC numu
-    #    ev[(ev["t_comb_cat"] == 2)],  # NC
-    # ]
-    # keys = [
-    #    prefix + "pred_t_comb_cat_0",
-    #    prefix + "pred_t_comb_cat_1",
-    #    prefix + "pred_t_comb_cat_2",
-    # ]
+    """
+    selections = [
+        ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 1)],  # Appeared CC nuel
+        ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 0)],  # Beam CC nuel
+        ev[(ev["t_comb_cat"] == 1) & (ev["t_sample_type"] == 0)],  # Survived CC numu
+        ev[(ev["t_comb_cat"] == 2) & (ev["t_sample_type"] == 0)],  # Beam NC
+    ]
+    keys = [
+        prefix + "pred_t_comb_cat_0",
+        prefix + "pred_t_comb_cat_0",
+        prefix + "pred_t_comb_cat_1",
+        prefix + "pred_t_comb_cat_2",
+    ]
+    cut_keys = [0, 0, 1, 2]
     num_cats = len(selections)
     np.seterr(divide="ignore", invalid="ignore")
 

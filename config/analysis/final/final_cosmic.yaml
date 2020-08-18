@@ -22,7 +22,7 @@ model:
     type: "vgg"
     labels: ["t_cosmic_cat", "t_escapes"]
     lr: 0.00005
-    lr_decay: 0.5
+    lr_decay: 0.7
     dense_units: 512
     dropout: 0.1
     filters: 64
@@ -36,7 +36,7 @@ trainer:
     val_examples: 96000
     test_examples: 64000
     batch_size: 128
-    epochs: 20
+    epochs: 30
     tb_update: 1000
     steps_per_epoch: -1
     es_monitor: "val_t_cosmic_cat_accuracy"

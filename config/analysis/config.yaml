@@ -643,14 +643,14 @@ models:
 
     # Final models
     final_cosmic:
-        path: "cosmic/cosmic"
+        path: "cosmic/cosmic_vtx"
         type: "vgg"
-        labels: ["t_cosmic_cat"]
+        labels: ["t_cosmic_cat", "t_escapes"]
         channels: [1, 1, 1]
     final_beam:
-        path: "final/final_beam" 
+        path: "beam/beam_primaries_learn" 
         type: "vgg"
-        labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat", "t_prim_counts"]
+        labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat", "t_el_count", "t_mu_count", "t_p_count", "t_cp_count", "t_np_count", "t_g_count"]
         channels: [1, 1, 1]
     final_nuel_cc_e:
         path: "energy/energy_nu_lep_learn" 

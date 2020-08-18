@@ -6,6 +6,7 @@ dependencies:
   - python=3.8
   - gcc_linux-64
   - gxx_linux-64
+  - black
   - papermill
   - tqdm
   - pytest
@@ -25,8 +26,8 @@ dependencies:
   - scikit-learn
   - pip
   - pip:
-    - tensorflow==2.2.0
-    - tensorboard-plugin-profile==2.2.0
+    - tensorflow==2.3.0
+    - tensorboard-plugin-profile==2.3.0
     - parameter-sherpa
     - tf-explain
     - particle

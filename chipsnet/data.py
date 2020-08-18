@@ -199,17 +199,18 @@ class Reader:
         # Generate list of input files and shuffle
         files = []
         for d in dirs:
-            for file in os.listdir(d):
-                files.append(os.path.join(d, file))
+            for data_file in os.listdir(d):
+                files.append(os.path.join(d, data_file))
         random.seed(8)
         random.shuffle(files)
 
         ds = tf.data.Dataset.from_tensor_slices(files)
         ds = ds.interleave(
             tf.data.TFRecordDataset,
-            cycle_length=len(files),
+            cycle_length=tf.data.experimental.AUTOTUNE,
             block_length=1,
             num_parallel_calls=tf.data.experimental.AUTOTUNE,
+            deterministic=False,
         )
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
         ds = ds.map(self.parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)

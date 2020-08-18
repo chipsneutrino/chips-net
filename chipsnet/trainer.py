@@ -35,6 +35,7 @@ class Trainer(object):
             float: learning rate for the given epoch
         """
         lr = self.config.model.lr * 1 / (1 + self.config.model.lr_decay * epoch)
+        print("Learning rate: {}".format(lr))
         return lr
 
     def init_callbacks(self):

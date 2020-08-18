@@ -631,7 +631,7 @@ def plot_combined_values(events, type, prefix, save_path):
             weights=cosmic_events["w"],
             range=hist_range,
             bins=bins,
-            color="tab:orange",
+            color="black",
             histtype="step",
             linewidth=2,
         )
@@ -818,7 +818,7 @@ def plot_nuel_hists(events, ev, save_path):
         save_path (str): path to save plot to
     """
     fig, axs = plt.subplots(1, 1, figsize=(12, 8))
-    bins = np.arange(1.25, 8.25, 0.5)
+    bins = np.arange(0, 10, 0.5)
     styles = ["solid", "dashed", "dotted", "dashdot"]
 
     for i in range(len(events)):
@@ -833,13 +833,20 @@ def plot_nuel_hists(events, ev, save_path):
             bins,
             events[i]["fom_effs"][0][1][0] * 100,
             yerr=events[i]["fom_effs"][0][1][1] * 100,
-            color="tab:blue",
+            color="tab:olive",
             linestyle=styles[i],
         )
         axs.errorbar(
             bins,
             events[i]["fom_effs"][0][2][0] * 100,
             yerr=events[i]["fom_effs"][0][2][1] * 100,
+            color="tab:blue",
+            linestyle=styles[i],
+        )
+        axs.errorbar(
+            bins,
+            events[i]["fom_effs"][0][3][0] * 100,
+            yerr=events[i]["fom_effs"][0][3][1] * 100,
             color="tab:red",
             linestyle=styles[i],
         )
@@ -862,34 +869,35 @@ def plot_nuel_hists(events, ev, save_path):
     axs.set_xlabel("Neutrino energy (GeV)", fontsize=24)
     axs.set_ylabel("Percentage", fontsize=24)
     axs.set_ylim([0, 100])
-    nuel_eff = Line2D(
+    nuel = Line2D(
+        [0],
+        [0],
+        color="tab:olive",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Beam CC $\nu_{e}$",
+    )
+    osc_nuel = Line2D(
         [0],
         [0],
         color="tab:green",
         linewidth=2,
         linestyle="solid",
-        label=r"$\nu_{e}$ CC efficiency",
+        label=r"Appeared CC $\nu_{e}$",
     )
-    numu_eff = Line2D(
+    numu = Line2D(
         [0],
         [0],
         color="tab:blue",
         linewidth=2,
         linestyle="solid",
-        label=r"$\nu_{\mu}$ CC efficiency",
+        label=r"Survived CC $\nu_{\mu}$",
     )
-    nc_eff = Line2D(
-        [0],
-        [0],
-        color="tab:red",
-        linewidth=2,
-        linestyle="solid",
-        label=r"NC efficiency",
-    )
-    pur = Line2D(
-        [0], [0], color="black", linewidth=2, linestyle="solid", label=r"Purity",
-    )
-    axs.legend(handles=[nuel_eff, numu_eff, nc_eff, pur], loc="center right")
+    nc = Line2D([0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC")
+    # cosmic = Line2D(
+    #    [0], [0], color="tab:orange", linewidth=1, linestyle="solid", label=r"cosmic"
+    # )
+    axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="center right")
 
 
 def plot_numu_hists(events, ev, save_path):
@@ -901,35 +909,42 @@ def plot_numu_hists(events, ev, save_path):
         save_path (str): path to save plot to
     """
     fig, axs = plt.subplots(1, 1, figsize=(12, 8))
-    bins = np.arange(1.25, 8.25, 0.5)
+    bins = np.arange(0, 10, 0.5)
     styles = ["solid", "dashed", "dotted", "dashdot"]
 
     for i in range(len(events)):
         axs.errorbar(
             bins,
-            events[i]["fom_effs"][1][0][0] * 100,
-            yerr=events[i]["fom_effs"][1][0][1] * 100,
+            events[i]["fom_effs"][2][0][0] * 100,
+            yerr=events[i]["fom_effs"][2][0][1] * 100,
             color="tab:green",
             linestyle=styles[i],
         )
         axs.errorbar(
             bins,
-            events[i]["fom_effs"][1][1][0] * 100,
-            yerr=events[i]["fom_effs"][1][1][1] * 100,
+            events[i]["fom_effs"][2][1][0] * 100,
+            yerr=events[i]["fom_effs"][2][1][1] * 100,
+            color="tab:olive",
+            linestyle=styles[i],
+        )
+        axs.errorbar(
+            bins,
+            events[i]["fom_effs"][2][2][0] * 100,
+            yerr=events[i]["fom_effs"][2][2][1] * 100,
             color="tab:blue",
             linestyle=styles[i],
         )
         axs.errorbar(
             bins,
-            events[i]["fom_effs"][1][2][0] * 100,
-            yerr=events[i]["fom_effs"][1][2][1] * 100,
+            events[i]["fom_effs"][2][3][0] * 100,
+            yerr=events[i]["fom_effs"][2][3][1] * 100,
             color="tab:red",
             linestyle=styles[i],
         )
         axs.errorbar(
             bins,
-            events[i]["fom_purs"][1][0] * 100,
-            yerr=events[i]["fom_purs"][1][1] * 100,
+            events[i]["fom_purs"][2][0] * 100,
+            yerr=events[i]["fom_purs"][2][1] * 100,
             color="black",
             linestyle=styles[i],
         )
@@ -945,34 +960,35 @@ def plot_numu_hists(events, ev, save_path):
     axs.set_xlabel("Neutrino energy (GeV)", fontsize=24)
     axs.set_ylabel("Percentage", fontsize=24)
     axs.set_ylim([0, 100])
-    nuel_eff = Line2D(
+    nuel = Line2D(
+        [0],
+        [0],
+        color="tab:olive",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Beam CC $\nu_{e}$",
+    )
+    osc_nuel = Line2D(
         [0],
         [0],
         color="tab:green",
         linewidth=2,
         linestyle="solid",
-        label=r"$\nu_{e}$ CC efficiency",
+        label=r"Appeared CC $\nu_{e}$",
     )
-    numu_eff = Line2D(
+    numu = Line2D(
         [0],
         [0],
         color="tab:blue",
         linewidth=2,
         linestyle="solid",
-        label=r"$\nu_{\mu}$ CC efficiency",
+        label=r"Survived CC $\nu_{\mu}$",
     )
-    nc_eff = Line2D(
-        [0],
-        [0],
-        color="tab:red",
-        linewidth=2,
-        linestyle="solid",
-        label=r"NC efficiency",
-    )
-    pur = Line2D(
-        [0], [0], color="black", linewidth=2, linestyle="solid", label=r"Purity",
-    )
-    axs.legend(handles=[numu_eff, nuel_eff, nc_eff, pur], loc="center right")
+    nc = Line2D([0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC")
+    # cosmic = Line2D(
+    #    [0], [0], color="tab:orange", linewidth=1, linestyle="solid", label=r"cosmic"
+    # )
+    axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="center right")
 
 
 def plot_history(config, model, save_path, key="accuracy", label=r"accuracy"):

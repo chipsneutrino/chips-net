@@ -43,10 +43,10 @@
 #python chipsnet/run.py config/analysis/energy/energy_nu_lep_vtx_escapes.yaml
 
 # Final models
-python chipsnet/run.py config/analysis/final/final_cosmic.yaml
-python chipsnet/run.py config/analysis/final/final_beam.yaml
-python chipsnet/run.py config/analysis/final/final_nuel_cccoh_e.yaml
-python chipsnet/run.py config/analysis/final/final_nuel_ccdis_e.yaml
+#python chipsnet/run.py config/analysis/final/final_cosmic.yaml
+#python chipsnet/run.py config/analysis/final/final_beam.yaml
+#python chipsnet/run.py config/analysis/final/final_nuel_cccoh_e.yaml
+#python chipsnet/run.py config/analysis/final/final_nuel_ccdis_e.yaml
 python chipsnet/run.py config/analysis/final/final_nuel_ccqel_e.yaml
 python chipsnet/run.py config/analysis/final/final_nuel_ccres_e.yaml
 python chipsnet/run.py config/analysis/final/final_nuel_cc_e.yaml

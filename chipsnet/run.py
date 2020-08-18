@@ -16,11 +16,11 @@ import os
 import logging
 
 from comet_ml import Experiment
-import tensorflow as tf
 
 # Need to setup the logging level before we use tensorflow
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 logging.disable(logging.CRITICAL)
+import tensorflow as tf  # noqa: E402
 
 import chipsnet.config  # noqa: E402
 import chipsnet.data  # noqa: E402

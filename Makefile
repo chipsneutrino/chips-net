@@ -30,6 +30,6 @@ black:
 	black tests/
 
 test:
-	pytest --pydocstyle --flake8 --black -v .
+	pytest --pydocstyle --flake8 --black -v -W ignore::pytest.PytestDeprecationWarning .
 
 .PHONY: analysis clean test dependencies
