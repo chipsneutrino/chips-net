@@ -139,23 +139,23 @@ class Reader:
 
         # Decode integer labels and append to labels dictionary
         labels_i = tf.io.decode_raw(example["labels_i"], tf.int32)
-        labels["t_sample_type"] = labels_i[0]
-        labels[MAP_NU_TYPE["name"]] = labels_i[1]
-        labels[MAP_SIGN_TYPE["name"]] = labels_i[2]
-        labels[MAP_INT_TYPE["name"]] = labels_i[3]
-        labels[MAP_CC_CAT["name"]] = labels_i[4]
-        labels[MAP_NC_CAT["name"]] = labels_i[5]
-        labels[MAP_ALL_CAT["name"]] = labels_i[6]
-        labels[MAP_COSMIC_CAT["name"]] = labels_i[7]
-        labels[MAP_FULL_COMB_CAT["name"]] = labels_i[8]
-        labels[MAP_NC_COMB_CAT["name"]] = labels_i[9]
-        labels["t_el_count"] = labels_i[10]
-        labels["t_mu_count"] = labels_i[11]
-        labels["t_p_count"] = labels_i[12]
-        labels["t_cp_count"] = labels_i[13]
-        labels["t_np_count"] = labels_i[14]
-        labels["t_g_count"] = labels_i[15]
-        labels["t_escapes"] = labels_i[16]
+        labels["t_sample_type"] = tf.cast(labels_i[0], tf.float32)
+        labels[MAP_NU_TYPE["name"]] = tf.cast(labels_i[1], tf.float32)
+        labels[MAP_SIGN_TYPE["name"]] = tf.cast(labels_i[2], tf.float32)
+        labels[MAP_INT_TYPE["name"]] = tf.cast(labels_i[3], tf.float32)
+        labels[MAP_CC_CAT["name"]] = tf.cast(labels_i[4], tf.float32)
+        labels[MAP_NC_CAT["name"]] = tf.cast(labels_i[5], tf.float32)
+        labels[MAP_ALL_CAT["name"]] = tf.cast(labels_i[6], tf.float32)
+        labels[MAP_COSMIC_CAT["name"]] = tf.cast(labels_i[7], tf.float32)
+        labels[MAP_FULL_COMB_CAT["name"]] = tf.cast(labels_i[8], tf.float32)
+        labels[MAP_NC_COMB_CAT["name"]] = tf.cast(labels_i[9], tf.float32)
+        labels["t_el_count"] = tf.cast(labels_i[10], tf.float32)
+        labels["t_mu_count"] = tf.cast(labels_i[11], tf.float32)
+        labels["t_p_count"] = tf.cast(labels_i[12], tf.float32)
+        labels["t_cp_count"] = tf.cast(labels_i[13], tf.float32)
+        labels["t_np_count"] = tf.cast(labels_i[14], tf.float32)
+        labels["t_g_count"] = tf.cast(labels_i[15], tf.float32)
+        labels["t_escapes"] = tf.cast(labels_i[16], tf.float32)
 
         # Decode float labels and append to the labels dictionary
         labels_f = tf.io.decode_raw(example["labels_f"], tf.float32)

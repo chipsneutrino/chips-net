@@ -579,7 +579,7 @@ models:
 
     # Final models
     final_cosmic:
-        path: "cosmic/cosmic_vtx"
+        path: "cosmic/cosmic_escapes"
         type: "vgg"
         labels: ["t_cosmic_cat", "t_escapes"]
         channels: [1, 1, 1]

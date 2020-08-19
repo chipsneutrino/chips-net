@@ -635,7 +635,7 @@ def plot_combined_values(events, type, prefix, save_path):
             histtype="step",
             linewidth=2,
         )
-        axs.set_ylim(10e-3, 10e2)
+        axs.set_ylim(10e-3, 10e3)
         # axs.set_ylim(0, 500)
         axs.set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=24)
         axs.set_ylabel(r"Events/$6\times10^{20}$ POT/kt", fontsize=24)
@@ -850,7 +850,7 @@ def plot_nuel_hists(events, ev, save_path):
         save_path (str): path to save plot to
     """
     fig, axs = plt.subplots(1, 1, figsize=(12, 8))
-    bins = np.arange(0, 10, 0.5)
+    bins = np.arange(0.25, 10.25, 0.5)
     styles = ["solid", "dashed", "dotted", "dashdot"]
 
     for i in range(len(events)):
@@ -898,16 +898,17 @@ def plot_nuel_hists(events, ev, save_path):
         alpha=0.3,
         weights=ev[ev["t_comb_cat"] == 0]["w"] * 5,
     )
-    axs.set_xlabel("Neutrino energy (GeV)", fontsize=24)
+    axs.set_xlabel(r"$E_{\nu}$ (GeV)", fontsize=24)
     axs.set_ylabel("Percentage", fontsize=24)
     axs.set_ylim([0, 100])
+    axs.set_xlim([0.5, 10])
     nuel = Line2D(
         [0],
         [0],
         color="tab:olive",
         linewidth=2,
         linestyle="solid",
-        label=r"Beam CC $\nu_{e}$",
+        label=r"Beam CC $\nu_{e}$ efficiency",
     )
     osc_nuel = Line2D(
         [0],
@@ -915,7 +916,7 @@ def plot_nuel_hists(events, ev, save_path):
         color="tab:green",
         linewidth=2,
         linestyle="solid",
-        label=r"Appeared CC $\nu_{e}$",
+        label=r"Appeared CC $\nu_{e}$ efficiency",
     )
     numu = Line2D(
         [0],
@@ -923,13 +924,25 @@ def plot_nuel_hists(events, ev, save_path):
         color="tab:blue",
         linewidth=2,
         linestyle="solid",
-        label=r"Survived CC $\nu_{\mu}$",
+        label=r"Survived CC $\nu_{\mu}$ efficiency",
     )
-    nc = Line2D([0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC")
-    # cosmic = Line2D(
-    #    [0], [0], color="tab:orange", linewidth=1, linestyle="solid", label=r"cosmic"
-    # )
-    axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="center right")
+    nc = Line2D(
+        [0],
+        [0],
+        color="tab:red",
+        linewidth=2,
+        linestyle="solid",
+        label=r"NC efficiency",
+    )
+    purity = Line2D(
+        [0],
+        [0],
+        color="black",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Appeared CC $\nu_{e}$ purity",
+    )
+    axs.legend(handles=[osc_nuel, numu, nuel, nc, purity], loc="center right")
 
 
 def plot_numu_hists(events, ev, save_path):
@@ -941,7 +954,7 @@ def plot_numu_hists(events, ev, save_path):
         save_path (str): path to save plot to
     """
     fig, axs = plt.subplots(1, 1, figsize=(12, 8))
-    bins = np.arange(0, 10, 0.5)
+    bins = np.arange(0.25, 10.25, 0.5)
     styles = ["solid", "dashed", "dotted", "dashdot"]
 
     for i in range(len(events)):
@@ -989,16 +1002,17 @@ def plot_numu_hists(events, ev, save_path):
         alpha=0.3,
         weights=ev[ev["t_comb_cat"] == 1]["w"] * 0.15,
     )
-    axs.set_xlabel("Neutrino energy (GeV)", fontsize=24)
+    axs.set_xlabel(r"$E_{\nu}$ (GeV)", fontsize=24)
     axs.set_ylabel("Percentage", fontsize=24)
     axs.set_ylim([0, 100])
+    axs.set_xlim([0.5, 10])
     nuel = Line2D(
         [0],
         [0],
         color="tab:olive",
         linewidth=2,
         linestyle="solid",
-        label=r"Beam CC $\nu_{e}$",
+        label=r"Beam CC $\nu_{e}$ efficiency",
     )
     osc_nuel = Line2D(
         [0],
@@ -1006,7 +1020,7 @@ def plot_numu_hists(events, ev, save_path):
         color="tab:green",
         linewidth=2,
         linestyle="solid",
-        label=r"Appeared CC $\nu_{e}$",
+        label=r"Appeared CC $\nu_{e}$ efficiency",
     )
     numu = Line2D(
         [0],
@@ -1014,16 +1028,30 @@ def plot_numu_hists(events, ev, save_path):
         color="tab:blue",
         linewidth=2,
         linestyle="solid",
-        label=r"Survived CC $\nu_{\mu}$",
+        label=r"Survived CC $\nu_{\mu}$ efficiency",
     )
-    nc = Line2D([0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC")
-    # cosmic = Line2D(
-    #    [0], [0], color="tab:orange", linewidth=1, linestyle="solid", label=r"cosmic"
-    # )
-    axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="center right")
+    nc = Line2D(
+        [0],
+        [0],
+        color="tab:red",
+        linewidth=2,
+        linestyle="solid",
+        label=r"NC efficiency",
+    )
+    purity = Line2D(
+        [0],
+        [0],
+        color="black",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Survived CC $\nu_{\mu}$ purity",
+    )
+    axs.legend(handles=[osc_nuel, numu, nuel, nc, purity], loc="center right")
 
 
-def plot_history(config, model, save_path, key="accuracy", label=r"accuracy"):
+def plot_history(
+    config, model, save_path, key="accuracy", label=r"accuracy", type="max"
+):
     """Plot the training history of a list of models.
 
     Args:
@@ -1031,21 +1059,28 @@ def plot_history(config, model, save_path, key="accuracy", label=r"accuracy"):
         models (list[str]): list of models to plot
         save_path (str): path to save plot to
         key (str): Key to use for second metric alongside loss
+        label (str): Label to use
+        type (str): max or min, which is best?
     """
     fig, axs = plt.subplots(
         1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.2, "wspace": 0.3}
     )
-    plt.setp(axs, xticks=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    # plt.setp(axs, xticks=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     history = chipsnet.utils.model_history(config, model)
     epochs = np.arange(1, len(history["loss"]) + 1)
-    axs.set_xlabel("epoch", fontsize=24)
+    axs.set_xlabel("Epoch", fontsize=24)
     axs.set_ylabel(label, color="tab:red", fontsize=24)
     axs.plot(epochs, history[key], color="tab:red", linestyle="solid")
     axs.plot(epochs, history["val_" + key], color="tab:red", linestyle="dashed")
+    best_epoch = history["val_" + key].to_numpy().argmax() + 1
+    if type == "min":
+        best_epoch = history["val_" + key].to_numpy().argmin() + 1
+    axs.plot([best_epoch, best_epoch], axs.get_ylim(), "k-", lw=4)
+
     axs.tick_params(axis="y", labelcolor="tab:red")
     axs_t = axs.twinx()  # instantiate a second axes that shares the same x-axis
     axs_t.set_ylabel(
-        "loss", color="tab:blue", fontsize=24
+        "Loss", color="tab:blue", fontsize=24
     )  # we already handled the x-label with ax1
     axs_t.plot(epochs, history["loss"], color="tab:blue", linestyle="solid")
     axs_t.plot(epochs, history["val_loss"], color="tab:blue", linestyle="dashed")
