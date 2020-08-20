@@ -41,24 +41,24 @@
 #python chipsnet/run.py config/analysis/energy/energy_nu_lep_vtx_escapes.yaml
 
 # Final models
-#python chipsnet/run.py config/analysis/final/final_cosmic.yaml
-#python chipsnet/run.py config/analysis/final/final_beam.yaml
+python chipsnet/run.py config/analysis/final/final_cosmic.yaml
+python chipsnet/run.py config/analysis/final/final_beam.yaml
 #python chipsnet/run.py config/analysis/final/final_nuel_cccoh_e.yaml
 #python chipsnet/run.py config/analysis/final/final_nuel_ccdis_e.yaml
 #python chipsnet/run.py config/analysis/final/final_nuel_ccqel_e.yaml
-python chipsnet/run.py config/analysis/final/final_nuel_ccres_e.yaml
-python chipsnet/run.py config/analysis/final/final_nuel_cc_e.yaml
-python chipsnet/run.py config/analysis/final/final_numu_cccoh_e.yaml
-python chipsnet/run.py config/analysis/final/final_numu_ccdis_e.yaml
-python chipsnet/run.py config/analysis/final/final_numu_ccqel_e.yaml
-python chipsnet/run.py config/analysis/final/final_numu_ccres_e.yaml
-python chipsnet/run.py config/analysis/final/final_numu_cc_e.yaml
-python chipsnet/run.py config/analysis/final/final_nc_e.yaml
+#python chipsnet/run.py config/analysis/final/final_nuel_ccres_e.yaml
+#python chipsnet/run.py config/analysis/final/final_nuel_cc_e.yaml
+#python chipsnet/run.py config/analysis/final/final_numu_cccoh_e.yaml
+#python chipsnet/run.py config/analysis/final/final_numu_ccdis_e.yaml
+#python chipsnet/run.py config/analysis/final/final_numu_ccqel_e.yaml
+#python chipsnet/run.py config/analysis/final/final_numu_ccres_e.yaml
+#python chipsnet/run.py config/analysis/final/final_numu_cc_e.yaml
+#python chipsnet/run.py config/analysis/final/final_nc_e.yaml
 
 # Explanation model (stacked/no_reco)
 #python chipsnet/run.py config/analysis/explain/explain_cosmic.yaml
-python chipsnet/run.py config/analysis/explain/explain_beam.yaml
-python chipsnet/run.py config/analysis/explain/explain_energy.yaml
+#python chipsnet/run.py config/analysis/explain/explain_beam.yaml
+#python chipsnet/run.py config/analysis/explain/explain_energy.yaml
 
 # Model studies (studies)
 #python chipsnet/run.py config/analysis/study/study_cosmic.yaml

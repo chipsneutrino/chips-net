@@ -23,7 +23,7 @@ model:
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512
-    dropout: 0.1
+    dropout: 0.15
     filters: 64
     reco_pars: True
     se_ratio: 16
