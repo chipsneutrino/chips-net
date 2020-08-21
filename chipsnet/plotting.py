@@ -19,7 +19,7 @@ def save(name):
     plt.show()
 
 
-def plot_cats(events_u, events_b, cat_map, save_path):
+def plot_cats(events, scale, cat_map, save_path):
     """Save a matplotlib plot to file as both a pgf and pdf.
 
     Args:
@@ -28,38 +28,25 @@ def plot_cats(events_u, events_b, cat_map, save_path):
         cat_map (dict): category map for this comparison
         save_path (str): path to save plot to
     """
-    data_u = [
-        len(events_u[events_u[cat_map["name"]] == i])
-        for i in range(len(cat_map["labels"]))
+    data = [
+        len(events[events[cat_map["name"]] == i]) for i in range(len(cat_map["labels"]))
     ]
-    data_b = [
-        len(events_b[events_b[cat_map["name"]] == i])
-        for i in range(len(cat_map["labels"]))
-    ]
+    data = [x * scale for x in data]
     cats = np.arange(len(cat_map["labels"]))
-    width = 0.5
-
-    fig, axs = plt.subplots(1, 1, figsize=(18, 5), gridspec_kw={"hspace": 0.3})
+    fig, axs = plt.subplots(1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.3})
     axs.bar(
-        cats + width / 2,
-        data_u,
-        color="royalblue",
-        width=width,
+        cats,
+        data,
+        color="tab:blue",
+        width=1.0,
         label="uniform sample",
-        edgecolor="black",
-    )
-    axs.bar(
-        cats - width / 2,
-        data_b,
-        color="firebrick",
-        width=width,
-        label="flux sample",
         edgecolor="black",
     )
     axs.set_xticks(cats)
     axs.set_xticklabels(cat_map["labels"], fontsize=14, rotation="vertical")
-    axs.set_ylabel("Testing events")
-    axs.legend()
+    axs.set_ylabel("Training events")
+    axs.set_ylim(10e2, 10e6)
+    axs.set_yscale("log")
     save(save_path + "explore_" + cat_map["name"])
 
 
@@ -101,7 +88,7 @@ def plot_hit_time(images_dict, event, save_name):
     )
     axs[0, 2].set_title(r"vertex view ($\phi$,$\theta$)")
     axs[0, 2].set(ylabel=r"$\theta$ bins")
-    axs[0, 2].text(68, 2, "Hit charge images", rotation=-90, fontsize=24)
+    axs[0, 2].text(68, 10, "Hit charge images", rotation=-90, fontsize=24)
 
     axs[1, 0].imshow(
         images_dict["r_time_map_origin"][event],
@@ -126,7 +113,7 @@ def plot_hit_time(images_dict, event, save_name):
         extent=(0, 64, 0, 64),
     )
     axs[1, 2].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
-    axs[1, 2].text(68, 8, "First hit time images", rotation=-90, fontsize=24)
+    axs[1, 2].text(68, 6, "First hit time images", rotation=-90, fontsize=24)
     save(save_name)
 
 
@@ -148,7 +135,6 @@ def plot_hough(images_dict, events, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[0].set_title(r"vertex view ($\phi$,$\theta$)")
     axs[0].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
     axs[0].label_outer()
     axs[1].imshow(
@@ -157,7 +143,6 @@ def plot_hough(images_dict, events, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[1].set_title(r"vertex view ($\phi$,$\theta$)")
     axs[1].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
     axs[1].label_outer()
     axs[2].imshow(
@@ -166,10 +151,8 @@ def plot_hough(images_dict, events, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[2].set_title(r"vertex view ($\phi$,$\theta$)")
     axs[2].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
     axs[2].label_outer()
-    axs[2].text(68, 10, "Hough space image", rotation=-90, fontsize=24)
     save(save_name)
 
 
@@ -185,44 +168,78 @@ def plot_8bit_range(
         max_hough (float): maximum hough value
         save_path (str): path to save plot to
     """
-    fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+    fig, axs = plt.subplots(1, 1, figsize=(12, 8))
 
     hist_data = []
     for event in images_dict["r_charge_map_vtx"]:
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
     occurrences = np.count_nonzero(hist_data == 255) / len(hist_data)
-    axs[0].hist(hist_data, range=(1, 256), bins=255, color="black", histtype="step")
-    axs[0].set_title(
-        "[0,{}], outside range: {:.4f}".format(max_charge, occurrences), fontsize=17
+    axs.hist(
+        hist_data,
+        range=(1, 256),
+        bins=255,
+        color="tab:green",
+        histtype="step",
+        linewidth=2,
+        density=True,
     )
-    axs[0].set(xlabel="Hit charge 8-bit value", ylabel="Frequency")
-    axs[0].label_outer()
-
     hist_data = []
     for event in images_dict["r_time_map_vtx"]:
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
     occurrences = np.count_nonzero(hist_data == 255) / len(hist_data)
-    axs[1].hist(hist_data, range=(1, 256), bins=255, color="black", histtype="step")
-    axs[1].set_title(
-        "[0,{}], outside range: {:.4f}".format(max_time, occurrences), fontsize=17
+    axs.hist(
+        hist_data,
+        range=(1, 256),
+        bins=255,
+        color="tab:blue",
+        histtype="step",
+        linewidth=2,
+        density=True,
     )
-    axs[1].set(xlabel="Hit time 8-bit value", ylabel="Frequency")
-    axs[1].label_outer()
-
     hist_data = []
     for event in images_dict["r_hough_map_vtx"]:
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
     occurrences = np.count_nonzero(hist_data == 255) / len(hist_data)
-    axs[2].hist(hist_data, range=(1, 256), bins=255, color="black", histtype="step")
-    axs[2].set_title(
-        "[0,{}], outside range: {:.4f}".format(max_hough, occurrences), fontsize=17
+    axs.hist(
+        hist_data,
+        range=(1, 256),
+        bins=255,
+        color="tab:red",
+        histtype="step",
+        linewidth=2,
+        density=True,
     )
-    axs[2].set(xlabel="Hough 8-bit value", ylabel="Frequency")
-    axs[2].label_outer()
+    print("[0,{}], outside range: {:.4f}".format(max_charge, occurrences))
+    print("[0,{}], outside range: {:.4f}".format(max_time, occurrences))
+    print("[0,{}], outside range: {:.4f}".format(max_hough, occurrences))
 
+    axs.set(xlabel=r"8-bit value", ylabel=r"Frequency (arb.)")
+    axs.set_xlim(0, 260)
+    axs.set_ylim(0, 0.06)
+
+    hit = Line2D(
+        [0],
+        [0],
+        color="tab:green",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Hit charge",
+    )
+    time = Line2D(
+        [0], [0], color="tab:blue", linewidth=2, linestyle="solid", label=r"Hit time",
+    )
+    hough = Line2D(
+        [0],
+        [0],
+        color="tab:red",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Hough Space value",
+    )
+    axs.legend(handles=[hit, time, hough], loc="upper right")
     save(save_path + "explore_8_bit_range")
 
 
@@ -347,15 +364,15 @@ def plot_cuts(config, events, save_path):
         [0],
         [0],
         color="tab:green",
-        linewidth=1,
+        linewidth=2,
         linestyle="solid",
         label=r"Appeared CC $\nu_{e}$",
     )
     nuel = Line2D(
         [0],
         [0],
-        color="tab:green",
-        linewidth=1,
+        color="tab:olive",
+        linewidth=2,
         linestyle="solid",
         label=r"Beam CC $\nu_{e}$",
     )
@@ -363,13 +380,13 @@ def plot_cuts(config, events, save_path):
         [0],
         [0],
         color="tab:blue",
-        linewidth=1,
+        linewidth=2,
         linestyle="solid",
         label=r"Survived CC $\nu_{\mu}$",
     )
-    nc = Line2D([0], [0], color="tab:red", linewidth=1, linestyle="solid", label=r"NC")
+    nc = Line2D([0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC")
     cosmic = Line2D(
-        [0], [0], color="black", linewidth=1, linestyle="solid", label=r"Cosmic"
+        [0], [0], color="black", linewidth=2, linestyle="solid", label=r"Cosmic"
     )
     axs[0, 1].legend(handles=[osc_nuel, numu, nc, nuel, cosmic], loc="upper right")
 
@@ -471,7 +488,7 @@ def plot_cuts(config, events, save_path):
         density=True,
         label="cosmic",
     )
-    axs[1, 1].set(xlabel=r"Reco $\phi$ direction (rads)")
+    axs[1, 1].set(xlabel=r"Reco $\phi$ direction (radians)")
     axs[1, 1].axvspan(-3.2, -config.eval.cuts.phi * 3.14159, alpha=0.5, color="grey")
     axs[1, 1].axvspan(config.eval.cuts.phi * 3.14159, 3.2, alpha=0.5, color="grey")
     axs[1, 1].set_yticks([])
@@ -503,7 +520,7 @@ def plot_combined_values(events, type, prefix, save_path):
 
     if type == 0:
         fig, axs = plt.subplots(
-            1, 1, figsize=(10, 6), gridspec_kw={"hspace": 0.1, "wspace": 0.1}
+            1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.1, "wspace": 0.1}
         )
         plt.setp(axs, xticks=[0, 0.2, 0.4, 0.6, 0.8, 1])
         axs.hist(
@@ -553,7 +570,7 @@ def plot_combined_values(events, type, prefix, save_path):
         )
         axs.set_ylim(0, 20)
         axs.set_xlabel(r"$\nu_{e}$ CC score", fontsize=24)
-        axs.set_ylabel(r"Events/$6\times10^{20}$ POT/kt", fontsize=24)
+        axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=24)
         nuel = Line2D(
             [0],
             [0],
@@ -588,7 +605,7 @@ def plot_combined_values(events, type, prefix, save_path):
 
     if type == 1:
         fig, axs = plt.subplots(
-            1, 1, figsize=(10, 6), gridspec_kw={"hspace": 0.1, "wspace": 0.1}
+            1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.1, "wspace": 0.1}
         )
         axs.hist(
             nuel_beam_cc_events[cat1],
@@ -638,7 +655,7 @@ def plot_combined_values(events, type, prefix, save_path):
         axs.set_ylim(10e-3, 10e3)
         # axs.set_ylim(0, 500)
         axs.set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=24)
-        axs.set_ylabel(r"Events/$6\times10^{20}$ POT/kt", fontsize=24)
+        axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=24)
         axs.set_yscale("log")
         nuel = Line2D(
             [0],
@@ -784,7 +801,7 @@ def plot_eff_curves(events, cat, save_path):
     if cat == 0:
         axs.legend(handles=[signal, pur, fom], loc="center left")
     elif cat == 1:
-        axs.legend(handles=[signal, pur, fom], loc="lower left")
+        axs.legend(handles=[signal, pur, fom], loc="upper right")
     axs.grid()
     save(save_path)
 

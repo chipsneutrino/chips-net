@@ -1,13 +1,11 @@
 exp:
     output_dir: "./data/models/analysis/"
-
 data:
     seperate_channels: True
     img_size: [64, 64]
     augment: False
     exp:
         output_dir: "./data/models/analysis/"
-    
     data:
         seperate_channels: True
         img_size: [64, 64]
@@ -23,7 +21,50 @@ model:
     learn_weights: False
     precision_policy: "mixed_float16"
     summarise: False
-
+eval:
+    examples: 64000
+    cuts:
+        cosmic: 0.0005      # Cosmic classifier cut
+        q:      250.0       # r_total_digi_q cut
+        h:      250.0       # r_first_ring_height cut
+        theta:  0.7         # r_dirTheta cut
+        phi:    0.35        # r_dirPhi cut
+    weights:  # for the chips_1200 detector
+        osc_file_name: "./data/input/oscillations/matter_osc_cp_zero.root"
+        nuel:   0.00003202064566
+        anuel:  0.00000208200747
+        numu:   0.00276174709613
+        anumu:  0.00006042213136
+        cosmic: 0.99714372811940
+        total:  1214165.85244438
+        # chips_1000 detector
+        #nuel:   0.00002974799103
+        #anuel:  0.00000193423768
+        #numu:   0.00256573301963
+        #anumu:  0.00005613369079
+        #cosmic: 0.99734645106085
+        #total:  1089103.64395438
+        # chips_800 detector
+        #nuel:   0.00002676062972
+        #anuel:  0.00000173999711
+        #numu:   0.00230807624024
+        #anumu:  0.00005049661715
+        #cosmic: 0.99761292651578
+        #total:  968546.578321513
+        # chips_600 detector
+        #nuel:   0.00002250846505
+        #anuel:  0.00000146351803
+        #numu:   0.00194133149815
+        #anumu:  0.00004247289223
+        #cosmic: 0.99799222362654
+        #total:  863638.956297674
+        # chips_400 detector
+        #nuel:   0.00001704846385
+        #anuel:  0.00000110850448
+        #numu:   0.00147041212187
+        #anumu:  0.00003217001097
+        #cosmic: 0.99847926089884
+        #total:  760154.010964974
 samples:
     # Different input representations
     v_c_flux:
@@ -669,47 +710,3 @@ models:
         seperate_channels: False
         reco_pars: False
         precision_policy: "float32"
-eval:
-    examples: 256000
-    cuts:
-        cosmic: 0.0005      # Cosmic classifier cut
-        q:      250.0       # r_total_digi_q cut
-        h:      250.0       # r_first_ring_height cut
-        theta:  0.7         # r_dirTheta cut
-        phi:    0.35        # r_dirPhi cut
-    weights:  # for the chips_1200 detector
-        osc_file_name: "./data/input/oscillations/matter_osc_cp_zero.root"
-        nuel:   0.00003202064566
-        anuel:  0.00000208200747
-        numu:   0.00276174709613
-        anumu:  0.00006042213136
-        cosmic: 0.99714372811940
-        total:  1214165.85244438
-        # chips_1000 detector
-        #nuel:   0.00002974799103
-        #anuel:  0.00000193423768
-        #numu:   0.00256573301963
-        #anumu:  0.00005613369079
-        #cosmic: 0.99734645106085
-        #total:  1089103.64395438
-        # chips_800 detector
-        #nuel:   0.00002676062972
-        #anuel:  0.00000173999711
-        #numu:   0.00230807624024
-        #anumu:  0.00005049661715
-        #cosmic: 0.99761292651578
-        #total:  968546.578321513
-        # chips_600 detector
-        #nuel:   0.00002250846505
-        #anuel:  0.00000146351803
-        #numu:   0.00194133149815
-        #anumu:  0.00004247289223
-        #cosmic: 0.99799222362654
-        #total:  863638.956297674
-        # chips_400 detector
-        #nuel:   0.00001704846385
-        #anuel:  0.00000110850448
-        #numu:   0.00147041212187
-        #anumu:  0.00003217001097
-        #cosmic: 0.99847926089884
-        #total:  760154.010964974

@@ -210,7 +210,7 @@ class Reader:
             cycle_length=tf.data.experimental.AUTOTUNE,
             block_length=1,
             num_parallel_calls=tf.data.experimental.AUTOTUNE,
-            deterministic=False,
+            deterministic=True,
         )
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
         ds = ds.map(self.parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -268,49 +268,53 @@ class Reader:
             ds = ds.batch(batch_size, drop_remainder=True)
         return ds
 
-    def training_df(self, num_events):
+    def training_df(self, num_events, exclude_images=True):
         """Return the training DataFrame.
 
         Args:
             num_events (int): number of events to include
+            exclude_images (bool): don't include the input images
 
         Returns:
             pd.DataFrame: training sample DataFrame
         """
-        return df_from_ds(self.training_ds(num_events, 256))
+        return df_from_ds(self.training_ds(num_events, 256), exclude_images)
 
-    def validation_df(self, num_events):
+    def validation_df(self, num_events, exclude_images=True):
         """Return the validation DataFrame.
 
         Args:
             num_events (int): number of events to include
+            exclude_images (bool): don't include the input images
 
         Returns:
             pd.DataFrame: validation sample DataFrame
         """
-        return df_from_ds(self.validation_ds(num_events, 256))
+        return df_from_ds(self.validation_ds(num_events, 256), exclude_images)
 
-    def testing_df(self, num_events):
+    def testing_df(self, num_events, exclude_images=True):
         """Return the testing DataFrame.
 
         Args:
             num_events (int): number of events to include
+            exclude_images (bool): don't include the input images
 
         Returns:
             pd.DataFrame: testing sample DataFrame
         """
-        return df_from_ds(self.testing_ds(num_events, 256))
+        return df_from_ds(self.testing_ds(num_events, 256), exclude_images)
 
-    def test_val_df(self, num_events):
+    def test_val_df(self, num_events, exclude_images=True):
         """Return the testing + validation DataFrame.
 
         Args:
             num_events (int): number of events to include
+            exclude_images (bool): don't include the input images
 
         Returns:
             pd.DataFrame: testing +validation sample DataFrame
         """
-        return df_from_ds(self.test_val_ds(num_events, 256))
+        return df_from_ds(self.test_val_ds(num_events, 256), exclude_images)
 
 
 class Creator:
@@ -607,19 +611,22 @@ NP_THRESHOLD = 20 * Particle.from_pdgid(11).mass
 GAMMA_THRESHOLD = 20 * Particle.from_pdgid(11).mass
 
 
-def df_from_ds(ds):
+def df_from_ds(ds, exclude_images=True):
     """Create a pandas dataframe from a tf dataset.
 
     Args:
         ds (tf.dataset): input dataset
-        num_events (int): number of events to include
+        exclude_images (bool): don't include the input images
 
     Returns:
         pd.DataFrame: dataFrame generated from the dataset
     """
+    images = ["image_0", "image_1", "image_2"]
     events = {}
     for x, y in ds:
         for name, array in list(x.items()):  # Fill events dict with 'inputs'
+            if exclude_images and name in images:
+                continue
             if name in events.keys():
                 events[name].extend(array.numpy())
             else:
@@ -1102,12 +1109,12 @@ MAP_NC_COMB_CAT = {
         r"$\nu_{e}$ CC-Coh",  # 3
         r"$\nu_{e}$ CC-MEC",  # 4
         r"$\nu_{e}$ CC-Other",  # 5
-        r"$\nu_{mu}$ CC-QE",  # 6
-        r"$\nu_{mu}$ CC-Res",  # 7
-        r"$\nu_{mu}$ CC-DIS",  # 8
-        r"$\nu_{mu}$ CC-Coh",  # 9
-        r"$\nu_{mu}$ CC-MEC",  # 10
-        r"$\nu_{mu}$ CC-Other",  # 11
+        r"$\nu_{\mu}$ CC-QE",  # 6
+        r"$\nu_{\mu}$ CC-Res",  # 7
+        r"$\nu_{\mu}$ CC-DIS",  # 8
+        r"$\nu_{\mu}$ CC-Coh",  # 9
+        r"$\nu_{\mu}$ CC-MEC",  # 10
+        r"$\nu_{\mu}$ CC-Other",  # 11
         "NC",  # 12
         "Cosmic",  # 13
     ],
