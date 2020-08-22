@@ -203,6 +203,7 @@ def evaluate(
             h_cut=config.eval.cuts.h,
             theta_cut=config.eval.cuts.theta,
             phi_cut=config.eval.cuts.phi,
+            escapes_cut=config.eval.cuts.escapes,
             verbose=True,
         )
 
@@ -784,6 +785,7 @@ def apply_standard_cuts(
     h_cut=600.0,
     theta_cut=0.65,
     phi_cut=0.25,
+    escapes_cut=0.5,
     verbose=False,
 ):
     """Calculate and apply the standard cuts to the events dataframe.
@@ -791,22 +793,29 @@ def apply_standard_cuts(
     Args:
         events (pd.DataFrame): events dataframe to append weights to
         cosmic_cut (float): cosmic classifier output cut
-        q_cut (float): total collected event chargr cut
+        q_cut (float): total collected event charge cut
         h_cut (float): hough peak height cut
         theta_cut (float): reco theta direction cut
         phi_cut (float): reco phi direction cut
+        escapes_cut(float): escapes classification output cut
         verbose (bool): should we print the cut summary?
 
     Returns:
         pd.DataFrame: events with cuts applied
     """
     cosmic_cuts = np.zeros(len(events), dtype=bool)
+    escapes_cuts = np.zeros(len(events), dtype=bool)
     for column in events.columns:
         if "pred_t_cosmic_cat" in column:
             cosmic_cut_func = cut_apply(column, cosmic_cut, cut_type="greater")
             cosmic_cuts = events.apply(cosmic_cut_func, axis=1)
             events["cosmic_cut"] = cosmic_cuts
             print(events[events["t_cosmic_cat"] == 1][column].describe())
+        if "pred_t_escapes" in column:
+            escapes_cut_func = cut_apply(column, escapes_cut, cut_type="greater")
+            escapes_cuts = events.apply(escapes_cut_func, axis=1)
+            events["escapes_cut"] = escapes_cuts
+            print(events[events["t_escapes"] == 1][column].describe())
 
     q_cut_func = cut_apply("r_total_digi_q", q_cut, cut_type="lower")
     q_cuts = events.apply(q_cut_func, axis=1)
@@ -835,6 +844,7 @@ def apply_standard_cuts(
             theta_high_cuts,
             phi_low_cuts,
             phi_high_cuts,
+            escapes_cuts
         )
     )
 
