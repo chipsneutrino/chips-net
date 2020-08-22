@@ -844,7 +844,7 @@ def apply_standard_cuts(
             theta_high_cuts,
             phi_low_cuts,
             phi_high_cuts,
-            escapes_cuts
+            escapes_cuts,
         )
     )
 
