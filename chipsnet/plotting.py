@@ -174,7 +174,7 @@ def plot_8bit_range(
     for event in images_dict["r_charge_map_vtx"]:
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
-    occurrences = np.count_nonzero(hist_data == 255) / len(hist_data)
+    occurrences_0 = np.count_nonzero(hist_data == 255) / len(hist_data)
     axs.hist(
         hist_data,
         range=(1, 256),
@@ -188,7 +188,7 @@ def plot_8bit_range(
     for event in images_dict["r_time_map_vtx"]:
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
-    occurrences = np.count_nonzero(hist_data == 255) / len(hist_data)
+    occurrences_1 = np.count_nonzero(hist_data == 255) / len(hist_data)
     axs.hist(
         hist_data,
         range=(1, 256),
@@ -202,7 +202,7 @@ def plot_8bit_range(
     for event in images_dict["r_hough_map_vtx"]:
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
-    occurrences = np.count_nonzero(hist_data == 255) / len(hist_data)
+    occurrences_2 = np.count_nonzero(hist_data == 255) / len(hist_data)
     axs.hist(
         hist_data,
         range=(1, 256),
@@ -212,9 +212,9 @@ def plot_8bit_range(
         linewidth=2,
         density=True,
     )
-    print("[0,{}], outside range: {:.4f}".format(max_charge, occurrences))
-    print("[0,{}], outside range: {:.4f}".format(max_time, occurrences))
-    print("[0,{}], outside range: {:.4f}".format(max_hough, occurrences))
+    print("[0,{}], outside range: {:.4f}".format(max_charge, occurrences_0))
+    print("[0,{}], outside range: {:.4f}".format(max_time, occurrences_1))
+    print("[0,{}], outside range: {:.4f}".format(max_hough, occurrences_2))
 
     axs.set(xlabel=r"8-bit value", ylabel=r"Frequency (arb.)")
     axs.set_xlim(0, 260)
@@ -601,9 +601,9 @@ def plot_combined_values(events, type, prefix, save_path):
         nc = Line2D(
             [0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC"
         )
-        cosmic = Line2D(
-            [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
-        )
+        # cosmic = Line2D(
+        #    [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
+        # )
         axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center")
 
     if type == 1:
@@ -687,14 +687,14 @@ def plot_combined_values(events, type, prefix, save_path):
         nc = Line2D(
             [0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC"
         )
-        cosmic = Line2D(
-            [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
-        )
+        # cosmic = Line2D(
+        #    [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
+        # )
         axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center")
 
     save(save_path)
-    
-    
+
+
 def plot_cosmic_values(events, prefix, save_path):
     """Plot the output cosmic rejection values from the network.
 
@@ -797,17 +797,15 @@ def plot_cosmic_values(events, prefix, save_path):
         linestyle="solid",
         label=r"Survived CC $\nu_{\mu}$",
     )
-    nc = Line2D(
-        [0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC"
-    )
+    nc = Line2D([0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC")
     cosmic = Line2D(
         [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
     )
     axs.legend(handles=[cosmic, osc_nuel, numu, nuel, nc], loc="upper center")
 
     save(save_path)
-    
-    
+
+
 def plot_escapes_values(events, prefix, save_path):
     """Plot the output escapes values from the network.
 
@@ -831,9 +829,21 @@ def plot_escapes_values(events, prefix, save_path):
         & (events["simple_cut"] == 0)
         & (events["cosmic_cut"] == 0)
     ]
-    numu_cc_events = events[(events["t_comb_cat"] == 1) & (events["simple_cut"] == 0) & (events["cosmic_cut"] == 0)]
-    nc_events = events[(events["t_comb_cat"] == 2) & (events["simple_cut"] == 0) & (events["cosmic_cut"] == 0)]
-    cosmic_events = events[(events["t_comb_cat"] == 3) & (events["simple_cut"] == 0) & (events["cosmic_cut"] == 0)]
+    numu_cc_events = events[
+        (events["t_comb_cat"] == 1)
+        & (events["simple_cut"] == 0)
+        & (events["cosmic_cut"] == 0)
+    ]
+    nc_events = events[
+        (events["t_comb_cat"] == 2)
+        & (events["simple_cut"] == 0)
+        & (events["cosmic_cut"] == 0)
+    ]
+    cosmic_events = events[
+        (events["t_comb_cat"] == 3)
+        & (events["simple_cut"] == 0)
+        & (events["cosmic_cut"] == 0)
+    ]
 
     fig, axs = plt.subplots(
         1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.1, "wspace": 0.1}
@@ -912,12 +922,10 @@ def plot_escapes_values(events, prefix, save_path):
         linestyle="solid",
         label=r"Survived CC $\nu_{\mu}$",
     )
-    nc = Line2D(
-        [0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC"
-    )
-    cosmic = Line2D(
-        [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
-    )
+    nc = Line2D([0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC")
+    # cosmic = Line2D(
+    #    [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
+    # )
     axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center")
 
     save(save_path)
@@ -1056,7 +1064,7 @@ def plot_comp_curves(events, cat, save_path):
             linestyle=styles[i],
         )
     axs[0].set_xlabel("Background efficiency", fontsize=24)
-    if cat == 0:  
+    if cat == 0:
         axs[0].set_ylabel(r"$\nu_{e}$ CC efficiency", fontsize=24)
     else:
         axs[0].set_ylabel(r"$\nu_{\mu}$ CC efficiency", fontsize=24)
