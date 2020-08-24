@@ -18,7 +18,7 @@ data:
     aug_noise_mean: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value as though noise, mean
     aug_noise_sigma: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value as though noise, sigma
 model: 
-    type: "vgg"  # (vgg, resnet, inception)
+    type: "inception"  # (vgg, inception, resnet, inception_resnet)
     labels: ["t_all_cat"]  # For beam category classifier
     lr: 0.0002  # The initial learning rate
     lr_decay: 0.5  # Learning rate decay coefficient

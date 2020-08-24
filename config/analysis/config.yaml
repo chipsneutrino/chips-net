@@ -22,7 +22,7 @@ model:
     precision_policy: "mixed_float16"
     summarise: False
 eval:
-    examples: 512000
+    examples: 1024000
     cuts:
         cosmic:  0.0005      # Cosmic classifier cut
         q:       250.0       # r_total_digi_q cut
@@ -486,6 +486,28 @@ models:
         labels: ["t_all_cat"]
         channels: [1, 1, 1]
 
+    # Different model architectures
+    arch_vgg:
+        path: "repr/repr_v_cth" 
+        type: "vgg"
+        labels: ["t_all_cat"]
+        channels: [1, 1, 1]
+    arch_inception:
+        path: "arch/arch_inception" 
+        type: "vgg"
+        labels: ["t_all_cat"]
+        channels: [1, 1, 1]
+    arch_resnet:
+        path: "arch/arch_resnet" 
+        type: "vgg"
+        labels: ["t_all_cat"]
+        channels: [1, 1, 1]
+    arch_inception_resnet:
+        path: "arch/arch_inception_resnet" 
+        type: "vgg"
+        labels: ["t_all_cat"]
+        channels: [1, 1, 1]
+
     # Different categorisation models
     cat_t_all_cat:
         path: "repr/repr_v_cth" 
@@ -532,7 +554,7 @@ models:
 
     # Beam classification models
     beam:
-        path: "cat/cat_split" 
+        path: "cat/cat_split_learn" 
         type: "vgg"
         labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat"]
         channels: [1, 1, 1]  
@@ -545,11 +567,6 @@ models:
         path: "beam/beam_primaries_learn" 
         type: "vgg"
         labels: ["t_comb_cat", "t_cc_cat", "t_nc_cat", "t_el_count", "t_mu_count", "t_p_count", "t_cp_count", "t_np_count", "t_g_count"]
-        channels: [1, 1, 1] 
-    beam_primaries_test:
-        path: "beam/beam_primaries_test" 
-        type: "vgg"
-        labels: ["t_all_cat", "t_el_count", "t_mu_count", "t_p_count", "t_cp_count", "t_np_count", "t_g_count"]
         channels: [1, 1, 1] 
         
     # Energy models

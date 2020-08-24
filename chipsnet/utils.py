@@ -196,7 +196,7 @@ def evaluate(
         )
 
         # Apply the standard cuts
-        ev = apply_standard_cuts(
+        ev = apply_cuts(
             ev,
             cosmic_cut=config.eval.cuts.cosmic,
             q_cut=config.eval.cuts.q,
@@ -778,7 +778,7 @@ def apply_weights(
     return events
 
 
-def apply_standard_cuts(
+def apply_cuts(
     events,
     cosmic_cut=0.001,
     q_cut=600.0,
@@ -834,6 +834,17 @@ def apply_standard_cuts(
 
     phi_high_cut_func = cut_apply("r_dir_phi", phi_cut, cut_type="greater")
     phi_high_cuts = events.apply(phi_high_cut_func, axis=1)
+    
+    events["simple_cut"] = np.logical_or.reduce(
+        (
+            q_cuts,
+            h_cuts,
+            theta_low_cuts,
+            theta_high_cuts,
+            phi_low_cuts,
+            phi_high_cuts,
+        )
+    )
 
     events["cut"] = np.logical_or.reduce(
         (

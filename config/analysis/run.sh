@@ -1,10 +1,10 @@
 #! /bin/bash
 
-# Which training sample is best analysis (sample)
+# Which training sample is best analysis? (sample)
 #python chipsnet/run.py config/analysis/sample/sample_both.yaml
 #python chipsnet/run.py config/analysis/sample/sample_uniform.yaml
 
-# Which representation and channels are best analysis (repr)
+# Which representation and channels are best analysis? (repr)
 #python chipsnet/run.py config/analysis/repr/repr_v_c.yaml
 #python chipsnet/run.py config/analysis/repr/repr_v_ct.yaml
 #python chipsnet/run.py config/analysis/repr/repr_o_ct.yaml
@@ -12,7 +12,12 @@
 #python chipsnet/run.py config/analysis/repr/repr_v_cth.yaml
 #python chipsnet/run.py config/analysis/repr/repr_v_cth_stacked.yaml
 
-# Which categorisation is best analysis (cat)
+# Which network architecture works best? (arch)
+python chipsnet/run.py config/analysis/arch/arch_inception.yaml
+python chipsnet/run.py config/analysis/arch/arch_resnet.yaml
+python chipsnet/run.py config/analysis/arch/arch_inception_resnet.yaml
+
+# Which categorisation is best analysis? (cat)
 #python chipsnet/run.py config/analysis/cat/cat_t_nc_comb_cat.yaml
 #python chipsnet/run.py config/analysis/cat/cat_t_comb_cat.yaml
 #python chipsnet/run.py config/analysis/cat/cat_split.yaml

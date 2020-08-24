@@ -507,7 +507,6 @@ def plot_combined_values(events, type, prefix, save_path):
     hist_range = (0, 1)
     cat0 = prefix + "pred_t_comb_cat_0"
     cat1 = prefix + "pred_t_comb_cat_1"
-    # cat2 = prefix + "pred_t_comb_cat_2"
     nuel_beam_cc_events = events[
         (events["t_comb_cat"] == 0)
         & (events["t_sample_type"] == 0)
@@ -602,9 +601,9 @@ def plot_combined_values(events, type, prefix, save_path):
         nc = Line2D(
             [0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC"
         )
-        # cosmic = Line2D(
-        #    [0], [0], color="tab:orange", linewidth=1, linestyle="solid", label=r"cosmic"
-        # )
+        cosmic = Line2D(
+            [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
+        )
         axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center")
 
     if type == 1:
@@ -688,10 +687,238 @@ def plot_combined_values(events, type, prefix, save_path):
         nc = Line2D(
             [0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC"
         )
-        # cosmic = Line2D(
-        #    [0], [0], color="tab:orange", linewidth=1, linestyle="solid", label=r"cosmic"
-        # )
+        cosmic = Line2D(
+            [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
+        )
         axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center")
+
+    save(save_path)
+    
+    
+def plot_cosmic_values(events, prefix, save_path):
+    """Plot the output cosmic rejection values from the network.
+
+    Args:
+        events (pd.DataFrame): events dataframe
+        prefix (str): prefix to choose correct model output
+        save_path (str): path to save plot to
+    """
+    bins = 25
+    hist_range = (0, 1)
+    key = prefix + "_pred_t_cosmic_cat"
+    nuel_beam_cc_events = events[
+        (events["t_comb_cat"] == 0)
+        & (events["t_sample_type"] == 0)
+        & (events["simple_cut"] == 0)
+    ]
+    nuel_osc_cc_events = events[
+        (events["t_comb_cat"] == 0)
+        & (events["t_sample_type"] == 1)
+        & (events["simple_cut"] == 0)
+    ]
+    numu_cc_events = events[(events["t_comb_cat"] == 1) & (events["simple_cut"] == 0)]
+    nc_events = events[(events["t_comb_cat"] == 2) & (events["simple_cut"] == 0)]
+    cosmic_events = events[(events["t_comb_cat"] == 3) & (events["simple_cut"] == 0)]
+
+    fig, axs = plt.subplots(
+        1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.1, "wspace": 0.1}
+    )
+    plt.setp(axs, xticks=[0, 0.2, 0.4, 0.6, 0.8, 1])
+    axs.hist(
+        nuel_beam_cc_events[key],
+        weights=nuel_beam_cc_events["w"],
+        range=hist_range,
+        bins=bins,
+        color="tab:olive",
+        histtype="step",
+        linewidth=2,
+    )
+    axs.hist(
+        nuel_osc_cc_events[key],
+        weights=nuel_osc_cc_events["w"],
+        range=hist_range,
+        bins=bins,
+        color="tab:green",
+        histtype="step",
+        linewidth=2,
+    )
+    axs.hist(
+        numu_cc_events[key],
+        weights=numu_cc_events["w"],
+        range=hist_range,
+        bins=bins,
+        color="tab:blue",
+        histtype="step",
+        linewidth=2,
+    )
+    axs.hist(
+        nc_events[key],
+        weights=nc_events["w"],
+        range=hist_range,
+        bins=bins,
+        color="tab:red",
+        histtype="step",
+        linewidth=2,
+    )
+    axs.hist(
+        cosmic_events[key],
+        weights=cosmic_events["w"],
+        range=hist_range,
+        bins=bins,
+        color="black",
+        histtype="step",
+        linewidth=2,
+    )
+    axs.set_ylim(10e-4, 10e5)
+    axs.set_yscale("log")
+    axs.set_xlabel(r"Cosmic score", fontsize=24)
+    axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=24)
+    nuel = Line2D(
+        [0],
+        [0],
+        color="tab:olive",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Beam CC $\nu_{e}$",
+    )
+    osc_nuel = Line2D(
+        [0],
+        [0],
+        color="tab:green",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Appeared CC $\nu_{e}$",
+    )
+    numu = Line2D(
+        [0],
+        [0],
+        color="tab:blue",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Survived CC $\nu_{\mu}$",
+    )
+    nc = Line2D(
+        [0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC"
+    )
+    cosmic = Line2D(
+        [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
+    )
+    axs.legend(handles=[cosmic, osc_nuel, numu, nuel, nc], loc="upper center")
+
+    save(save_path)
+    
+    
+def plot_escapes_values(events, prefix, save_path):
+    """Plot the output escapes values from the network.
+
+    Args:
+        events (pd.DataFrame): events dataframe
+        prefix (str): prefix to choose correct model output
+        save_path (str): path to save plot to
+    """
+    bins = 50
+    hist_range = (0, 1)
+    key = prefix + "_pred_t_escapes"
+    nuel_beam_cc_events = events[
+        (events["t_comb_cat"] == 0)
+        & (events["t_sample_type"] == 0)
+        & (events["simple_cut"] == 0)
+        & (events["cosmic_cut"] == 0)
+    ]
+    nuel_osc_cc_events = events[
+        (events["t_comb_cat"] == 0)
+        & (events["t_sample_type"] == 1)
+        & (events["simple_cut"] == 0)
+        & (events["cosmic_cut"] == 0)
+    ]
+    numu_cc_events = events[(events["t_comb_cat"] == 1) & (events["simple_cut"] == 0) & (events["cosmic_cut"] == 0)]
+    nc_events = events[(events["t_comb_cat"] == 2) & (events["simple_cut"] == 0) & (events["cosmic_cut"] == 0)]
+    cosmic_events = events[(events["t_comb_cat"] == 3) & (events["simple_cut"] == 0) & (events["cosmic_cut"] == 0)]
+
+    fig, axs = plt.subplots(
+        1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.1, "wspace": 0.1}
+    )
+    plt.setp(axs, xticks=[0, 0.2, 0.4, 0.6, 0.8, 1])
+    axs.hist(
+        nuel_beam_cc_events[key],
+        weights=nuel_beam_cc_events["w"],
+        range=hist_range,
+        bins=bins,
+        color="tab:olive",
+        histtype="step",
+        linewidth=2,
+    )
+    axs.hist(
+        nuel_osc_cc_events[key],
+        weights=nuel_osc_cc_events["w"],
+        range=hist_range,
+        bins=bins,
+        color="tab:green",
+        histtype="step",
+        linewidth=2,
+    )
+    axs.hist(
+        numu_cc_events[key],
+        weights=numu_cc_events["w"],
+        range=hist_range,
+        bins=bins,
+        color="tab:blue",
+        histtype="step",
+        linewidth=2,
+    )
+    axs.hist(
+        nc_events[key],
+        weights=nc_events["w"],
+        range=hist_range,
+        bins=bins,
+        color="tab:red",
+        histtype="step",
+        linewidth=2,
+    )
+    axs.hist(
+        cosmic_events[key],
+        weights=cosmic_events["w"],
+        range=hist_range,
+        bins=bins,
+        color="black",
+        histtype="step",
+        linewidth=2,
+    )
+    axs.set_ylim(10e-3, 10e2)
+    axs.set_yscale("log")
+    axs.set_xlabel(r"Escapes score", fontsize=24)
+    axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=24)
+    nuel = Line2D(
+        [0],
+        [0],
+        color="tab:olive",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Beam CC $\nu_{e}$",
+    )
+    osc_nuel = Line2D(
+        [0],
+        [0],
+        color="tab:green",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Appeared CC $\nu_{e}$",
+    )
+    numu = Line2D(
+        [0],
+        [0],
+        color="tab:blue",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Survived CC $\nu_{\mu}$",
+    )
+    nc = Line2D(
+        [0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC"
+    )
+    cosmic = Line2D(
+        [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
+    )
+    axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center")
 
     save(save_path)
 
@@ -829,16 +1056,14 @@ def plot_comp_curves(events, cat, save_path):
             linestyle=styles[i],
         )
     axs[0].set_xlabel("Background efficiency", fontsize=24)
-    axs[0].set_ylabel("Signal efficiency", fontsize=24)
+    if cat == 0:  
+        axs[0].set_ylabel(r"$\nu_{e}$ CC efficiency", fontsize=24)
+    else:
+        axs[0].set_ylabel(r"$\nu_{\mu}$ CC efficiency", fontsize=24)
     # axs[0].set_ylim(0.6, 1)
     # axs[0].set_xlim(0, 0.25)
     axs[0].legend()
     axs[0].grid()
-    # roc = Line2D(
-    #    [0], [0], color="tab:cyan", linewidth=2, linestyle="solid", label=r"ROC curve",
-    # )
-    # axs[0].legend(handles=[roc], loc="center left")
-
     for i in range(len(events)):
         axs[1].plot(
             events[i]["sig_effs"][cat],
@@ -846,17 +1071,16 @@ def plot_comp_curves(events, cat, save_path):
             color="tab:pink",
             linestyle=styles[i],
         )
-    axs[1].set_xlabel("Signal efficiency", fontsize=24)
-    axs[1].set_ylabel("Signal Purity", fontsize=24)
+    if cat == 0:
+        axs[1].set_xlabel(r"$\nu_{e}$ CC efficiency", fontsize=24)
+        axs[1].set_ylabel(r"$\nu_{e}$ CC Purity", fontsize=24)
+    else:
+        axs[1].set_xlabel(r"$\nu_{\mu}$ CC efficiency", fontsize=24)
+        axs[1].set_ylabel(r"$\nu_{\mu}$ CC Purity", fontsize=24)
     # axs[1].set_ylim(0, 1)
     # axs[1].set_xlim(0, 1)
     axs[1].legend()
     axs[1].grid()
-    # prc = Line2D(
-    #    [0], [0], color="tab:pink", linewidth=2, linestyle="solid", label=r"PR curve",
-    # )
-    # axs[1].legend(handles=[prc], loc="center left")
-
     save(save_path)
 
 
@@ -962,6 +1186,7 @@ def plot_nuel_hists(events, ev, save_path):
         label=r"Appeared CC $\nu_{e}$ purity",
     )
     axs.legend(handles=[osc_nuel, numu, nuel, nc, purity], loc="center right")
+    save(save_path)
 
 
 def plot_numu_hists(events, ev, save_path):
@@ -1066,6 +1291,7 @@ def plot_numu_hists(events, ev, save_path):
         label=r"Survived CC $\nu_{\mu}$ purity",
     )
     axs.legend(handles=[osc_nuel, numu, nuel, nc, purity], loc="center right")
+    save(save_path)
 
 
 def plot_history(

@@ -128,9 +128,11 @@ class Model:
         mixed_precision.set_policy(policy)
         if self.config.model.type == "vgg":
             self.model = vgg_model(self.config)
+        elif self.config.model.type == "inception":
+            self.model = inception_model(self.config)
         elif self.config.model.type == "resnet":
             self.model = resnet_model(self.config)
-        elif self.config.model.type == "inception":
+        elif self.config.model.type == "inception_resnet":
             self.model = inception_resnet_model(self.config)
         else:
             raise NotImplementedError
@@ -530,6 +532,321 @@ def vgg_model(config):
     return model
 
 
+def inception_model(config):
+    """Build the inception-v3 model.
+
+    Mainly taken from...
+    https://github.com/keras-team/keras-applications/blob/master/keras_applications/inception_v3.py
+
+    Args:
+        config (dotmap.DotMap): configuration namespace
+
+    Returns:
+        tf.keras.Model: Inception keras model
+    """
+    # 25,254,048 -> 16,893,216 (192ms)
+    filter_r = 1.0  # 1.0
+    duplicate_num = 1  # 2
+
+    # Get the image inputs
+    inputs = []
+    inputs.extend(get_image_inputs(config))
+
+    # Build the core of the model
+    paths = []
+    for i, image_input in enumerate(inputs):
+        path = vgg_block(
+            image_input,
+            2,
+            config.model.filters,
+            config.model.se_ratio,
+            config.model.dropout,
+            prefix="stem_path" + str(i),
+        )
+        # mixed 0: 35 x 35 x 256
+        branch1x1 = conv2d_bn(path, 64 * filter_r, 1)
+        branch5x5 = conv2d_bn(path, 48 * filter_r, 1)
+        branch5x5 = conv2d_bn(branch5x5, 64 * filter_r, 5)
+        branch3x3dbl = conv2d_bn(path, 64 * filter_r, 1)
+        branch3x3dbl = conv2d_bn(branch3x3dbl, 96 * filter_r, 3)
+        branch3x3dbl = conv2d_bn(branch3x3dbl, 96 * filter_r, 3)
+        branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding="same")(path)
+        branch_pool = conv2d_bn(branch_pool, 32 * filter_r, 1)
+        path = concatenate(
+            [branch1x1, branch5x5, branch3x3dbl, branch_pool],
+            axis=3,
+            name="mixed0_path" + str(i),
+        )
+        path = (
+            squeeze_excite_block(
+                path, config.model.se_ratio, prefix="mixed0_path" + str(i)
+            )
+            if config.model.se_ratio > 0
+            else path
+        )
+        path = (
+            SpatialDropout2D(
+                config.model.dropout, name="mixed0_path" + str(i) + "_drop"
+            )(path)
+            if config.model.dropout > 0.0
+            else path
+        )
+        paths.append(path)
+
+    x = paths[0]
+    if len(paths) > 1:
+        x = concatenate(paths)
+
+    # mixed 1: 35 x 35 x 288
+    branch1x1 = conv2d_bn(x, 64 * filter_r, 1)
+    branch5x5 = conv2d_bn(x, 48 * filter_r, 1)
+    branch5x5 = conv2d_bn(branch5x5, 64 * filter_r, 5)
+    branch3x3dbl = conv2d_bn(x, 64 * filter_r, 1)
+    branch3x3dbl = conv2d_bn(branch3x3dbl, 96 * filter_r, 3)
+    branch3x3dbl = conv2d_bn(branch3x3dbl, 96 * filter_r, 3)
+    branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding="same")(x)
+    branch_pool = conv2d_bn(branch_pool, 64 * filter_r, 1)
+    x = concatenate(
+        [branch1x1, branch5x5, branch3x3dbl, branch_pool], axis=3, name="mixed1",
+    )
+    x = (
+        squeeze_excite_block(x, config.model.se_ratio, prefix="mixed1")
+        if config.model.se_ratio > 0
+        else x
+    )
+    x = (
+        SpatialDropout2D(config.model.dropout, name="mixed1" + "_drop")(x)
+        if config.model.dropout > 0.0
+        else x
+    )
+
+    # mixed 2: 35 x 35 x 288
+    branch1x1 = conv2d_bn(x, 64 * filter_r, 1)
+    branch5x5 = conv2d_bn(x, 48 * filter_r, 1)
+    branch5x5 = conv2d_bn(branch5x5, 64 * filter_r, 5)
+    branch3x3dbl = conv2d_bn(x, 64 * filter_r, 1)
+    branch3x3dbl = conv2d_bn(branch3x3dbl, 96 * filter_r, 3)
+    branch3x3dbl = conv2d_bn(branch3x3dbl, 96 * filter_r, 3)
+    branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding="same")(x)
+    branch_pool = conv2d_bn(branch_pool, 64 * filter_r, 1)
+    x = concatenate(
+        [branch1x1, branch5x5, branch3x3dbl, branch_pool], axis=3, name="mixed2",
+    )
+    x = (
+        squeeze_excite_block(x, config.model.se_ratio, prefix="mixed2")
+        if config.model.se_ratio > 0
+        else x
+    )
+    x = (
+        SpatialDropout2D(config.model.dropout, name="mixed2" + "_drop")(x)
+        if config.model.dropout > 0.0
+        else x
+    )
+
+    # mixed 3: 17 x 17 x 768
+    branch3x3 = conv2d_bn(x, 384 * filter_r, 3, strides=(2, 2), padding="valid")
+    branch3x3dbl = conv2d_bn(x, 64 * filter_r, 1)
+    branch3x3dbl = conv2d_bn(branch3x3dbl, 96 * filter_r, 3)
+    branch3x3dbl = conv2d_bn(
+        branch3x3dbl, 96 * filter_r, 3, strides=(2, 2), padding="valid"
+    )
+    branch_pool = MaxPooling2D((3, 3), strides=(2, 2))(x)
+    x = concatenate([branch3x3, branch3x3dbl, branch_pool], axis=3, name="mixed3")
+    x = (
+        squeeze_excite_block(x, config.model.se_ratio, prefix="mixed3")
+        if config.model.se_ratio > 0
+        else x
+    )
+    x = (
+        SpatialDropout2D(config.model.dropout, name="mixed3" + "_drop")(x)
+        if config.model.dropout > 0.0
+        else x
+    )
+
+    # mixed 4: 17 x 17 x 768
+    branch1x1 = conv2d_bn(x, 192 * filter_r, 1)
+    branch7x7 = conv2d_bn(x, 128 * filter_r, 1)
+    branch7x7 = conv2d_bn(branch7x7, 128 * filter_r, (1, 7))
+    branch7x7 = conv2d_bn(branch7x7, 192 * filter_r, (7, 1))
+    branch7x7dbl = conv2d_bn(x, 128 * filter_r, 1)
+    branch7x7dbl = conv2d_bn(branch7x7dbl, 128 * filter_r, (7, 1))
+    branch7x7dbl = conv2d_bn(branch7x7dbl, 128 * filter_r, (1, 7))
+    branch7x7dbl = conv2d_bn(branch7x7dbl, 128 * filter_r, (7, 1))
+    branch7x7dbl = conv2d_bn(branch7x7dbl, 192 * filter_r, (1, 7))
+    branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding="same")(x)
+    branch_pool = conv2d_bn(branch_pool, 192 * filter_r, 1)
+    x = concatenate(
+        [branch1x1, branch7x7, branch7x7dbl, branch_pool], axis=3, name="mixed4",
+    )
+    x = (
+        squeeze_excite_block(x, config.model.se_ratio, prefix="mixed4")
+        if config.model.se_ratio > 0
+        else x
+    )
+    x = (
+        SpatialDropout2D(config.model.dropout, name="mixed4" + "_drop")(x)
+        if config.model.dropout > 0.0
+        else x
+    )
+
+    # mixed 5, 6: 17 x 17 x 768
+    for i in range(duplicate_num):
+        branch1x1 = conv2d_bn(x, 192 * filter_r, 1)
+        branch7x7 = conv2d_bn(x, 160 * filter_r, 1)
+        branch7x7 = conv2d_bn(branch7x7, 160 * filter_r, (1, 7))
+        branch7x7 = conv2d_bn(branch7x7, 192 * filter_r, (7, 1))
+        branch7x7dbl = conv2d_bn(x, 160 * filter_r, 1)
+        branch7x7dbl = conv2d_bn(branch7x7dbl, 160 * filter_r, (7, 1))
+        branch7x7dbl = conv2d_bn(branch7x7dbl, 160 * filter_r, (1, 7))
+        branch7x7dbl = conv2d_bn(branch7x7dbl, 160 * filter_r, (7, 1))
+        branch7x7dbl = conv2d_bn(branch7x7dbl, 192 * filter_r, (1, 7))
+        branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding="same")(x)
+        branch_pool = conv2d_bn(branch_pool, 192 * filter_r, 1)
+        x = concatenate(
+            [branch1x1, branch7x7, branch7x7dbl, branch_pool],
+            axis=3,
+            name="mixed" + str(5 + i),
+        )
+        x = (
+            squeeze_excite_block(x, config.model.se_ratio, prefix="mixed" + str(5 + i))
+            if config.model.se_ratio > 0
+            else x
+        )
+        x = (
+            SpatialDropout2D(config.model.dropout, name="mixed" + str(5 + i) + "_drop")(
+                x
+            )
+            if config.model.dropout > 0.0
+            else x
+        )
+
+    # mixed 7: 17 x 17 x 768
+    branch1x1 = conv2d_bn(x, 192 * filter_r, 1)
+    branch7x7 = conv2d_bn(x, 192 * filter_r, 1)
+    branch7x7 = conv2d_bn(branch7x7, 192 * filter_r, (1, 7))
+    branch7x7 = conv2d_bn(branch7x7, 192 * filter_r, (7, 1))
+    branch7x7dbl = conv2d_bn(x, 192 * filter_r, 1)
+    branch7x7dbl = conv2d_bn(branch7x7dbl, 192 * filter_r, (7, 1))
+    branch7x7dbl = conv2d_bn(branch7x7dbl, 192 * filter_r, (1, 7))
+    branch7x7dbl = conv2d_bn(branch7x7dbl, 192 * filter_r, (7, 1))
+    branch7x7dbl = conv2d_bn(branch7x7dbl, 192 * filter_r, (1, 7))
+    branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding="same")(x)
+    branch_pool = conv2d_bn(branch_pool, 192 * filter_r, 1)
+    x = concatenate(
+        [branch1x1, branch7x7, branch7x7dbl, branch_pool], axis=3, name="mixed7",
+    )
+    x = (
+        squeeze_excite_block(x, config.model.se_ratio, prefix="mixed7")
+        if config.model.se_ratio > 0
+        else x
+    )
+    x = (
+        SpatialDropout2D(config.model.dropout, name="mixed7" + "_drop")(x)
+        if config.model.dropout > 0.0
+        else x
+    )
+
+    # mixed 8: 8 x 8 x 1280
+    branch3x3 = conv2d_bn(x, 192 * filter_r, 1)
+    branch3x3 = conv2d_bn(branch3x3, 320 * filter_r, 3, strides=(2, 2), padding="valid")
+    branch7x7x3 = conv2d_bn(x, 192 * filter_r, 1)
+    branch7x7x3 = conv2d_bn(branch7x7x3, 192 * filter_r, (1, 7))
+    branch7x7x3 = conv2d_bn(branch7x7x3, 192 * filter_r, (7, 1))
+    branch7x7x3 = conv2d_bn(
+        branch7x7x3, 192 * filter_r, 3, strides=(2, 2), padding="valid"
+    )
+    branch_pool = MaxPooling2D((3, 3), strides=(2, 2))(x)
+    x = concatenate([branch3x3, branch7x7x3, branch_pool], axis=3, name="mixed8")
+    x = (
+        squeeze_excite_block(x, config.model.se_ratio, prefix="mixed8")
+        if config.model.se_ratio > 0
+        else x
+    )
+    x = (
+        SpatialDropout2D(config.model.dropout, name="mixed8" + "_drop")(x)
+        if config.model.dropout > 0.0
+        else x
+    )
+
+    # mixed 9: 8 x 8 x 2048
+    for i in range(duplicate_num):
+        branch1x1 = conv2d_bn(x, 320 * filter_r, 1)
+        branch3x3 = conv2d_bn(x, 384 * filter_r, 1)
+        branch3x3_1 = conv2d_bn(branch3x3, 384 * filter_r, (1, 3))
+        branch3x3_2 = conv2d_bn(branch3x3, 384 * filter_r, (3, 1))
+        branch3x3 = concatenate(
+            [branch3x3_1, branch3x3_2], axis=3, name="mixed9_" + str(i)
+        )
+        branch3x3dbl = conv2d_bn(x, 448 * filter_r, 1)
+        branch3x3dbl = conv2d_bn(branch3x3dbl, 384 * filter_r, 3)
+        branch3x3dbl_1 = conv2d_bn(branch3x3dbl, 384 * filter_r, (1, 3))
+        branch3x3dbl_2 = conv2d_bn(branch3x3dbl, 384 * filter_r, (3, 1))
+        branch3x3dbl = concatenate([branch3x3dbl_1, branch3x3dbl_2], axis=3)
+        branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding="same")(x)
+        branch_pool = conv2d_bn(branch_pool, 192 * filter_r, 1)
+        x = concatenate(
+            [branch1x1, branch3x3, branch3x3dbl, branch_pool],
+            axis=3,
+            name="mixed" + str(9 + i),
+        )
+        x = (
+            squeeze_excite_block(x, config.model.se_ratio, prefix="mixed" + str(9 + i))
+            if config.model.se_ratio > 0
+            else x
+        )
+        x = (
+            SpatialDropout2D(config.model.dropout, name="mixed" + str(9 + i) + "_drop")(
+                x
+            )
+            if config.model.dropout > 0.0
+            else x
+        )
+
+    x = GlobalAveragePooling2D(name="avg_pool")(x)
+
+    # Add the reco parameters as inputs if required
+    if config.model.reco_pars:
+        reco_inputs = get_reco_inputs()
+        inputs.extend(reco_inputs)
+        reco_concat = concatenate(reco_inputs)
+        x = concatenate([x, reco_concat])
+
+    x = Dense(
+        config.model.dense_units,
+        activation="relu",
+        kernel_initializer=DENSE_INITIALISER,
+        name="dense1",
+    )(x)
+    x = Dense(
+        config.model.dense_units,
+        activation="relu",
+        kernel_initializer=DENSE_INITIALISER,
+        name="dense_final",
+    )(x)
+    x = Dropout(config.model.dropout, name="dropout_final")(x)
+
+    # Get the model outputs
+    outputs, lwm = get_outputs(config, x)
+
+    # If we want to use the custom loss weight learning layer add now and then
+    # compile and return the model
+    model = None
+    if config.model.learn_weights:
+        label_inputs, outputs = add_multitask_loss(config, outputs)
+        inputs.extend(label_inputs)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name=config.model.name)
+        optimiser = tf.keras.optimizers.Adam(learning_rate=config.model.lr)
+        model.compile(optimizer=optimiser, loss=None, loss_weights=None, metrics=lwm[2])
+    else:
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name=config.model.name)
+        optimiser = tf.keras.optimizers.Adam(learning_rate=config.model.lr)
+        model.compile(
+            optimizer=optimiser, loss=lwm[0], loss_weights=lwm[1], metrics=lwm[2]
+        )
+
+    return model
+
+
 def resnet_model(config):
     """Build the resnet model.
 
@@ -539,12 +856,14 @@ def resnet_model(config):
     Returns:
         tf.keras.Model: Resnet keras model
     """
-    depths = [3, 4, 6, 3]
+    # 22,692,048 (139ms) -> 16,526,288 (112ms)
+    depths = [3, 4, 6, 3]  # [3, 4, 6, 3]
+    filter_r = 1.0  # 1.0
     filters = [
-        config.model.filters,
-        config.model.filters * 2,
-        config.model.filters * 4,
-        config.model.filters * 8,
+        config.model.filters * filter_r,
+        config.model.filters * 2 * filter_r,
+        config.model.filters * 4 * filter_r,
+        config.model.filters * 8 * filter_r,
     ]
 
     # Get the image inputs
@@ -655,9 +974,10 @@ def inception_resnet_model(config):
     Returns:
         tf.keras.Model: Inception-Resnet-v2 keras model
     """
-    blocks = [3, 5, 3]  # [11, 21, 10]
+    # 34,506,720 (274ms) -> 17,145,238 (209ms)
+    blocks = [3, 5, 3]
     scales = [0.17, 0.1, 0.2]
-    filter_r = 0.7
+    filter_r = 0.7  # 1.0
 
     # Get the image inputs
     inputs = []
