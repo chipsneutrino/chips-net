@@ -495,7 +495,7 @@ def plot_cuts(config, events, save_path):
     chipsnet.plotting.save(save_path + "explore_simple_cuts")
 
 
-def plot_combined_values(events, type, prefix, save_path):
+def plot_combined_values(events, type, prefix, save_path, cut=None):
     """Plot the output combined category values from the network.
 
     Args:
@@ -572,6 +572,19 @@ def plot_combined_values(events, type, prefix, save_path):
             linewidth=2,
         )
         axs.set_ylim(0, 15)
+        if cut is not None:
+            axs.plot([cut, cut], [0, 4], "k-", lw=3, color="black")
+            axs.arrow(
+                cut + 0.005,
+                4,
+                0.05,
+                0,
+                color="black",
+                lw=3,
+                length_includes_head=True,
+                head_width=0.5,
+                head_length=0.02,
+            )
         axs.set_xlabel(r"$\nu_{e}$ CC score", fontsize=24)
         axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=24)
         nuel = Line2D(
@@ -656,6 +669,19 @@ def plot_combined_values(events, type, prefix, save_path):
             linewidth=2,
         )
         axs.set_ylim(10e-3, 10e2)
+        if cut is not None:
+            axs.plot([cut, cut], [10e-3, 10e0], "k-", lw=3, color="black")
+            axs.arrow(
+                cut,
+                10e0,
+                0.05,
+                0,
+                color="black",
+                lw=3,
+                length_includes_head=True,
+                head_width=3,
+                head_length=0.02,
+            )
         # axs.set_ylim(0, 500)
         axs.set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=24)
         axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=24)
@@ -695,7 +721,7 @@ def plot_combined_values(events, type, prefix, save_path):
     save(save_path)
 
 
-def plot_cosmic_values(events, prefix, save_path):
+def plot_cosmic_values(events, prefix, save_path, zoom=False):
     """Plot the output cosmic rejection values from the network.
 
     Args:
@@ -703,7 +729,6 @@ def plot_cosmic_values(events, prefix, save_path):
         prefix (str): prefix to choose correct model output
         save_path (str): path to save plot to
     """
-    bins = 25
     hist_range = (0, 1)
     key = prefix + "_pred_t_cosmic_cat"
     nuel_beam_cc_events = events[
@@ -719,11 +744,33 @@ def plot_cosmic_values(events, prefix, save_path):
     numu_cc_events = events[(events["t_comb_cat"] == 1) & (events["simple_cut"] == 0)]
     nc_events = events[(events["t_comb_cat"] == 2) & (events["simple_cut"] == 0)]
     cosmic_events = events[(events["t_comb_cat"] == 3) & (events["simple_cut"] == 0)]
-
     fig, axs = plt.subplots(
         1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.1, "wspace": 0.1}
     )
+
+    bins = 25
+    hist_range = (0, 1)
     plt.setp(axs, xticks=[0, 0.2, 0.4, 0.6, 0.8, 1])
+    axs.set_xlim(hist_range[0], hist_range[1])
+    axs.set_ylim(10e-4, 10e5)
+    if zoom:
+        bins = 50
+        hist_range = (0, 0.001)
+        plt.setp(axs, xticks=[0, 0.0002, 0.0004, 0.0006, 0.0008, 0.001])
+        axs.set_xlim(hist_range[0], hist_range[1])
+        axs.set_ylim(10e-4, 10e2)
+        axs.plot([0.0001, 0.0001], [10e-4, 10e1], "k-", lw=3, color="black")
+        axs.arrow(
+            0.0001,
+            10e1,
+            -0.00005,
+            0,
+            color="black",
+            lw=3,
+            length_includes_head=True,
+            head_width=35,
+            head_length=0.00002,
+        )
     axs.hist(
         nuel_beam_cc_events[key],
         weights=nuel_beam_cc_events["w"],
@@ -769,7 +816,6 @@ def plot_cosmic_values(events, prefix, save_path):
         histtype="step",
         linewidth=2,
     )
-    axs.set_ylim(10e-4, 10e5)
     axs.set_yscale("log")
     axs.set_xlabel(r"Cosmic score", fontsize=24)
     axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=24)
@@ -799,7 +845,7 @@ def plot_cosmic_values(events, prefix, save_path):
     )
     nc = Line2D([0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC")
     cosmic = Line2D(
-        [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
+        [0], [0], color="black", linewidth=2, linestyle="solid", label=r"Cosmic"
     )
     axs.legend(handles=[cosmic, osc_nuel, numu, nuel, nc], loc="upper center")
 
@@ -893,6 +939,18 @@ def plot_escapes_values(events, prefix, save_path):
         color="black",
         histtype="step",
         linewidth=2,
+    )
+    axs.plot([0.5, 0.5], [10e-3, 10e0], "k-", lw=3, color="black")
+    axs.arrow(
+        0.5,
+        10e0,
+        -0.05,
+        0,
+        color="black",
+        lw=3,
+        length_includes_head=True,
+        head_width=3,
+        head_length=0.02,
     )
     axs.set_ylim(10e-3, 10e2)
     axs.set_yscale("log")
