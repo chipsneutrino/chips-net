@@ -81,7 +81,7 @@ class SherpaStudy(object):
 
             history = trainer.train()
             print(history.history[self.config.study.objective])
-            for epoch in range(self.config.trainer.epochs):
+            for epoch in range(len(history.history[self.config.study.objective])):
                 context_dict = {
                     context: history.history[context][epoch]
                     for context in self.config.study.context

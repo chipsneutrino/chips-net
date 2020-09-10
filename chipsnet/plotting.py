@@ -43,12 +43,61 @@ def plot_cats(events, scale, cat_map, save_path):
         edgecolor="black",
     )
     axs.set_xticks(cats)
-    axs.set_xticklabels(cat_map["labels"], fontsize=14, rotation="vertical")
-    axs.set_ylabel("Training events")
+    axs.set_xticklabels(cat_map["labels"], fontsize=24, rotation="vertical")
+    axs.set_ylabel("Training events", fontsize=30)
     axs.set_ylim(10e2, 10e6)
     axs.set_yscale("log")
     save(save_path + "explore_" + cat_map["name"])
 
+
+def plot_event(images_dict, event, save_name):
+    """Plot hit, time and hough channels for an event.
+
+    Args:
+        images_dict (dict): images dictionary
+        event (int): event to use
+        save_path (str): path to save plot to
+    """
+    fig, axs = plt.subplots(1, 3, figsize=(16, 10), gridspec_kw={"wspace": 0.1})
+    plt.setp(axs, xticks=[0, 16, 32, 48, 64], yticks=[0, 16, 32, 48, 64])
+    axs[0].imshow(
+        images_dict["r_charge_map_vtx"][event],
+        cmap="Reds",
+        origin="lower",
+        extent=(0, 64, 0, 64),
+        vmin=0, vmax=255
+    )
+    axs[0].set_title(r"Hit charge")
+    axs[0].set_xlabel(r"$\phi$ bins", fontsize=30)
+    axs[0].set_ylabel(r"$\theta$ bins", fontsize=30)
+    axs[0].label_outer()
+
+    axs[1].imshow(
+        images_dict["r_time_map_vtx"][event],
+        cmap="Reds",
+        origin="lower",
+        extent=(0, 64, 0, 64),
+        vmin=0, vmax=255
+    )
+    axs[1].set_title(r"Hit time")
+    axs[1].set_xlabel(r"$\phi$ bins", fontsize=30)
+    axs[1].set_ylabel(r"$\theta$ bins", fontsize=30)
+    axs[1].label_outer()
+
+    neg = axs[2].imshow(
+        images_dict["r_hough_map_vtx"][event],
+        cmap="Reds",
+        origin="lower",
+        extent=(0, 64, 0, 64),
+        vmin=0, vmax=255
+    )
+    axs[2].set_title(r"Hough value")
+    axs[2].set_xlabel(r"$\phi$ bins", fontsize=30)
+    axs[2].set_ylabel(r"$\theta$ bins", fontsize=30)
+    axs[2].label_outer()
+    fig.colorbar(neg, ax=axs, shrink=0.43, aspect=8, pad=0.025)
+    save(save_name)
+    
 
 def plot_hit_time(images_dict, event, save_name):
     """Plot hit and time channels for the different image representations.
@@ -59,7 +108,7 @@ def plot_hit_time(images_dict, event, save_name):
         save_path (str): path to save plot to
     """
     fig, axs = plt.subplots(
-        2, 3, figsize=(15, 10), gridspec_kw={"hspace": 0.3, "wspace": 0.2}
+        2, 3, figsize=(16, 10), gridspec_kw={"hspace": 0.3, "wspace": 0.2}
     )
     plt.setp(axs, xticks=[0, 16, 32, 48, 64], yticks=[0, 16, 32, 48, 64])
     axs[0, 0].imshow(
@@ -68,8 +117,8 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[0, 0].set_title(r"origin view ($\phi$,$\theta$)")
-    axs[0, 0].set(ylabel=r"$\theta$ bins")
+    axs[0, 0].set_title(r"Origin view ($\phi$,$\theta$)")
+    axs[0, 0].set_ylabel(r"$\theta$ bins", fontsize=30)
 
     axs[0, 1].imshow(
         images_dict["r_charge_map_iso"][event],
@@ -77,8 +126,8 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[0, 1].set_title(r"origin view ($x^{+}$,$x^{-}$)")
-    axs[0, 1].set(ylabel=r"$x^{-}$ bins")
+    axs[0, 1].set_title(r"Origin view ($x^{+}$,$x^{-}$)")
+    axs[0, 1].set_ylabel(r"$x^{-}$ bins", fontsize=30)
 
     axs[0, 2].imshow(
         images_dict["r_charge_map_vtx"][event],
@@ -86,9 +135,9 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[0, 2].set_title(r"vertex view ($\phi$,$\theta$)")
-    axs[0, 2].set(ylabel=r"$\theta$ bins")
-    axs[0, 2].text(68, 10, "Hit charge images", rotation=-90, fontsize=24)
+    axs[0, 2].set_title(r"Vertex view ($\phi$,$\theta$)")
+    axs[0, 2].set_ylabel(r"$\theta$ bins", fontsize=30)
+    axs[0, 2].text(68, 4, "Hit charge images", rotation=-90, fontsize=30)
 
     axs[1, 0].imshow(
         images_dict["r_time_map_origin"][event],
@@ -96,7 +145,8 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[1, 0].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
+    axs[1, 0].set_xlabel(r"$\phi$ bins", fontsize=30)
+    axs[1, 0].set_ylabel(r"$\theta$ bins", fontsize=30)
 
     axs[1, 1].imshow(
         images_dict["r_time_map_iso"][event],
@@ -104,7 +154,8 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[1, 1].set(xlabel=r"$x^{+}$ bins", ylabel=r"$x^{-}$ bins")
+    axs[1, 1].set_xlabel(r"$x^{+}$ bins", fontsize=30)
+    axs[1, 1].set_ylabel(r"$x^{-}$ bins", fontsize=30)
 
     axs[1, 2].imshow(
         images_dict["r_time_map_vtx"][event],
@@ -112,8 +163,9 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[1, 2].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
-    axs[1, 2].text(68, 6, "First hit time images", rotation=-90, fontsize=24)
+    axs[1, 2].set_xlabel(r"$\phi$ bins", fontsize=30)
+    axs[1, 2].set_ylabel(r"$\theta$ bins", fontsize=30)
+    axs[1, 2].text(68, 7, "Hit time images", rotation=-90, fontsize=30)
     save(save_name)
 
 
@@ -125,9 +177,7 @@ def plot_hough(images_dict, events, save_name):
         events (int): events to use
         save_path (str): path to save plot to
     """
-    fig, axs = plt.subplots(
-        1, 3, figsize=(15, 5), gridspec_kw={"hspace": 0.3, "wspace": 0.2}
-    )
+    fig, axs = plt.subplots(1, 3, figsize=(15, 5), gridspec_kw={"wspace": 0.2})
     plt.setp(axs, xticks=[0, 16, 32, 48, 64], yticks=[0, 16, 32, 48, 64])
     axs[0].imshow(
         images_dict["r_hough_map_vtx"][events[0]],
@@ -135,7 +185,8 @@ def plot_hough(images_dict, events, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[0].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
+    axs[0].set_xlabel(r"$\phi$ bins", fontsize=30)
+    axs[0].set_ylabel(r"$\theta$ bins", fontsize=30)
     axs[0].label_outer()
     axs[1].imshow(
         images_dict["r_hough_map_vtx"][events[1]],
@@ -143,7 +194,8 @@ def plot_hough(images_dict, events, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[1].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
+    axs[1].set_xlabel(r"$\phi$ bins", fontsize=30)
+    axs[1].set_ylabel(r"$\theta$ bins", fontsize=30)
     axs[1].label_outer()
     axs[2].imshow(
         images_dict["r_hough_map_vtx"][events[2]],
@@ -151,7 +203,8 @@ def plot_hough(images_dict, events, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[2].set(xlabel=r"$\phi$ bins", ylabel=r"$\theta$ bins")
+    axs[2].set_xlabel(r"$\phi$ bins", fontsize=30)
+    axs[2].set_ylabel(r"$\theta$ bins", fontsize=30)
     axs[2].label_outer()
     save(save_name)
 
@@ -216,7 +269,8 @@ def plot_8bit_range(
     print("[0,{}], outside range: {:.4f}".format(max_time, occurrences_1))
     print("[0,{}], outside range: {:.4f}".format(max_hough, occurrences_2))
 
-    axs.set(xlabel=r"8-bit value", ylabel=r"Frequency (arb.)")
+    axs.set_xlabel(r"8-bit value", fontsize=30)
+    axs.set_ylabel(r"Frequency (arb.)", fontsize=30)
     axs.set_xlim(0, 260)
     axs.set_ylim(0, 0.06)
 
@@ -226,10 +280,10 @@ def plot_8bit_range(
         color="tab:green",
         linewidth=2,
         linestyle="solid",
-        label=r"Hit charge",
+        label=r"Hit-charge",
     )
     time = Line2D(
-        [0], [0], color="tab:blue", linewidth=2, linestyle="solid", label=r"Hit time",
+        [0], [0], color="tab:blue", linewidth=2, linestyle="solid", label=r"Hit-time",
     )
     hough = Line2D(
         [0],
@@ -237,9 +291,9 @@ def plot_8bit_range(
         color="tab:red",
         linewidth=2,
         linestyle="solid",
-        label=r"Hough Space value",
+        label=r"Hough-height",
     )
-    axs.legend(handles=[hit, time, hough], loc="upper right")
+    axs.legend(handles=[hit, time, hough], loc="upper right", fontsize=28)
     save(save_path + "explore_8_bit_range")
 
 
@@ -252,7 +306,7 @@ def plot_cuts(config, events, save_path):
         save_path (str): path to save plot to
     """
     fig, axs = plt.subplots(
-        2, 2, figsize=(12, 12), gridspec_kw={"hspace": 0.4, "wspace": 0.1}
+        2, 2, figsize=(15, 15), gridspec_kw={"hspace": 0.2, "wspace": 0.1}
     )
     axs[0, 0].hist(
         events[(events.t_comb_cat == 0) & (events.t_sample_type == 1)][
@@ -264,6 +318,7 @@ def plot_cuts(config, events, save_path):
         bins=40,
         density=True,
         label="$\\nu_{e}$ CC",
+        linewidth=2,
     )
     axs[0, 0].hist(
         events[(events.t_comb_cat == 0) & (events.t_sample_type == 0)][
@@ -275,6 +330,7 @@ def plot_cuts(config, events, save_path):
         bins=40,
         density=True,
         label="$\\nu_{e}$ CC",
+        linewidth=2,
     )
     axs[0, 0].hist(
         events[events.t_comb_cat == 1]["r_total_digi_q"],
@@ -284,6 +340,7 @@ def plot_cuts(config, events, save_path):
         bins=40,
         density=True,
         label="$\\nu_{\mu}$ CC",
+        linewidth=2,
     )
     axs[0, 0].hist(
         events[events.t_comb_cat == 2]["r_total_digi_q"],
@@ -293,6 +350,7 @@ def plot_cuts(config, events, save_path):
         bins=40,
         density=True,
         label="NC",
+        linewidth=2,
     )
     axs[0, 0].hist(
         events[events.t_comb_cat == 3]["r_total_digi_q"],
@@ -302,9 +360,10 @@ def plot_cuts(config, events, save_path):
         bins=40,
         density=True,
         label="cosmic",
+        linewidth=2,
     )
-    axs[0, 0].set(xlabel="Total collected charge (p.e)")
-    axs[0, 0].set(ylabel="Events (arb.)")
+    axs[0, 0].set_xlabel(r"Total charge (p.e)", fontsize=30)
+    axs[0, 0].set_ylabel(r"Events (arb.)", fontsize=30)
     axs[0, 0].axvspan(0, config.eval.cuts.q, alpha=0.5, color="grey")
     axs[0, 0].set_yticks([])
 
@@ -318,6 +377,7 @@ def plot_cuts(config, events, save_path):
         bins=40,
         density=True,
         label="$\\nu_{e}$ CC",
+        linewidth=2,
     )
     axs[0, 1].hist(
         events[(events.t_comb_cat == 0) & (events.t_sample_type == 0)][
@@ -329,6 +389,7 @@ def plot_cuts(config, events, save_path):
         bins=40,
         density=True,
         label="$\\nu_{e}$ CC",
+        linewidth=2,
     )
     axs[0, 1].hist(
         events[events.t_comb_cat == 1]["r_first_ring_height"],
@@ -338,6 +399,7 @@ def plot_cuts(config, events, save_path):
         bins=40,
         density=True,
         label="$\\nu_{\mu}$ CC",
+        linewidth=2,
     )
     axs[0, 1].hist(
         events[events.t_comb_cat == 2]["r_first_ring_height"],
@@ -347,6 +409,7 @@ def plot_cuts(config, events, save_path):
         bins=40,
         density=True,
         label="NC",
+        linewidth=2,
     )
     axs[0, 1].hist(
         events[events.t_comb_cat == 3]["r_first_ring_height"],
@@ -356,8 +419,9 @@ def plot_cuts(config, events, save_path):
         bins=40,
         density=True,
         label="cosmic",
+        linewidth=2,
     )
-    axs[0, 1].set(xlabel="Hough ring height (p.e)")
+    axs[0, 1].set_xlabel(r"Max Hough height (p.e)", fontsize=30)
     axs[0, 1].axvspan(0, config.eval.cuts.h, alpha=0.5, color="grey")
     axs[0, 1].set_yticks([])
     osc_nuel = Line2D(
@@ -388,7 +452,9 @@ def plot_cuts(config, events, save_path):
     cosmic = Line2D(
         [0], [0], color="black", linewidth=2, linestyle="solid", label=r"Cosmic"
     )
-    axs[0, 1].legend(handles=[osc_nuel, numu, nc, nuel, cosmic], loc="upper right")
+    axs[0, 1].legend(
+        handles=[osc_nuel, numu, nc, nuel, cosmic], loc="upper right", fontsize=28
+    )
 
     axs[1, 0].hist(
         events[(events.t_comb_cat == 0) & (events.t_sample_type == 1)]["r_dir_theta"],
@@ -398,6 +464,7 @@ def plot_cuts(config, events, save_path):
         bins=64,
         density=True,
         label="$\\nu_{e}$ CC",
+        linewidth=2,
     )
     axs[1, 0].hist(
         events[(events.t_comb_cat == 0) & (events.t_sample_type == 0)]["r_dir_theta"],
@@ -407,6 +474,7 @@ def plot_cuts(config, events, save_path):
         bins=64,
         density=True,
         label="$\\nu_{e}$ CC",
+        linewidth=2,
     )
     axs[1, 0].hist(
         events[events.t_comb_cat == 1]["r_dir_theta"],
@@ -416,6 +484,7 @@ def plot_cuts(config, events, save_path):
         bins=64,
         density=True,
         label="$\\nu_{\mu}$ CC",
+        linewidth=2,
     )
     axs[1, 0].hist(
         events[events.t_comb_cat == 2]["r_dir_theta"],
@@ -425,6 +494,7 @@ def plot_cuts(config, events, save_path):
         bins=64,
         density=True,
         label="NC",
+        linewidth=2,
     )
     axs[1, 0].hist(
         events[events.t_comb_cat == 3]["r_dir_theta"],
@@ -434,12 +504,14 @@ def plot_cuts(config, events, save_path):
         bins=64,
         density=True,
         label="cosmic",
+        linewidth=2,
     )
-    axs[1, 0].set(xlabel=r"Reco $\theta$ direction (cos($\theta$))")
+    axs[1, 0].set_xlabel(r"Seed $\theta$ direction (cos($\theta$))", fontsize=30)
+    axs[1, 0].set_ylabel(r"Events (arb.)", fontsize=30)
     axs[1, 0].axvspan(-1, -config.eval.cuts.theta, alpha=0.5, color="grey")
     axs[1, 0].axvspan(config.eval.cuts.theta, 1, alpha=0.5, color="grey")
+    axs[1, 0].set_ylim(0, 2.5)
     axs[1, 0].set_yticks([])
-    axs[1, 0].set(ylabel="Events (arb.)")
 
     axs[1, 1].hist(
         events[(events.t_comb_cat == 0) & (events.t_sample_type == 1)]["r_dir_phi"]
@@ -450,6 +522,7 @@ def plot_cuts(config, events, save_path):
         bins=64,
         density=True,
         label="$\\nu_{e}$ CC",
+        linewidth=2,
     )
     axs[1, 1].hist(
         events[(events.t_comb_cat == 0) & (events.t_sample_type == 0)]["r_dir_phi"]
@@ -460,6 +533,7 @@ def plot_cuts(config, events, save_path):
         bins=64,
         density=True,
         label="$\\nu_{e}$ CC",
+        linewidth=2,
     )
     axs[1, 1].hist(
         events[events.t_comb_cat == 1]["r_dir_phi"] * 3.14159,
@@ -469,6 +543,7 @@ def plot_cuts(config, events, save_path):
         bins=64,
         density=True,
         label="$\\nu_{\mu}$ CC",
+        linewidth=2,
     )
     axs[1, 1].hist(
         events[events.t_comb_cat == 2]["r_dir_phi"] * 3.14159,
@@ -478,6 +553,7 @@ def plot_cuts(config, events, save_path):
         bins=64,
         density=True,
         label="NC",
+        linewidth=2,
     )
     axs[1, 1].hist(
         events[events.t_comb_cat == 3]["r_dir_phi"] * 3.14159,
@@ -487,8 +563,9 @@ def plot_cuts(config, events, save_path):
         bins=64,
         density=True,
         label="cosmic",
+        linewidth=2,
     )
-    axs[1, 1].set(xlabel=r"Reco $\phi$ direction (radians)")
+    axs[1, 1].set_xlabel(r"Seed $\phi$ direction (radians)", fontsize=30)
     axs[1, 1].axvspan(-3.2, -config.eval.cuts.phi * 3.14159, alpha=0.5, color="grey")
     axs[1, 1].axvspan(config.eval.cuts.phi * 3.14159, 3.2, alpha=0.5, color="grey")
     axs[1, 1].set_yticks([])
@@ -522,9 +599,7 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
     cosmic_events = events[(events["t_comb_cat"] == 3) & (events["cut"] == 0)]
 
     if type == 0:
-        fig, axs = plt.subplots(
-            1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.1, "wspace": 0.1}
-        )
+        fig, axs = plt.subplots(1, 1, figsize=(12, 8))
         plt.setp(axs, xticks=[0, 0.2, 0.4, 0.6, 0.8, 1])
         axs.hist(
             nuel_beam_cc_events[cat0],
@@ -585,8 +660,8 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
                 head_width=0.5,
                 head_length=0.02,
             )
-        axs.set_xlabel(r"$\nu_{e}$ CC score", fontsize=24)
-        axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=24)
+        axs.set_xlabel(r"$\nu_{e}$ CC score", fontsize=30)
+        axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=30)
         nuel = Line2D(
             [0],
             [0],
@@ -617,7 +692,7 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
         # cosmic = Line2D(
         #    [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
         # )
-        axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center")
+        axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center", fontsize=28)
 
     if type == 1:
         fig, axs = plt.subplots(
@@ -670,10 +745,10 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
         )
         axs.set_ylim(10e-3, 10e2)
         if cut is not None:
-            axs.plot([cut, cut], [10e-3, 10e0], "k-", lw=3, color="black")
+            axs.plot([cut, cut], [10e-3, 5e0], "k-", lw=3, color="black")
             axs.arrow(
                 cut,
-                10e0,
+                5e0,
                 0.05,
                 0,
                 color="black",
@@ -683,8 +758,8 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
                 head_length=0.02,
             )
         # axs.set_ylim(0, 500)
-        axs.set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=24)
-        axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=24)
+        axs.set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=30)
+        axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=30)
         axs.set_yscale("log")
         nuel = Line2D(
             [0],
@@ -716,7 +791,7 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
         # cosmic = Line2D(
         #    [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
         # )
-        axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center")
+        axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center", fontsize=28)
 
     save(save_path)
 
@@ -817,8 +892,8 @@ def plot_cosmic_values(events, prefix, save_path, zoom=False):
         linewidth=2,
     )
     axs.set_yscale("log")
-    axs.set_xlabel(r"Cosmic score", fontsize=24)
-    axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=24)
+    axs.set_xlabel(r"Cosmic score", fontsize=30)
+    axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=30)
     nuel = Line2D(
         [0],
         [0],
@@ -847,7 +922,7 @@ def plot_cosmic_values(events, prefix, save_path, zoom=False):
     cosmic = Line2D(
         [0], [0], color="black", linewidth=2, linestyle="solid", label=r"Cosmic"
     )
-    axs.legend(handles=[cosmic, osc_nuel, numu, nuel, nc], loc="upper center")
+    axs.legend(handles=[cosmic, osc_nuel, numu, nuel, nc], loc="upper center", fontsize=26)
 
     save(save_path)
 
@@ -940,10 +1015,10 @@ def plot_escapes_values(events, prefix, save_path):
         histtype="step",
         linewidth=2,
     )
-    axs.plot([0.5, 0.5], [10e-3, 10e0], "k-", lw=3, color="black")
+    axs.plot([0.5, 0.5], [10e-3, 5e0], "k-", lw=3, color="black")
     axs.arrow(
         0.5,
-        10e0,
+        5e0,
         -0.05,
         0,
         color="black",
@@ -954,8 +1029,8 @@ def plot_escapes_values(events, prefix, save_path):
     )
     axs.set_ylim(10e-3, 10e2)
     axs.set_yscale("log")
-    axs.set_xlabel(r"Escapes score", fontsize=24)
-    axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=24)
+    axs.set_xlabel(r"Escapes score", fontsize=30)
+    axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=30)
     nuel = Line2D(
         [0],
         [0],
@@ -984,21 +1059,19 @@ def plot_escapes_values(events, prefix, save_path):
     # cosmic = Line2D(
     #    [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
     # )
-    axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center")
+    axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center", fontsize=26)
 
     save(save_path)
 
 
-def plot_eff_curves(events, cat, save_path, full=False):
+def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
     """Plot the eff, pur, fom curves.
 
     Args:
         events (dict): events output
         save_path (str): path to save plot to
     """
-    fig, axs = plt.subplots(
-        1, 1, figsize=(12, 8), gridspec_kw={"hspace": 0.2, "wspace": 0.3}
-    )
+    fig, axs = plt.subplots(1, 1, figsize=(12, 8))
     plt.setp(
         axs, xticks=[0, 0.20, 0.40, 0.60, 0.80, 1], yticks=[0, 20, 40, 60, 80, 100]
     )
@@ -1035,10 +1108,10 @@ def plot_eff_curves(events, cat, save_path, full=False):
             color="tab:brown",
             linestyle=styles[i],
         )
-    axs.set_xlabel(r"$\nu_{e}$ CC score", fontsize=24)
+    axs.set_xlabel(r"$\nu_{e}$ CC score", fontsize=30)
     if cat == 1:
-        axs.set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=24)
-    axs.set_ylabel("Percentage", fontsize=24)
+        axs.set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=30)
+    axs.set_ylabel("Percentage", fontsize=30)
     axs.set_ylim(0, 100)
     if cat == 1 and full is False:
         axs.set_ylim(70, 100)
@@ -1049,7 +1122,7 @@ def plot_eff_curves(events, cat, save_path, full=False):
         color="tab:orange",
         linewidth=2,
         linestyle="solid",
-        label=r"(Beam+appeared) $\nu_{e}$ CC efficiency",
+        label=r"$\nu_{e}$ CC efficiency",
     )
     if cat == 1:
         signal = Line2D(
@@ -1058,7 +1131,7 @@ def plot_eff_curves(events, cat, save_path, full=False):
             color="tab:orange",
             linewidth=2,
             linestyle="solid",
-            label=r"Survived $\nu_{\mu}$ CC efficiency",
+            label=r"$\nu_{\mu}$ CC efficiency",
         )
     # bkg = Line2D(
     #    [0],
@@ -1074,7 +1147,7 @@ def plot_eff_curves(events, cat, save_path, full=False):
         color="tab:purple",
         linewidth=2,
         linestyle="solid",
-        label=r"(Beam+appeared) $\nu_{e}$ CC purity",
+        label=r"$\nu_{e}$ CC purity",
     )
     if cat == 1:
         pur = Line2D(
@@ -1083,7 +1156,7 @@ def plot_eff_curves(events, cat, save_path, full=False):
             color="tab:purple",
             linewidth=2,
             linestyle="solid",
-            label=r"Survived $\nu_{\mu}$ CC purity",
+            label=r"$\nu_{\mu}$ CC purity",
         )
     fom = Line2D(
         [0],
@@ -1094,9 +1167,15 @@ def plot_eff_curves(events, cat, save_path, full=False):
         label=r"Efficiency $\times$ purity",
     )
     if cat == 0:
-        axs.legend(handles=[signal, pur, fom], loc="center left")
+        if leg_pos is not None:
+            axs.legend(handles=[signal, pur, fom], loc=leg_pos, fontsize=28)
+        else:
+            axs.legend(handles=[signal, pur, fom], loc="center left", fontsize=28)
     elif cat == 1:
-        axs.legend(handles=[signal, pur, fom], loc="upper right")
+        if leg_pos is not None:
+            axs.legend(handles=[signal, pur, fom], loc=leg_pos, fontsize=28)
+        else:
+            axs.legend(handles=[signal, pur, fom], loc="upper right", fontsize=28)
     axs.grid()
     save(save_path)
 
@@ -1108,9 +1187,7 @@ def plot_comp_curves(events, cat, save_path):
         events (dict): events output
         save_path (str): path to save plot to
     """
-    fig, axs = plt.subplots(
-        1, 2, figsize=(12, 5), gridspec_kw={"hspace": 0.2, "wspace": 0.3}
-    )
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5), gridspec_kw={"wspace": 0.3})
     # plt.setp(axs, xticks=[0, 0.25, 0.5, 0.75, 1], yticks=[0, 0.25, 0.5, 0.75, 1])
     styles = ["solid", "dashed", "dotted", "dashdot"]
 
@@ -1121,11 +1198,11 @@ def plot_comp_curves(events, cat, save_path):
             color="tab:cyan",
             linestyle=styles[i],
         )
-    axs[0].set_xlabel("Background efficiency", fontsize=24)
+    axs[0].set_xlabel("Background efficiency", fontsize=30)
     if cat == 0:
-        axs[0].set_ylabel(r"$\nu_{e}$ CC efficiency", fontsize=24)
+        axs[0].set_ylabel(r"$\nu_{e}$ CC efficiency", fontsize=30)
     else:
-        axs[0].set_ylabel(r"$\nu_{\mu}$ CC efficiency", fontsize=24)
+        axs[0].set_ylabel(r"$\nu_{\mu}$ CC efficiency", fontsize=30)
     # axs[0].set_ylim(0.6, 1)
     # axs[0].set_xlim(0, 0.25)
     axs[0].legend()
@@ -1138,11 +1215,11 @@ def plot_comp_curves(events, cat, save_path):
             linestyle=styles[i],
         )
     if cat == 0:
-        axs[1].set_xlabel(r"$\nu_{e}$ CC efficiency", fontsize=24)
-        axs[1].set_ylabel(r"$\nu_{e}$ CC Purity", fontsize=24)
+        axs[1].set_xlabel(r"$\nu_{e}$ CC efficiency", fontsize=30)
+        axs[1].set_ylabel(r"$\nu_{e}$ CC Purity", fontsize=30)
     else:
-        axs[1].set_xlabel(r"$\nu_{\mu}$ CC efficiency", fontsize=24)
-        axs[1].set_ylabel(r"$\nu_{\mu}$ CC Purity", fontsize=24)
+        axs[1].set_xlabel(r"$\nu_{\mu}$ CC efficiency", fontsize=30)
+        axs[1].set_ylabel(r"$\nu_{\mu}$ CC Purity", fontsize=30)
     # axs[1].set_ylim(0, 1)
     # axs[1].set_xlim(0, 1)
     axs[1].legend()
@@ -1207,8 +1284,8 @@ def plot_nuel_hists(events, ev, save_path):
         alpha=0.3,
         weights=ev[ev["t_comb_cat"] == 0]["w"] * 5,
     )
-    axs.set_xlabel(r"$E_{\nu}$ (GeV)", fontsize=24)
-    axs.set_ylabel("Percentage", fontsize=24)
+    axs.set_xlabel(r"$E_{\nu}$ (GeV)", fontsize=30)
+    axs.set_ylabel("Percentage", fontsize=30)
     axs.set_ylim([0, 100])
     axs.set_xlim([0.5, 10])
     nuel = Line2D(
@@ -1251,7 +1328,7 @@ def plot_nuel_hists(events, ev, save_path):
         linestyle="solid",
         label=r"Appeared CC $\nu_{e}$ purity",
     )
-    axs.legend(handles=[osc_nuel, numu, nuel, nc, purity], loc="center right")
+    axs.legend(handles=[osc_nuel, numu, nuel, nc, purity], loc="center right", fontsize=24)
     save(save_path)
 
 
@@ -1312,8 +1389,8 @@ def plot_numu_hists(events, ev, save_path):
         alpha=0.3,
         weights=ev[ev["t_comb_cat"] == 1]["w"] * 0.15,
     )
-    axs.set_xlabel(r"$E_{\nu}$ (GeV)", fontsize=24)
-    axs.set_ylabel("Percentage", fontsize=24)
+    axs.set_xlabel(r"$E_{\nu}$ (GeV)", fontsize=30)
+    axs.set_ylabel("Percentage", fontsize=30)
     axs.set_ylim([0, 100])
     axs.set_xlim([0.5, 10])
     nuel = Line2D(
@@ -1356,7 +1433,7 @@ def plot_numu_hists(events, ev, save_path):
         linestyle="solid",
         label=r"Survived CC $\nu_{\mu}$ purity",
     )
-    axs.legend(handles=[osc_nuel, numu, nuel, nc, purity], loc="center right")
+    axs.legend(handles=[osc_nuel, numu, nuel, nc, purity], loc="center right", fontsize=24)
     save(save_path)
 
 
@@ -1379,8 +1456,8 @@ def plot_history(
     # plt.setp(axs, xticks=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     history = chipsnet.utils.model_history(config, model)
     epochs = np.arange(1, len(history["loss"]) + 1)
-    axs.set_xlabel("Epoch", fontsize=24)
-    axs.set_ylabel(label, color="tab:red", fontsize=24)
+    axs.set_xlabel("Epoch", fontsize=32)
+    axs.set_ylabel(label, color="tab:red", fontsize=32)
     axs.plot(epochs, history[key], color="tab:red", linestyle="solid")
     axs.plot(epochs, history["val_" + key], color="tab:red", linestyle="dashed")
     best_epoch = history["val_" + key].to_numpy().argmax() + 1
@@ -1391,7 +1468,7 @@ def plot_history(
     axs.tick_params(axis="y", labelcolor="tab:red")
     axs_t = axs.twinx()  # instantiate a second axes that shares the same x-axis
     axs_t.set_ylabel(
-        "Loss", color="tab:blue", fontsize=24
+        "Loss", color="tab:blue", fontsize=32
     )  # we already handled the x-label with ax1
     axs_t.plot(epochs, history["loss"], color="tab:blue", linestyle="solid")
     axs_t.plot(epochs, history["val_loss"], color="tab:blue", linestyle="dashed")

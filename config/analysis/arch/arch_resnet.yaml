@@ -20,10 +20,10 @@ data:
 model:
     type: "resnet"
     labels: ["t_all_cat"]
-    lr: 0.0002
+    lr: 0.0004
     lr_decay: 0.5
     dense_units: 512
-    dropout: 0.1
+    dropout: 0.2
     filters: 64
     reco_pars: True
     se_ratio: 16
@@ -34,7 +34,7 @@ trainer:
     train_examples: 960000
     val_examples: 64000
     test_examples: 64000
-    batch_size: 128
+    batch_size: 64
     epochs: 20
     tb_update: 1000
     steps_per_epoch: -1
