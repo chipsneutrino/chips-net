@@ -175,6 +175,10 @@ class Reader:
         return inputs, labels
 
     @tf.function
+    def contained(self, inputs, labels):
+        return tf.math.equal(labels["t_escapes"], 0)
+
+    @tf.function
     def strip(self, inputs, labels):
         """Strip all labels except those needed in training/validation.
 
@@ -214,6 +218,15 @@ class Reader:
         )
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
         ds = ds.map(self.parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+        if (
+            "t_nu_energy" in self.config.model.labels
+            or "t_lep_energy" in self.config.model.labels
+        ):
+            # We only consider fully contained events for energy estimation
+            # Because there are less of them we can also cache the dataset to memory
+            ds = ds.filter(self.contained)
+            ds = ds.cache()
 
         if strip:
             ds = ds.map(self.strip, num_parallel_calls=tf.data.experimental.AUTOTUNE)

@@ -19,11 +19,11 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]  # Shift bin contents by an absolute value as though noise, sigma
 model:
     type: "vgg"  # (vgg, resnet, inception)
-    labels: ["t_nu_energy", "t_lep_energy", "t_escapes"]  # For energy estimation
-    lr: 0.0003  # The initial learning rate
-    lr_decay: 0.0  # Learning rate decay coefficient
+    labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]  # For energy estimation
+    lr: 0.0002  # The initial learning rate
+    lr_decay: 0.5  # Learning rate decay coefficient
     dense_units: 512  # Number of units to use in dense layers
-    dropout: 0.085  # Dropout rate to use in dropout layers
+    dropout: 0.1  # Dropout rate to use in dropout layers
     filters: 64  # Initial number of filters to use
     reco_pars: True  # Should the reco paramters be appended to final dense layer?
     se_ratio: 16  # Ratio for squeeze-exitation blocks, if zero they will not be used
@@ -34,10 +34,10 @@ trainer:
     train_examples: 320000  # Number of training examples to use
     val_examples: 64000  # Number of validation examples to use
     test_examples: 64000  # Nqumber of testing examples to use
-    batch_size: 256  # Training batch size
+    batch_size: 128  # Training batch size
     epochs: 5  # Number of epochs to train for
     tb_update: 1000  # How often should tensorboard record values (batches)
     steps_per_epoch: -1  # Number of steps per epoch (-1 default)
     es_monitor: "val_t_nu_energy_mae"  # Metric to monitor for early stopping
-    es_delta: 10  # Early stopping minimum delta value
-    es_epochs: 3  # Early stopping epochs without delta change before stop
+    es_delta: 2  # Early stopping minimum delta value
+    es_epochs: 5  # Early stopping epochs without delta change before stop

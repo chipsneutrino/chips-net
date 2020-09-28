@@ -140,290 +140,290 @@ def evaluate(
     Returns:
         pd.DataFrame: fully processed events dataframe
     """
-    strategy = tf.distribute.MirroredStrategy()
-    with strategy.scope():
+    #strategy = tf.distribute.MirroredStrategy()
+    #with strategy.scope():
+    print(
+        "\n************************ Evaluating {} ************************".format(
+            data_name
+        )
+    )
+    start_time = time.time()
+
+    # Get the dataframe from the dataset name
+    testing_data = data_from_conf(config, data_name)
+    ev = testing_data.test_val_df(config.eval.examples, exclude_images)
+
+    # Run all the required inference
+    for m_name in m_names:
+        model = model_from_conf(config, m_name, checkpoint)
+        inf_out = run_inference(
+            testing_data.test_val_ds(config.eval.examples, batch_size=256),
+            model,
+            prefix=m_name + "_",
+        )
+
+        ev = pd.concat([ev, inf_out], axis=1)
+
+        if "t_nu_energy" in model.config.model.labels:
+            ev[m_name + "_frac_nu_energy"] = (
+                ev[m_name + "_pred_t_nu_energy"] - ev["t_nu_energy"]
+            ) / ev["t_nu_energy"]
+
+        if "t_lep_energy" in model.config.model.labels:
+            ev[m_name + "_frac_lep_energy"] = (
+                ev[m_name + "_pred_t_lep_energy"] - ev["t_lep_energy"]
+            ) / ev["t_lep_energy"]
+
+        if "t_had_energy" in model.config.model.labels:
+            ev[m_name + "_frac_had_energy"] = (
+                ev[m_name + "_pred_t_had_energy"] - ev["t_had_energy"]
+            ) / ev["t_had_energy"]
+
+    # Calculate the fraction of nu energy in lepton
+    ev["frac_energy"] = ev["t_lep_energy"] / ev["t_nu_energy"]
+
+    # Apply the event weights
+    ev = apply_weights(
+        ev,
+        total_num=config.eval.weights.total,
+        nuel_frac=config.eval.weights.nuel,
+        anuel_frac=config.eval.weights.anuel,
+        numu_frac=config.eval.weights.numu,
+        anumu_frac=config.eval.weights.anumu,
+        cosmic_frac=config.eval.weights.cosmic,
+        osc_file_name=config.eval.weights.osc_file_name,
+        verbose=True,
+    )
+
+    # Apply the standard cuts
+    ev = apply_cuts(
+        ev,
+        cosmic_cut=config.eval.cuts.cosmic,
+        q_cut=config.eval.cuts.q,
+        h_cut=config.eval.cuts.h,
+        theta_cut=config.eval.cuts.theta,
+        phi_cut=config.eval.cuts.phi,
+        escapes_cut=config.eval.cuts.escapes,
+        verbose=True,
+    )
+
+    # Classify into fully combined categories and print the classification reports
+    outputs = []
+
+    for m_name, m_cat in zip(m_names, m_cats):
+        output = {}
+        if m_cat in ["t_cosmic_cat", "energy"]:
+            continue
+
+        # Combine categories into fully combined ones
+        ev = full_comb_combine(ev, m_cat, prefix=m_name + "_")
+
+        # Run classification and print report
+        class_prefix = m_name + "_" + "pred_t_comb_cat_"
+        ev[m_name + "_comb_cat_class"] = ev.apply(
+            classify, axis=1, args=(3, class_prefix)
+        )
+        class_prefix = m_name + "_" + "pred_" + m_cat + "_"
+        ev[m_name + "_" + m_cat + "_class"] = ev.apply(
+            classify,
+            axis=1,
+            args=(chipsnet.data.get_map(m_cat)["categories"], class_prefix),
+        )
+
+        # Combined classification report and confusion matrix
+        comb_cats = chipsnet.data.get_map("t_comb_cat")["categories"] + 1
+        comb_labels = chipsnet.data.get_map("t_comb_cat")["labels"]
+        if len(ev[ev["t_cosmic_cat"] == 1]) == 0:
+            comb_cats = comb_cats - 1
+            comb_labels = comb_labels[:comb_cats]
+        comb_report = classification_report(
+            ev["t_comb_cat"],
+            ev[m_name + "_comb_cat_class"],
+            labels=[x for x in range(comb_cats)],
+            target_names=comb_labels,
+            sample_weight=ev["w"],
+            zero_division=0,
+            output_dict=True,
+        )
+        comb_matrix = confusion_matrix(
+            ev["t_comb_cat"],
+            ev[m_name + "_comb_cat_class"],
+            labels=[x for x in range(comb_cats)],
+            sample_weight=ev["w"],
+            normalize="true",
+        )
+        comb_matrix = np.rot90(comb_matrix, 1)
+        comb_matrix = pd.DataFrame(comb_matrix)
+        output["comb_report"] = comb_report
+        output["comb_matrix"] = comb_matrix
+
+        # Model category classification report and confusion matrix
+        cat_cats = chipsnet.data.get_map(m_cat)["categories"] + 1
+        cat_labels = chipsnet.data.get_map(m_cat)["labels"]
+        if len(ev[ev["t_cosmic_cat"] == 1]) == 0:
+            cat_cats = cat_cats - 1
+            cat_labels = cat_labels[:cat_cats]
+        cat_report = classification_report(
+            ev[m_cat],
+            ev[m_name + "_" + m_cat + "_class"],
+            labels=[x for x in range(cat_cats)],
+            target_names=cat_labels,
+            sample_weight=ev["w"],
+            zero_division=0,
+            output_dict=True,
+        )
+        cat_matrix = confusion_matrix(
+            ev[m_cat],
+            ev[m_name + "_" + m_cat + "_class"],
+            labels=[x for x in range(cat_cats)],
+            sample_weight=ev["w"],
+            normalize="true",
+        )
+        cat_matrix = np.rot90(cat_matrix, 1)
+        cat_matrix = pd.DataFrame(cat_matrix)
+        output["cat_report"] = cat_report
+        output["cat_matrix"] = cat_matrix
+
+        curves_output = calculate_curves(ev, prefix=m_name + "_")
+        eff_output = calculate_eff_pur(
+            ev, curves_output["max_fom_cuts_0"], prefix=m_name + "_"
+        )
+        output["cuts"] = curves_output["cuts"]
+        output["sig_effs"] = curves_output["sig_effs"]
+        output["bkg_effs"] = curves_output["bkg_effs"]
+        output["purs"] = curves_output["purs"]
+        output["foms_0"] = curves_output["foms_0"]
+        output["foms_1"] = curves_output["foms_1"]
+        output["fom_effs"] = eff_output["fom_effs"]
+        output["fom_purs"] = eff_output["fom_purs"]
+        output["sig_effs_auc"] = curves_output["sig_effs_auc"]
+        output["bkg_effs_auc"] = curves_output["bkg_effs_auc"]
+        output["pur_auc"] = curves_output["pur_auc"]
+        output["fom_auc_0"] = curves_output["fom_auc_0"]
+        output["fom_auc_1"] = curves_output["fom_auc_1"]
+        output["roc_auc"] = curves_output["roc_auc"]
+        output["prc_auc"] = curves_output["prc_auc"]
+        output["max_foms_0"] = curves_output["max_foms_0"]
+        output["max_foms_1"] = curves_output["max_foms_1"]
+        output["max_fom_cuts_0"] = curves_output["max_fom_cuts_0"]
+        output["max_fom_cuts_1"] = curves_output["max_fom_cuts_1"]
+        output["max_fom_passed_0"] = curves_output["max_fom_passed_0"]
+        output["max_fom_passed_1"] = curves_output["max_fom_passed_1"]
+        outputs.append(output)
+
+        if just_cosmic:
+            continue
+
         print(
-            "\n************************ Evaluating {} ************************".format(
-                data_name
+            "\n------------------------ {} report ------------------------".format(
+                m_name
             )
         )
-        start_time = time.time()
-
-        # Get the dataframe from the dataset name
-        testing_data = data_from_conf(config, data_name)
-        ev = testing_data.test_val_df(config.eval.examples, exclude_images)
-
-        # Run all the required inference
-        for m_name in m_names:
-            model = model_from_conf(config, m_name, checkpoint)
-            inf_out = run_inference(
-                testing_data.test_val_ds(config.eval.examples, batch_size=256),
-                model,
-                prefix=m_name + "_",
+        print(
+            "- Comb-> Prec: ({:.5f},{:.5f}), Rec: ({:.5f},{:.5f}), F1: ({:.5f},{:.5f})".format(
+                comb_report["weighted avg"]["precision"],
+                comb_report["macro avg"]["precision"],
+                comb_report["weighted avg"]["recall"],
+                comb_report["macro avg"]["recall"],
+                comb_report["weighted avg"]["f1-score"],
+                comb_report["macro avg"]["f1-score"],
             )
-
-            ev = pd.concat([ev, inf_out], axis=1)
-
-            if "t_nu_energy" in model.config.model.labels:
-                ev[m_name + "_frac_nu_energy"] = (
-                    ev[m_name + "_pred_t_nu_energy"] - ev["t_nu_energy"]
-                ) / ev["t_nu_energy"]
-
-            if "t_lep_energy" in model.config.model.labels:
-                ev[m_name + "_frac_lep_energy"] = (
-                    ev[m_name + "_pred_t_lep_energy"] - ev["t_lep_energy"]
-                ) / ev["t_lep_energy"]
-
-            if "t_had_energy" in model.config.model.labels:
-                ev[m_name + "_frac_had_energy"] = (
-                    ev[m_name + "_pred_t_had_energy"] - ev["t_had_energy"]
-                ) / ev["t_had_energy"]
-
-        # Calculate the fraction of nu energy in lepton
-        ev["frac_energy"] = ev["t_lep_energy"] / ev["t_nu_energy"]
-
-        # Apply the event weights
-        ev = apply_weights(
-            ev,
-            total_num=config.eval.weights.total,
-            nuel_frac=config.eval.weights.nuel,
-            anuel_frac=config.eval.weights.anuel,
-            numu_frac=config.eval.weights.numu,
-            anumu_frac=config.eval.weights.anumu,
-            cosmic_frac=config.eval.weights.cosmic,
-            osc_file_name=config.eval.weights.osc_file_name,
-            verbose=True,
+        )
+        print(
+            "- Cat->  Prec: ({:.5f},{:.5f}), Rec: ({:.5f},{:.5f}), F1: ({:.5f},{:.5f})".format(
+                cat_report["weighted avg"]["precision"],
+                cat_report["macro avg"]["precision"],
+                cat_report["weighted avg"]["recall"],
+                cat_report["macro avg"]["recall"],
+                cat_report["weighted avg"]["f1-score"],
+                cat_report["macro avg"]["f1-score"],
+            )
+        )
+        print(
+            "\n- Nuel-> ROC-AUC: {:.5f}, PRC-AUC: {:.5f}, S-Eff: {:.5f}, S-Pur: {:.5f}".format(
+                output["roc_auc"][0],
+                output["prc_auc"][0],
+                output["sig_effs"][0][np.where(output["cuts"] == 0.5)[0]][0],
+                output["purs"][0][np.where(output["cuts"] == 0.5)[0]][0],
+            )
+        )
+        print(
+            "- FOM1-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}".format(
+                output["max_foms_0"][0],
+                output["max_fom_cuts_0"][0],
+                output["max_fom_passed_0"][0][0],
+                output["max_fom_passed_0"][0][1],
+                output["max_fom_passed_0"][0][2],
+                # output["max_fom_passed_0"][0][3],
+                output["sig_effs"][0][
+                    np.where(output["cuts"] == output["max_fom_cuts_0"][0])[0]
+                ][0],
+                output["purs"][0][
+                    np.where(output["cuts"] == output["max_fom_cuts_0"][0])[0]
+                ][0],
+            )
         )
 
-        # Apply the standard cuts
-        ev = apply_cuts(
-            ev,
-            cosmic_cut=config.eval.cuts.cosmic,
-            q_cut=config.eval.cuts.q,
-            h_cut=config.eval.cuts.h,
-            theta_cut=config.eval.cuts.theta,
-            phi_cut=config.eval.cuts.phi,
-            escapes_cut=config.eval.cuts.escapes,
-            verbose=True,
+        print(
+            "- FOM2-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}".format(
+                output["max_foms_1"][0],
+                output["max_fom_cuts_1"][0],
+                output["max_fom_passed_1"][0][0],
+                output["max_fom_passed_1"][0][1],
+                output["max_fom_passed_1"][0][2],
+                # output["max_fom_passed_1"][0][3],
+                output["sig_effs"][0][
+                    np.where(output["cuts"] == output["max_fom_cuts_1"][0])[0]
+                ][0],
+                output["purs"][0][
+                    np.where(output["cuts"] == output["max_fom_cuts_1"][0])[0]
+                ][0],
+            )
         )
 
-        # Classify into fully combined categories and print the classification reports
-        outputs = []
+        print(
+            "\n- Numu-> ROC-AUC: {:.5f}, PRC-AUC: {:.5f}, S-Eff: {:.5f}, S-Pur: {:.5f}".format(
+                output["roc_auc"][1],
+                output["prc_auc"][1],
+                output["sig_effs"][1][np.where(output["cuts"] == 0.5)[0]][0],
+                output["purs"][1][np.where(output["cuts"] == 0.5)[0]][0],
+            )
+        )
+        print(
+            "- FOM1-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}".format(
+                output["max_foms_0"][1],
+                output["max_fom_cuts_0"][1],
+                output["max_fom_passed_0"][1][0],
+                output["max_fom_passed_0"][1][1],
+                output["max_fom_passed_0"][1][2],
+                # output["max_fom_passed_0"][1][3],
+                output["sig_effs"][1][
+                    np.where(output["cuts"] == output["max_fom_cuts_0"][1])[0]
+                ][0],
+                output["purs"][1][
+                    np.where(output["cuts"] == output["max_fom_cuts_0"][1])[0]
+                ][0],
+            )
+        )
 
-        for m_name, m_cat in zip(m_names, m_cats):
-            output = {}
-            if m_cat in ["t_cosmic_cat", "energy"]:
-                continue
+        print(
+            "- FOM2-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}\n".format(
+                output["max_foms_1"][1],
+                output["max_fom_cuts_1"][1],
+                output["max_fom_passed_1"][1][0],
+                output["max_fom_passed_1"][1][1],
+                output["max_fom_passed_1"][1][2],
+                # output["max_fom_passed_1"][1][3],
+                output["sig_effs"][1][
+                    np.where(output["cuts"] == output["max_fom_cuts_1"][1])[0]
+                ][0],
+                output["purs"][1][
+                    np.where(output["cuts"] == output["max_fom_cuts_1"][1])[0]
+                ][0],
+            )
+        )
 
-            # Combine categories into fully combined ones
-            ev = full_comb_combine(ev, m_cat, prefix=m_name + "_")
-
-            # Run classification and print report
-            class_prefix = m_name + "_" + "pred_t_comb_cat_"
-            ev[m_name + "_comb_cat_class"] = ev.apply(
-                classify, axis=1, args=(3, class_prefix)
-            )
-            class_prefix = m_name + "_" + "pred_" + m_cat + "_"
-            ev[m_name + "_" + m_cat + "_class"] = ev.apply(
-                classify,
-                axis=1,
-                args=(chipsnet.data.get_map(m_cat)["categories"], class_prefix),
-            )
-
-            # Combined classification report and confusion matrix
-            comb_cats = chipsnet.data.get_map("t_comb_cat")["categories"] + 1
-            comb_labels = chipsnet.data.get_map("t_comb_cat")["labels"]
-            if len(ev[ev["t_cosmic_cat"] == 1]) == 0:
-                comb_cats = comb_cats - 1
-                comb_labels = comb_labels[:comb_cats]
-            comb_report = classification_report(
-                ev["t_comb_cat"],
-                ev[m_name + "_comb_cat_class"],
-                labels=[x for x in range(comb_cats)],
-                target_names=comb_labels,
-                sample_weight=ev["w"],
-                zero_division=0,
-                output_dict=True,
-            )
-            comb_matrix = confusion_matrix(
-                ev["t_comb_cat"],
-                ev[m_name + "_comb_cat_class"],
-                labels=[x for x in range(comb_cats)],
-                sample_weight=ev["w"],
-                normalize="true",
-            )
-            comb_matrix = np.rot90(comb_matrix, 1)
-            comb_matrix = pd.DataFrame(comb_matrix)
-            output["comb_report"] = comb_report
-            output["comb_matrix"] = comb_matrix
-
-            # Model category classification report and confusion matrix
-            cat_cats = chipsnet.data.get_map(m_cat)["categories"] + 1
-            cat_labels = chipsnet.data.get_map(m_cat)["labels"]
-            if len(ev[ev["t_cosmic_cat"] == 1]) == 0:
-                cat_cats = cat_cats - 1
-                cat_labels = cat_labels[:cat_cats]
-            cat_report = classification_report(
-                ev[m_cat],
-                ev[m_name + "_" + m_cat + "_class"],
-                labels=[x for x in range(cat_cats)],
-                target_names=cat_labels,
-                sample_weight=ev["w"],
-                zero_division=0,
-                output_dict=True,
-            )
-            cat_matrix = confusion_matrix(
-                ev[m_cat],
-                ev[m_name + "_" + m_cat + "_class"],
-                labels=[x for x in range(cat_cats)],
-                sample_weight=ev["w"],
-                normalize="true",
-            )
-            cat_matrix = np.rot90(cat_matrix, 1)
-            cat_matrix = pd.DataFrame(cat_matrix)
-            output["cat_report"] = cat_report
-            output["cat_matrix"] = cat_matrix
-
-            curves_output = calculate_curves(ev, prefix=m_name + "_")
-            eff_output = calculate_eff_pur(
-                ev, curves_output["max_fom_cuts_0"], prefix=m_name + "_"
-            )
-            output["cuts"] = curves_output["cuts"]
-            output["sig_effs"] = curves_output["sig_effs"]
-            output["bkg_effs"] = curves_output["bkg_effs"]
-            output["purs"] = curves_output["purs"]
-            output["foms_0"] = curves_output["foms_0"]
-            output["foms_1"] = curves_output["foms_1"]
-            output["fom_effs"] = eff_output["fom_effs"]
-            output["fom_purs"] = eff_output["fom_purs"]
-            output["sig_effs_auc"] = curves_output["sig_effs_auc"]
-            output["bkg_effs_auc"] = curves_output["bkg_effs_auc"]
-            output["pur_auc"] = curves_output["pur_auc"]
-            output["fom_auc_0"] = curves_output["fom_auc_0"]
-            output["fom_auc_1"] = curves_output["fom_auc_1"]
-            output["roc_auc"] = curves_output["roc_auc"]
-            output["prc_auc"] = curves_output["prc_auc"]
-            output["max_foms_0"] = curves_output["max_foms_0"]
-            output["max_foms_1"] = curves_output["max_foms_1"]
-            output["max_fom_cuts_0"] = curves_output["max_fom_cuts_0"]
-            output["max_fom_cuts_1"] = curves_output["max_fom_cuts_1"]
-            output["max_fom_passed_0"] = curves_output["max_fom_passed_0"]
-            output["max_fom_passed_1"] = curves_output["max_fom_passed_1"]
-            outputs.append(output)
-
-            if just_cosmic:
-                continue
-
-            print(
-                "\n------------------------ {} report ------------------------".format(
-                    m_name
-                )
-            )
-            print(
-                "- Comb-> Prec: ({:.5f},{:.5f}), Rec: ({:.5f},{:.5f}), F1: ({:.5f},{:.5f})".format(
-                    comb_report["weighted avg"]["precision"],
-                    comb_report["macro avg"]["precision"],
-                    comb_report["weighted avg"]["recall"],
-                    comb_report["macro avg"]["recall"],
-                    comb_report["weighted avg"]["f1-score"],
-                    comb_report["macro avg"]["f1-score"],
-                )
-            )
-            print(
-                "- Cat->  Prec: ({:.5f},{:.5f}), Rec: ({:.5f},{:.5f}), F1: ({:.5f},{:.5f})".format(
-                    cat_report["weighted avg"]["precision"],
-                    cat_report["macro avg"]["precision"],
-                    cat_report["weighted avg"]["recall"],
-                    cat_report["macro avg"]["recall"],
-                    cat_report["weighted avg"]["f1-score"],
-                    cat_report["macro avg"]["f1-score"],
-                )
-            )
-            print(
-                "\n- Nuel-> ROC-AUC: {:.5f}, PRC-AUC: {:.5f}, S-Eff: {:.5f}, S-Pur: {:.5f}".format(
-                    output["roc_auc"][0],
-                    output["prc_auc"][0],
-                    output["sig_effs"][0][np.where(output["cuts"] == 0.5)[0]][0],
-                    output["purs"][0][np.where(output["cuts"] == 0.5)[0]][0],
-                )
-            )
-            print(
-                "- FOM1-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}".format(
-                    output["max_foms_0"][0],
-                    output["max_fom_cuts_0"][0],
-                    output["max_fom_passed_0"][0][0],
-                    output["max_fom_passed_0"][0][1],
-                    output["max_fom_passed_0"][0][2],
-                    # output["max_fom_passed_0"][0][3],
-                    output["sig_effs"][0][
-                        np.where(output["cuts"] == output["max_fom_cuts_0"][0])[0]
-                    ][0],
-                    output["purs"][0][
-                        np.where(output["cuts"] == output["max_fom_cuts_0"][0])[0]
-                    ][0],
-                )
-            )
-
-            print(
-                "- FOM2-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}".format(
-                    output["max_foms_1"][0],
-                    output["max_fom_cuts_1"][0],
-                    output["max_fom_passed_1"][0][0],
-                    output["max_fom_passed_1"][0][1],
-                    output["max_fom_passed_1"][0][2],
-                    # output["max_fom_passed_1"][0][3],
-                    output["sig_effs"][0][
-                        np.where(output["cuts"] == output["max_fom_cuts_1"][0])[0]
-                    ][0],
-                    output["purs"][0][
-                        np.where(output["cuts"] == output["max_fom_cuts_1"][0])[0]
-                    ][0],
-                )
-            )
-
-            print(
-                "\n- Numu-> ROC-AUC: {:.5f}, PRC-AUC: {:.5f}, S-Eff: {:.5f}, S-Pur: {:.5f}".format(
-                    output["roc_auc"][1],
-                    output["prc_auc"][1],
-                    output["sig_effs"][1][np.where(output["cuts"] == 0.5)[0]][0],
-                    output["purs"][1][np.where(output["cuts"] == 0.5)[0]][0],
-                )
-            )
-            print(
-                "- FOM1-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}".format(
-                    output["max_foms_0"][1],
-                    output["max_fom_cuts_0"][1],
-                    output["max_fom_passed_0"][1][0],
-                    output["max_fom_passed_0"][1][1],
-                    output["max_fom_passed_0"][1][2],
-                    # output["max_fom_passed_0"][1][3],
-                    output["sig_effs"][1][
-                        np.where(output["cuts"] == output["max_fom_cuts_0"][1])[0]
-                    ][0],
-                    output["purs"][1][
-                        np.where(output["cuts"] == output["max_fom_cuts_0"][1])[0]
-                    ][0],
-                )
-            )
-
-            print(
-                "- FOM2-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}\n".format(
-                    output["max_foms_1"][1],
-                    output["max_fom_cuts_1"][1],
-                    output["max_fom_passed_1"][1][0],
-                    output["max_fom_passed_1"][1][1],
-                    output["max_fom_passed_1"][1][2],
-                    # output["max_fom_passed_1"][1][3],
-                    output["sig_effs"][1][
-                        np.where(output["cuts"] == output["max_fom_cuts_1"][1])[0]
-                    ][0],
-                    output["purs"][1][
-                        np.where(output["cuts"] == output["max_fom_cuts_1"][1])[0]
-                    ][0],
-                )
-            )
-
-        print("took {:.2f} seconds".format(time.time() - start_time))
+    print("took {:.2f} seconds".format(time.time() - start_time))
 
     # Return everything
     if just_out:
