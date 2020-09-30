@@ -224,9 +224,7 @@ class Reader:
             or "t_lep_energy" in self.config.model.labels
         ):
             # We only consider fully contained events for energy estimation
-            # Because there are less of them we can also cache the dataset to memory
             ds = ds.filter(self.contained)
-            ds = ds.cache()
 
         if strip:
             ds = ds.map(self.strip, num_parallel_calls=tf.data.experimental.AUTOTUNE)

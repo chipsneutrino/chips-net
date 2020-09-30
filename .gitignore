@@ -12,4 +12,5 @@ smearing/
 data/output/*.pgf
 data/output/*.png
 data/output/*.pdf
+data/output/*.dat
 TODO
