@@ -1,11 +1,16 @@
 task: "train"
 exp:
-    name: "final_numu_cccoh_e"
+    name: "final_nc_e"
     output_dir: "./data/models/analysis/final/"
     comet: False
 data:
     input_dirs:
-        - "./data/input/chips_1200/numu_cccoh_numuflux/"
+        - "./data/input/chips_1200/nuel_nccoh_numuflux/"
+        - "./data/input/chips_1200/nuel_ncdis_numuflux/"
+        - "./data/input/chips_1200/nuel_ncres_numuflux/"
+        - "./data/input/chips_1200/numu_nccoh_numuflux/"
+        - "./data/input/chips_1200/numu_ncdis_numuflux/"
+        - "./data/input/chips_1200/numu_ncres_numuflux/"
     channels: [1, 1, 1]
     seperate_channels: True
     img_size: [64, 64]
@@ -18,7 +23,7 @@ data:
     aug_noise_sigma: [0.0, 0.0, 0.0]
 model:
     type: "vgg"
-    labels: ["t_nu_energy", "t_lep_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
+    labels: ["t_nu_energy", "t_had_energy", "t_vtx_x", "t_vtx_y", "t_vtx_z", "t_vtx_t"]
     lr: 0.0002
     lr_decay: 0.5
     dense_units: 512
@@ -39,4 +44,4 @@ trainer:
     steps_per_epoch: -1
     es_monitor: "val_t_nu_energy_mae"
     es_delta: 2
-    es_epochs: 5
+    es_epochs: 10

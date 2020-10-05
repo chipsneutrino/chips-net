@@ -5,10 +5,7 @@ exp:
     comet: False
 data:
     input_dirs:
-        - "./data/input/chips_1200/nuel_cccoh_numuflux/"
-        - "./data/input/chips_1200/nuel_ccdis_numuflux/"
         - "./data/input/chips_1200/nuel_ccqel_numuflux/"
-        - "./data/input/chips_1200/nuel_ccres_numuflux/"
         - "./data/input/chips_1200/nuel_ccmec_numuflux/"
     channels: [1, 1, 1]
     seperate_channels: True
@@ -43,4 +40,4 @@ trainer:
     steps_per_epoch: -1
     es_monitor: "val_mae"
     es_delta: 10
-    es_epochs: 5
+    es_epochs: 10

@@ -13,9 +13,9 @@
 #python chipsnet/run.py config/analysis/repr/repr_v_cth_stacked.yaml
 
 # Which network architecture works best? (arch)
-python chipsnet/run.py config/analysis/arch/arch_inception.yaml
-python chipsnet/run.py config/analysis/arch/arch_resnet.yaml
-python chipsnet/run.py config/analysis/arch/arch_inception_resnet.yaml
+#python chipsnet/run.py config/analysis/arch/arch_inception.yaml
+#python chipsnet/run.py config/analysis/arch/arch_resnet.yaml
+#python chipsnet/run.py config/analysis/arch/arch_inception_resnet.yaml
 
 # Which categorisation is best analysis? (cat)
 #python chipsnet/run.py config/analysis/cat/cat_t_nc_comb_cat.yaml
@@ -32,28 +32,21 @@ python chipsnet/run.py config/analysis/arch/arch_inception_resnet.yaml
 #python chipsnet/run.py config/analysis/beam/beam_primaries.yaml
 #python chipsnet/run.py config/analysis/beam/beam_primaries_learn.yaml
 
-# Energy mutli-chan analysis (energy_chan)
-#python chipsnet/run.py config/analysis/energy/energy_nu.yaml
-#python chipsnet/run.py config/analysis/energy/energy_lep.yaml
-#python chipsnet/run.py config/analysis/energy/energy_nu_lep.yaml
-#python chipsnet/run.py config/analysis/energy/energy_nu_lep_learn.yaml
-
-# Energy extra parameters analysis (energy_par)
-#python chipsnet/run.py config/analysis/energy/energy_nu_lep_vtx.yaml
-#python chipsnet/run.py config/analysis/energy/energy_nu_lep_vtx_learn.yaml
-#python chipsnet/run.py config/analysis/energy/energy_nu_lep_escapes.yaml
-#python chipsnet/run.py config/analysis/energy/energy_nu_lep_escapes_learn.yaml
-#python chipsnet/run.py config/analysis/energy/energy_nu_lep_vtx_escapes.yaml
+# Energy mutli analysis (energy_multi)
+python chipsnet/run.py config/analysis/energy/energy_nu.yaml
+python chipsnet/run.py config/analysis/energy/energy_lep.yaml
+python chipsnet/run.py config/analysis/energy/energy_nu_lep.yaml
+python chipsnet/run.py config/analysis/energy/energy_nu_lep_learn.yaml
+python chipsnet/run.py config/analysis/energy/energy_nu_lep_vtx.yaml
+python chipsnet/run.py config/analysis/energy/energy_nu_lep_vtx_learn.yaml
 
 # Final models
-python chipsnet/run.py config/analysis/final/final_cosmic.yaml
-python chipsnet/run.py config/analysis/final/final_beam.yaml
-#python chipsnet/run.py config/analysis/final/final_nuel_cccoh_e.yaml
+#python chipsnet/run.py config/analysis/final/final_cosmic.yaml
+#python chipsnet/run.py config/analysis/final/final_beam.yaml
 #python chipsnet/run.py config/analysis/final/final_nuel_ccdis_e.yaml
 #python chipsnet/run.py config/analysis/final/final_nuel_ccqel_e.yaml
 #python chipsnet/run.py config/analysis/final/final_nuel_ccres_e.yaml
 #python chipsnet/run.py config/analysis/final/final_nuel_cc_e.yaml
-#python chipsnet/run.py config/analysis/final/final_numu_cccoh_e.yaml
 #python chipsnet/run.py config/analysis/final/final_numu_ccdis_e.yaml
 #python chipsnet/run.py config/analysis/final/final_numu_ccqel_e.yaml
 #python chipsnet/run.py config/analysis/final/final_numu_ccres_e.yaml

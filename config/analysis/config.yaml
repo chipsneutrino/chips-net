@@ -205,47 +205,10 @@ samples:
         input_dirs: 
             - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
-    nuel_all:
-        input_dirs: 
-            - "./data/input/chips_1200/nuel_all_numuflux/"
-        channels: [1, 1, 1]
-    numu_all:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_all_numuflux/"
-        channels: [1, 1, 1]
-    nuel_cccoh:
-        input_dirs: 
-            - "./data/input/chips_1200/nuel_cccoh_numuflux/"
-        channels: [1, 1, 1]
-    nuel_ccdis:
-        input_dirs: 
-            - "./data/input/chips_1200/nuel_ccdis_numuflux/"
-        channels: [1, 1, 1]
     nuel_ccqel:
         input_dirs: 
             - "./data/input/chips_1200/nuel_ccqel_numuflux/"
             - "./data/input/chips_1200/nuel_ccmec_numuflux/"
-        channels: [1, 1, 1]
-    nuel_ccres:
-        input_dirs: 
-            - "./data/input/chips_1200/nuel_ccres_numuflux/"
-        channels: [1, 1, 1]
-    numu_cccoh:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_cccoh_numuflux/"
-        channels: [1, 1, 1]
-    numu_ccdis:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_ccdis_numuflux/"
-        channels: [1, 1, 1]
-    numu_ccqel:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_ccqel_numuflux/"
-            - "./data/input/chips_1200/numu_ccmec_numuflux/"
-        channels: [1, 1, 1]
-    numu_ccres:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_ccres_numuflux/"
         channels: [1, 1, 1]
 
     # Stacked with no reco parameters as input for tf_explain

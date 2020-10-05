@@ -660,7 +660,7 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
                 head_width=0.5,
                 head_length=0.02,
             )
-        axs.set_xlabel(r"$\nu_{e}$ CC score", fontsize=30)
+        axs.set_xlabel(r"CC $\nu_{e}$ score", fontsize=30)
         axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=30)
         nuel = Line2D(
             [0],
@@ -692,7 +692,7 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
         # cosmic = Line2D(
         #    [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
         # )
-        axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center", fontsize=28)
+        axs.legend(handles=[osc_nuel, nuel, nc, numu], loc="upper center", fontsize=28)
 
     if type == 1:
         fig, axs = plt.subplots(
@@ -758,7 +758,7 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
                 head_length=0.02,
             )
         # axs.set_ylim(0, 500)
-        axs.set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=30)
+        axs.set_xlabel(r"CC $\nu_{\mu}$ score", fontsize=30)
         axs.set_ylabel(r"Events/$6\times10^{20}$ POT", fontsize=30)
         axs.set_yscale("log")
         nuel = Line2D(
@@ -791,7 +791,7 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
         # cosmic = Line2D(
         #    [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
         # )
-        axs.legend(handles=[osc_nuel, numu, nuel, nc], loc="upper center", fontsize=28)
+        axs.legend(handles=[numu, nc, osc_nuel, nuel], loc="upper center", fontsize=28)
 
     save(save_path)
 
@@ -1111,9 +1111,9 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
             linestyle=styles[i],
             linewidth=2
         )
-    axs.set_xlabel(r"$\nu_{e}$ CC score", fontsize=30)
+    axs.set_xlabel(r"CC $\nu_{e}$ score", fontsize=30)
     if cat == 1:
-        axs.set_xlabel(r"$\nu_{\mu}$ CC score", fontsize=30)
+        axs.set_xlabel(r"CC $\nu_{\mu}$ score", fontsize=30)
     axs.set_ylabel("Percentage", fontsize=30)
     axs.set_ylim(0, 100)
     if cat == 1 and full is False:
@@ -1125,7 +1125,7 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
         color="tab:orange",
         linewidth=2,
         linestyle="solid",
-        label=r"$\nu_{e}$ CC efficiency",
+        label=r"CC $\nu_{e}$ efficiency",
     )
     if cat == 1:
         signal = Line2D(
@@ -1134,7 +1134,7 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
             color="tab:orange",
             linewidth=2,
             linestyle="solid",
-            label=r"$\nu_{\mu}$ CC efficiency",
+            label=r"CC $\nu_{\mu}$ efficiency",
         )
     # bkg = Line2D(
     #    [0],
@@ -1150,7 +1150,7 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
         color="tab:purple",
         linewidth=2,
         linestyle="solid",
-        label=r"$\nu_{e}$ CC purity",
+        label=r"CC $\nu_{e}$ purity",
     )
     if cat == 1:
         pur = Line2D(
@@ -1159,7 +1159,7 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
             color="tab:purple",
             linewidth=2,
             linestyle="solid",
-            label=r"$\nu_{\mu}$ CC purity",
+            label=r"CC $\nu_{\mu}$ purity",
         )
     fom = Line2D(
         [0],
@@ -1204,9 +1204,9 @@ def plot_comp_curves(events, cat, save_path):
         )
     axs[0].set_xlabel("Background efficiency", fontsize=30)
     if cat == 0:
-        axs[0].set_ylabel(r"$\nu_{e}$ CC efficiency", fontsize=30)
+        axs[0].set_ylabel(r"CC $\nu_{e}$ efficiency", fontsize=30)
     else:
-        axs[0].set_ylabel(r"$\nu_{\mu}$ CC efficiency", fontsize=30)
+        axs[0].set_ylabel(r"CC $\nu_{\mu}$ efficiency", fontsize=30)
     # axs[0].set_ylim(0.6, 1)
     # axs[0].set_xlim(0, 0.25)
     axs[0].legend()
@@ -1220,11 +1220,11 @@ def plot_comp_curves(events, cat, save_path):
             linewidth=2
         )
     if cat == 0:
-        axs[1].set_xlabel(r"$\nu_{e}$ CC efficiency", fontsize=30)
-        axs[1].set_ylabel(r"$\nu_{e}$ CC Purity", fontsize=30)
+        axs[1].set_xlabel(r"CC $\nu_{e}$ efficiency", fontsize=30)
+        axs[1].set_ylabel(r"CC $\nu_{e}$ Purity", fontsize=30)
     else:
-        axs[1].set_xlabel(r"$\nu_{\mu}$ CC efficiency", fontsize=30)
-        axs[1].set_ylabel(r"$\nu_{\mu}$ CC Purity", fontsize=30)
+        axs[1].set_xlabel(r"CC $\nu_{\mu}$ efficiency", fontsize=30)
+        axs[1].set_ylabel(r"CC $\nu_{\mu}$ Purity", fontsize=30)
     # axs[1].set_ylim(0, 1)
     # axs[1].set_xlim(0, 1)
     axs[1].legend()
@@ -1232,7 +1232,7 @@ def plot_comp_curves(events, cat, save_path):
     save(save_path)
 
 
-def plot_nuel_hists(events, ev, save_path):
+def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)"):
     """Plot the eff and pur plot vs neutrino energy.
 
     Args:
@@ -1286,18 +1286,19 @@ def plot_nuel_hists(events, ev, save_path):
             linewidth=2
         )
     axs.hist(
-        ev[ev["t_comb_cat"] == 0]["t_nu_energy"] / 1000,
+        ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 1)]["t_nu_energy"] / 1000,
         range=(1, 8),
         bins=14,
         color="tab:green",
         density=False,
         alpha=0.3,
-        weights=ev[ev["t_comb_cat"] == 0]["w"] * 5,
+        weights=ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 1)]["w"] * 6,
     )
-    axs.set_xlabel(r"$E_{\nu}$ (GeV)", fontsize=30)
+    axs.set_xlabel(energy, fontsize=30)
     axs.set_ylabel("Percentage", fontsize=30)
     axs.set_ylim([0, 100])
     axs.set_xlim([0.5, 10])
+    axs.grid()
     nuel = Line2D(
         [0],
         [0],
@@ -1342,7 +1343,7 @@ def plot_nuel_hists(events, ev, save_path):
     save(save_path)
 
 
-def plot_numu_hists(events, ev, save_path):
+def plot_numu_hists(events, ev, save_path, energy=r"E (GeV)"):
     """Plot the eff and pur plot vs neutrino energy.
 
     Args:
@@ -1404,10 +1405,11 @@ def plot_numu_hists(events, ev, save_path):
         alpha=0.3,
         weights=ev[ev["t_comb_cat"] == 1]["w"] * 0.15,
     )
-    axs.set_xlabel(r"$E_{\nu}$ (GeV)", fontsize=30)
+    axs.set_xlabel(energy, fontsize=30)
     axs.set_ylabel("Percentage", fontsize=30)
     axs.set_ylim([0, 100])
     axs.set_xlim([0.5, 10])
+    axs.grid()
     nuel = Line2D(
         [0],
         [0],

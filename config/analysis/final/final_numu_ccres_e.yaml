@@ -39,4 +39,4 @@ trainer:
     steps_per_epoch: -1
     es_monitor: "val_t_nu_energy_mae"
     es_delta: 2
-    es_epochs: 5
+    es_epochs: 10

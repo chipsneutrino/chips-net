@@ -1056,7 +1056,7 @@ def calculate_curves(ev, thresholds=200, prefix=""):
     return output
 
 
-def calculate_eff_pur(ev, cut_value, e_bins=20, e_range=(0, 10000), prefix=""):
+def calculate_eff_pur(ev, cut_value, e_bins=20, e_range=(0, 10000), prefix="", energy=None):
     """Calculate efficiency and purity curves at a specific cut value.
 
     Args:
@@ -1068,49 +1068,6 @@ def calculate_eff_pur(ev, cut_value, e_bins=20, e_range=(0, 10000), prefix=""):
 
     Returns:
         output (dict): output dictionary of results
-    """
-    """
-    selections = [
-        ev[
-            (ev["t_comb_cat"] == 0)
-            & (ev["t_sample_type"] == 1)
-            & ((ev["t_all_cat"] == 0) | (ev["t_all_cat"] == 4))
-        ],  # Appeared CC QEL nuel
-        ev[
-            (ev["t_comb_cat"] == 0)
-            & (ev["t_sample_type"] == 1)
-            & (
-                (ev["t_all_cat"] == 1)
-                | (ev["t_all_cat"] == 2)
-                | (ev["t_all_cat"] == 3)
-                | (ev["t_all_cat"] == 5)
-            )
-        ],  # Appeared CC nonQEL nuel
-        ev[
-            (ev["t_comb_cat"] == 1)
-            & (ev["t_sample_type"] == 0)
-            & ((ev["t_all_cat"] == 6) | (ev["t_all_cat"] == 10))
-        ],  # Appeared CC QEL nuel
-        ev[
-            (ev["t_comb_cat"] == 1)
-            & (ev["t_sample_type"] == 0)
-            & (
-                (ev["t_all_cat"] == 7)
-                | (ev["t_all_cat"] == 8)
-                | (ev["t_all_cat"] == 9)
-                | (ev["t_all_cat"] == 11)
-            )
-        ],  # Appeared CC nonQEL nuel
-        ev[(ev["t_comb_cat"] == 2)],  # NC
-    ]
-    keys = [
-        prefix + "pred_t_comb_cat_0",
-        prefix + "pred_t_comb_cat_0",
-        prefix + "pred_t_comb_cat_1",
-        prefix + "pred_t_comb_cat_1",
-        prefix + "pred_t_comb_cat_2",
-    ]
-    cut_keys = [0, 0, 1, 1, 2]
     """
     selections = [
         ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 1)],  # Appeared CC nuel
@@ -1124,6 +1081,22 @@ def calculate_eff_pur(ev, cut_value, e_bins=20, e_range=(0, 10000), prefix=""):
         prefix + "pred_t_comb_cat_1",
         prefix + "pred_t_comb_cat_2",
     ]
+    
+    if energy is None:
+        energy = [
+            "t_nu_energy",
+            "t_nu_energy",
+            "t_nu_energy",
+            "t_had_energy"
+        ]
+    else:
+        energy = [
+            energy,
+            energy,
+            energy,
+            energy
+        ]
+        
     cut_keys = [0, 0, 1, 2]
     num_cats = len(selections)
     np.seterr(divide="ignore", invalid="ignore")
@@ -1146,7 +1119,7 @@ def calculate_eff_pur(ev, cut_value, e_bins=20, e_range=(0, 10000), prefix=""):
             ]
 
             tot_h, tot_err, centers, edges = extended_hist(
-                total["t_nu_energy"].to_numpy(),
+                total[energy[cut_cat]].to_numpy(),
                 e_range[0],
                 e_range[1],
                 e_bins,
@@ -1154,7 +1127,7 @@ def calculate_eff_pur(ev, cut_value, e_bins=20, e_range=(0, 10000), prefix=""):
             )
 
             pass_h, pass_err, centers, edges = extended_hist(
-                passed["t_nu_energy"].to_numpy(),
+                passed[energy[cut_cat]].to_numpy(),
                 e_range[0],
                 e_range[1],
                 e_bins,
