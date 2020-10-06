@@ -1659,7 +1659,9 @@ def get_old_df(file_name, l_type):
     """
     f = uproot.open(file_name)
     true = f["fResultsTree"]["TruthInfo"]
-    reco = f["fResultsTree"]["PidInfo_ElectronLike"]
+    reco = None
+    if l_type == 11:
+        reco = f["fResultsTree"]["PidInfo_ElectronLike"]
     if l_type == 13:
         reco = f["fResultsTree"]["PidInfo_MuonLike"]
     pid = f["PIDTree_ann"]
@@ -1701,10 +1703,13 @@ def get_old_df(file_name, l_type):
     pid_df["ann_vs_nc"] = pid["annNueCCQEvsNC"].array()
     pid_df["delta_charge_2lnl"] = pid["deltaCharge2LnL"].array()
     pid_df["delta_time_2lnl"] = pid["deltaTime2LnL"].array()
+    pid_df["preselected"] = pid["preselected"].array()
+    pid_df["escapes_el"] = pid["escapes_el"].array()
+    pid_df["escapes_mu"] = pid["escapes_mu"].array()
     df = pd.merge(df, pid_df, how="inner", on=["t_nu_energy"])
 
     # Calculate some things
-    df["frac_lep_e"] = (df["r_lep_energy"] - df["t_nu_energy"]) / df["t_nu_energy"]
+    df["frac_lep_e"] = (df["r_lep_energy"] - df["t_lep_energy"]) / df["t_lep_energy"]
     df["l_type"] = np.full(len(df), l_type)
 
     # Apply the correct weights to each event

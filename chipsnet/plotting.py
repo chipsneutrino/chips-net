@@ -306,7 +306,7 @@ def plot_cuts(config, events, save_path):
         save_path (str): path to save plot to
     """
     fig, axs = plt.subplots(
-        2, 2, figsize=(15, 15), gridspec_kw={"hspace": 0.2, "wspace": 0.1}
+        2, 2, figsize=(20, 15), gridspec_kw={"hspace": 0.2, "wspace": 0.1}
     )
     axs[0, 0].hist(
         events[(events.t_comb_cat == 0) & (events.t_sample_type == 1)][
