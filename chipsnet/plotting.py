@@ -65,7 +65,8 @@ def plot_event(images_dict, event, save_name):
         cmap="Reds",
         origin="lower",
         extent=(0, 64, 0, 64),
-        vmin=0, vmax=255
+        vmin=0,
+        vmax=255,
     )
     axs[0].set_title(r"Hit charge")
     axs[0].set_xlabel(r"$\phi$ bins", fontsize=30)
@@ -77,7 +78,8 @@ def plot_event(images_dict, event, save_name):
         cmap="Reds",
         origin="lower",
         extent=(0, 64, 0, 64),
-        vmin=0, vmax=255
+        vmin=0,
+        vmax=255,
     )
     axs[1].set_title(r"Hit time")
     axs[1].set_xlabel(r"$\phi$ bins", fontsize=30)
@@ -89,7 +91,8 @@ def plot_event(images_dict, event, save_name):
         cmap="Reds",
         origin="lower",
         extent=(0, 64, 0, 64),
-        vmin=0, vmax=255
+        vmin=0,
+        vmax=255,
     )
     axs[2].set_title(r"Hough value")
     axs[2].set_xlabel(r"$\phi$ bins", fontsize=30)
@@ -97,7 +100,7 @@ def plot_event(images_dict, event, save_name):
     axs[2].label_outer()
     fig.colorbar(neg, ax=axs, shrink=0.43, aspect=8, pad=0.025)
     save(save_name)
-    
+
 
 def plot_hit_time(images_dict, event, save_name):
     """Plot hit and time channels for the different image representations.
@@ -922,7 +925,9 @@ def plot_cosmic_values(events, prefix, save_path, zoom=False):
     cosmic = Line2D(
         [0], [0], color="black", linewidth=2, linestyle="solid", label=r"Cosmic"
     )
-    axs.legend(handles=[cosmic, osc_nuel, numu, nuel, nc], loc="upper center", fontsize=26)
+    axs.legend(
+        handles=[cosmic, osc_nuel, numu, nuel, nc], loc="upper center", fontsize=26
+    )
 
     save(save_path)
 
@@ -1089,7 +1094,7 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
             color="tab:orange",
             linestyle=styles[i],
             label="",
-            linewidth=2
+            linewidth=2,
         )
         # axs.plot(
         #    events[i]["cuts"],
@@ -1102,14 +1107,14 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
             events[i]["purs"][cat] * 100,
             color="tab:purple",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
         axs.plot(
             events[i]["cuts"],
             events[i]["foms_0"][cat] * 100,
             color="tab:brown",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
     axs.set_xlabel(r"CC $\nu_{e}$ score", fontsize=30)
     if cat == 1:
@@ -1200,7 +1205,7 @@ def plot_comp_curves(events, cat, save_path):
             events[i]["sig_effs"][cat],
             color="tab:cyan",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
     axs[0].set_xlabel("Background efficiency", fontsize=30)
     if cat == 0:
@@ -1217,7 +1222,7 @@ def plot_comp_curves(events, cat, save_path):
             events[i]["purs"][cat],
             color="tab:pink",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
     if cat == 0:
         axs[1].set_xlabel(r"CC $\nu_{e}$ efficiency", fontsize=30)
@@ -1251,7 +1256,7 @@ def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)"):
             yerr=events[i]["fom_effs"][0][0][1] * 100,
             color="tab:green",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
         axs.errorbar(
             bins,
@@ -1259,7 +1264,7 @@ def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)"):
             yerr=events[i]["fom_effs"][0][1][1] * 100,
             color="tab:olive",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
         axs.errorbar(
             bins,
@@ -1267,7 +1272,7 @@ def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)"):
             yerr=events[i]["fom_effs"][0][2][1] * 100,
             color="tab:blue",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
         axs.errorbar(
             bins,
@@ -1275,7 +1280,7 @@ def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)"):
             yerr=events[i]["fom_effs"][0][3][1] * 100,
             color="tab:red",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
         axs.errorbar(
             bins,
@@ -1283,7 +1288,7 @@ def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)"):
             yerr=events[i]["fom_purs"][0][1] * 100,
             color="black",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
     axs.hist(
         ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 1)]["t_nu_energy"] / 1000,
@@ -1339,7 +1344,9 @@ def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)"):
         linestyle="solid",
         label=r"Appeared CC $\nu_{e}$ purity",
     )
-    axs.legend(handles=[osc_nuel, numu, nuel, nc, purity], loc="center right", fontsize=24)
+    axs.legend(
+        handles=[osc_nuel, numu, nuel, nc, purity], loc="center right", fontsize=24
+    )
     save(save_path)
 
 
@@ -1362,7 +1369,7 @@ def plot_numu_hists(events, ev, save_path, energy=r"E (GeV)"):
             yerr=events[i]["fom_effs"][2][0][1] * 100,
             color="tab:green",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
         axs.errorbar(
             bins,
@@ -1370,7 +1377,7 @@ def plot_numu_hists(events, ev, save_path, energy=r"E (GeV)"):
             yerr=events[i]["fom_effs"][2][1][1] * 100,
             color="tab:olive",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
         axs.errorbar(
             bins,
@@ -1378,7 +1385,7 @@ def plot_numu_hists(events, ev, save_path, energy=r"E (GeV)"):
             yerr=events[i]["fom_effs"][2][2][1] * 100,
             color="tab:blue",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
         axs.errorbar(
             bins,
@@ -1386,7 +1393,7 @@ def plot_numu_hists(events, ev, save_path, energy=r"E (GeV)"):
             yerr=events[i]["fom_effs"][2][3][1] * 100,
             color="tab:red",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
         axs.errorbar(
             bins,
@@ -1394,7 +1401,7 @@ def plot_numu_hists(events, ev, save_path, energy=r"E (GeV)"):
             yerr=events[i]["fom_purs"][2][1] * 100,
             color="black",
             linestyle=styles[i],
-            linewidth=2
+            linewidth=2,
         )
     axs.hist(
         ev[ev["t_comb_cat"] == 1]["t_nu_energy"] / 1000,
@@ -1450,7 +1457,9 @@ def plot_numu_hists(events, ev, save_path, energy=r"E (GeV)"):
         linestyle="solid",
         label=r"Survived CC $\nu_{\mu}$ purity",
     )
-    axs.legend(handles=[osc_nuel, numu, nuel, nc, purity], loc="center right", fontsize=24)
+    axs.legend(
+        handles=[osc_nuel, numu, nuel, nc, purity], loc="center right", fontsize=24
+    )
     save(save_path)
 
 
@@ -1476,7 +1485,9 @@ def plot_history(
     axs.set_xlabel("Epoch", fontsize=32)
     axs.set_ylabel(label, color="tab:red", fontsize=32)
     axs.plot(epochs, history[key], color="tab:red", linestyle="solid", linewidth=2)
-    axs.plot(epochs, history["val_" + key], color="tab:red", linestyle="dashed", linewidth=2)
+    axs.plot(
+        epochs, history["val_" + key], color="tab:red", linestyle="dashed", linewidth=2
+    )
     best_epoch = history["val_" + key].to_numpy().argmax() + 1
     if type == "min":
         best_epoch = history["val_" + key].to_numpy().argmin() + 1
@@ -1487,8 +1498,12 @@ def plot_history(
     axs_t.set_ylabel(
         "Loss", color="tab:blue", fontsize=32
     )  # we already handled the x-label with ax1
-    axs_t.plot(epochs, history["loss"], color="tab:blue", linestyle="solid", linewidth=2)
-    axs_t.plot(epochs, history["val_loss"], color="tab:blue", linestyle="dashed", linewidth=2)
+    axs_t.plot(
+        epochs, history["loss"], color="tab:blue", linestyle="solid", linewidth=2
+    )
+    axs_t.plot(
+        epochs, history["val_loss"], color="tab:blue", linestyle="dashed", linewidth=2
+    )
     axs_t.tick_params(axis="y", labelcolor="tab:blue")
     # fig.tight_layout()  # otherwise the right y-label is slightly clipped
     save(save_path)

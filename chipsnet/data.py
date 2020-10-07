@@ -176,6 +176,14 @@ class Reader:
 
     @tf.function
     def contained(self, inputs, labels):
+        """Return if the event is fully contained or not.
+
+        Args:
+            tuple[dict, dict]: (inputs dict, labels dict)
+
+        Returns:
+            bool: is the primary charged lepton in the event contained?
+        """
         return tf.math.equal(labels["t_escapes"], 0)
 
     @tf.function

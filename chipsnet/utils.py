@@ -1056,7 +1056,9 @@ def calculate_curves(ev, thresholds=200, prefix=""):
     return output
 
 
-def calculate_eff_pur(ev, cut_value, e_bins=20, e_range=(0, 10000), prefix="", energy=None):
+def calculate_eff_pur(
+    ev, cut_value, e_bins=20, e_range=(0, 10000), prefix="", energy=None
+):
     """Calculate efficiency and purity curves at a specific cut value.
 
     Args:
@@ -1081,22 +1083,12 @@ def calculate_eff_pur(ev, cut_value, e_bins=20, e_range=(0, 10000), prefix="", e
         prefix + "pred_t_comb_cat_1",
         prefix + "pred_t_comb_cat_2",
     ]
-    
+
     if energy is None:
-        energy = [
-            "t_nu_energy",
-            "t_nu_energy",
-            "t_nu_energy",
-            "t_had_energy"
-        ]
+        energy = ["t_nu_energy", "t_nu_energy", "t_nu_energy", "t_had_energy"]
     else:
-        energy = [
-            energy,
-            energy,
-            energy,
-            energy
-        ]
-        
+        energy = [energy, energy, energy, energy]
+
     cut_keys = [0, 0, 1, 2]
     num_cats = len(selections)
     np.seterr(divide="ignore", invalid="ignore")
@@ -1590,7 +1582,7 @@ def gaussian(x, a, b, c):
     Returns:
         float: result of gaussian function
     """
-    val = a * np.exp(-((x - b) ** 2) / (2*c ** 2))
+    val = a * np.exp(-((x - b) ** 2) / (2 * c ** 2))
     return val
 
 
@@ -1615,15 +1607,19 @@ def frac_e_vs_par(
     Returns:
         (list, list): list of cuts, list of std errors
     """
-    cuts, mean_list, mean_err_list, std_list, std_err_list = [], [], [], [], []
+    cuts, mean_list, mean_err_list, std_list, std_err_list, peak_list = (
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+    )
     for cut in range(low, high, bin_size):
         try:
             subset = events[(events[par] >= cut) & (events[par] <= (cut + bin_size))]
             n, bins = np.histogram(
-                subset[fit_name],
-                bins=50,
-                range=(-1, 1),
-                weights=subset["w"]
+                subset[fit_name], bins=50, range=(-1, 1), weights=subset["w"]
             )
             centers = 0.5 * (bins[1:] + bins[:-1])
             pars, cov = curve_fit(
@@ -1636,6 +1632,7 @@ def frac_e_vs_par(
             mean_err_list.append(abs(np.sqrt(cov[1, 1])))
             std_list.append(abs(pars[2]))
             std_err_list.append(abs(np.sqrt(cov[2, 2])))
+            peak_list.append(abs(pars[0]))
             cuts.append(cut + (bin_size / 2))
         except Exception as e:
             print(e)
@@ -1644,7 +1641,12 @@ def frac_e_vs_par(
             mean_err_list.append(0)
             std_list.append(0)
             std_err_list.append(0)
-    return np.array(cuts), [mean_list, mean_err_list], [std_list, std_err_list]
+            peak_list.append(0)
+    return (
+        np.array(cuts),
+        [mean_list, mean_err_list],
+        [std_list, std_err_list, peak_list],
+    )
 
 
 def get_old_df(file_name, l_type):
