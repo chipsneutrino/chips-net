@@ -1096,12 +1096,6 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
             label="",
             linewidth=2,
         )
-        # axs.plot(
-        #    events[i]["cuts"],
-        #    events[i]["bkg_effs"][cat] * 100,
-        #    color="tab:cyan",
-        #    linestyle=styles[i],
-        # )
         axs.plot(
             events[i]["cuts"],
             events[i]["purs"][cat] * 100,
@@ -1112,9 +1106,9 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
         axs.plot(
             events[i]["cuts"],
             events[i]["foms_0"][cat] * 100,
-            color="tab:brown",
+            color="tab:cyan",
             linestyle=styles[i],
-            linewidth=2,
+            linewidth=3,
         )
     axs.set_xlabel(r"CC $\nu_{e}$ score", fontsize=30)
     if cat == 1:
@@ -1141,14 +1135,6 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
             linestyle="solid",
             label=r"CC $\nu_{\mu}$ efficiency",
         )
-    # bkg = Line2D(
-    #    [0],
-    #    [0],
-    #    color="tab:cyan",
-    #    linewidth=2,
-    #    linestyle="solid",
-    #    label="Background efficiency",
-    # )
     pur = Line2D(
         [0],
         [0],
@@ -1169,8 +1155,8 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
     fom = Line2D(
         [0],
         [0],
-        color="tab:brown",
-        linewidth=2,
+        color="tab:cyan",
+        linewidth=3,
         linestyle="solid",
         label=r"Efficiency $\times$ purity",
     )
@@ -1203,7 +1189,7 @@ def plot_comp_curves(events, cat, save_path):
         axs[0].plot(
             events[i]["bkg_effs"][cat],
             events[i]["sig_effs"][cat],
-            color="tab:cyan",
+            color="tab:pink",
             linestyle=styles[i],
             linewidth=2,
         )
@@ -1220,7 +1206,7 @@ def plot_comp_curves(events, cat, save_path):
         axs[1].plot(
             events[i]["sig_effs"][cat],
             events[i]["purs"][cat],
-            color="tab:pink",
+            color="tab:brown",
             linestyle=styles[i],
             linewidth=2,
         )
