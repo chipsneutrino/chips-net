@@ -1223,7 +1223,7 @@ def plot_comp_curves(events, cat, save_path):
     save(save_path)
 
 
-def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)"):
+def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)", bin_width=0.5):
     """Plot the eff and pur plot vs neutrino energy.
 
     Args:
@@ -1232,7 +1232,7 @@ def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)"):
         save_path (str): path to save plot to
     """
     fig, axs = plt.subplots(1, 1, figsize=(12, 8))
-    bins = np.arange(0.25, 10.25, 0.5)
+    bins = np.arange(0.25, 10.25, bin_width)
     styles = ["solid", "dashed", "dotted", "dashdot"]
 
     for i in range(len(events)):
