@@ -32,12 +32,12 @@ eval:
         escapes: 0.5         # Escapes classifier cut
     weights:  # for the chips_1200 detector
         osc_file_name: "./data/input/oscillations/matter_osc_cp_zero.root"
-        nuel:   0.00003202064566
-        anuel:  0.00000208200747
-        numu:   0.00276174709613
-        anumu:  0.00006042213136
-        cosmic: 0.99714372811940
-        total:  1214165.85244438
+        nuel:   0.00001845046927
+        anuel:  0.00000119966397
+        numu:   0.00159133361853
+        anumu:  0.00003481555899
+        cosmic: 0.99835420068925
+        total:  2107175.37678275
 samples:
     # Different input representations
     v_c_flux:
