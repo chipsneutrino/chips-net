@@ -781,7 +781,7 @@ MAP_INT_TYPE = {
     "categories": 12,
     "loss": int_type_loss,
     "labels": [
-        "CC-QE",  # 0
+        "CC-QEL",  # 0
         "CC-Res",  # 1
         "CC-DIS",  # 2
         "CC-Coh",  # 3
@@ -937,7 +937,7 @@ MAP_CC_CAT = {
     "categories": 6,
     "loss": cc_cat_loss,
     "labels": [
-        "CC-QE",  # 0
+        "CC-QEL",  # 0
         "CC-Res",  # 1
         "CC-DIS",  # 2
         "CC-Coh",  # 3
@@ -1053,13 +1053,13 @@ MAP_ALL_CAT = {
     "categories": 16,
     "loss": all_cat_loss,
     "labels": [
-        r"$\nu_{e}$ CC-QE",  # 0
+        r"$\nu_{e}$ CC-QEL",  # 0
         r"$\nu_{e}$ CC-Res",  # 1
         r"$\nu_{e}$ CC-DIS",  # 2
         r"$\nu_{e}$ CC-Coh",  # 3
         r"$\nu_{e}$ CC-MEC",  # 4
         r"$\nu_{e}$ CC-Other",  # 5
-        r"$\nu_{\mu}$ CC-QE",  # 6
+        r"$\nu_{\mu}$ CC-QEL",  # 6
         r"$\nu_{\mu}$ CC-Res",  # 7
         r"$\nu_{\mu}$ CC-DIS",  # 8
         r"$\nu_{\mu}$ CC-Coh",  # 9
@@ -1122,13 +1122,13 @@ MAP_NC_COMB_CAT = {
     "categories": 13,
     "loss": nc_comb_cat_loss,
     "labels": [
-        r"$\nu_{e}$ CC-QE",  # 0
+        r"$\nu_{e}$ CC-QEL",  # 0
         r"$\nu_{e}$ CC-Res",  # 1
         r"$\nu_{e}$ CC-DIS",  # 2
         r"$\nu_{e}$ CC-Coh",  # 3
         r"$\nu_{e}$ CC-MEC",  # 4
         r"$\nu_{e}$ CC-Other",  # 5
-        r"$\nu_{\mu}$ CC-QE",  # 6
+        r"$\nu_{\mu}$ CC-QEL",  # 6
         r"$\nu_{\mu}$ CC-Res",  # 7
         r"$\nu_{\mu}$ CC-DIS",  # 8
         r"$\nu_{\mu}$ CC-Coh",  # 9
