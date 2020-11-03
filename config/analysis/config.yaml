@@ -225,6 +225,22 @@ samples:
         reco_pars: False
 
     # Different augmentations to study model resiliance
+    calib_time_1:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.0, 0.0, 0.0]
+        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0167, 0.0]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.0, 0.0, 0.0]
     calib_time_2:
         input_dirs: 
             - "./data/input/chips_1200/numu_all_numuflux/"
@@ -238,10 +254,10 @@ samples:
         aug_factor_mean: [0.0, 0.0, 0.0]
         aug_factor_sigma: [0.0, 0.0, 0.0]
         aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.0, 0.02, 0.0]
+        aug_abs_sigma: [0.0, 0.0417, 0.0]
         aug_noise_mean: [0.0, 0.0, 0.0]
         aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_time_5:
+    calib_charge_scale_1:
         input_dirs: 
             - "./data/input/chips_1200/numu_all_numuflux/"
             - "./data/input/chips_1200/nuel_all_nuelflux/"
@@ -252,60 +268,12 @@ samples:
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
-        aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.0, 0.05, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_time_10:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_all_numuflux/"
-            - "./data/input/chips_1200/nuel_all_nuelflux/"
-            - "./data/input/chips_1200/anumu_all_anumuflux/"
-            - "./data/input/chips_1200/anuel_all_anuelflux/"
-            - "./data/input/chips_1200/nuel_all_numuflux/"
-            - "./data/input/chips_1200/cosmics/"
-        channels: [1, 1, 1]
-        augment: True
-        aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
-        aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.0, 0.1, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_time_20:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_all_numuflux/"
-            - "./data/input/chips_1200/nuel_all_nuelflux/"
-            - "./data/input/chips_1200/anumu_all_anumuflux/"
-            - "./data/input/chips_1200/anuel_all_anuelflux/"
-            - "./data/input/chips_1200/nuel_all_numuflux/"
-            - "./data/input/chips_1200/cosmics/"
-        channels: [1, 1, 1]
-        augment: True
-        aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
-        aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.0, 0.2, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_charge_rand_10:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_all_numuflux/"
-            - "./data/input/chips_1200/nuel_all_nuelflux/"
-            - "./data/input/chips_1200/anumu_all_anumuflux/"
-            - "./data/input/chips_1200/anuel_all_anuelflux/"
-            - "./data/input/chips_1200/nuel_all_numuflux/"
-            - "./data/input/chips_1200/cosmics/"
-        channels: [1, 1, 1]
-        augment: True
-        aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.1, 0.0, 0.1]
+        aug_factor_sigma: [0.1, 0.0, 0.0]
         aug_abs_mean: [0.0, 0.0, 0.0]
         aug_abs_sigma: [0.0, 0.0, 0.0]
         aug_noise_mean: [0.0, 0.0, 0.0]
         aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_charge_rand_20:
+    calib_charge_scale_2:
         input_dirs: 
             - "./data/input/chips_1200/numu_all_numuflux/"
             - "./data/input/chips_1200/nuel_all_nuelflux/"
@@ -316,9 +284,57 @@ samples:
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.2, 0.0, 0.2]
+        aug_factor_sigma: [0.2, 0.0, 0.0]
         aug_abs_mean: [0.0, 0.0, 0.0]
         aug_abs_sigma: [0.0, 0.0, 0.0]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.0, 0.0, 0.0]
+    calib_charge_rand_1:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.0, 0.0, 0.0]
+        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.04, 0.0, 0.0]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.0, 0.0, 0.0]
+    calib_charge_rand_2:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.0, 0.0, 0.0]
+        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_abs_mean: [0.0, 0.0, 0.0]
+        aug_abs_sigma: [0.08, 0.0, 0.0]
+        aug_noise_mean: [0.0, 0.0, 0.0]
+        aug_noise_sigma: [0.0, 0.0, 0.0]
+    calib_charge_shift_1:
+        input_dirs: 
+            - "./data/input/chips_1200/numu_all_numuflux/"
+            - "./data/input/chips_1200/nuel_all_nuelflux/"
+            - "./data/input/chips_1200/anumu_all_anumuflux/"
+            - "./data/input/chips_1200/anuel_all_anuelflux/"
+            - "./data/input/chips_1200/nuel_all_numuflux/"
+            - "./data/input/chips_1200/cosmics/"
+        channels: [1, 1, 1]
+        augment: True
+        aug_factor_mean: [0.0, 0.0, 0.0]
+        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_abs_mean: [0.04, 0.0, 0.0]
+        aug_abs_sigma: [0.04, 0.0, 0.0]
         aug_noise_mean: [0.0, 0.0, 0.0]
         aug_noise_sigma: [0.0, 0.0, 0.0]
     calib_charge_shift_2:
@@ -331,13 +347,13 @@ samples:
             - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
-        aug_factor_mean: [0.02, 0.0, 0.02]
+        aug_factor_mean: [0.0, 0.0, 0.0]
         aug_factor_sigma: [0.0, 0.0, 0.0]
-        aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.0, 0.0, 0.0]
+        aug_abs_mean: [0.08, 0.0, 0.0]
+        aug_abs_sigma: [0.04, 0.0, 0.0]
         aug_noise_mean: [0.0, 0.0, 0.0]
         aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_charge_shift_5:
+    calib_noise_1:
         input_dirs: 
             - "./data/input/chips_1200/numu_all_numuflux/"
             - "./data/input/chips_1200/nuel_all_nuelflux/"
@@ -347,44 +363,12 @@ samples:
             - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
-        aug_factor_mean: [0.05, 0.0, 0.05]
+        aug_factor_mean: [0.0, 0.0, 0.0]
         aug_factor_sigma: [0.0, 0.0, 0.0]
         aug_abs_mean: [0.0, 0.0, 0.0]
         aug_abs_sigma: [0.0, 0.0, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_charge_shift_10:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_all_numuflux/"
-            - "./data/input/chips_1200/nuel_all_nuelflux/"
-            - "./data/input/chips_1200/anumu_all_anumuflux/"
-            - "./data/input/chips_1200/anuel_all_anuelflux/"
-            - "./data/input/chips_1200/nuel_all_numuflux/"
-            - "./data/input/chips_1200/cosmics/"
-        channels: [1, 1, 1]
-        augment: True
-        aug_factor_mean: [0.1, 0.0, 0.1]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
-        aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.0, 0.0, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_charge_shift_20:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_all_numuflux/"
-            - "./data/input/chips_1200/nuel_all_nuelflux/"
-            - "./data/input/chips_1200/anumu_all_anumuflux/"
-            - "./data/input/chips_1200/anuel_all_anuelflux/"
-            - "./data/input/chips_1200/nuel_all_numuflux/"
-            - "./data/input/chips_1200/cosmics/"
-        channels: [1, 1, 1]
-        augment: True
-        aug_factor_mean: [0.2, 0.0, 0.2]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
-        aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.0, 0.0, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.0, 0.0, 0.0]
+        aug_noise_mean: [0.02, 0.0, 0.0]
+        aug_noise_sigma: [0.01, 0.0, 0.0]
     calib_noise_2:
         input_dirs: 
             - "./data/input/chips_1200/numu_all_numuflux/"
@@ -399,57 +383,9 @@ samples:
         aug_factor_sigma: [0.0, 0.0, 0.0]
         aug_abs_mean: [0.0, 0.0, 0.0]
         aug_abs_sigma: [0.0, 0.0, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.02, 0.02, 0.02]
-    calib_noise_5:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_all_numuflux/"
-            - "./data/input/chips_1200/nuel_all_nuelflux/"
-            - "./data/input/chips_1200/anumu_all_anumuflux/"
-            - "./data/input/chips_1200/anuel_all_anuelflux/"
-            - "./data/input/chips_1200/nuel_all_numuflux/"
-            - "./data/input/chips_1200/cosmics/"
-        channels: [1, 1, 1]
-        augment: True
-        aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
-        aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.0, 0.0, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.05, 0.05, 0.05]
-    calib_noise_10:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_all_numuflux/"
-            - "./data/input/chips_1200/nuel_all_nuelflux/"
-            - "./data/input/chips_1200/anumu_all_anumuflux/"
-            - "./data/input/chips_1200/anuel_all_anuelflux/"
-            - "./data/input/chips_1200/nuel_all_numuflux/"
-            - "./data/input/chips_1200/cosmics/"
-        channels: [1, 1, 1]
-        augment: True
-        aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
-        aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.0, 0.0, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.1, 0.1, 0.1]
-    calib_noise_20:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_all_numuflux/"
-            - "./data/input/chips_1200/nuel_all_nuelflux/"
-            - "./data/input/chips_1200/anumu_all_anumuflux/"
-            - "./data/input/chips_1200/anuel_all_anuelflux/"
-            - "./data/input/chips_1200/nuel_all_numuflux/"
-            - "./data/input/chips_1200/cosmics/"
-        channels: [1, 1, 1]
-        augment: True
-        aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
-        aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.0, 0.0, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.2, 0.2, 0.2]
-
+        aug_noise_mean: [0.025, 0.0, 0.0]
+        aug_noise_sigma: [0.01, 0.0, 0.0]
+        
 models:
     # Different input representations
     repr_v_c:

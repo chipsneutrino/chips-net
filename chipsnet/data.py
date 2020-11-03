@@ -76,13 +76,39 @@ class Reader:
         image = tf.reshape(image, self.image_shape)
         image = tf.cast(image, tf.float32) / 256.0  # Cast to float and scale to [0,1]
 
-        # Unstack the channels and reassemble if needed later
+        # Unstack the channels
         unstacked = tf.unstack(image, axis=2)
-        channels = []
-        for i, enabled in enumerate(self.config.data.channels):
-            if enabled:
-                if self.config.data.augment:
 
+        if self.config.data.augment:
+            # Calculate if we have noise that is sufficiently sized
+            noise_charge = tf.random.normal(
+                shape=self.config.data.img_size,
+                mean=self.config.data.aug_noise_mean[0],
+                stddev=self.config.data.aug_noise_sigma[0],
+                dtype=tf.float32,
+            )
+            charge_cut = tf.constant(0.04, dtype=tf.float32)
+            charge_cut = tf.math.greater(noise_charge, charge_cut)
+
+            # Calculate if we need to update the time in a bin
+            noise_time = tf.random.uniform(
+                shape=self.config.data.img_size, dtype=tf.float32,
+            )
+            time_cut = tf.math.less(noise_time, unstacked[1])
+            time_cut = tf.math.logical_and(time_cut, charge_cut)
+
+            # Update the charge bins with the noise
+            noise_charge = tf.math.multiply(
+                noise_charge, tf.cast(charge_cut, tf.float32)
+            )
+            unstacked[0] = tf.math.add(unstacked[0], noise_charge)
+            unstacked[2] = tf.math.add(unstacked[2], noise_charge / 2)
+
+            # Update the time bins with the noise
+            unstacked[1] = tf.where(time_cut, noise_time, unstacked[1])
+
+            for i, enabled in enumerate(self.config.data.channels):
+                if enabled:
                     # Apply the factor scaling of the bin contents
                     factor_shift = tf.random.normal(
                         shape=self.config.data.img_size,
@@ -95,7 +121,7 @@ class Reader:
                     # Apply the absolute shifting of the bin contents
                     abs_shift = tf.random.normal(
                         shape=self.config.data.img_size,
-                        mean=(self.config.data.aug_abs_mean[i]),
+                        mean=self.config.data.aug_abs_mean[i],
                         stddev=self.config.data.aug_abs_sigma[i],
                         dtype=tf.float32,
                     )
@@ -105,18 +131,13 @@ class Reader:
                     abs_shift = tf.math.multiply(abs_shift, zero_locs)
                     unstacked[i] = tf.math.add(unstacked[i], abs_shift)
 
-                    # Apply the noise shifting of the bin contents
-                    noise_shift = tf.random.normal(
-                        shape=self.config.data.img_size,
-                        mean=(self.config.data.aug_noise_mean[i]),
-                        stddev=self.config.data.aug_noise_sigma[i],
-                        dtype=tf.float32,
-                    )
-                    unstacked[i] = tf.math.add(unstacked[i], noise_shift)
-
                     # Clip value back to between [0,1]
                     unstacked[i] = tf.clip_by_value(unstacked[i], 0.0, 1.0)
 
+        # Add the enabled channels to a list
+        channels = []
+        for i, enabled in enumerate(self.config.data.channels):
+            if enabled:
                 channels.append(unstacked[i])
 
         # Choose to either stack the channels back into a single tensor or keep them seperate
