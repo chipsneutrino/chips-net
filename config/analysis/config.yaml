@@ -257,7 +257,7 @@ samples:
         aug_abs_sigma: [0.0, 0.0417, 0.0]
         aug_noise_mean: [0.0, 0.0, 0.0]
         aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_charge_scale_1:
+    calib_charge_1:
         input_dirs: 
             - "./data/input/chips_1200/numu_all_numuflux/"
             - "./data/input/chips_1200/nuel_all_nuelflux/"
@@ -268,12 +268,12 @@ samples:
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.1, 0.0, 0.0]
+        aug_factor_sigma: [0.2, 0.0, 0.2]
         aug_abs_mean: [0.0, 0.0, 0.0]
         aug_abs_sigma: [0.0, 0.0, 0.0]
         aug_noise_mean: [0.0, 0.0, 0.0]
         aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_charge_scale_2:
+    calib_charge_2:
         input_dirs: 
             - "./data/input/chips_1200/numu_all_numuflux/"
             - "./data/input/chips_1200/nuel_all_nuelflux/"
@@ -284,12 +284,12 @@ samples:
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.2, 0.0, 0.0]
+        aug_factor_sigma: [0.4, 0.0, 0.4]
         aug_abs_mean: [0.0, 0.0, 0.0]
         aug_abs_sigma: [0.0, 0.0, 0.0]
         aug_noise_mean: [0.0, 0.0, 0.0]
         aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_charge_rand_1:
+    calib_charge_3:
         input_dirs: 
             - "./data/input/chips_1200/numu_all_numuflux/"
             - "./data/input/chips_1200/nuel_all_nuelflux/"
@@ -299,13 +299,13 @@ samples:
             - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
-        aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_factor_mean: [0.2, 0.0, 0.2]
+        aug_factor_sigma: [0.2, 0.0, 0.2]
         aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.04, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
         aug_noise_mean: [0.0, 0.0, 0.0]
         aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_charge_rand_2:
+    calib_charge_4:
         input_dirs: 
             - "./data/input/chips_1200/numu_all_numuflux/"
             - "./data/input/chips_1200/nuel_all_nuelflux/"
@@ -315,42 +315,10 @@ samples:
             - "./data/input/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
-        aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
+        aug_factor_mean: [0.4, 0.0, 0.4]
+        aug_factor_sigma: [0.2, 0.0, 0.2]
         aug_abs_mean: [0.0, 0.0, 0.0]
-        aug_abs_sigma: [0.08, 0.0, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_charge_shift_1:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_all_numuflux/"
-            - "./data/input/chips_1200/nuel_all_nuelflux/"
-            - "./data/input/chips_1200/anumu_all_anumuflux/"
-            - "./data/input/chips_1200/anuel_all_anuelflux/"
-            - "./data/input/chips_1200/nuel_all_numuflux/"
-            - "./data/input/chips_1200/cosmics/"
-        channels: [1, 1, 1]
-        augment: True
-        aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
-        aug_abs_mean: [0.04, 0.0, 0.0]
-        aug_abs_sigma: [0.04, 0.0, 0.0]
-        aug_noise_mean: [0.0, 0.0, 0.0]
-        aug_noise_sigma: [0.0, 0.0, 0.0]
-    calib_charge_shift_2:
-        input_dirs: 
-            - "./data/input/chips_1200/numu_all_numuflux/"
-            - "./data/input/chips_1200/nuel_all_nuelflux/"
-            - "./data/input/chips_1200/anumu_all_anumuflux/"
-            - "./data/input/chips_1200/anuel_all_anuelflux/"
-            - "./data/input/chips_1200/nuel_all_numuflux/"
-            - "./data/input/chips_1200/cosmics/"
-        channels: [1, 1, 1]
-        augment: True
-        aug_factor_mean: [0.0, 0.0, 0.0]
-        aug_factor_sigma: [0.0, 0.0, 0.0]
-        aug_abs_mean: [0.08, 0.0, 0.0]
-        aug_abs_sigma: [0.04, 0.0, 0.0]
+        aug_abs_sigma: [0.0, 0.0, 0.0]
         aug_noise_mean: [0.0, 0.0, 0.0]
         aug_noise_sigma: [0.0, 0.0, 0.0]
     calib_noise_1:

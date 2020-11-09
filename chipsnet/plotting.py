@@ -599,7 +599,6 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
     ]
     numu_cc_events = events[(events["t_comb_cat"] == 1) & (events["cut"] == 0)]
     nc_events = events[(events["t_comb_cat"] == 2) & (events["cut"] == 0)]
-    cosmic_events = events[(events["t_comb_cat"] == 3) & (events["cut"] == 0)]
 
     if type == 0:
         fig, axs = plt.subplots(1, 1, figsize=(12, 8))
@@ -637,15 +636,6 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
             range=hist_range,
             bins=bins,
             color="tab:red",
-            histtype="step",
-            linewidth=2,
-        )
-        axs.hist(
-            cosmic_events[cat0],
-            weights=cosmic_events["w"],
-            range=hist_range,
-            bins=bins,
-            color="black",
             histtype="step",
             linewidth=2,
         )
@@ -692,9 +682,6 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
         nc = Line2D(
             [0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC"
         )
-        # cosmic = Line2D(
-        #    [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
-        # )
         axs.legend(handles=[osc_nuel, nuel, nc, numu], loc="upper center", fontsize=28)
 
     if type == 1:
@@ -734,15 +721,6 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
             range=hist_range,
             bins=bins,
             color="tab:red",
-            histtype="step",
-            linewidth=2,
-        )
-        axs.hist(
-            cosmic_events[cat1],
-            weights=cosmic_events["w"],
-            range=hist_range,
-            bins=bins,
-            color="black",
             histtype="step",
             linewidth=2,
         )
@@ -791,9 +769,6 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
         nc = Line2D(
             [0], [0], color="tab:red", linewidth=2, linestyle="solid", label=r"NC"
         )
-        # cosmic = Line2D(
-        #    [0], [0], color="black", linewidth=2, linestyle="solid", label=r"cosmic"
-        # )
         axs.legend(handles=[numu, nc, osc_nuel, nuel], loc="upper center", fontsize=28)
 
     save(save_path)
@@ -1198,15 +1173,16 @@ def plot_comp_curves(events, cat, save_path):
         axs[0].set_ylabel(r"CC $\nu_{e}$ efficiency", fontsize=30)
     else:
         axs[0].set_ylabel(r"CC $\nu_{\mu}$ efficiency", fontsize=30)
-    # axs[0].set_ylim(0.6, 1)
-    # axs[0].set_xlim(0, 0.25)
+    # axs[0].plot([0, 1], [0, 1], "k-", lw=3, color="black")
+    # axs[0].set_ylim(0, 1)
+    # axs[0].set_xlim(0, 1)
     axs[0].legend()
     axs[0].grid()
     for i in range(len(events)):
         axs[1].plot(
             events[i]["sig_effs"][cat],
             events[i]["purs"][cat],
-            color="tab:brown",
+            color="tab:green",
             linestyle=styles[i],
             linewidth=2,
         )
