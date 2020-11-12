@@ -120,7 +120,7 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[0, 0].set_title(r"Origin view ($\phi$,$\theta$)")
+    axs[0, 0].set_title(r"origin raw view")
     axs[0, 0].set_ylabel(r"$\theta$ bins", fontsize=30)
 
     axs[0, 1].imshow(
@@ -129,8 +129,8 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[0, 1].set_title(r"Origin view ($x^{+}$,$x^{-}$)")
-    axs[0, 1].set_ylabel(r"$x^{-}$ bins", fontsize=30)
+    axs[0, 1].set_title(r"origin iso view")
+    axs[0, 1].set_ylabel(r"$X_{-}$ bins", fontsize=30)
 
     axs[0, 2].imshow(
         images_dict["r_charge_map_vtx"][event],
@@ -138,9 +138,9 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[0, 2].set_title(r"Vertex view ($\phi$,$\theta$)")
+    axs[0, 2].set_title(r"vertex view")
     axs[0, 2].set_ylabel(r"$\theta$ bins", fontsize=30)
-    axs[0, 2].text(68, 4, "Hit charge images", rotation=-90, fontsize=30)
+    axs[0, 2].text(68, 7, "hit-charge maps", rotation=-90, fontsize=30)
 
     axs[1, 0].imshow(
         images_dict["r_time_map_origin"][event],
@@ -157,8 +157,8 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[1, 1].set_xlabel(r"$x^{+}$ bins", fontsize=30)
-    axs[1, 1].set_ylabel(r"$x^{-}$ bins", fontsize=30)
+    axs[1, 1].set_xlabel(r"$X_{+}$ bins", fontsize=30)
+    axs[1, 1].set_ylabel(r"$X_{-}$ bins", fontsize=30)
 
     axs[1, 2].imshow(
         images_dict["r_time_map_vtx"][event],
@@ -168,7 +168,7 @@ def plot_hit_time(images_dict, event, save_name):
     )
     axs[1, 2].set_xlabel(r"$\phi$ bins", fontsize=30)
     axs[1, 2].set_ylabel(r"$\theta$ bins", fontsize=30)
-    axs[1, 2].text(68, 7, "Hit time images", rotation=-90, fontsize=30)
+    axs[1, 2].text(68, 11, "hit-time maps", rotation=-90, fontsize=30)
     save(save_name)
 
 
