@@ -68,7 +68,7 @@ def plot_event(images_dict, event, save_name):
         vmin=0,
         vmax=255,
     )
-    axs[0].set_title(r"Hit charge")
+    axs[0].set_title(r"hit-charge")
     axs[0].set_xlabel(r"$\phi$ bins", fontsize=30)
     axs[0].set_ylabel(r"$\theta$ bins", fontsize=30)
     axs[0].label_outer()
@@ -81,7 +81,7 @@ def plot_event(images_dict, event, save_name):
         vmin=0,
         vmax=255,
     )
-    axs[1].set_title(r"Hit time")
+    axs[1].set_title(r"hit-time")
     axs[1].set_xlabel(r"$\phi$ bins", fontsize=30)
     axs[1].set_ylabel(r"$\theta$ bins", fontsize=30)
     axs[1].label_outer()
@@ -94,7 +94,7 @@ def plot_event(images_dict, event, save_name):
         vmin=0,
         vmax=255,
     )
-    axs[2].set_title(r"Hough value")
+    axs[2].set_title(r"hough-height")
     axs[2].set_xlabel(r"$\phi$ bins", fontsize=30)
     axs[2].set_ylabel(r"$\theta$ bins", fontsize=30)
     axs[2].label_outer()
