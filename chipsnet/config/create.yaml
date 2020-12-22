@@ -1,0 +1,13 @@
+task: "create"  # What is the task? (create, train, study)
+create:
+    input_dirs:  # The .root map directories from which to take input data
+        - "/unix/chips/jtingey/prod/numu_all_numuflux/map/chips_1200/"
+    # Output .tfrecords directory
+    out_dir: "./analysis/inputs/chips_1200/numu_all_numuflux/"
+    sample_type: 0  # Type of sample (beam events, oscillated events, cosmic events)
+    val_frac: 0.1  # Fraction of data to be used for validation
+    test_frac: 0.1  # Fraction of data to be used for testing
+    join: 10  # How many input .root map files to join together
+    all_maps: False  # Should all hit maps be passed through to the .tfrecords file?
+    parallel: True  # Should the creation process be done in parallel, using multiple threads?
+    par_scale: [1250.0, 1250.0, 600.0, 1.0, 3.14159]  # Reco parameter scales [vtxX, vtxY, vtxZ, dirTheta, dirPhi]

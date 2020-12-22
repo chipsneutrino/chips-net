@@ -1,0 +1,12 @@
+task: "create"
+create:
+    input_dirs:
+        - "/unix/chips/jtingey/prod/nuel_all_nuelflux/map/chips_1200/"
+    out_dir: "./analysis/inputs/chips_1200/nuel_all_nuelflux/"
+    sample_type: 0
+    val_frac: 0.0
+    test_frac: 1.0
+    join: 10
+    all_maps: False
+    parallel: True
+    par_scale: [1250.0, 1250.0, 600.0, 1.0, 3.14159]

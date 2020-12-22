@@ -15,7 +15,6 @@ import argparse
 import os
 import logging
 
-from comet_ml import Experiment
 
 # Need to setup the logging level before we use tensorflow
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -59,13 +58,6 @@ def train_model(config):
     Args:
         config (dotmap.DotMap): configuration namespace
     """
-    comet_exp = None
-    if config.exp.comet:
-        try:
-            comet_exp = Experiment()
-        except Exception:
-            print("Error: Need to set comet_ml env variables")
-
     setup_gpus()
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
@@ -86,12 +78,6 @@ def train_model(config):
         else:
             print("\n--- Skipping training ---\n")
 
-    if config.exp.comet:
-        try:
-            comet_exp.end()
-        except Exception as e:
-            print("Comet error: {}".format(e))
-
 
 def study_model(config):
     """Conducts a SHERPA study on a model according to the configuration.
@@ -99,13 +85,6 @@ def study_model(config):
     Args:
         config (dotmap.DotMap): configuration namespace
     """
-    comet_exp = None
-    if config.exp.comet:
-        try:
-            comet_exp = Experiment()
-        except Exception:
-            print("Error: Need to set comet_ml env variables")
-
     setup_gpus()
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
@@ -115,12 +94,6 @@ def study_model(config):
         study = chipsnet.study.SherpaStudy(config)
         print("--- Running study ---\n")
         study.run()
-
-    if config.exp.comet:
-        try:
-            comet_exp.end()
-        except Exception as e:
-            print("Comet error: {}".format(e))
 
 
 def parse_args():

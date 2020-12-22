@@ -27,14 +27,10 @@ from tf_explain.core.integrated_gradients import IntegratedGradients
 from tf_explain.core.gradients_inputs import GradientsInputs
 from scipy.optimize import curve_fit
 import uproot
-from pandarallel import pandarallel
 
 import chipsnet.config
 import chipsnet.data as data
 import chipsnet.models
-
-
-pandarallel.initialize(verbose=1)
 
 
 def data_from_conf(config, name):
@@ -527,9 +523,9 @@ def full_comb_combine(events, map_type, prefix=""):
         apply_prefix = prefix + "pred_t_nc_comb_cat_"
         events["scores"] = events.apply(nc_comb_cat_apply, axis=1, args=(apply_prefix,))
 
-    events[comb_prefix + "0"] = events.scores.parallel_map(lambda x: x[0])
-    events[comb_prefix + "1"] = events.scores.parallel_map(lambda x: x[1])
-    events[comb_prefix + "2"] = events.scores.parallel_map(lambda x: x[2])
+    events[comb_prefix + "0"] = events.scores.map(lambda x: x[0])
+    events[comb_prefix + "1"] = events.scores.map(lambda x: x[1])
+    events[comb_prefix + "2"] = events.scores.map(lambda x: x[2])
     events.drop(["scores"], axis=1)
     return events
 
@@ -742,7 +738,9 @@ def apply_weights(
         )
 
     events["w"] = events.apply(
-        apply_scale_weight, axis=1, args=(w_nuel, w_anuel, w_numu, w_anumu, w_cosmic),
+        apply_scale_weight,
+        axis=1,
+        args=(w_nuel, w_anuel, w_numu, w_anumu, w_cosmic),
     )
 
     # Now we need to apply the oscillation probability weights
@@ -763,16 +761,27 @@ def apply_weights(
     ]
 
     numu_e_h = np.histogram(
-        numu_ev["t_nu_energy"] / 100, bins=100, range=(0, 100), weights=numu_ev["w"],
+        numu_ev["t_nu_energy"] / 100,
+        bins=100,
+        range=(0, 100),
+        weights=numu_ev["w"],
     )
     nuel_e_h = np.histogram(
-        nuel_ev["t_nu_energy"] / 100, bins=100, range=(0, 100), weights=nuel_ev["w"],
+        nuel_ev["t_nu_energy"] / 100,
+        bins=100,
+        range=(0, 100),
+        weights=nuel_ev["w"],
     )
     nuel_osc = (numu_e_h[0] * osc_file["hist_mue"].values) / nuel_e_h[0]
 
     # Apply a weight to every event
     events["w"] = events.apply(
-        apply_osc_weight, axis=1, args=(osc_file["hist_mumu"].values, nuel_osc,),
+        apply_osc_weight,
+        axis=1,
+        args=(
+            osc_file["hist_mumu"].values,
+            nuel_osc,
+        ),
     )
 
     return events
@@ -836,7 +845,14 @@ def apply_cuts(
     phi_high_cuts = events.apply(phi_high_cut_func, axis=1)
 
     events["simple_cut"] = np.logical_or.reduce(
-        (q_cuts, h_cuts, theta_low_cuts, theta_high_cuts, phi_low_cuts, phi_high_cuts,)
+        (
+            q_cuts,
+            h_cuts,
+            theta_low_cuts,
+            theta_high_cuts,
+            phi_low_cuts,
+            phi_high_cuts,
+        )
     )
 
     events["cut"] = np.logical_or.reduce(

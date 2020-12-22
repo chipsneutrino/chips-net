@@ -1,0 +1,47 @@
+#! /bin/bash
+
+python chipsnet/run.py analysis/config/create/numu_all_numuflux.yaml
+python chipsnet/run.py analysis/config/create/nuel_all_nuelflux.yaml
+python chipsnet/run.py analysis/config/create/anumu_all_anumuflux.yaml
+python chipsnet/run.py analysis/config/create/anuel_all_anuelflux.yaml
+python chipsnet/run.py analysis/config/create/nuel_all_numuflux.yaml
+python chipsnet/run.py analysis/config/create/numu_cccoh_numuflux.yaml
+python chipsnet/run.py analysis/config/create/numu_nccoh_numuflux.yaml
+python chipsnet/run.py analysis/config/create/numu_ccdis_numuflux.yaml
+python chipsnet/run.py analysis/config/create/numu_ncdis_numuflux.yaml
+python chipsnet/run.py analysis/config/create/numu_ccqel_numuflux.yaml
+python chipsnet/run.py analysis/config/create/numu_ccres_numuflux.yaml
+python chipsnet/run.py analysis/config/create/numu_ncres_numuflux.yaml
+python chipsnet/run.py analysis/config/create/numu_ccmec_numuflux.yaml
+python chipsnet/run.py analysis/config/create/nuel_cccoh_numuflux.yaml
+python chipsnet/run.py analysis/config/create/nuel_nccoh_numuflux.yaml
+python chipsnet/run.py analysis/config/create/nuel_ccdis_numuflux.yaml
+python chipsnet/run.py analysis/config/create/nuel_ncdis_numuflux.yaml
+python chipsnet/run.py analysis/config/create/nuel_ccqel_numuflux.yaml
+python chipsnet/run.py analysis/config/create/nuel_ccres_numuflux.yaml
+python chipsnet/run.py analysis/config/create/nuel_ncres_numuflux.yaml
+python chipsnet/run.py analysis/config/create/nuel_ccmec_numuflux.yaml
+python chipsnet/run.py analysis/config/create/cosmics.yaml
+
+python chipsnet/run.py analysis/config/create/numu_all_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/nuel_all_nuelflux_all.yaml
+python chipsnet/run.py analysis/config/create/anumu_all_anumuflux_all.yaml
+python chipsnet/run.py analysis/config/create/anuel_all_anuelflux_all.yaml
+python chipsnet/run.py analysis/config/create/nuel_all_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/numu_cccoh_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/numu_nccoh_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/numu_ccdis_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/numu_ncdis_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/numu_ccqel_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/numu_ccres_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/numu_ncres_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/numu_ccmec_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/nuel_cccoh_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/nuel_nccoh_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/nuel_ccdis_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/nuel_ncdis_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/nuel_ccqel_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/nuel_ccres_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/nuel_ncres_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/nuel_ccmec_numuflux_all.yaml
+python chipsnet/run.py analysis/config/create/cosmics_all.yaml

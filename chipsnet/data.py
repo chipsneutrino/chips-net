@@ -92,7 +92,8 @@ class Reader:
 
             # Calculate if we need to update the time in a bin
             noise_time = tf.random.uniform(
-                shape=self.config.data.img_size, dtype=tf.float32,
+                shape=self.config.data.img_size,
+                dtype=tf.float32,
             )
             time_cut = tf.math.less(noise_time, unstacked[1])
             time_cut = tf.math.logical_and(time_cut, charge_cut)

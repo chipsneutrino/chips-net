@@ -226,7 +226,13 @@ def vgg_block(x, num_conv=2, filters=64, se_ratio=0, dropout=0.0, prefix=""):
 
 
 def resnet_block(
-    x, filters, k=1, strides=(1, 1), se_ratio=0, dropout=0.0, prefix="",
+    x,
+    filters,
+    k=1,
+    strides=(1, 1),
+    se_ratio=0,
+    dropout=0.0,
+    prefix="",
 ):
     """Build a resnet block.
 
@@ -607,7 +613,9 @@ def inception_model(config):
     branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding="same")(x)
     branch_pool = conv2d_bn(branch_pool, 64 * filter_r, 1)
     x = concatenate(
-        [branch1x1, branch5x5, branch3x3dbl, branch_pool], axis=3, name="mixed1",
+        [branch1x1, branch5x5, branch3x3dbl, branch_pool],
+        axis=3,
+        name="mixed1",
     )
     x = (
         squeeze_excite_block(x, config.model.se_ratio, prefix="mixed1")
@@ -630,7 +638,9 @@ def inception_model(config):
     branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding="same")(x)
     branch_pool = conv2d_bn(branch_pool, 64 * filter_r, 1)
     x = concatenate(
-        [branch1x1, branch5x5, branch3x3dbl, branch_pool], axis=3, name="mixed2",
+        [branch1x1, branch5x5, branch3x3dbl, branch_pool],
+        axis=3,
+        name="mixed2",
     )
     x = (
         squeeze_excite_block(x, config.model.se_ratio, prefix="mixed2")
@@ -676,7 +686,9 @@ def inception_model(config):
     branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding="same")(x)
     branch_pool = conv2d_bn(branch_pool, 192 * filter_r, 1)
     x = concatenate(
-        [branch1x1, branch7x7, branch7x7dbl, branch_pool], axis=3, name="mixed4",
+        [branch1x1, branch7x7, branch7x7dbl, branch_pool],
+        axis=3,
+        name="mixed4",
     )
     x = (
         squeeze_excite_block(x, config.model.se_ratio, prefix="mixed4")
@@ -733,7 +745,9 @@ def inception_model(config):
     branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding="same")(x)
     branch_pool = conv2d_bn(branch_pool, 192 * filter_r, 1)
     x = concatenate(
-        [branch1x1, branch7x7, branch7x7dbl, branch_pool], axis=3, name="mixed7",
+        [branch1x1, branch7x7, branch7x7dbl, branch_pool],
+        axis=3,
+        name="mixed7",
     )
     x = (
         squeeze_excite_block(x, config.model.se_ratio, prefix="mixed7")

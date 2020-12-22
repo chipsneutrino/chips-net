@@ -286,7 +286,12 @@ def plot_8bit_range(
         label=r"Hit-charge",
     )
     time = Line2D(
-        [0], [0], color="tab:blue", linewidth=2, linestyle="solid", label=r"Hit-time",
+        [0],
+        [0],
+        color="tab:blue",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Hit-time",
     )
     hough = Line2D(
         [0],

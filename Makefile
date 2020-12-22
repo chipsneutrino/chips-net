@@ -1,38 +1,22 @@
 SHELL := /bin/bash
-ANALYSIS_DIR = ./config/analysis
 
 default: train_beam
+.PHONY: create train_cosmic train_beam train_energy study test
 
 create:
-	python chipsnet/run.py ./config/create.yaml
+	python chipsnet/run.py chipsnet/config/create.yaml
 
 train_cosmic:
-	python chipsnet/run.py ./config/train_cosmic.yaml
+	python chipsnet/run.py chipsnet/config/train_cosmic.yaml
 
 train_beam:
-	python chipsnet/run.py ./config/train_beam.yaml
+	python chipsnet/run.py chipsnet/config/train_beam.yaml
 
 train_energy:
-	python chipsnet/run.py ./config/train_energy.yaml
+	python chipsnet/run.py chipsnet/config/train_energy.yaml
 
 study:
-	python chipsnet/run.py ./config/study.yaml
-
-analysis: 
-	@for f in $(shell ls ${ANALYSIS_DIR}); do python chipsnet/run.py $${f}; done
-
-update:
-	conda env update --file environment.yaml
-
-clean:
-	rm -rf ./data/models/*
-	rm -rf ./data/output/*
-
-black:
-	black chipsnet/
-	black tests/
+	python chipsnet/run.py chipsnet/config/study.yaml
 
 test:
 	pytest --pydocstyle --flake8 --black -v -W ignore::pytest.PytestDeprecationWarning .
-
-.PHONY: analysis clean test dependencies
