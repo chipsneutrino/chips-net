@@ -538,7 +538,7 @@ def apply_weights(
     numu_frac=0.00276174709613,  # for chips_1200
     anumu_frac=0.00006042213136,  # for chips_1200
     cosmic_frac=0.99714372811940,  # for chips_1200
-    osc_file_name="./data/input/oscillations/matter_osc_cp_zero.root",
+    osc_file_name="./inputs/oscillations/matter_osc_cp_zero.root",
     verbose=False,
 ):
     """Calculate and apply the 'weight' column to scale events to predicted numbers.
@@ -1514,7 +1514,7 @@ def print_globes_smearing(hist, name):
         hist (numpy 2darray): histogram energy smearing array
         name (str): event type name
     """
-    with open("data/output/" + name + "_smearing.dat", "w", encoding="utf-8") as f:
+    with open("./outputs/" + name + "_smearing.dat", "w", encoding="utf-8") as f:
         f.write("energy(#" + name + ")<\n")
         f.write("@energy =\n")
         for i in range(40):
