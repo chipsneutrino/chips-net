@@ -1133,6 +1133,13 @@ def calculate_eff_pur(
                 e_bins,
                 weights=total["w"].to_numpy(),
             )
+            
+            #tot_h_err, _, _, _ = extended_hist(
+            #    total[energy[cut_cat]].to_numpy(),
+            #    e_range[0],
+            #    e_range[1],
+            #    e_bins
+            #)
 
             pass_h, pass_err, centers, edges = extended_hist(
                 passed[energy[cut_cat]].to_numpy(),
@@ -1141,7 +1148,7 @@ def calculate_eff_pur(
                 e_bins,
                 weights=passed["w"].to_numpy(),
             )
-
+            
             eff_h = np.divide(pass_h, tot_h)
             eff_err = np.multiply(
                 np.sqrt(
@@ -1152,6 +1159,7 @@ def calculate_eff_pur(
                 ),
                 eff_h,
             )
+            #eff_err = np.sqrt((eff_h*(1-eff_h))/tot_h_err)
             eff_hists.append((eff_h, eff_err))
 
             if cut_cat == count_cat:
@@ -1181,6 +1189,7 @@ def calculate_eff_pur(
             ),
             pur_h,
         )
+        #pur_err = np.sqrt((pur_h*(1-pur_h))/np.add(signal_h[0], bkg_h))
 
         fom_purs.append((pur_h, pur_err))
 

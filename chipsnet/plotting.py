@@ -233,12 +233,13 @@ def plot_8bit_range(
     occurrences_0 = np.count_nonzero(hist_data == 255) / len(hist_data)
     axs.hist(
         hist_data,
-        range=(1, 256),
+        range=(0, 256),
+        weights=np.full(len(hist_data), 1/np.count_nonzero(hist_data)),
         bins=255,
         color="tab:green",
         histtype="step",
         linewidth=2,
-        density=True,
+        density=False,
     )
     hist_data = []
     for event in images_dict["r_time_map_vtx"]:
@@ -247,12 +248,13 @@ def plot_8bit_range(
     occurrences_1 = np.count_nonzero(hist_data == 255) / len(hist_data)
     axs.hist(
         hist_data,
-        range=(1, 256),
+        range=(0, 256),
+        weights=np.full(len(hist_data), 1/np.count_nonzero(hist_data)),
         bins=255,
         color="tab:blue",
         histtype="step",
         linewidth=2,
-        density=True,
+        density=False,
     )
     hist_data = []
     for event in images_dict["r_hough_map_vtx"]:
@@ -261,12 +263,13 @@ def plot_8bit_range(
     occurrences_2 = np.count_nonzero(hist_data == 255) / len(hist_data)
     axs.hist(
         hist_data,
-        range=(1, 256),
+        range=(0, 256),
+        weights=np.full(len(hist_data), 1/np.count_nonzero(hist_data)),
         bins=255,
         color="tab:red",
         histtype="step",
         linewidth=2,
-        density=True,
+        density=False,
     )
     print("[0,{}], outside range: {:.4f}".format(max_charge, occurrences_0))
     print("[0,{}], outside range: {:.4f}".format(max_time, occurrences_1))
@@ -275,7 +278,7 @@ def plot_8bit_range(
     axs.set_xlabel(r"8-bit value", fontsize=30)
     axs.set_ylabel(r"Frequency (arb.)", fontsize=30)
     axs.set_xlim(0, 260)
-    axs.set_ylim(0, 0.06)
+    axs.set_ylim(0, 0.08)
 
     hit = Line2D(
         [0],
@@ -731,16 +734,16 @@ def plot_combined_values(events, type, prefix, save_path, cut=None):
         )
         axs.set_ylim(10e-3, 10e2)
         if cut is not None:
-            axs.plot([cut, cut], [10e-3, 5e0], "k-", lw=3, color="black")
+            axs.plot([cut, cut], [10e-3, 3e0], "k-", lw=3, color="black")
             axs.arrow(
                 cut,
-                5e0,
+                3e0,
                 0.05,
                 0,
                 color="black",
                 lw=3,
                 length_includes_head=True,
-                head_width=3,
+                head_width=2,
                 head_length=0.02,
             )
         # axs.set_ylim(0, 500)
@@ -1049,7 +1052,7 @@ def plot_escapes_values(events, prefix, save_path):
     save(save_path)
 
 
-def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
+def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None, marker=None):
     """Plot the eff, pur, fom curves.
 
     Args:
@@ -1093,8 +1096,10 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None):
     axs.set_xlabel(r"CC $\nu_{e}$ score", fontsize=30)
     if cat == 1:
         axs.set_xlabel(r"CC $\nu_{\mu}$ score", fontsize=30)
-    axs.set_ylabel("Percentage", fontsize=30)
+    axs.set_ylabel("Metric (\%)", fontsize=30)
     axs.set_ylim(0, 100)
+    if marker:
+        axs.plot(marker[0], marker[1], marker="*", markersize=25, color="black")
     if cat == 1 and full is False:
         axs.set_ylim(70, 100)
     axs.set_xlim(0, 1)
@@ -1259,15 +1264,15 @@ def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)", bin_width=0.5):
         )
     axs.hist(
         ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 1)]["t_nu_energy"] / 1000,
-        range=(1, 8),
-        bins=14,
+        range=(0, 10),
+        bins=20,
         color="tab:green",
         density=False,
         alpha=0.3,
         weights=ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 1)]["w"] * 6,
     )
     axs.set_xlabel(energy, fontsize=30)
-    axs.set_ylabel("Percentage", fontsize=30)
+    axs.set_ylabel("Metric (\%)", fontsize=30)
     axs.set_ylim([0, 100])
     axs.set_xlim([0.5, 10])
     axs.grid()
@@ -1372,15 +1377,15 @@ def plot_numu_hists(events, ev, save_path, energy=r"E (GeV)"):
         )
     axs.hist(
         ev[ev["t_comb_cat"] == 1]["t_nu_energy"] / 1000,
-        range=(1, 8),
-        bins=14,
+        range=(0, 10),
+        bins=20,
         color="tab:blue",
         density=False,
         alpha=0.3,
         weights=ev[ev["t_comb_cat"] == 1]["w"] * 0.15,
     )
     axs.set_xlabel(energy, fontsize=30)
-    axs.set_ylabel("Percentage", fontsize=30)
+    axs.set_ylabel("Metric (\%)", fontsize=30)
     axs.set_ylim([0, 100])
     axs.set_xlim([0.5, 10])
     axs.grid()
