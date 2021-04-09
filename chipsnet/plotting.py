@@ -68,7 +68,7 @@ def plot_event(images_dict, event, save_name):
         vmin=0,
         vmax=255,
     )
-    axs[0].set_title(r"hit-charge")
+    axs[0].set_title(r"Hit-charge")
     axs[0].set_xlabel(r"$\phi$ bins", fontsize=30)
     axs[0].set_ylabel(r"$\theta$ bins", fontsize=30)
     axs[0].label_outer()
@@ -81,7 +81,7 @@ def plot_event(images_dict, event, save_name):
         vmin=0,
         vmax=255,
     )
-    axs[1].set_title(r"hit-time")
+    axs[1].set_title(r"Hit-time")
     axs[1].set_xlabel(r"$\phi$ bins", fontsize=30)
     axs[1].set_ylabel(r"$\theta$ bins", fontsize=30)
     axs[1].label_outer()
@@ -94,7 +94,7 @@ def plot_event(images_dict, event, save_name):
         vmin=0,
         vmax=255,
     )
-    axs[2].set_title(r"hough-height")
+    axs[2].set_title(r"Hough-height")
     axs[2].set_xlabel(r"$\phi$ bins", fontsize=30)
     axs[2].set_ylabel(r"$\theta$ bins", fontsize=30)
     axs[2].label_outer()
@@ -120,7 +120,7 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[0, 0].set_title(r"origin raw view")
+    axs[0, 0].set_title(r"Origin raw view")
     axs[0, 0].set_ylabel(r"$\theta$ bins", fontsize=30)
 
     axs[0, 1].imshow(
@@ -129,7 +129,7 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[0, 1].set_title(r"origin iso view")
+    axs[0, 1].set_title(r"Origin iso view")
     axs[0, 1].set_ylabel(r"$X_{-}$ bins", fontsize=30)
 
     axs[0, 2].imshow(
@@ -138,9 +138,9 @@ def plot_hit_time(images_dict, event, save_name):
         origin="lower",
         extent=(0, 64, 0, 64),
     )
-    axs[0, 2].set_title(r"vertex view")
+    axs[0, 2].set_title(r"Vertex view")
     axs[0, 2].set_ylabel(r"$\theta$ bins", fontsize=30)
-    axs[0, 2].text(68, 7, "hit-charge maps", rotation=-90, fontsize=30)
+    axs[0, 2].text(68, 7, "Hit-charge maps", rotation=-90, fontsize=30)
 
     axs[1, 0].imshow(
         images_dict["r_time_map_origin"][event],
@@ -168,7 +168,7 @@ def plot_hit_time(images_dict, event, save_name):
     )
     axs[1, 2].set_xlabel(r"$\phi$ bins", fontsize=30)
     axs[1, 2].set_ylabel(r"$\theta$ bins", fontsize=30)
-    axs[1, 2].text(68, 11, "hit-time maps", rotation=-90, fontsize=30)
+    axs[1, 2].text(68, 11, "Hit-time maps", rotation=-90, fontsize=30)
     save(save_name)
 
 
@@ -234,12 +234,11 @@ def plot_8bit_range(
     axs.hist(
         hist_data,
         range=(0, 256),
-        weights=np.full(len(hist_data), 1/np.count_nonzero(hist_data)),
-        bins=255,
+        bins=256,
         color="tab:green",
         histtype="step",
         linewidth=2,
-        density=False,
+        density=True,
     )
     hist_data = []
     for event in images_dict["r_time_map_vtx"]:
@@ -249,12 +248,11 @@ def plot_8bit_range(
     axs.hist(
         hist_data,
         range=(0, 256),
-        weights=np.full(len(hist_data), 1/np.count_nonzero(hist_data)),
-        bins=255,
+        bins=256,
         color="tab:blue",
         histtype="step",
         linewidth=2,
-        density=False,
+        density=True,
     )
     hist_data = []
     for event in images_dict["r_hough_map_vtx"]:
@@ -264,12 +262,11 @@ def plot_8bit_range(
     axs.hist(
         hist_data,
         range=(0, 256),
-        weights=np.full(len(hist_data), 1/np.count_nonzero(hist_data)),
-        bins=255,
+        bins=256,
         color="tab:red",
         histtype="step",
         linewidth=2,
-        density=False,
+        density=True,
     )
     print("[0,{}], outside range: {:.4f}".format(max_charge, occurrences_0))
     print("[0,{}], outside range: {:.4f}".format(max_time, occurrences_1))
@@ -277,8 +274,9 @@ def plot_8bit_range(
 
     axs.set_xlabel(r"8-bit value", fontsize=30)
     axs.set_ylabel(r"Frequency (arb.)", fontsize=30)
-    axs.set_xlim(0, 260)
-    axs.set_ylim(0, 0.08)
+    axs.set_xlim(-5, 260)
+    # axs.set_ylim(0, 0.08)
+    axs.set_yscale("log")
 
     hit = Line2D(
         [0],

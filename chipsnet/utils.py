@@ -27,10 +27,13 @@ from tf_explain.core.integrated_gradients import IntegratedGradients
 from tf_explain.core.gradients_inputs import GradientsInputs
 from scipy.optimize import curve_fit
 import uproot
+import ROOT
 
-import chipsnet.config
-import chipsnet.data as data
-import chipsnet.models
+ROOT.gErrorIgnoreLevel = ROOT.kWarning + 2
+
+import chipsnet.config  # noqa: E402
+import chipsnet.data as data  # noqa: E402
+import chipsnet.models  # noqa: E402
 
 
 def data_from_conf(config, name):
@@ -282,29 +285,24 @@ def evaluate(
 
             curves_output = calculate_curves(ev, prefix=m_name + "_")
             eff_output = calculate_eff_pur(
-                ev, curves_output["max_fom_cuts_0"], prefix=m_name + "_"
+                ev, curves_output["max_fom_cuts"], prefix=m_name + "_"
             )
             output["cuts"] = curves_output["cuts"]
             output["sig_effs"] = curves_output["sig_effs"]
             output["bkg_effs"] = curves_output["bkg_effs"]
             output["purs"] = curves_output["purs"]
-            output["foms_0"] = curves_output["foms_0"]
-            output["foms_1"] = curves_output["foms_1"]
+            output["foms"] = curves_output["foms"]
             output["fom_effs"] = eff_output["fom_effs"]
             output["fom_purs"] = eff_output["fom_purs"]
             output["sig_effs_auc"] = curves_output["sig_effs_auc"]
             output["bkg_effs_auc"] = curves_output["bkg_effs_auc"]
             output["pur_auc"] = curves_output["pur_auc"]
-            output["fom_auc_0"] = curves_output["fom_auc_0"]
-            output["fom_auc_1"] = curves_output["fom_auc_1"]
+            output["fom_auc"] = curves_output["fom_auc"]
             output["roc_auc"] = curves_output["roc_auc"]
             output["prc_auc"] = curves_output["prc_auc"]
-            output["max_foms_0"] = curves_output["max_foms_0"]
-            output["max_foms_1"] = curves_output["max_foms_1"]
-            output["max_fom_cuts_0"] = curves_output["max_fom_cuts_0"]
-            output["max_fom_cuts_1"] = curves_output["max_fom_cuts_1"]
-            output["max_fom_passed_0"] = curves_output["max_fom_passed_0"]
-            output["max_fom_passed_1"] = curves_output["max_fom_passed_1"]
+            output["max_foms"] = curves_output["max_foms"]
+            output["max_fom_cuts"] = curves_output["max_fom_cuts"]
+            output["max_fom_passed"] = curves_output["max_fom_passed"]
             outputs.append(output)
 
             if just_cosmic:
@@ -345,34 +343,17 @@ def evaluate(
             )
             print(
                 "- FOM1-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}".format(
-                    output["max_foms_0"][0],
-                    output["max_fom_cuts_0"][0],
-                    output["max_fom_passed_0"][0][0],
-                    output["max_fom_passed_0"][0][1],
-                    output["max_fom_passed_0"][0][2],
-                    # output["max_fom_passed_0"][0][3],
+                    output["max_foms"][0],
+                    output["max_fom_cuts"][0],
+                    output["max_fom_passed"][0][0],
+                    output["max_fom_passed"][0][1],
+                    output["max_fom_passed"][0][2],
+                    # output["max_fom_passed"][0][3],
                     output["sig_effs"][0][
-                        np.where(output["cuts"] == output["max_fom_cuts_0"][0])[0]
+                        np.where(output["cuts"] == output["max_fom_cuts"][0])[0]
                     ][0],
                     output["purs"][0][
-                        np.where(output["cuts"] == output["max_fom_cuts_0"][0])[0]
-                    ][0],
-                )
-            )
-
-            print(
-                "- FOM2-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}".format(
-                    output["max_foms_1"][0],
-                    output["max_fom_cuts_1"][0],
-                    output["max_fom_passed_1"][0][0],
-                    output["max_fom_passed_1"][0][1],
-                    output["max_fom_passed_1"][0][2],
-                    # output["max_fom_passed_1"][0][3],
-                    output["sig_effs"][0][
-                        np.where(output["cuts"] == output["max_fom_cuts_1"][0])[0]
-                    ][0],
-                    output["purs"][0][
-                        np.where(output["cuts"] == output["max_fom_cuts_1"][0])[0]
+                        np.where(output["cuts"] == output["max_fom_cuts"][0])[0]
                     ][0],
                 )
             )
@@ -387,34 +368,17 @@ def evaluate(
             )
             print(
                 "- FOM1-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}".format(
-                    output["max_foms_0"][1],
-                    output["max_fom_cuts_0"][1],
-                    output["max_fom_passed_0"][1][0],
-                    output["max_fom_passed_0"][1][1],
-                    output["max_fom_passed_0"][1][2],
-                    # output["max_fom_passed_0"][1][3],
+                    output["max_foms"][1],
+                    output["max_fom_cuts"][1],
+                    output["max_fom_passed"][1][0],
+                    output["max_fom_passed"][1][1],
+                    output["max_fom_passed"][1][2],
+                    # output["max_fom_passed"][1][3],
                     output["sig_effs"][1][
-                        np.where(output["cuts"] == output["max_fom_cuts_0"][1])[0]
+                        np.where(output["cuts"] == output["max_fom_cuts"][1])[0]
                     ][0],
                     output["purs"][1][
-                        np.where(output["cuts"] == output["max_fom_cuts_0"][1])[0]
-                    ][0],
-                )
-            )
-
-            print(
-                "- FOM2-> {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}, {:.5f}\n".format(
-                    output["max_foms_1"][1],
-                    output["max_fom_cuts_1"][1],
-                    output["max_fom_passed_1"][1][0],
-                    output["max_fom_passed_1"][1][1],
-                    output["max_fom_passed_1"][1][2],
-                    # output["max_fom_passed_1"][1][3],
-                    output["sig_effs"][1][
-                        np.where(output["cuts"] == output["max_fom_cuts_1"][1])[0]
-                    ][0],
-                    output["purs"][1][
-                        np.where(output["cuts"] == output["max_fom_cuts_1"][1])[0]
+                        np.where(output["cuts"] == output["max_fom_cuts"][1])[0]
                     ][0],
                 )
             )
@@ -955,23 +919,18 @@ def calculate_curves(ev, thresholds=200, prefix=""):
     np.seterr(divide="ignore", invalid="ignore")
 
     cuts, totals = [], []
-    max_foms_0, max_fom_cuts_0, max_fom_passed_0 = [], [], []
-    max_foms_1, max_fom_cuts_1, max_fom_passed_1 = [], [], []
-    foms_0, foms_1 = [], []
+    max_foms, max_fom_cuts, max_fom_passed = [], [], []
+    foms = []
     sig_effs, bkg_effs, purities = [], [], []
     for cat in range(num_cats):
         totals.append(selections[cat]["w"].sum())
-        max_foms_0.append(0.0)
-        max_fom_cuts_0.append(0.0)
-        max_foms_1.append(0.0)
-        max_fom_cuts_1.append(0.0)
-        max_fom_passed_0.append([])
-        max_fom_passed_1.append([])
+        max_foms.append(0.0)
+        max_fom_cuts.append(0.0)
+        max_fom_passed.append([])
         sig_effs.append([])
         bkg_effs.append([])
         purities.append([])
-        foms_0.append([])
-        foms_1.append([])
+        foms.append([])
 
     inc = float(1.0 / thresholds)
     for cut in range(thresholds + 1):
@@ -998,52 +957,39 @@ def calculate_curves(ev, thresholds=200, prefix=""):
             else:
                 bkg_effs[count_cat].append(bkg_passed / bkg_total)
 
-            if passed[count_cat] == 0.0 or bkg_passed == 0.0:
-                foms_1[count_cat].append(0.0)
-            else:
-                foms_1[count_cat].append(passed[count_cat] / math.sqrt(bkg_passed))
-
             if sig_effs[count_cat][cut] == 0.0 or bkg_effs[count_cat][cut] == 0.0:
                 purities[count_cat].append(1.0)
-                foms_0[count_cat].append(0.0)
+                foms[count_cat].append(0.0)
             else:
                 purities[count_cat].append(passed[count_cat] / sum(passed))
-                foms_0[count_cat].append(
+                foms[count_cat].append(
                     sig_effs[count_cat][cut] * purities[count_cat][cut]
                 )
 
-            if foms_0[count_cat][cut] > max_foms_0[count_cat]:
-                max_foms_0[count_cat] = foms_0[count_cat][cut]
-                max_fom_cuts_0[count_cat] = cuts[cut]
-                max_fom_passed_0[count_cat] = [passed[cat] for cat in range(num_cats)]
-
-            if foms_1[count_cat][cut] > max_foms_1[count_cat]:
-                max_foms_1[count_cat] = foms_1[count_cat][cut]
-                max_fom_cuts_1[count_cat] = cuts[cut]
-                max_fom_passed_1[count_cat] = [passed[cat] for cat in range(num_cats)]
+            if foms[count_cat][cut] > max_foms[count_cat]:
+                max_foms[count_cat] = foms[count_cat][cut]
+                max_fom_cuts[count_cat] = cuts[cut]
+                max_fom_passed[count_cat] = [passed[cat] for cat in range(num_cats)]
 
     # Convert the lists to numpy arrays
     cuts = np.asarray(cuts)
     sig_effs = np.asarray(sig_effs)
     bkg_effs = np.asarray(bkg_effs)
     purities = np.asarray(purities)
-    foms_0 = np.asarray(foms_0)
-    foms_1 = np.asarray(foms_1)
+    foms = np.asarray(foms)
 
     # Calculate summary values
     sig_effs_auc = []
     bkg_effs_auc = []
     pur_auc = []
-    fom_auc_0 = []
-    fom_auc_1 = []
+    fom_auc = []
     roc_auc = []
     prc_auc = []
     for cat in range(num_cats):
         sig_effs_auc.append(auc(cuts, sig_effs[cat]))
         bkg_effs_auc.append(auc(cuts, bkg_effs[cat]))
         pur_auc.append(auc(cuts, purities[cat]))
-        fom_auc_0.append(auc(cuts, foms_0[cat]))
-        fom_auc_1.append(auc(cuts, foms_1[cat]))
+        fom_auc.append(auc(cuts, foms[cat]))
         roc_auc.append(auc(bkg_effs[cat], sig_effs[cat]))
         prc_auc.append(auc(sig_effs[cat], purities[cat]))
 
@@ -1052,21 +998,16 @@ def calculate_curves(ev, thresholds=200, prefix=""):
         "sig_effs": sig_effs,
         "bkg_effs": bkg_effs,
         "purs": purities,
-        "foms_0": foms_0,
-        "foms_1": foms_1,
+        "foms": foms,
         "sig_effs_auc": sig_effs_auc,
         "bkg_effs_auc": bkg_effs_auc,
         "pur_auc": pur_auc,
-        "fom_auc_0": fom_auc_0,
-        "fom_auc_1": fom_auc_1,
+        "fom_auc": fom_auc,
         "roc_auc": roc_auc,
         "prc_auc": prc_auc,
-        "max_foms_0": max_foms_0,
-        "max_foms_1": max_foms_1,
-        "max_fom_cuts_0": max_fom_cuts_0,
-        "max_fom_cuts_1": max_fom_cuts_1,
-        "max_fom_passed_0": max_fom_passed_0,
-        "max_fom_passed_1": max_fom_passed_1,
+        "max_foms": max_foms,
+        "max_fom_cuts": max_fom_cuts,
+        "max_fom_passed": max_fom_passed,
     }
 
     return output
@@ -1133,14 +1074,6 @@ def calculate_eff_pur(
                 e_bins,
                 weights=total["w"].to_numpy(),
             )
-            
-            #tot_h_err, _, _, _ = extended_hist(
-            #    total[energy[cut_cat]].to_numpy(),
-            #    e_range[0],
-            #    e_range[1],
-            #    e_bins
-            #)
-
             pass_h, pass_err, centers, edges = extended_hist(
                 passed[energy[cut_cat]].to_numpy(),
                 e_range[0],
@@ -1148,7 +1081,6 @@ def calculate_eff_pur(
                 e_bins,
                 weights=passed["w"].to_numpy(),
             )
-            
             eff_h = np.divide(pass_h, tot_h)
             eff_err = np.multiply(
                 np.sqrt(
@@ -1159,7 +1091,6 @@ def calculate_eff_pur(
                 ),
                 eff_h,
             )
-            #eff_err = np.sqrt((eff_h*(1-eff_h))/tot_h_err)
             eff_hists.append((eff_h, eff_err))
 
             if cut_cat == count_cat:
@@ -1189,8 +1120,6 @@ def calculate_eff_pur(
             ),
             pur_h,
         )
-        #pur_err = np.sqrt((pur_h*(1-pur_h))/np.add(signal_h[0], bkg_h))
-
         fom_purs.append((pur_h, pur_err))
 
     output = {
@@ -1752,3 +1681,466 @@ def get_old_df(file_name, l_type):
         df["t_sample_type"] = np.full(len(df), 0)
 
     return df
+
+
+def get_eff_pur_values(total_ev, passed_ev):
+    """Calculate the efficiency/purity for a sample of events.
+
+    Args:
+        total_ev (pd.DataFrame): all events
+        passed_ev (pd.DataFrame): passed events
+
+    Returns:
+        (eff, eff_err): calculated efficiency and error
+    """
+    try:
+        total_h = ROOT.TH1D("total_h", "total_h", 1, 0, 30000)
+        passed_h = ROOT.TH1D("passed_h", "passed_h", 1, 0, 30000)
+        total_h.FillN(
+            len(total_ev), total_ev["t_nu_energy"].to_numpy(), total_ev["w"].to_numpy()
+        )
+        passed_h.FillN(
+            len(passed_ev),
+            passed_ev["t_nu_energy"].to_numpy(),
+            passed_ev["w"].to_numpy(),
+        )
+        eff_h = ROOT.TEfficiency(passed_h, total_h)
+        eff = (eff_h.GetEfficiency(1), eff_h.GetEfficiencyErrorLow(1))
+        del eff_h, total_h, passed_h
+        return eff
+    except Exception:
+        return (0.0, 0.0)
+
+
+def get_eff_pur_plots(total_ev, passed_ev, e_bins=20, e_range=(0, 10000)):
+    """Calculate the efficiency/purity plots for a sample of events.
+
+    Args:
+        total_ev (pd.DataFrame): all events
+        passed_ev (pd.DataFrame): passed events
+
+    Returns:
+        (eff, eff_err): calculated efficiency and error plots
+    """
+    try:
+        total_h = ROOT.TH1D("total_h", "total_h", e_bins, e_range[0], e_range[1])
+        passed_h = ROOT.TH1D("passed_h", "passed_h", e_bins, e_range[0], e_range[1])
+        total_h.FillN(len(total_ev), total_ev["t_nu_energy"].to_numpy(), total_ev["w"].to_numpy())
+        passed_h.FillN(len(passed_ev), passed_ev["t_nu_energy"].to_numpy(), passed_ev["w"].to_numpy())
+        eff_h = ROOT.TEfficiency(passed_h, total_h)
+        values, errors = [], []
+        for bin_index in range(e_bins):
+            values.append(eff_h.GetEfficiency(bin_index+1))
+            errors.append(eff_h.GetEfficiencyErrorLow(bin_index+1))
+        del eff_h, total_h, passed_h
+        return (values, errors)
+    except Exception:
+        return (0.0, 0.0)
+
+
+def print_values(ev, nuel_cut, numu_cut, prefix):
+    """Print big summary of all values and errors we need."""
+    # Total events
+    cat_0_total = ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 1)]
+    cat_1_total = ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 0)]
+    cat_2_total = ev[(ev["t_comb_cat"] == 0)]
+    cat_3_total = ev[(ev["t_comb_cat"] == 1)]
+    cat_4_total = ev[(ev["t_comb_cat"] == 2)]
+    cat_5_total = ev[(ev["t_comb_cat"] == 3)]
+    print("\nTotal numbers")
+    print(
+        "{:.3f} +- {:.3f}".format(cat_0_total["w"].sum(), cat_0_total["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_1_total["w"].sum(), cat_1_total["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_2_total["w"].sum(), cat_2_total["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_3_total["w"].sum(), cat_3_total["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_4_total["w"].sum(), cat_4_total["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_5_total["w"].sum(), cat_5_total["w"].pow(2).sum())
+    )
+
+    # Pass preselection
+    cat_0_cut = cat_0_total[cat_0_total["simple_cut"] == 0]
+    cat_1_cut = cat_1_total[cat_1_total["simple_cut"] == 0]
+    cat_2_cut = cat_2_total[cat_2_total["simple_cut"] == 0]
+    cat_3_cut = cat_3_total[cat_3_total["simple_cut"] == 0]
+    cat_4_cut = cat_4_total[cat_4_total["simple_cut"] == 0]
+    cat_5_cut = cat_5_total[cat_5_total["simple_cut"] == 0]
+    print("\nAfter preselection numbers")
+    print("{:.3f} +- {:.3f}".format(cat_0_cut["w"].sum(), cat_0_cut["w"].pow(2).sum()))
+    print("{:.3f} +- {:.3f}".format(cat_1_cut["w"].sum(), cat_1_cut["w"].pow(2).sum()))
+    print("{:.3f} +- {:.3f}".format(cat_2_cut["w"].sum(), cat_2_cut["w"].pow(2).sum()))
+    print("{:.3f} +- {:.3f}".format(cat_3_cut["w"].sum(), cat_3_cut["w"].pow(2).sum()))
+    print("{:.3f} +- {:.3f}".format(cat_4_cut["w"].sum(), cat_4_cut["w"].pow(2).sum()))
+    print("{:.3f} +- {:.3f}".format(cat_5_cut["w"].sum(), cat_5_cut["w"].pow(2).sum()))
+
+    try:
+        # Pass cosmic
+        cat_0_cut = cat_0_cut[cat_0_cut["cosmic_cut"] == 0]
+        cat_1_cut = cat_1_cut[cat_1_cut["cosmic_cut"] == 0]
+        cat_2_cut = cat_2_cut[cat_2_cut["cosmic_cut"] == 0]
+        cat_3_cut = cat_3_cut[cat_3_cut["cosmic_cut"] == 0]
+        cat_4_cut = cat_4_cut[cat_4_cut["cosmic_cut"] == 0]
+        cat_5_cut = cat_5_cut[cat_5_cut["cosmic_cut"] == 0]
+        print("\nAfter cosmic cut numbers")
+        print(
+            "{:.3f} +- {:.3f}".format(cat_0_cut["w"].sum(), cat_0_cut["w"].pow(2).sum())
+        )
+        print(
+            "{:.3f} +- {:.3f}".format(cat_1_cut["w"].sum(), cat_1_cut["w"].pow(2).sum())
+        )
+        print(
+            "{:.3f} +- {:.3f}".format(cat_2_cut["w"].sum(), cat_2_cut["w"].pow(2).sum())
+        )
+        print(
+            "{:.3f} +- {:.3f}".format(cat_3_cut["w"].sum(), cat_3_cut["w"].pow(2).sum())
+        )
+        print(
+            "{:.3f} +- {:.3f}".format(cat_4_cut["w"].sum(), cat_4_cut["w"].pow(2).sum())
+        )
+        print(
+            "{:.3f} +- {:.3f}".format(cat_5_cut["w"].sum(), cat_5_cut["w"].pow(2).sum())
+        )
+
+        # pass escapes
+        cat_0_cut = cat_0_cut[cat_0_cut["escapes_cut"] == 0]
+        cat_1_cut = cat_1_cut[cat_1_cut["escapes_cut"] == 0]
+        cat_2_cut = cat_2_cut[cat_2_cut["escapes_cut"] == 0]
+        cat_3_cut = cat_3_cut[cat_3_cut["escapes_cut"] == 0]
+        cat_4_cut = cat_4_cut[cat_4_cut["escapes_cut"] == 0]
+        cat_5_cut = cat_5_cut[cat_5_cut["escapes_cut"] == 0]
+        print("\nAfter escapes cut numbers")
+        print(
+            "{:.3f} +- {:.3f}".format(cat_0_cut["w"].sum(), cat_0_cut["w"].pow(2).sum())
+        )
+        print(
+            "{:.3f} +- {:.3f}".format(cat_1_cut["w"].sum(), cat_1_cut["w"].pow(2).sum())
+        )
+        print(
+            "{:.3f} +- {:.3f}".format(cat_2_cut["w"].sum(), cat_2_cut["w"].pow(2).sum())
+        )
+        print(
+            "{:.3f} +- {:.3f}".format(cat_3_cut["w"].sum(), cat_3_cut["w"].pow(2).sum())
+        )
+        print(
+            "{:.3f} +- {:.3f}".format(cat_4_cut["w"].sum(), cat_4_cut["w"].pow(2).sum())
+        )
+        print(
+            "{:.3f} +- {:.3f}".format(cat_5_cut["w"].sum(), cat_5_cut["w"].pow(2).sum())
+        )
+    except Exception:
+        pass
+
+    # pass nuel at 0.5
+    nuel_cut_string = prefix + "pred_t_comb_cat_0"
+    cat_0_nuel_basic = cat_0_cut[cat_0_cut[nuel_cut_string] >= 0.5]
+    cat_1_nuel_basic = cat_1_cut[cat_1_cut[nuel_cut_string] >= 0.5]
+    cat_2_nuel_basic = cat_2_cut[cat_2_cut[nuel_cut_string] >= 0.5]
+    cat_3_nuel_basic = cat_3_cut[cat_3_cut[nuel_cut_string] >= 0.5]
+    cat_4_nuel_basic = cat_4_cut[cat_4_cut[nuel_cut_string] >= 0.5]
+    cat_5_nuel_basic = cat_5_cut[cat_5_cut[nuel_cut_string] >= 0.5]
+    print("\nAfter nuel cut basic numbers")
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_0_nuel_basic["w"].sum(), cat_0_nuel_basic["w"].pow(2).sum()
+        )
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_1_nuel_basic["w"].sum(), cat_1_nuel_basic["w"].pow(2).sum()
+        )
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_2_nuel_basic["w"].sum(), cat_2_nuel_basic["w"].pow(2).sum()
+        )
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_3_nuel_basic["w"].sum(), cat_3_nuel_basic["w"].pow(2).sum()
+        )
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_4_nuel_basic["w"].sum(), cat_4_nuel_basic["w"].pow(2).sum()
+        )
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_5_nuel_basic["w"].sum(), cat_5_nuel_basic["w"].pow(2).sum()
+        )
+    )
+
+    # pass nuel
+    nuel_cut_string = prefix + "pred_t_comb_cat_0"
+    cat_0_nuel = cat_0_cut[cat_0_cut[nuel_cut_string] >= nuel_cut]
+    cat_1_nuel = cat_1_cut[cat_1_cut[nuel_cut_string] >= nuel_cut]
+    cat_2_nuel = cat_2_cut[cat_2_cut[nuel_cut_string] >= nuel_cut]
+    cat_3_nuel = cat_3_cut[cat_3_cut[nuel_cut_string] >= nuel_cut]
+    cat_4_nuel = cat_4_cut[cat_4_cut[nuel_cut_string] >= nuel_cut]
+    cat_5_nuel = cat_5_cut[cat_5_cut[nuel_cut_string] >= nuel_cut]
+    print("\nAfter nuel cut numbers")
+    print(
+        "{:.3f} +- {:.3f}".format(cat_0_nuel["w"].sum(), cat_0_nuel["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_1_nuel["w"].sum(), cat_1_nuel["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_2_nuel["w"].sum(), cat_2_nuel["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_3_nuel["w"].sum(), cat_3_nuel["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_4_nuel["w"].sum(), cat_4_nuel["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_5_nuel["w"].sum(), cat_5_nuel["w"].pow(2).sum())
+    )
+
+    # pass numu at 0.5
+    numu_cut_string = prefix + "pred_t_comb_cat_1"
+    cat_0_numu_basic = cat_0_cut[cat_0_cut[numu_cut_string] >= 0.5]
+    cat_1_numu_basic = cat_1_cut[cat_1_cut[numu_cut_string] >= 0.5]
+    cat_2_numu_basic = cat_2_cut[cat_2_cut[numu_cut_string] >= 0.5]
+    cat_3_numu_basic = cat_3_cut[cat_3_cut[numu_cut_string] >= 0.5]
+    cat_4_numu_basic = cat_4_cut[cat_4_cut[numu_cut_string] >= 0.5]
+    cat_5_numu_basic = cat_5_cut[cat_5_cut[numu_cut_string] >= 0.5]
+    print("\nAfter numu cut basic numbers")
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_0_numu_basic["w"].sum(), cat_0_numu_basic["w"].pow(2).sum()
+        )
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_1_numu_basic["w"].sum(), cat_1_numu_basic["w"].pow(2).sum()
+        )
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_2_numu_basic["w"].sum(), cat_2_numu_basic["w"].pow(2).sum()
+        )
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_3_numu_basic["w"].sum(), cat_3_numu_basic["w"].pow(2).sum()
+        )
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_4_numu_basic["w"].sum(), cat_4_numu_basic["w"].pow(2).sum()
+        )
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(
+            cat_5_numu_basic["w"].sum(), cat_5_numu_basic["w"].pow(2).sum()
+        )
+    )
+
+    # pass numu
+    numu_cut_string = prefix + "pred_t_comb_cat_1"
+    cat_0_numu = cat_0_cut[cat_0_cut[numu_cut_string] >= numu_cut]
+    cat_1_numu = cat_1_cut[cat_1_cut[numu_cut_string] >= numu_cut]
+    cat_2_numu = cat_2_cut[cat_2_cut[numu_cut_string] >= numu_cut]
+    cat_3_numu = cat_3_cut[cat_3_cut[numu_cut_string] >= numu_cut]
+    cat_4_numu = cat_4_cut[cat_4_cut[numu_cut_string] >= numu_cut]
+    cat_5_numu = cat_5_cut[cat_5_cut[numu_cut_string] >= numu_cut]
+    print("\nAfter numu cut numbers")
+    print(
+        "{:.3f} +- {:.3f}".format(cat_0_numu["w"].sum(), cat_0_numu["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_1_numu["w"].sum(), cat_1_numu["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_2_numu["w"].sum(), cat_2_numu["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_3_numu["w"].sum(), cat_3_numu["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_4_numu["w"].sum(), cat_4_numu["w"].pow(2).sum())
+    )
+    print(
+        "{:.3f} +- {:.3f}".format(cat_5_numu["w"].sum(), cat_5_numu["w"].pow(2).sum())
+    )
+
+    # Basic cut effs
+    cat_0_basic_eff = get_eff_pur_values(cat_0_total, cat_0_cut)
+    cat_1_basic_eff = get_eff_pur_values(cat_1_total, cat_1_cut)
+    cat_2_basic_eff = get_eff_pur_values(cat_2_total, cat_2_cut)
+    cat_3_basic_eff = get_eff_pur_values(cat_3_total, cat_3_cut)
+    cat_4_basic_eff = get_eff_pur_values(cat_4_total, cat_4_cut)
+    cat_5_basic_eff = get_eff_pur_values(cat_5_total, cat_5_cut)
+    print("\nEffs after basic cuts")
+    print("{:.4f} +- {:.4f}".format(cat_0_basic_eff[0], cat_0_basic_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_1_basic_eff[0], cat_1_basic_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_2_basic_eff[0], cat_2_basic_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_3_basic_eff[0], cat_3_basic_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_4_basic_eff[0], cat_4_basic_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_5_basic_eff[0], cat_5_basic_eff[1]))
+
+    # Basic nuel cut effs
+    cat_0_nuel_basic_eff = get_eff_pur_values(cat_0_total, cat_0_nuel_basic)
+    cat_1_nuel_basic_eff = get_eff_pur_values(cat_1_total, cat_1_nuel_basic)
+    cat_2_nuel_basic_eff = get_eff_pur_values(cat_2_total, cat_2_nuel_basic)
+    cat_3_nuel_basic_eff = get_eff_pur_values(cat_3_total, cat_3_nuel_basic)
+    cat_4_nuel_basic_eff = get_eff_pur_values(cat_4_total, cat_4_nuel_basic)
+    cat_5_nuel_basic_eff = get_eff_pur_values(cat_5_total, cat_5_nuel_basic)
+    print("\nEffs after nuel basic cut")
+    print("{:.4f} +- {:.4f}".format(cat_0_nuel_basic_eff[0], cat_0_nuel_basic_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_1_nuel_basic_eff[0], cat_1_nuel_basic_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_2_nuel_basic_eff[0], cat_2_nuel_basic_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_3_nuel_basic_eff[0], cat_3_nuel_basic_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_4_nuel_basic_eff[0], cat_4_nuel_basic_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_5_nuel_basic_eff[0], cat_5_nuel_basic_eff[1]))
+
+    # Nuel cut effs
+    cat_0_nuel_eff = get_eff_pur_values(cat_0_total, cat_0_nuel)
+    cat_1_nuel_eff = get_eff_pur_values(cat_1_total, cat_1_nuel)
+    cat_2_nuel_eff = get_eff_pur_values(cat_2_total, cat_2_nuel)
+    cat_3_nuel_eff = get_eff_pur_values(cat_3_total, cat_3_nuel)
+    cat_4_nuel_eff = get_eff_pur_values(cat_4_total, cat_4_nuel)
+    cat_5_nuel_eff = get_eff_pur_values(cat_5_total, cat_5_nuel)
+    print("\nEffs after nuel cuts")
+    print("{:.4f} +- {:.4f}".format(cat_0_nuel_eff[0], cat_0_nuel_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_1_nuel_eff[0], cat_1_nuel_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_2_nuel_eff[0], cat_2_nuel_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_3_nuel_eff[0], cat_3_nuel_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_4_nuel_eff[0], cat_4_nuel_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_5_nuel_eff[0], cat_5_nuel_eff[1]))
+
+    # Numu cut effs
+    cat_0_numu_eff = get_eff_pur_values(cat_0_total, cat_0_numu)
+    cat_1_numu_eff = get_eff_pur_values(cat_1_total, cat_1_numu)
+    cat_2_numu_eff = get_eff_pur_values(cat_2_total, cat_2_numu)
+    cat_3_numu_eff = get_eff_pur_values(cat_3_total, cat_3_numu)
+    cat_4_numu_eff = get_eff_pur_values(cat_4_total, cat_4_numu)
+    cat_5_numu_eff = get_eff_pur_values(cat_5_total, cat_5_numu)
+    print("\nEffs after numu cuts")
+    print("{:.4f} +- {:.4f}".format(cat_0_numu_eff[0], cat_0_numu_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_1_numu_eff[0], cat_1_numu_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_2_numu_eff[0], cat_2_numu_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_3_numu_eff[0], cat_3_numu_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_4_numu_eff[0], cat_4_numu_eff[1]))
+    print("{:.4f} +- {:.4f}".format(cat_5_numu_eff[0], cat_5_numu_eff[1]))
+
+    # Get the required purities
+    cat_0_cut_pur = get_eff_pur_values(
+        pd.concat([cat_0_cut, cat_1_cut, cat_3_cut, cat_4_cut, cat_5_cut]), cat_0_cut
+    )
+    cat_1_cut_pur = get_eff_pur_values(
+        pd.concat([cat_0_cut, cat_1_cut, cat_3_cut, cat_4_cut, cat_5_cut]), cat_1_cut
+    )
+    cat_2_cut_pur = get_eff_pur_values(
+        pd.concat([cat_2_cut, cat_3_cut, cat_4_cut, cat_5_cut]), cat_2_cut
+    )
+    cat_0_nuel_basic_pur = get_eff_pur_values(
+        pd.concat(
+            [
+                cat_0_nuel_basic,
+                cat_1_nuel_basic,
+                cat_3_nuel_basic,
+                cat_4_nuel_basic,
+                cat_5_nuel_basic,
+            ]
+        ),
+        cat_0_nuel_basic,
+    )
+    cat_1_nuel_basic_pur = get_eff_pur_values(
+        pd.concat(
+            [
+                cat_0_nuel_basic,
+                cat_1_nuel_basic,
+                cat_3_nuel_basic,
+                cat_4_nuel_basic,
+                cat_5_nuel_basic,
+            ]
+        ),
+        cat_1_nuel_basic,
+    )
+    cat_2_nuel_basic_pur = get_eff_pur_values(
+        pd.concat(
+            [cat_2_nuel_basic, cat_3_nuel_basic, cat_4_nuel_basic, cat_5_nuel_basic]
+        ),
+        cat_2_nuel_basic,
+    )
+    cat_0_nuel_pur = get_eff_pur_values(
+        pd.concat([cat_0_nuel, cat_1_nuel, cat_3_nuel, cat_4_nuel, cat_5_nuel]),
+        cat_0_nuel,
+    )
+    cat_1_nuel_pur = get_eff_pur_values(
+        pd.concat([cat_0_nuel, cat_1_nuel, cat_3_nuel, cat_4_nuel, cat_5_nuel]),
+        cat_1_nuel,
+    )
+    cat_2_nuel_pur = get_eff_pur_values(
+        pd.concat([cat_2_nuel, cat_3_nuel, cat_4_nuel, cat_5_nuel]), cat_2_nuel
+    )
+    cat_3_cut_pur = get_eff_pur_values(
+        pd.concat([cat_2_cut, cat_3_cut, cat_4_cut, cat_5_cut]), cat_3_cut
+    )
+    cat_3_numu_pur = get_eff_pur_values(
+        pd.concat([cat_2_numu, cat_3_numu, cat_4_numu, cat_5_numu]), cat_3_numu
+    )
+    print("\nPurs")
+    print("{:.4f} +- {:.4f}".format(cat_0_cut_pur[0], cat_0_cut_pur[1]))
+    print("{:.4f} +- {:.4f}".format(cat_1_cut_pur[0], cat_1_cut_pur[1]))
+    print("{:.4f} +- {:.4f}".format(cat_2_cut_pur[0], cat_2_cut_pur[1]))
+    print("{:.4f} +- {:.4f}".format(cat_0_nuel_basic_pur[0], cat_0_nuel_basic_pur[1]))
+    print("{:.4f} +- {:.4f}".format(cat_1_nuel_basic_pur[0], cat_1_nuel_basic_pur[1]))
+    print("{:.4f} +- {:.4f}".format(cat_2_nuel_basic_pur[0], cat_2_nuel_basic_pur[1]))
+    print("{:.4f} +- {:.4f}".format(cat_0_nuel_pur[0], cat_0_nuel_pur[1]))
+    print("{:.4f} +- {:.4f}".format(cat_1_nuel_pur[0], cat_1_nuel_pur[1]))
+    print("{:.4f} +- {:.4f}".format(cat_2_nuel_pur[0], cat_2_nuel_pur[1]))
+    print("{:.4f} +- {:.4f}".format(cat_3_cut_pur[0], cat_3_cut_pur[1]))
+    print("{:.4f} +- {:.4f}".format(cat_3_numu_pur[0], cat_3_numu_pur[1]))
+
+    # Get the required FOMs
+    cat_2_nuel_fom = cat_2_nuel_eff[0] * cat_2_nuel_pur[0]
+    cat_2_nuel_fom_err = cat_2_nuel_fom * (
+        math.sqrt(
+            (math.pow(cat_2_nuel_eff[1] / cat_2_nuel_eff[0], 2))
+            + (math.pow(cat_2_nuel_pur[1] / cat_2_nuel_pur[0], 2))
+        )
+    )
+    cat_3_numu_fom = cat_3_numu_eff[0] * cat_3_numu_pur[0]
+    cat_3_numu_fom_err = cat_3_numu_fom * (
+        math.sqrt(
+            (math.pow(cat_3_numu_eff[1] / cat_3_numu_eff[0], 2))
+            + (math.pow(cat_3_numu_pur[1] / cat_3_numu_pur[0], 2))
+        )
+    )
+    print("\nFOMs")
+    print("{:.4f} +- {:.4f}".format(cat_2_nuel_fom, cat_2_nuel_fom_err))
+    print("{:.4f} +- {:.4f}".format(cat_3_numu_fom, cat_3_numu_fom_err))
+
+    # Get the plots and return
+    p1 = get_eff_pur_plots(cat_0_total, cat_0_nuel)
+    p2 = get_eff_pur_plots(cat_1_total, cat_1_nuel)
+    p3 = get_eff_pur_plots(cat_3_total, cat_3_nuel)
+    p4 = get_eff_pur_plots(cat_4_total, cat_4_nuel)
+    p5 = get_eff_pur_plots(
+        pd.concat([cat_0_nuel, cat_1_nuel, cat_3_nuel, cat_4_nuel, cat_5_nuel]),
+        cat_0_nuel,
+    )
+
+    p6 = get_eff_pur_plots(cat_0_total, cat_0_numu)
+    p7 = get_eff_pur_plots(cat_1_total, cat_1_numu)
+    p8 = get_eff_pur_plots(cat_3_total, cat_3_numu)
+    p9 = get_eff_pur_plots(cat_4_total, cat_4_numu)
+    p10 = get_eff_pur_plots(
+        pd.concat([cat_2_numu, cat_3_numu, cat_4_numu, cat_5_numu]), cat_3_numu
+    )
+
+    return p1, p2, p3, p4, p5, p6, p7, p8, p9, p10
+
