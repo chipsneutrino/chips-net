@@ -1712,7 +1712,7 @@ def get_eff_pur_values(total_ev, passed_ev):
         return (0.0, 0.0)
 
 
-def get_eff_pur_plots(total_ev, passed_ev, e_bins=20, e_range=(0, 10000)):
+def get_eff_pur_plots(total_ev, passed_ev, nc=None, e_bins=20, e_range=(0, 10000)):
     """Calculate the efficiency/purity plots for a sample of events.
 
     Args:
@@ -1722,20 +1722,23 @@ def get_eff_pur_plots(total_ev, passed_ev, e_bins=20, e_range=(0, 10000)):
     Returns:
         (eff, eff_err): calculated efficiency and error plots
     """
+    total_h = ROOT.TH1D("total_h", "total_h", e_bins, e_range[0], e_range[1])
+    passed_h = ROOT.TH1D("passed_h", "passed_h", e_bins, e_range[0], e_range[1])
+    total_h.FillN(len(total_ev), total_ev["t_nu_energy"].to_numpy(), total_ev["w"].to_numpy())
     try:
-        total_h = ROOT.TH1D("total_h", "total_h", e_bins, e_range[0], e_range[1])
-        passed_h = ROOT.TH1D("passed_h", "passed_h", e_bins, e_range[0], e_range[1])
-        total_h.FillN(len(total_ev), total_ev["t_nu_energy"].to_numpy(), total_ev["w"].to_numpy())
-        passed_h.FillN(len(passed_ev), passed_ev["t_nu_energy"].to_numpy(), passed_ev["w"].to_numpy())
-        eff_h = ROOT.TEfficiency(passed_h, total_h)
-        values, errors = [], []
-        for bin_index in range(e_bins):
-            values.append(eff_h.GetEfficiency(bin_index+1))
-            errors.append(eff_h.GetEfficiencyErrorLow(bin_index+1))
-        del eff_h, total_h, passed_h
-        return (values, errors)
-    except Exception:
-        return (0.0, 0.0)
+        total_h.FillN(len(nc), nc["t_had_energy"].to_numpy(), nc["w"].to_numpy())
+    except Exception as e:
+        print(e)
+        pass
+    passed_h.FillN(len(passed_ev), passed_ev["t_nu_energy"].to_numpy(), passed_ev["w"].to_numpy())
+    eff_h = ROOT.TEfficiency(passed_h, total_h)
+    values, errors = [], []
+    for bin_index in range(e_bins):
+        values.append(eff_h.GetEfficiency(bin_index+1))
+        errors.append(eff_h.GetEfficiencyErrorLow(bin_index+1))
+    del eff_h, total_h, passed_h
+    return (values, errors)
+
 
 
 def print_values(ev, nuel_cut, numu_cut, prefix):
@@ -2130,17 +2133,16 @@ def print_values(ev, nuel_cut, numu_cut, prefix):
     p3 = get_eff_pur_plots(cat_3_total, cat_3_nuel)
     p4 = get_eff_pur_plots(cat_4_total, cat_4_nuel)
     p5 = get_eff_pur_plots(
-        pd.concat([cat_0_nuel, cat_1_nuel, cat_3_nuel, cat_4_nuel, cat_5_nuel]),
-        cat_0_nuel,
+        pd.concat([cat_0_nuel, cat_1_nuel, cat_3_nuel]),
+        cat_0_nuel, nc=cat_4_nuel
     )
-
     p6 = get_eff_pur_plots(cat_0_total, cat_0_numu)
     p7 = get_eff_pur_plots(cat_1_total, cat_1_numu)
     p8 = get_eff_pur_plots(cat_3_total, cat_3_numu)
     p9 = get_eff_pur_plots(cat_4_total, cat_4_numu)
     p10 = get_eff_pur_plots(
-        pd.concat([cat_2_numu, cat_3_numu, cat_4_numu, cat_5_numu]), cat_3_numu
+        pd.concat([cat_0_numu, cat_1_numu, cat_3_numu]), 
+        cat_3_numu, nc=cat_4_numu
     )
-
     return p1, p2, p3, p4, p5, p6, p7, p8, p9, p10
 

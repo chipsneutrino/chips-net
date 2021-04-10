@@ -1086,7 +1086,7 @@ def plot_eff_curves(events, cat, save_path, full=False, leg_pos=None, marker=Non
         )
         axs.plot(
             events[i]["cuts"],
-            events[i]["foms_0"][cat] * 100,
+            events[i]["foms"][cat] * 100,
             color="tab:cyan",
             linestyle=styles[i],
             linewidth=3,
@@ -1206,6 +1206,202 @@ def plot_comp_curves(events, cat, save_path):
     axs[1].grid()
     save(save_path)
 
+    
+def plot_value_nuel_hists(plots, ev, save_path, energy=r"E (GeV)", bin_width=0.5):
+    fig, axs = plt.subplots(1, 1, figsize=(12, 8))
+    bins = np.arange(0.25, 10.25, bin_width)
+    axs.errorbar(
+        bins,
+        np.array(plots[0][0]) * 100,
+        yerr=np.array(plots[0][1]) * 100,
+        color="tab:green",
+        linewidth=2,
+    )
+    axs.errorbar(
+        bins,
+        np.array(plots[1][0]) * 100,
+        yerr=np.array(plots[1][1]) * 100,
+        color="tab:olive",
+        linewidth=2,
+    )
+    axs.errorbar(
+        bins,
+        np.array(plots[2][0]) * 100,
+        yerr=np.array(plots[2][1]) * 100,
+        color="tab:blue",
+        linewidth=2,
+    )
+    axs.errorbar(
+        bins,
+        np.array(plots[3][0]) * 100,
+        yerr=np.array(plots[3][1]) * 100,
+        color="tab:red",
+        linewidth=2,
+    )
+    axs.errorbar(
+        bins,
+        np.array(plots[4][0]) * 100,
+        yerr=np.array(plots[4][1]) * 100,
+        color="black",
+        linewidth=2,
+    )
+    axs.hist(
+        ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 1)]["t_nu_energy"] / 1000,
+        range=(0, 10),
+        bins=20,
+        color="tab:green",
+        density=False,
+        alpha=0.3,
+        weights=ev[(ev["t_comb_cat"] == 0) & (ev["t_sample_type"] == 1)]["w"] * 6,
+    )
+    axs.set_xlabel(energy, fontsize=30)
+    axs.set_ylabel("Metric (\%)", fontsize=30)
+    axs.set_ylim([0, 100])
+    axs.set_xlim([0.5, 10])
+    axs.grid()
+    nuel = Line2D(
+        [0],
+        [0],
+        color="tab:olive",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Beam CC $\nu_{e}$ efficiency",
+    )
+    osc_nuel = Line2D(
+        [0],
+        [0],
+        color="tab:green",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Appeared CC $\nu_{e}$ efficiency",
+    )
+    numu = Line2D(
+        [0],
+        [0],
+        color="tab:blue",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Survived CC $\nu_{\mu}$ efficiency",
+    )
+    nc = Line2D(
+        [0],
+        [0],
+        color="tab:red",
+        linewidth=2,
+        linestyle="solid",
+        label=r"NC efficiency",
+    )
+    purity = Line2D(
+        [0],
+        [0],
+        color="black",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Appeared CC $\nu_{e}$ purity",
+    )
+    axs.legend(
+        handles=[osc_nuel, numu, nuel, nc, purity], loc="center right", fontsize=24
+    )
+    save(save_path)
+    
+    
+def plot_value_numu_hists(plots, ev, save_path, energy=r"E (GeV)", bin_width=0.5):
+    fig, axs = plt.subplots(1, 1, figsize=(12, 8))
+    bins = np.arange(0.25, 10.25, bin_width)
+    axs.errorbar(
+        bins,
+        np.array(plots[0][0]) * 100,
+        yerr=np.array(plots[0][1]) * 100,
+        color="tab:green",
+        linewidth=2,
+    )
+    axs.errorbar(
+        bins,
+        np.array(plots[1][0]) * 100,
+        yerr=np.array(plots[1][1]) * 100,
+        color="tab:olive",
+        linewidth=2,
+    )
+    axs.errorbar(
+        bins,
+        np.array(plots[2][0]) * 100,
+        yerr=np.array(plots[2][1]) * 100,
+        color="tab:blue",
+        linewidth=2,
+    )
+    axs.errorbar(
+        bins,
+        np.array(plots[3][0]) * 100,
+        yerr=np.array(plots[3][1]) * 100,
+        color="tab:red",
+        linewidth=2,
+    )
+    axs.errorbar(
+        bins,
+        np.array(plots[4][0]) * 100,
+        yerr=np.array(plots[4][1]) * 100,
+        color="black",
+        linewidth=2,
+    )
+    axs.hist(
+        ev[ev["t_comb_cat"] == 1]["t_nu_energy"] / 1000,
+        range=(0, 10),
+        bins=20,
+        color="tab:blue",
+        density=False,
+        alpha=0.3,
+        weights=ev[ev["t_comb_cat"] == 1]["w"] * 0.15,
+    )
+    axs.set_xlabel(energy, fontsize=30)
+    axs.set_ylabel("Metric (\%)", fontsize=30)
+    axs.set_ylim([0, 100])
+    axs.set_xlim([0.5, 10])
+    axs.grid()
+    nuel = Line2D(
+        [0],
+        [0],
+        color="tab:olive",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Beam CC $\nu_{e}$ efficiency",
+    )
+    osc_nuel = Line2D(
+        [0],
+        [0],
+        color="tab:green",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Appeared CC $\nu_{e}$ efficiency",
+    )
+    numu = Line2D(
+        [0],
+        [0],
+        color="tab:blue",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Survived CC $\nu_{\mu}$ efficiency",
+    )
+    nc = Line2D(
+        [0],
+        [0],
+        color="tab:red",
+        linewidth=2,
+        linestyle="solid",
+        label=r"NC efficiency",
+    )
+    purity = Line2D(
+        [0],
+        [0],
+        color="black",
+        linewidth=2,
+        linestyle="solid",
+        label=r"Survived CC $\nu_{\mu}$ purity",
+    )
+    axs.legend(
+        handles=[osc_nuel, numu, nuel, nc, purity], loc="center right", fontsize=24
+    )
+    save(save_path) 
+    
 
 def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)", bin_width=0.5):
     """Plot the eff and pur plot vs neutrino energy.

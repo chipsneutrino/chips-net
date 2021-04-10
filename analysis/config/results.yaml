@@ -22,7 +22,7 @@ model:
     precision_policy: "mixed_float16"
     summarise: False
 eval:
-    examples: 1024000
+    examples: 1024000 #1024000, 64000
     cuts:
         cosmic:  0.0001      # Cosmic classifier cut
         q:       250.0       # r_total_digi_q cut
