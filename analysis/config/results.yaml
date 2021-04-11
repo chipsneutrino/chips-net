@@ -232,7 +232,6 @@ samples:
             - "./inputs/chips_1200/anumu_all_anumuflux/"
             - "./inputs/chips_1200/anuel_all_anuelflux/"
             - "./inputs/chips_1200/nuel_all_numuflux/"
-            - "./inputs/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
@@ -248,7 +247,6 @@ samples:
             - "./inputs/chips_1200/anumu_all_anumuflux/"
             - "./inputs/chips_1200/anuel_all_anuelflux/"
             - "./inputs/chips_1200/nuel_all_numuflux/"
-            - "./inputs/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
@@ -264,7 +262,6 @@ samples:
             - "./inputs/chips_1200/anumu_all_anumuflux/"
             - "./inputs/chips_1200/anuel_all_anuelflux/"
             - "./inputs/chips_1200/nuel_all_numuflux/"
-            - "./inputs/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
@@ -280,7 +277,6 @@ samples:
             - "./inputs/chips_1200/anumu_all_anumuflux/"
             - "./inputs/chips_1200/anuel_all_anuelflux/"
             - "./inputs/chips_1200/nuel_all_numuflux/"
-            - "./inputs/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
@@ -296,7 +292,6 @@ samples:
             - "./inputs/chips_1200/anumu_all_anumuflux/"
             - "./inputs/chips_1200/anuel_all_anuelflux/"
             - "./inputs/chips_1200/nuel_all_numuflux/"
-            - "./inputs/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.2, 0.0, 0.2]
@@ -312,7 +307,6 @@ samples:
             - "./inputs/chips_1200/anumu_all_anumuflux/"
             - "./inputs/chips_1200/anuel_all_anuelflux/"
             - "./inputs/chips_1200/nuel_all_numuflux/"
-            - "./inputs/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.4, 0.0, 0.4]
@@ -328,7 +322,6 @@ samples:
             - "./inputs/chips_1200/anumu_all_anumuflux/"
             - "./inputs/chips_1200/anuel_all_anuelflux/"
             - "./inputs/chips_1200/nuel_all_numuflux/"
-            - "./inputs/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]
@@ -344,7 +337,6 @@ samples:
             - "./inputs/chips_1200/anumu_all_anumuflux/"
             - "./inputs/chips_1200/anuel_all_anuelflux/"
             - "./inputs/chips_1200/nuel_all_numuflux/"
-            - "./inputs/chips_1200/cosmics/"
         channels: [1, 1, 1]
         augment: True
         aug_factor_mean: [0.0, 0.0, 0.0]

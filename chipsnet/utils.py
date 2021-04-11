@@ -28,6 +28,7 @@ from tf_explain.core.gradients_inputs import GradientsInputs
 from scipy.optimize import curve_fit
 import uproot
 import ROOT
+from scipy.signal import chirp, find_peaks, peak_widths
 
 ROOT.gErrorIgnoreLevel = ROOT.kWarning + 2
 
@@ -1573,7 +1574,7 @@ def frac_e_vs_par(
         try:
             subset = events[(events[par] >= cut) & (events[par] <= (cut + bin_size))]
             n, bins = np.histogram(
-                subset[fit_name], bins=50, range=(-1, 1), weights=subset["w"]
+                subset[fit_name], bins=100, range=(-1, 1), weights=subset["w"]
             )
             centers = 0.5 * (bins[1:] + bins[:-1])
             pars, cov = curve_fit(
@@ -1734,11 +1735,10 @@ def get_eff_pur_plots(total_ev, passed_ev, nc=None, e_bins=20, e_range=(0, 10000
     eff_h = ROOT.TEfficiency(passed_h, total_h)
     values, errors = [], []
     for bin_index in range(e_bins):
-        values.append(eff_h.GetEfficiency(bin_index+1))
-        errors.append(eff_h.GetEfficiencyErrorLow(bin_index+1))
+        values.append(eff_h.GetEfficiency(bin_index + 1))
+        errors.append(eff_h.GetEfficiencyErrorLow(bin_index + 1))
     del eff_h, total_h, passed_h
     return (values, errors)
-
 
 
 def print_values(ev, nuel_cut, numu_cut, prefix):
