@@ -754,12 +754,12 @@ def apply_weights(
 
 def apply_cuts(
     events,
-    cosmic_cut=0.001,
-    q_cut=600.0,
-    h_cut=600.0,
-    theta_cut=0.65,
-    phi_cut=0.25,
-    escapes_cut=0.5,
+    cosmic_cut=0.0001,
+    q_cut=250.0,
+    h_cut=250.0,
+    theta_cut=0.7,
+    phi_cut=0.35,
+    escapes_cut=0.33,
     verbose=False,
 ):
     """Calculate and apply the standard cuts to the events dataframe.

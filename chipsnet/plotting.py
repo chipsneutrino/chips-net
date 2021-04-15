@@ -1001,9 +1001,9 @@ def plot_escapes_values(events, prefix, save_path):
         histtype="step",
         linewidth=2,
     )
-    axs.plot([0.5, 0.5], [10e-3, 5e0], "k-", lw=3, color="black")
+    axs.plot([0.33, 0.33], [10e-3, 5e0], "k-", lw=3, color="black")
     axs.arrow(
-        0.5,
+        0.33,
         5e0,
         -0.05,
         0,

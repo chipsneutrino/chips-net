@@ -29,7 +29,7 @@ eval:
         h:       250.0       # r_first_ring_height cut
         theta:   0.7         # r_dirTheta cut
         phi:     0.35        # r_dirPhi cut
-        escapes: 0.5         # Escapes classifier cut
+        escapes: 0.33         # Escapes classifier cut
     weights:  # for the chips_1200 detector
         osc_file_name: "./inputs/oscillations/matter_osc_cp_zero.root"
         nuel:   0.00001845046927
