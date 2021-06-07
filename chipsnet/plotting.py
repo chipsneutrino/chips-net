@@ -231,49 +231,55 @@ def plot_8bit_range(
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
     occurrences_0 = np.count_nonzero(hist_data == 255) / len(hist_data)
+    (counts, bins) = np.histogram(hist_data, bins=range(256), range=(0, 255))
+    factor = 1 / len(hist_data)
     axs.hist(
-        hist_data,
+        bins[:-1],
         range=(0, 256),
         bins=256,
         color="tab:green",
         histtype="step",
         linewidth=2,
-        density=True,
+        weights=factor * counts,
     )
     hist_data = []
     for event in images_dict["r_time_map_vtx"]:
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
     occurrences_1 = np.count_nonzero(hist_data == 255) / len(hist_data)
+    (counts, bins) = np.histogram(hist_data, bins=range(256), range=(0, 255))
+    factor = 1 / len(hist_data)
     axs.hist(
-        hist_data,
+        bins[:-1],
         range=(0, 256),
         bins=256,
         color="tab:blue",
         histtype="step",
         linewidth=2,
-        density=True,
+        weights=factor * counts,
     )
     hist_data = []
     for event in images_dict["r_hough_map_vtx"]:
         hist_data.append(event.reshape(4096))
     hist_data = np.concatenate(hist_data, axis=0)
     occurrences_2 = np.count_nonzero(hist_data == 255) / len(hist_data)
+    (counts, bins) = np.histogram(hist_data, bins=range(256), range=(0, 255))
+    factor = 1 / len(hist_data)
     axs.hist(
-        hist_data,
+        bins[:-1],
         range=(0, 256),
         bins=256,
         color="tab:red",
         histtype="step",
         linewidth=2,
-        density=True,
+        weights=factor * counts,
     )
     print("[0,{}], outside range: {:.4f}".format(max_charge, occurrences_0))
     print("[0,{}], outside range: {:.4f}".format(max_time, occurrences_1))
     print("[0,{}], outside range: {:.4f}".format(max_hough, occurrences_2))
 
     axs.set_xlabel(r"8-bit value", fontsize=30)
-    axs.set_ylabel(r"Frequency (arb.)", fontsize=30)
+    axs.set_ylabel(r"Fraction of Encoded Values", fontsize=30)
     axs.set_xlim(-5, 260)
     # axs.set_ylim(0, 0.08)
     axs.set_yscale("log")
@@ -1206,8 +1212,15 @@ def plot_comp_curves(events, cat, save_path):
     axs[1].grid()
     save(save_path)
 
-    
+
 def plot_value_nuel_hists(plots, ev, save_path, energy=r"E (GeV)", bin_width=0.5):
+    """Plot the eff and pur plot vs neutrino energy.
+
+    Args:
+        events (dict): events output
+        ev (pd.DataFrame): events DataFrame
+        save_path (str): path to save plot to
+    """
     fig, axs = plt.subplots(1, 1, figsize=(12, 8))
     bins = np.arange(0.25, 10.25, bin_width)
     axs.errorbar(
@@ -1303,9 +1316,16 @@ def plot_value_nuel_hists(plots, ev, save_path, energy=r"E (GeV)", bin_width=0.5
         handles=[osc_nuel, numu, nuel, nc, purity], loc="center right", fontsize=24
     )
     save(save_path)
-    
-    
+
+
 def plot_value_numu_hists(plots, ev, save_path, energy=r"E (GeV)", bin_width=0.5):
+    """Plot the eff and pur plot vs neutrino energy.
+
+    Args:
+        events (dict): events output
+        ev (pd.DataFrame): events DataFrame
+        save_path (str): path to save plot to
+    """
     fig, axs = plt.subplots(1, 1, figsize=(12, 8))
     bins = np.arange(0.25, 10.25, bin_width)
     axs.errorbar(
@@ -1400,8 +1420,8 @@ def plot_value_numu_hists(plots, ev, save_path, energy=r"E (GeV)", bin_width=0.5
     axs.legend(
         handles=[osc_nuel, numu, nuel, nc, purity], loc="center right", fontsize=24
     )
-    save(save_path) 
-    
+    save(save_path)
+
 
 def plot_nuel_hists(events, ev, save_path, energy=r"E (GeV)", bin_width=0.5):
     """Plot the eff and pur plot vs neutrino energy.
